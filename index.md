@@ -20,9 +20,9 @@ This page introduces the core concepts of Eve:
 - [Modular](#modular)
 - [Open source](#opensource)
 
-[<img src="/img/eve_overview_small.png" 
+[<img src="img/eve_overview_small.png" 
   style="margin-top: 30px;" 
-  title="Click for a larger view">](/img/eve_overview.png)
+  title="Click for a larger view">](img/eve_overview.png)
 
 ## Web-based, decentral, and scalable {#scalable}
 
