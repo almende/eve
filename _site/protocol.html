@@ -1,0 +1,197 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Eve - Communication protocol </title>
+  <link rel="shortcut icon" href="/img/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="/css/style.css"> 
+  
+  <script type="text/javascript" src="/js/smoothscroll.js"></script>
+</head>
+
+<body>
+
+<a href="https://github.com/almende/eve" style="position: fixed; top: 0; right: 0; border: 0;" >
+  <img 
+    src="/img/forkme_right_darkblue_121621.png" 
+    alt="Fork me on GitHub" />
+</a>
+  
+<div id="container">
+
+<div id="menu">
+<div id="menu-inner">
+
+<a href="http://almende.github.com/eve"><img src="/img/logo/eve128.png" alt="logo"></a>
+<br>
+
+<div class="nav">
+<ul>
+  <li>
+    Eve
+    <ul>
+      <li><a class="nav" href="/index.html">Introduction</a></li>
+      <li><a class="nav" href="/protocol.html">Protocol</a></li>
+    </ul>
+  </li>
+
+  <li>
+    Java
+    <ul>
+      <li><a class="nav" href="/java/index.html">Overview</a></li>
+      <li><a class="nav" href="/java/gettingstarted.html">Getting Started</a></li>
+      <li><a class="nav" href="/java/examples.html">Examples</a></li>
+      <!-- TODO
+      <li><a class="nav" href="/java/downloads.html">Downloads</a></li>
+      -->
+    </ul>
+  </li>
+
+  <li>
+    Node.js
+    <ul>
+      <li><a class="nav" href="/nodejs/index.html">Overview</a></li>
+    </ul>    
+  </li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<div id="contents">
+  <h1 id='communication_protocol'>Communication Protocol</h1>
+
+<p>Each Eve agent has its own, unique url. The agents communicate via regular HTTP POST requests, using the JSON-RPC protocol. This is a simple and readable protocol, using JSON to format requests and responses. <a href='http://www.json.org/'>JSON</a> (JavaScript Object Notation) is a lightweight, flexible data-interchange format. It is easy for humans to read and write, and easy for machines to parse and generate.</p>
+
+<h2 id='jsonrpc'>JSON-RPC</h2>
+
+<p>JSON-RPC is implemented in two ways:</p>
+
+<ul>
+<li><strong>Synchronous</strong><br />Agent X performs an HTTP POST request to agent Y, which returns the results in the response. This can cause timeout issues, especially when the request causes new, nested requests to other agents.</li>
+
+<li><strong>Asynchronous</strong><br />Agent X performs an HTTP POST request to agent Y. Agent Y does not respond, but schedules the request in its task queue. When after the task is executed, agent Y performs an HTTP request to agent X containing the response.</li>
+</ul>
+
+<p>Note that only JSON-RPC 2.0 is supported. In JSON-RPC 2.0, method parameters are defined as an object with <em>named</em> parameters, unlike JSON-RPC 1.0 where method parameters are defined as an array with <em>unnamed</em> parameters, which is much more ambiguous.</p>
+<!--
+[Click here](json_rpc.html) to try JSON-RPC yourself in your browser.
+-->
+<h2 id='synchronous_communication'>Synchronous communication</h2>
+
+<p>A regular request from Agent X to agent Y can look like this. Agent X addresses method &#8220;add&#8221; from agent Y, and provides two values as parameters. Agent Y executes the method with the provided parameters, and returns the result.</p>
+<table class='example' summary='Synchronous request'>
+<tr>
+<th class='example'>Url</th><td class='example'><pre class='example'>http://myserver.com/agent/Y</pre></td>
+</tr>
+<tr>
+<th class='example'>Request</th><td class='example'><pre class='example'>{
+  "id": 1,
+  "method": "add",
+  "params": {
+    "a": 2.2, 
+    "b": 4.5
+  }
+}</pre></td>
+</tr>
+<tr>
+<th class='example'>Response</th><td class='example'><pre class='example'>{
+  "id": 1,
+  "result": 6.7,
+  "error": null
+}</pre></td>
+</tr>
+</table>
+<h2 id='asynchronous_communication'>Asynchronous communication</h2>
+
+<p>Agent X performs a request to agent Y. It calls method &#8220;add&#8221; and provides two values as parameters. Agent X also provides a callback url and method. When agent Y receives teh request, it does not execute the requested method imediately, but puts the request in its task queue and returns nothing.</p>
+<table class='example' summary='Asynchronous request 1/2'>
+<tr>
+<th class='example'>Url</th><td class='example'><pre class='example'>http://myserver.com/agent/Y</pre></td>
+</tr>
+<tr>
+<th class='example'>Request</th><td class='example'><pre class='example'>{ 
+  "id": 1,
+  "method": "add",
+  "params": {
+    "a": 2.2, 
+    "b": 4.5
+  },
+  "callback": {
+    "url": "http://myserver.com/agentX",
+    "method": "addCallback"
+  }
+}</pre></td>
+</tr>
+<tr>
+<th class='example'>Response</th><td class='example'><pre class='example'>{
+  "id": 1,
+  "result": null,
+  "error": null
+}</pre></td>
+</tr>
+</table>
+<p>Because agent X is not waiting for the response with the result, there is no problem when execution of the method takes a long time. As soon as agent Y has executed the task from the queue, it returns the result via a new request, adressing the callback url and method of agent X:</p>
+<table class='example' summary='Asynchronous request 2/2'>
+<tr>
+<th class='example'>Url</th><td class='example'><pre class='example'>http://myserver.com/agent/X</pre></td>
+</tr>
+<tr>
+<th class='example'>Request</th><td class='example'><pre class='example'>{
+  "id": 1,
+  "method": "addCallback",
+  "params": {
+    "result: 6.7,
+    "error": null
+  }
+}</pre></td>
+</tr>
+<tr>
+<th class='example'>Response</th><td class='example'><pre class='example'>{
+  "id": 1,
+  "result": null,
+  "error": null
+}</pre></td>
+</tr>
+</table><!-- TODO: describe authentication
+
+## Authentication
+
+To send an authentication token with a request, an HTTP Header "Authorization" 
+must be provided with the HTTP POST request. The value of this header must 
+start with "AgentLogin", followed by a space and a valid
+authentication token.
+The HTTP header typically looks like this:
+
+    Content-Type: application/json
+    **Authorization: AgentLogin 93cd3a24-f429-4bf9-a7d5-ad3a2a3ad227**
+
+
+Agents automatically send the correct authentication token when making a
+request to another agent, when they have a valid authentication token for this 
+agent.
+-->
+<h2 id='documentation'>Documentation</h2>
+
+<p>Documentation on the JSON-RPC protocol can be found via the following links:</p>
+
+<ul>
+<li><a href='http://www.json.org'>http://www.json.org</a></li>
+
+<li><a href='http://json-rpc.org'>http://json-rpc.org</a></li>
+
+<li><a href='http://jsonrpc.org'>http://jsonrpc.org</a></li>
+
+<li><a href='http://en.wikipedia.org/wiki/Json'>http://en.wikipedia.org/wiki/Json</a></li>
+
+<li><a href='http://en.wikipedia.org/wiki/JSON_RPC'>http://en.wikipedia.org/wiki/JSON_RPC</a></li>
+</ul>
+  
+  <div class="lastupdate">
+  Last updated: 14 March 2012
+  </div>
+</div>
+
+</div>
+</body>
+</html>

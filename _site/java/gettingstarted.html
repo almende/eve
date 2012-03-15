@@ -1,0 +1,269 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Eve - Getting Started </title>
+  <link rel="shortcut icon" href="/img/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="/css/style.css"> 
+  
+  <script type="text/javascript" src="/js/smoothscroll.js"></script>
+</head>
+
+<body>
+
+<a href="https://github.com/almende/eve" style="position: fixed; top: 0; right: 0; border: 0;" >
+  <img 
+    src="/img/forkme_right_darkblue_121621.png" 
+    alt="Fork me on GitHub" />
+</a>
+  
+<div id="container">
+
+<div id="menu">
+<div id="menu-inner">
+
+<a href="http://almende.github.com/eve"><img src="/img/logo/eve128.png" alt="logo"></a>
+<br>
+
+<div class="nav">
+<ul>
+  <li>
+    Eve
+    <ul>
+      <li><a class="nav" href="/index.html">Introduction</a></li>
+      <li><a class="nav" href="/protocol.html">Protocol</a></li>
+    </ul>
+  </li>
+
+  <li>
+    Java
+    <ul>
+      <li><a class="nav" href="/java/index.html">Overview</a></li>
+      <li><a class="nav" href="/java/gettingstarted.html">Getting Started</a></li>
+      <li><a class="nav" href="/java/examples.html">Examples</a></li>
+      <!-- TODO
+      <li><a class="nav" href="/java/downloads.html">Downloads</a></li>
+      -->
+    </ul>
+  </li>
+
+  <li>
+    Node.js
+    <ul>
+      <li><a class="nav" href="/nodejs/index.html">Overview</a></li>
+    </ul>    
+  </li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<div id="contents">
+  <h1 id='getting_started'>Getting Started</h1>
+
+<p>With the provided Java library you can easily integrate the Eve agent platform in your Java project. This tutorial contains the following steps:</p>
+
+<ul>
+<li><a href='#prerequisites'>Prerequisites</a></li>
+
+<li><a href='#project_setup'>Project Setup</a></li>
+
+<li><a href='#usage'>Usage</a></li>
+
+<li><a href='#create_your_own_agent'>Create your own agent</a></li>
+</ul>
+
+<h2 id='prerequisites'>Prerequisites</h2>
+
+<ul>
+<li>
+<p>This tutorial assumes that you are using <a href='http://www.eclipse.org/helios/'>Eclipse Helios (3.6)</a>.</p>
+</li>
+
+<li>
+<p>In Eclipse, you must have installed the <a href='http://download.eclipse.org/webtools/repository/helios/'>Web Tools Platform</a> plugin.</p>
+</li>
+
+<li>
+<p>In Eclipse, you must have configured a <a href='http://tomcat.apache.org/'>Tomcat server</a>.</p>
+</li>
+</ul>
+
+<h2 id='project_setup'>Project Setup</h2>
+
+<ul>
+<li>
+<p>Create a new Dynamic Web Project in Eclipse via menu New, Other, Dynamic Web Project. Select a project name and a package name, for example &#8220;MyEveProject&#8221;. Click Next twice. Then, enter &#8220;war&#8221; as Content Directory (instead of the default &#8220;WebContent&#8221;), and check the checkbox &#8220;Generate web.xml deployment descriptor&#8221;.</p>
+</li>
+
+<li>
+<p>Download the following jar files, and store them in your Eclipse project in the folder war/WEB-INF/lib.</p>
+
+<ul>
+<li>jakarta commons-lang 2.5</li>
+
+<li>jakarta commons-beanutils 1.8.0</li>
+
+<li>jakarta commons-collections 3.2.1</li>
+
+<li>jakarta commons-logging 1.1.1</li>
+
+<li>ezmorph 1.0.6</li>
+
+<li>json-lib-2.4-jdk15.jar</li>
+
+<li>eve-core.jar</li>
+</ul>
+</li>
+
+<li>
+<p>In Eclipse, go to menu Project, Properties, Java Build Path. Go to the tab Libraries, and click Add Jars. Select the downloaded jar files and click Ok.</p>
+</li>
+
+<li>
+<p>Now, we need to configure a web-servlet to host our agents. Open the file web.xml under war/WEB-INF. Insert the following lines inside the &#60;web-app&#62; tag: <pre><code>&lt;servlet&gt;
+  &lt;servlet-name&gt;MultiAgentServlet&lt;/servlet-name&gt;
+  &lt;servlet-class&gt;eve.servlet.MultiAgentServlet&lt;/servlet-class&gt;
+  &lt;init-param&gt;
+    &lt;description&gt;The agent classes served by the servlet&lt;/description&gt; 
+    &lt;param-name&gt;agents&lt;/param-name&gt;
+    &lt;param-value&gt;
+      eve.agent.TestAgent;        
+      eve.agent.EchoAgent;
+    &lt;/param-value&gt;
+  &lt;/init-param&gt;   
+  &lt;init-param&gt;
+    &lt;description&gt;The context for reading/writing persistent data&lt;/description&gt; 
+    &lt;param-name&gt;context&lt;/param-name&gt;
+    &lt;param-value&gt;eve.agent.context.SimpleContext&lt;/param-value&gt;
+  &lt;/init-param&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+  &lt;servlet-name&gt;MultiAgentServlet&lt;/servlet-name&gt;
+  &lt;url-pattern&gt;/agents/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</code></pre></p>
+<!-- TODO: explain the configuration parameters --></li>
+</ul>
+
+<h2 id='usage'>Usage</h2>
+
+<p>Now the project can be started.</p>
+
+<ul>
+<li>
+<p>Start the project via menu Run, Run As, Run on Server.</p>
+</li>
+
+<li>
+<p>To verify if the AgentsServlet of Eve is running, open your browser and go to http://localhost:8080/MyEveProject/agents/. This should give a response <em>&#8220;Error: POST request containing a JSON-RPC message expected&#8221;</em>.</p>
+</li>
+
+<li>
+<p>Agents can be accessed via an HTTP POST message. The url defines the location of the agent and looks like http://server/context/agents/agentclass/agentid. The body of the post message must contain an JSON-RPC message.</p>
+
+<p>For example, perform an HTTP POST request to the url <pre><code>http://localhost:8080/MyEveProject/agents/echoagent/1234</code></pre></p>
+
+<p>And with request body: <pre><code>{
+  "id":1, 
+  "method": "ping",
+  "params": {
+    "message": "hello world"
+  }
+}</code></pre></p>
+
+<p>This request will return the following response: <pre><code>{
+  "jsonrpc": "2.0",
+  "id":1,
+  "result": "hello world"
+}</code></pre></p>
+</li>
+</ul>
+
+<h2 id='create_your_own_agent'>Create your own agent</h2>
+
+<p>Now, what you want of course is create your own agents. This is quite easy: create a java class which extends from the base class Agent, and register your agent class in the eve.properties file.</p>
+
+<ul>
+<li>
+<p>Create a new java class named MyFirstAgent under com.myproject.server with the following contents:</p>
+<pre><code>package com.myproject;
+
+import eve.agent.Agent;
+import eve.json.annotation.ParameterName;
+
+public class MyFirstAgent extends Agent {
+    public String echo (@ParameterName("message") String message) {
+        return message;	
+    }
+
+    public double add (@ParameterName("a") double a, 
+            @ParameterName("b") double b) {
+        return a + b;	
+    }
+
+    @Override
+    public String getDescription() {
+        return "My first agent";
+    }
+
+    @Override
+    public String getVersion() {
+        return "0.1";
+    }
+}
+</code></pre>
+<p>Each agent must contain at least two default methods: getDescription and getVersion. Next, you can add your own methods, in this example the methods echo and add.</p>
+</li>
+
+<li>
+<p>In order to make this agent available, we have to add its class name to the configuration of the web servlet in the file web.xml, located under war/WEB-INF. Add the full classname (com.myproject.MyFirstAgent) to the list with agents in the init parameter <em>agents</em>. Class names must be separated by a semicolon. <pre><code>...
+&lt;init-param&gt;
+  &lt;description&gt;The agent classes served by the servlet&lt;/description&gt; 
+  &lt;param-name&gt;agents&lt;/param-name&gt;
+  &lt;param-value&gt;
+    eve.agent.TestAgent;        
+    eve.agent.EchoAgent;
+    <b>com.myproject.MyFirstAgent;</b>
+  &lt;/param-value&gt;
+&lt;/init-param&gt;     
+...
+</code></pre></p>
+</li>
+
+<li>
+<p>Now you can (re)start the server, and in your browser go to the following url: http://localhost:8080/MyEveProject/agents/MyFirstAgent/1234. Now you can enter JSON-RPC requests like: <pre><code>{
+  "id": 1, 
+  "method": "echo", 
+  "params": {
+    "message": "Hello World"
+  }
+}</code></pre> which returns: <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "Hello World"
+}</code></pre></p>
+
+<p>or send the following request: <pre><code>{
+  "id": 1, 
+  "method": "add", 
+  "params": {
+    "a": 2.1, 
+    "b": 3.5
+  }
+}</code></pre> which returns: <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": 5.6
+}</code></pre></p>
+</li>
+</ul>
+  
+  <div class="lastupdate">
+  Last updated: 14 March 2012
+  </div>
+</div>
+
+</div>
+</body>
+</html>

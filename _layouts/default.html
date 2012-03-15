@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Eve - {{ page.title }} </title>
+  <link rel="shortcut icon" href="/img/favicon.ico" />
+  <link type="text/css" rel="stylesheet" href="/css/style.css"> 
+  
+  <script type="text/javascript" src="/js/smoothscroll.js"></script>
+</head>
+
+<body>
+
+<a href="https://github.com/almende/eve" style="position: fixed; top: 0; right: 0; border: 0;" >
+  <img 
+    src="/img/forkme_right_darkblue_121621.png" 
+    alt="Fork me on GitHub" />
+</a>
+  
+<div id="container">
+
+<div id="menu">
+<div id="menu-inner">
+
+<a href="http://almende.github.com/eve"><img src="/img/logo/eve128.png" alt="logo"></a>
+<br>
+
+<div class="nav">
+<ul>
+  <li>
+    Eve
+    <ul>
+      <li><a class="nav" href="/index.html">Introduction</a></li>
+      <li><a class="nav" href="/protocol.html">Protocol</a></li>
+    </ul>
+  </li>
+
+  <li>
+    Java
+    <ul>
+      <li><a class="nav" href="/java/index.html">Overview</a></li>
+      <li><a class="nav" href="/java/gettingstarted.html">Getting Started</a></li>
+      <li><a class="nav" href="/java/examples.html">Examples</a></li>
+      <!-- TODO
+      <li><a class="nav" href="/java/downloads.html">Downloads</a></li>
+      -->
+    </ul>
+  </li>
+
+  <li>
+    Node.js
+    <ul>
+      <li><a class="nav" href="/nodejs/index.html">Overview</a></li>
+    </ul>    
+  </li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<div id="contents">
+  {{ content }}
+  
+  <div class="lastupdate">
+  Last updated: {{ site.time | date_to_long_string }}
+  </div>
+</div>
+
+</div>
+</body>
+</html>
