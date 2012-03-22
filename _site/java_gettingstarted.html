@@ -2,10 +2,14 @@
 <html>
 <head>
   <title>Eve - Getting Started </title>
-  <link rel="shortcut icon" href="/img/favicon.ico" />
+  <link rel="shortcut icon" href="img/favicon.ico" >
   <link type="text/css" rel="stylesheet" href="css/style.css"> 
   
-  <script type="text/javascript" src="js/smoothscroll.js"></script>
+  <meta name="title" content="Eve - Getting Started">   
+  <meta name="keywords" content="eve, agent, software agent, software agents, agent platform, scalable, multiplatform, multipurpose, web based, cloud, http, json, json-rpc, opensource, open source" >
+  <meta name="description" content="Eve is a multipurpose, web based agent platform. The project aims to develop an open protocol for communication between software agents. Eve is designed as a decentral, scalable system for autonomously acting agents. Eve uses the existing world wide web as platform, and uses existing protocols for data exchange (HTTP) and for messaging (JSON-RPC)." >
+  <meta name="author" content="Almende B.V." >
+
 </head>
 
 <body>
@@ -13,7 +17,7 @@
 <a href="https://github.com/almende/eve" style="position: fixed; top: 0; right: 0; border: 0;" >
   <img 
     src="img/forkme_right_darkblue_121621.png" 
-    alt="Fork me on GitHub" />
+    alt="Fork me on GitHub" >
 </a>
   
 <div id="container">
@@ -58,10 +62,276 @@
 <div id="contents">
   <h1 id='getting_started'>Getting Started</h1>
 
-<p>Coming soon&#8230;</p>
+<p>The Eve agent platform can be easily integrated in an existing Java project useing the provided libraries. Eve provides various libaries to deploy agents on different platforms, with different storage facilities. The agents can for example be deployed on a regular Tomcat server that you host yourself, or on Google App Engine in the cloud.</p>
+
+<p>This tutorial shows how to create a an application with your own agent, and deploy it on Google App Engine, as it is easy to get started with Google App Engine, and it is easy to really deploy your project into the cloud. Googles Datastore is used for persistency. Creating a project for another type of deployment is similar, you basically just have to include the Eve libraries and configure a web servlet.</p>
+
+<p>The tutorial contains the following steps:</p>
+
+<ul>
+<li><a href='#prerequisites'>Prerequisites</a></li>
+
+<li><a href='#project_setup'>Project Setup</a></li>
+
+<li><a href='#usage'>Usage</a></li>
+
+<li><a href='#create_your_own_agent'>Create your own agent</a></li>
+
+<li><a href='#deployment'>Deployment</a></li>
+</ul>
+
+<h2 id='prerequisites'>Prerequisites</h2>
+
+<p>This tutorial uses Eclipse and the Google Web Toolkit plugin.</p>
+
+<ul>
+<li>
+<p>Download and unzip <a href='http://www.eclipse.org/helios/'>Eclipse Helios (3.6)</a>. On the site, click Download Helios, Eclipse IDE for Java Developers. Then select the correct zip file for your system and download it. Unzip it somewhere on your computer and start Eclipse. Note that you need to have a Java SDK installed on your computer.</p>
+</li>
+
+<li>
+<p>In Eclipse install the <a href='http://code.google.com/webtoolkit/'>Google Web Toolkit</a> plugin. Go to menu Help, Install New Software&#8230; Click Add to add a new software source, and enter name &#8220;Google Web Toolkit&#8221; and location <a href='http://dl.google.com/eclipse/plugin/3.6'>http://dl.google.com/eclipse/plugin/3.6</a>. Click Ok. Then, select and install &#8220;Google Plugin for Eclipse&#8221; and &#8220;SDKs&#8221;.</p>
+</li>
+</ul>
+
+<p>Note that for a typical java web application you will need the <a href='http://download.eclipse.org/webtools/repository/helios/'>Web Tools Platform plugin</a> and a <a href='http://tomcat.apache.org/'>Tomcat server</a>.</p>
+
+<h2 id='project_setup'>Project Setup</h2>
+
+<p>We will create a new project, add the required libraries, and configure a web servlet.</p>
+
+<ul>
+<li>
+<p>Create a new GWT project in Eclipse via menu New, Project, Google, Web Application Project. Select a project name and a package name, for example &#8220;MyEveProject&#8221; and &#8220;com.mycompany.myproject&#8221;. Unselect the option &#8220;Use Google Web Toolkit&#8221;, and select the options &#8220;Use Google App Engine&#8221; and &#8220;Generate GWT project sample code&#8221; checked. Click Finish.</p>
+</li>
+
+<li>
+<p>Download the following jar files, and put them in your Eclipse project in the folder war/WEB-INF/lib. If you don&#8217;t want to download all libraries individually, you can download the zip files <em>eve-core-bundle.zip</em> and <em>eve-google-appengine-bundle.zip</em> containing all dependent libraries <a href='https://github.com/almende/eve/tree/master/java/bin/current'>here</a>.</p>
+
+<ul>
+<li>
+<p><a href='https://github.com/almende/eve/tree/master/java/bin/current'>eve-core.jar</a></p>
+
+<ul>
+<li><a href='http://json-lib.sourceforge.net/'>json-lib-2.4-jdk15.jar</a></li>
+
+<li><a href='http://commons.apache.org/lang/'>jakarta commons-lang 2.5</a></li>
+
+<li><a href='http://commons.apache.org/beanutils/'>jakarta commons-beanutils 1.8.0</a></li>
+
+<li><a href='http://commons.apache.org/collections/'>jakarta commons-collections 3.2.1</a></li>
+
+<li><a href='http://commons.apache.org/logging/'>jakarta commons-logging 1.1.1</a></li>
+
+<li><a href='http://ezmorph.sourceforge.net/'>ezmorph 1.0.6</a></li>
+</ul>
+</li>
+
+<li>
+<p><a href='https://github.com/almende/eve/tree/master/java/bin/current'>eve-google-appengine.jar</a></p>
+
+<ul>
+<li><a href='http://code.google.com/p/twig-persist/'>twig-persist-2.0-beta4.jar</a></li>
+
+<li><a href='http://code.google.com/p/guava-libraries/'>guava-11.0.2.jar</a></li>
+</ul>
+</li>
+</ul>
+</li>
+
+<li>
+<p>Right-click the added jars in Eclipse, and click Build Path, &#8220;Add to Build Path&#8221;.</p>
+</li>
+
+<li>
+<p>Now, you need to configure a web-servlet to host the agents you want. Open the file web.xml under war/WEB-INF. Insert the following lines inside the &#60;web-app&#62; tag: <pre><code>&lt;servlet&gt;
+  &lt;servlet-name&gt;MultiAgentServlet&lt;/servlet-name&gt;
+  &lt;servlet-class&gt;com.almende.eve.servlet.MultiAgentServlet&lt;/servlet-class&gt;
+  &lt;init-param&gt;
+    &lt;description&gt;The agent classes served by the servlet&lt;/description&gt; 
+    &lt;param-name&gt;agents&lt;/param-name&gt;
+    &lt;param-value&gt;
+      com.almende.eve.agent.example.EchoAgent;
+      com.almende.eve.agent.example.CalcAgent;        
+    &lt;/param-value&gt;
+  &lt;/init-param&gt;   
+  &lt;init-param&gt;
+    &lt;description&gt;The context for reading/writing persistent data&lt;/description&gt; 
+    &lt;param-name&gt;context&lt;/param-name&gt;
+    &lt;param-value&gt;com.almende.eve.agent.context.google.DatastoreContext&lt;/param-value&gt;
+  &lt;/init-param&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+  &lt;servlet-name&gt;MultiAgentServlet&lt;/servlet-name&gt;
+  &lt;url-pattern&gt;/agents/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</code></pre></p>
+
+<p>The configuration consists of a standard servlet and servlet mapping definition. Eve comes with two ready-made servlets: a SingleAgentServlet and a MultiAgentServlet.</p>
+
+<ul>
+<li>
+<p>The <em>SingleAgentServlet</em> will host a single agent which can be accessed directly via the servlet url (http://server/servlet).</p>
+</li>
+
+<li>
+<p>The <em>MultiAgentServlet</em> can host multiple agent classes and multiple instances of each agent class. To adress an instance of an agent, the url is built up with the servlet path, agent class name, and id of the agent (http://server/servlet/agentclass/agentid).</p>
+</li>
+</ul>
+
+<p>The MultiAgentServlet configuration needs two initialization parameters: <em>agents</em> and <em>context</em>.</p>
+
+<ul>
+<li>
+<p>The <em>agents</em> parameter contains a list with the agent classes which will be hosted by the servlet. The classes must be separated by a semicolon. Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent, so you can use these to test if your application works.</p>
+</li>
+
+<li>
+<p>The <em>context</em> parameter specifies the context that will be available for the agents to read and write persistent data.</p>
+</li>
+</ul>
+</li>
+</ul>
+
+<h2 id='usage'>Usage</h2>
+
+<p>Now the project can be started and you can see one of the example agents in action.</p>
+
+<ul>
+<li>
+<p>Start the project via menu Run, Run As, Web Application.</p>
+</li>
+
+<li>
+<p>To verify if the AgentsServlet of Eve is running, open your browser and go to http://localhost:8888/agents/. This should give a response <em>&#8220;Error: POST request containing a JSON-RPC message expected&#8221;</em>.</p>
+</li>
+
+<li>
+<p>Agents can be accessed via an HTTP POST request. The url defines the location of the agent and looks like http://server/servlet/agentclass/agentid. The body of the post request must contain a JSON-RPC message. To execute HTTP requests you can use a REST client like <a href='https://chrome.google.com/webstore/detail/fdmmgilgnpjigdojojpjoooidkmcomcm'>Postman</a> in Chrome, <a href='https://addons.mozilla.org/en-US/firefox/addon/restclient/?src=search'>RESTClient</a> in Firefox, or with a tool like <a href='http://curl.haxx.se/'>cURL</a>.</p>
+
+<p>Perform an HTTP POST request to the CalcAgent on the url <pre><code>http://localhost:8888/agents/calcagent/1</code></pre></p>
+
+<p>With request body: <pre><code>{
+  "id": 1, 
+  "method": "eval",
+  "params": {
+    "expr": "2.5 + 3 / sqrt(16)"
+  }
+}</code></pre></p>
+
+<p>This request will return the following response: <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "3.25"
+}</code></pre></p>
+</li>
+</ul>
+
+<h2 id='create_your_own_agent'>Create your own agent</h2>
+
+<p>Now, what you want of course is create your own agents. This is quite easy: create a java class which extends from the base class Agent, and register your agent class in the eve.properties file.</p>
+
+<ul>
+<li>
+<p>Create a new java class named MyFirstAgent under com.mycompany.myproject with the following contents:</p>
+<pre><code>package com.mycompany.myproject;
+
+import com.almende.eve.agent.Agent;
+import com.almende.eve.json.annotation.ParameterName;
+
+public class MyFirstAgent extends Agent {
+    public String echo (@ParameterName("message") String message) {
+        return message;	
+    }
+
+    public double add (@ParameterName("a") double a, 
+            @ParameterName("b") double b) {
+        return a + b;	
+    }
+
+    @Override
+    public String getDescription() {
+        return "My first agent";
+    }
+
+    @Override
+    public String getVersion() {
+        return "0.1";
+    }
+}
+</code></pre>
+<p>Each agent must contain at least two default methods: getDescription and getVersion. Next, you can add your own methods, in this example the methods echo and add.</p>
+</li>
+
+<li>
+<p>In order to make this agent available, you have to add its class name to the configuration of the web servlet in the file web.xml, located under war/WEB-INF. Add the full classname com.mycompany.myproject.MyFirstAgent to the list with agents in the init parameter <em>agents</em>. Class names must be separated by a semicolon. <pre><code>...
+&lt;init-param&gt;
+  &lt;description&gt;The agent classes served by the servlet&lt;/description&gt; 
+  &lt;param-name&gt;agents&lt;/param-name&gt;
+  &lt;param-value&gt;
+    com.almende.eve.agent.example.EchoAgent;
+    com.almende.eve.agent.example.CalcAgent;        
+    <b>com.mycompany.myproject.MyFirstAgent;</b>
+  &lt;/param-value&gt;
+&lt;/init-param&gt;     
+...
+</code></pre></p>
+</li>
+
+<li>
+<p>Now you can (re)start the server, and perform an HTTP POST request to the url</p>
+<pre><code>http://localhost:8888/agents/myfirstagent/1234</code></pre>
+<p>With as request: <pre><code>{
+  "id": 1, 
+  "method": "echo", 
+  "params": {
+    "message": "Hello World"
+  }
+}</code></pre> which returns: <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "Hello World"
+}</code></pre></p>
+
+<p>or send the following request: <pre><code>{
+  "id": 1, 
+  "method": "add", 
+  "params": {
+    "a": 2.1, 
+    "b": 3.5
+  }
+}</code></pre> which returns: <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": 5.6
+}</code></pre></p>
+</li>
+</ul>
+<!-- TODO: explain ids -->
+<h2 id='deployment'>Deployment</h2>
+
+<p>Now you can deploy your applictation in the cloud, to Google App Engine.</p>
+
+<ul>
+<li>
+<p>Register an application in appengine. In your browser, go to <a href='https://appengine.google.com'>https://appengine.google.com</a>. You will need a Google account for that. Create a new application by clicking Create Application. Enter an identifier, for example &#8220;myeveproject&#8221; and a title and click Create Application.</p>
+</li>
+
+<li>
+<p>In Eclipse, go to menu Project, Properties. Go to the page Google, App Engine. Under <em>Deployment</em>, enter the identifier &#8220;myeveproject&#8221; of your application that you have just created on the appengine site. Set version to 1. Click Ok.</p>
+</li>
+
+<li>
+<p>In Eclipse, right-click your project in the Package Explorer. In the context menu, choose Google, Deploy to App Engine. Click Deploy in the opened window, and wait until the deployment is finished.</p>
+</li>
+
+<li>
+<p>Your application is now up and running and can be found at http://myeveproject.appspot.com (where you have to replace the identifier with your own). The agent you have created yourself is accessable at http://myeveproject.appspot.com/agents/myfirstagent/1234.</p>
+</li>
+</ul>
   
   <div class="lastupdate">
-  Last updated: 15 March 2012
+  Last updated: 22 March 2012
   </div>
 </div>
 

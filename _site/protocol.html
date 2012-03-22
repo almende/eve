@@ -2,10 +2,14 @@
 <html>
 <head>
   <title>Eve - Communication protocol </title>
-  <link rel="shortcut icon" href="/img/favicon.ico" />
+  <link rel="shortcut icon" href="img/favicon.ico" >
   <link type="text/css" rel="stylesheet" href="css/style.css"> 
   
-  <script type="text/javascript" src="js/smoothscroll.js"></script>
+  <meta name="title" content="Eve - Communication protocol">   
+  <meta name="keywords" content="eve, agent, software agent, software agents, agent platform, scalable, multiplatform, multipurpose, web based, cloud, http, json, json-rpc, opensource, open source" >
+  <meta name="description" content="Eve is a multipurpose, web based agent platform. The project aims to develop an open protocol for communication between software agents. Eve is designed as a decentral, scalable system for autonomously acting agents. Eve uses the existing world wide web as platform, and uses existing protocols for data exchange (HTTP) and for messaging (JSON-RPC)." >
+  <meta name="author" content="Almende B.V." >
+
 </head>
 
 <body>
@@ -13,7 +17,7 @@
 <a href="https://github.com/almende/eve" style="position: fixed; top: 0; right: 0; border: 0;" >
   <img 
     src="img/forkme_right_darkblue_121621.png" 
-    alt="Fork me on GitHub" />
+    alt="Fork me on GitHub" >
 </a>
   
 <div id="container">
@@ -77,7 +81,7 @@
 <h2 id='synchronous_communication'>Synchronous communication</h2>
 
 <p>A regular request from Agent X to agent Y can look like this. Agent X addresses method &#8220;add&#8221; from agent Y, and provides two values as parameters. Agent Y executes the method with the provided parameters, and returns the result.</p>
-<table summary='Synchronous request' class='example'>
+<table class='example' summary='Synchronous request'>
 <tr>
 <th class='example'>Url</th><td class='example'><pre class='example'>http://myserver.com/agent/Y</pre></td>
 </tr>
@@ -102,7 +106,7 @@
 <h2 id='asynchronous_communication'>Asynchronous communication</h2>
 
 <p>Agent X performs a request to agent Y. It calls method &#8220;add&#8221; and provides two values as parameters. Agent X also provides a callback url and method. When agent Y receives teh request, it does not execute the requested method imediately, but puts the request in its task queue and returns nothing.</p>
-<table summary='Asynchronous request 1/2' class='example'>
+<table class='example' summary='Asynchronous request 1/2'>
 <tr>
 <th class='example'>Url</th><td class='example'><pre class='example'>http://myserver.com/agent/Y</pre></td>
 </tr>
@@ -129,7 +133,7 @@
 </tr>
 </table>
 <p>Because agent X is not waiting for the response with the result, there is no problem when execution of the method takes a long time. As soon as agent Y has executed the task from the queue, it returns the result via a new request, adressing the callback url and method of agent X:</p>
-<table summary='Asynchronous request 2/2' class='example'>
+<table class='example' summary='Asynchronous request 2/2'>
 <tr>
 <th class='example'>Url</th><td class='example'><pre class='example'>http://myserver.com/agent/X</pre></td>
 </tr>
@@ -185,7 +189,7 @@ agent.
 </ul>
   
   <div class="lastupdate">
-  Last updated: 15 March 2012
+  Last updated: 22 March 2012
   </div>
 </div>
 
