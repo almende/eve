@@ -33,7 +33,7 @@
       <param-name>agents</param-name>
       <param-value>
         com.almende.eve.agent.example.EchoAgent;
-        com.almende.eve.agent.example.MathAgent;
+        com.almende.eve.agent.example.CalcAgent;
       </param-value>
     </init-param>   
     <init-param>
@@ -56,7 +56,7 @@
       <param-value>
         com.almende.eve.agent.example.TestAgent;
         com.almende.eve.agent.example.EchoAgent;
-        com.almende.eve.agent.example.MathAgent;
+        com.almende.eve.agent.example.CalcAgent;
       </param-value>
     </init-param>   
   </servlet>

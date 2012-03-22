@@ -16,8 +16,9 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
       <description>The agent classes served by the servlet</description> 
       <param-name>agents</param-name>
       <param-value>
-        com.almende.eve.agent.example.TestAgent;        
+        com.almende.eve.agent.example.TestAgent;
         com.almende.eve.agent.example.EchoAgent;
+        com.almende.eve.agent.example.CalcAgent;
       </param-value>
     </init-param>
     <init-param>
