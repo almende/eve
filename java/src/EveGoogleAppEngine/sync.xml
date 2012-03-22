@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE PROJECT>
+<project name="eve-google-appengine-sync" default="sync" basedir=".">
+  <target name="sync" 
+  	  description="Synchronize the eve-core library">
+  	<property name="bin" location="../EveCore/bin" />
+    <property name="lib" location="war/WEB-INF/lib" />
+  	
+  	<copy todir="${lib}">
+  	  <fileset dir="${bin}" includes="eve-core.jar" />
+  	</copy>
+  	
+  	<!--
+  	<eclipse.refreshLocal resource="EveGoogleAppEngine/" depth="infinite" />
+    -->
+
+  </target>
+</project>

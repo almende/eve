@@ -8,16 +8,16 @@
 
   <servlet>
     <servlet-name>SingleAgentServlet</servlet-name>
-    <servlet-class>eve.servlet.SingleAgentServlet</servlet-class>
+    <servlet-class>com.almende.eve.servlet.SingleAgentServlet</servlet-class>
 	  <init-param>
 	    <description>The agent class served by the servlet</description> 
 	    <param-name>agent</param-name>
-	    <param-value>eve.agent.TestAgent</param-value>
+	    <param-value>com.almende.eve.agent.example.TestAgent</param-value>
 	  </init-param>
     <init-param>
       <description>The context for reading and writing persistent data</description> 
       <param-name>context</param-name>
-      <param-value>eve.agent.context.SimpleContext</param-value>
+      <param-value>com.almende.eve.agent.context.MemoryContext</param-value>
     </init-param>	  
   </servlet>  
   <servlet-mapping>
@@ -27,24 +27,42 @@
 
   <servlet>
     <servlet-name>MultiAgentServlet</servlet-name>
-    <servlet-class>eve.servlet.MultiAgentServlet</servlet-class>
+    <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
     <init-param>
       <description>The agent classes served by the servlet</description> 
       <param-name>agents</param-name>
       <param-value>
-        eve.agent.TestAgent;        
-        eve.agent.EchoAgent;
+        com.almende.eve.agent.example.EchoAgent;
+        com.almende.eve.agent.example.MathAgent;
       </param-value>
     </init-param>   
     <init-param>
       <description>The context for reading and writing persistent data</description> 
       <param-name>context</param-name>
-      <param-value>eve.agent.context.SimpleContext</param-value>
+      <param-value>com.almende.eve.agent.context.MemoryContext</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
     <servlet-name>MultiAgentServlet</servlet-name>
     <url-pattern>/agents/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>RESTServlet</servlet-name>
+    <servlet-class>com.almende.eve.servlet.RESTServlet</servlet-class>
+    <init-param>
+      <description>The classes served by the servlet</description> 
+      <param-name>classes</param-name>
+      <param-value>
+        com.almende.eve.agent.example.TestAgent;
+        com.almende.eve.agent.example.EchoAgent;
+        com.almende.eve.agent.example.MathAgent;
+      </param-value>
+    </init-param>   
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RESTServlet</servlet-name>
+    <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
 
 </web-app>
