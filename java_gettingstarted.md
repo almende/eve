@@ -112,17 +112,7 @@ web servlet.
   </code></pre>
 
   The configuration consists of a standard servlet and servlet mapping definition.
-  Eve comes with two ready-made servlets: a SingleAgentServlet and a MultiAgentServlet.
-  
-  - The *SingleAgentServlet* will host a single agent which can be accessed 
-  directly via the servlet url (http://server/servlet).
-  
-  - The *MultiAgentServlet* can host multiple agent classes and multiple instances
-  of each agent class. To adress an instance of an agent, the url
-  is built up with the servlet path, agent class name, and id of the agent 
-  (http://server/servlet/agentclass/agentid).
-  
-  The MultiAgentServlet configuration needs two initialization parameters: 
+  The MultiAgentServlet needs two initialization parameters: 
   *agents* and *context*.
   
   - The *agents* parameter contains a list with the agent classes which will be

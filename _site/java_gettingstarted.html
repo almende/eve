@@ -167,19 +167,7 @@
 &lt;/servlet-mapping&gt;
 </code></pre></p>
 
-<p>The configuration consists of a standard servlet and servlet mapping definition. Eve comes with two ready-made servlets: a SingleAgentServlet and a MultiAgentServlet.</p>
-
-<ul>
-<li>
-<p>The <em>SingleAgentServlet</em> will host a single agent which can be accessed directly via the servlet url (http://server/servlet).</p>
-</li>
-
-<li>
-<p>The <em>MultiAgentServlet</em> can host multiple agent classes and multiple instances of each agent class. To adress an instance of an agent, the url is built up with the servlet path, agent class name, and id of the agent (http://server/servlet/agentclass/agentid).</p>
-</li>
-</ul>
-
-<p>The MultiAgentServlet configuration needs two initialization parameters: <em>agents</em> and <em>context</em>.</p>
+<p>The configuration consists of a standard servlet and servlet mapping definition. The MultiAgentServlet needs two initialization parameters: <em>agents</em> and <em>context</em>.</p>
 
 <ul>
 <li>
@@ -331,7 +319,7 @@ public class MyFirstAgent extends Agent {
 </ul>
   
   <div class="lastupdate">
-  Last updated: 22 March 2012
+  Last updated: 23 March 2012
   </div>
 </div>
 
