@@ -1,10 +1,14 @@
 package com.almende.eve.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Person {
 	private String name;
 	private String firstName;
 	private String lastName;
-
+	private List<Double> marks = new ArrayList<Double>();
+	
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -27,5 +31,13 @@ public class Person {
 
 	public String getFirstName() {
 		return firstName;
+	}
+
+	public void setMarks(List<Double> marks) {
+		this.marks = marks;
+	}
+
+	public List<Double> getMarks() {
+		return marks;
 	}
 }

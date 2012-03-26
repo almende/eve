@@ -53,9 +53,7 @@ import net.sf.json.JSONObject;
 @SuppressWarnings("serial")
 abstract public class Agent implements Serializable {
 	protected AgentContext context = new MemoryContext();
-	//protected Context session = new SimpleContext(); // todo: add session context
-	
-	private List<Subscription> subscriptions = null;
+	//protected Context session = new SimpleContext(); // todo: add session context?
 	
 	public abstract String getDescription();
 	public abstract String getVersion();
@@ -111,7 +109,13 @@ abstract public class Agent implements Serializable {
 	final public void subscribe(@ParameterName("event") String event, 
 			@ParameterName("callbackUrl") String callbackUrl, 
 			@ParameterName("callbackMethod") String callbackMethod) {
-		if (subscriptions == null) {
+		/* TODO
+		
+		List<Subscription> subscriptions = null;
+		if (context.has("subscriptions")) {
+			subscriptions = (List<Subscription>) context.get("subscriptions");
+		}
+		else {
 			subscriptions = new ArrayList<Subscription>(); 
 		}
 		
@@ -121,6 +125,7 @@ abstract public class Agent implements Serializable {
 		Subscription subscription = new Subscription(event, callbackUrl, 
 				callbackMethod);
 		subscriptions.add(subscription);
+		*/
 	}
 	
 	/**
@@ -132,24 +137,33 @@ abstract public class Agent implements Serializable {
 	final public void unsubscribe(@ParameterName("event") String event, 
 			@ParameterName("callbackUrl") String callbackUrl,
 			@ParameterName("callbackMethod") String callbackMethod) {
-		if (subscriptions == null) {
-			// there are no subscriptions so lets just do nothing and return
-			return;
-		}
+		
+		/* TODO
+		List<Subscription> subscriptions = null;
+		if (context.has("subscriptions")) {
+			subscriptions = (List<Subscription>) context.get("subscriptions");
+			
+			if (subscriptions == null) {
+				// there are no subscriptions so lets just do nothing and return
+				return;
+			}
 
-		// TODO: create a way to unsubscribe an url from all subscribed events at once?
-		int i = 0;
-		while (i < subscriptions.size()) {
-			Subscription subscription = subscriptions.get(i);
-			if (event.equals(subscription.event) && 
-					callbackUrl.equals(subscription.callbackUrl) &&
-					callbackMethod.equals(subscription.callbackMethod)) {
-				subscriptions.remove(i);
-			}
-			else {
-				i++;
-			}
+			// TODO: create a way to unsubscribe an url from all subscribed events at once?
+			int i = 0;
+			while (i < subscriptions.size()) {
+				Subscription subscription = subscriptions.get(i);
+				if (event.equals(subscription.event) && 
+						callbackUrl.equals(subscription.callbackUrl) &&
+						callbackMethod.equals(subscription.callbackMethod)) {
+					subscriptions.remove(i);
+				}
+				else {
+					i++;
+				}
+			}			
 		}
+		*/
+
 	}
 	
 	/**
@@ -160,6 +174,7 @@ abstract public class Agent implements Serializable {
 	@Access(AccessType.UNAVAILABLE)
 	final public void trigger(@ParameterName("event") String event, 
 			@ParameterName("params") JSONObject params) {
+		/* TODO
 		if (subscriptions == null) {
 			// there are no subscriptions so lets just do nothing and return
 			return;
@@ -177,6 +192,7 @@ abstract public class Agent implements Serializable {
 				}
 			}
 		}
+		*/
 	}
 
 	/**

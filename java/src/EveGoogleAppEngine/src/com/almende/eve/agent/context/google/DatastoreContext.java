@@ -1,5 +1,7 @@
 package com.almende.eve.agent.context.google;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 
 import com.almende.eve.agent.context.AgentContext;
@@ -8,13 +10,10 @@ import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class DatastoreContext implements AgentContext {
-	// TODO: change the DataStoreContext 
-	
 	private String servletUrl = null;
 	private String agentClass = null;
 	private String id = null;
 	private ObjectDatastore datastore = new AnnotationObjectDatastore();
-	private DatastoreEntity entity = null; 
 	
 	public DatastoreContext() {}
 
@@ -32,39 +31,51 @@ public class DatastoreContext implements AgentContext {
 		return id;
 	}
 	
-	private DatastoreEntity getEntity() {
-		if (entity == null) {
-			// TODO: do not create entity if not existing, but only if id exists
-			entity = datastore.load(DatastoreEntity.class, id);	
-			if (entity == null) {
-				entity = new DatastoreEntity(id);
-				datastore.store(entity);
-			}
-		}
-		return entity;
+	/**
+	 * Generate the full key, which is defined as "id.key"
+	 * @param key
+	 * @return
+	 */
+	private String getFullKey (String key) {
+		return id + "." + key;
 	}
 	
 	@Override
 	public Object get(String key) {
-		DatastoreEntity e = getEntity();
-		datastore.refresh(e);
-		return e.get(key);
+		String fullKey = getFullKey(key);
+		KeyValue entity = datastore.load(KeyValue.class, fullKey);
+		if (entity != null) {
+			try {
+				return entity.getValue();
+			} catch (ClassNotFoundException e) {
+				return null;
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
 	public void put(String key, Object value) {
-		DatastoreEntity e = getEntity();
-		e.put(key, value);
-		datastore.update(e);		
+		try {
+			String fullKey = getFullKey(key);
+			KeyValue entity= new KeyValue(fullKey, value);
+			datastore.store(entity);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
 	}
 
 	@Override
 	public boolean has(String key) {
-		DatastoreEntity e = getEntity();
-		datastore.refresh(e);
-		return e.has(key);
+		String fullKey = getFullKey(key);
+		KeyValue entity = datastore.load(KeyValue.class, fullKey);
+		return (entity != null);
 	}
-	
 
 	@Override
 	public void setServletUrlFromRequest(HttpServletRequest req) {

@@ -13,12 +13,13 @@ import com.almende.eve.json.util.HttpUtil;
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
+import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import net.sf.json.JsonConfig;
 
 public class JSONRPC {
-	//static private Logger logger = Logger.getLogger(JsonRpc.class.getName());
+	//static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
 
 	// TODO: implement JSONRPC 2.0 Batch
 	
@@ -43,7 +44,6 @@ public class JSONRPC {
 				}
 			}
 		}
-		
 	}
 	*/
 	
@@ -123,10 +123,16 @@ public class JSONRPC {
 			JSONRequest jsonRequest = new JSONRequest(
 					(JSONObject) JSONSerializer.toJSON(request));
 
-			jsonResponse = invoke(object, jsonRequest);
+			try {
+				jsonResponse = invoke(object, jsonRequest);
+			}
+			catch (Throwable err) {
+				// TODO: make printing the stack trace optional
+				err.printStackTrace(); 
+				throw err;
+			}
 		}
 		catch (Throwable err) {
-			err.printStackTrace(); // TODO: make printing the stack trace optional
 			if (err instanceof JSONRPCException) {
 				jsonResponse = new JSONResponse((JSONRPCException) err);
 			}
@@ -169,13 +175,20 @@ public class JSONRPC {
 		try {
 			Method method = getMethod(object, request.getMethod());
 			Object[] params = castParams(request.getParams(), method);
-
-			Object result = method.invoke(object, params);
-			
-			resp.setResult(result);
+			try {
+				Object result = method.invoke(object, params);
+				if (result == null) {
+					result = JSONNull.getInstance();
+				}
+				resp.setResult(result);
+			}
+			catch (Throwable err) {
+				// TODO: make printing the stack trace optional
+				err.printStackTrace(); 
+				throw err;
+			}
 		}
 		catch (Throwable err) {
-			err.printStackTrace(); // TODO: make printing the stack trace optional
 			if (err instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) err);
 			}
@@ -184,7 +197,6 @@ public class JSONRPC {
 						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
 				resp.setError(jsonError);
 			}
-			// TODO: optionally print stacktrace?
 		}
 		
 		return resp;
@@ -314,39 +326,10 @@ public class JSONRPC {
 				throw new Exception("Names of parameters are undefined");
 			}
 		}
-		/* TODO: cleanup
-		else if (params instanceof JSONArray) {
-			// JSON-RPC 1.0, array with unnamed parameters
-			JSONArray paramsArray = (JSONArray)params; 
-			
-			if (paramTypes.length != paramsArray.size()) {
-				throw new Exception("Wrong number of parameters " +
-					"(" + paramTypes.length + " expected)");
-			}
-			
-			// cast the parameters to the correct type
-			Object[] objects = new Object[paramTypes.length];
-			for (int i = 0, len = paramsArray.size(); i < len; i++) {
-				Class<?> paramType = paramTypes[i];
-				Object object = null; 
-
-				if (paramsArray.get(i) != null) {
-					object = castJSONArray(paramsArray, i, paramType);
-				}
-				objects[i] = object;
-			}
-			
-			return objects;
-			
-		}
-		else {
-			throw new Exception("params must be a JSONObject or JSONArray");
-		}*/
 		else {
 			throw new Exception("params must be a JSONObject");
 		}
 	}
-
 
 	/**
 	 * Cast an element from a JSONArray to the given type 
@@ -360,7 +343,7 @@ public class JSONRPC {
 	 * @throws InstantiationException 
 	 */
 	@SuppressWarnings("unchecked")
-	static private <T> T castJSONObject(JSONObject object, String key, 
+	static private <T> T castJSONObject (JSONObject object, String key, 
 			Class<T> type) {
 		T param = null;
 
@@ -381,6 +364,12 @@ public class JSONRPC {
 		else if (type.equals(String.class)) {
 			param = (T) (String)object.getString(key);
 		}
+		else if (type.equals(JSONArray.class)) {
+			param = (T) (JSONArray)object.getJSONArray(key);
+		}
+		else if (type.equals(JSONObject.class)) {
+			param = (T) (JSONObject)object.getJSONObject(key);
+		}
 		else if (type.isArray()) {
 			// TODO: use beans
 			if (type.equals(JSONArray.class)) {
@@ -391,12 +380,6 @@ public class JSONRPC {
 				Class<?> componentType = type.getComponentType();
 				param = (T) createArray(json, componentType);
 			}
-		}
-		else if (type.equals(JSONArray.class)) {
-			param = (T) (JSONArray)object.getJSONArray(key);
-		}
-		else if (type.equals(JSONObject.class)) {
-			param = (T) (JSONObject)object.getJSONObject(key);
 		}
 		else if (object.getJSONObject(key) != null) {
 			// TODO: use beans

@@ -2,9 +2,8 @@ package com.almende.eve.entity;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class Subscription implements Serializable {
-	private static final long serialVersionUID = 1L;
-	
 	public String event;          // event to be subscribed to
 	public String callbackUrl;    // url of an agent to be notified
 	public String callbackMethod; // callback method for the agent 
@@ -16,4 +15,3 @@ public class Subscription implements Serializable {
 		this.callbackMethod = callbackMethod;
 	}
 }
-

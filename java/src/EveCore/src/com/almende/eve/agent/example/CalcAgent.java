@@ -21,7 +21,7 @@
  * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2011-03-22
+ * @date	  2011-03-23
  */
 package com.almende.eve.agent.example;
 
@@ -34,9 +34,10 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.ParameterName;
 import com.almende.eve.json.util.HttpUtil;
 
-
 @SuppressWarnings("serial")
 public class CalcAgent extends Agent {
+	static private String CALC_API_URL = "http://www.google.com/ig/calculator";
+
 	/**
 	 * Evaluate given expression
 	 * For example expr="2.5 + 3 / sqrt(16)" will return "3.25"
@@ -44,10 +45,8 @@ public class CalcAgent extends Agent {
 	 * @return result
 	 * @throws Exception
 	 */
-	public String eval(@ParameterName("expr") String expr) 
-			throws Exception {
-		String url = "http://www.google.com/ig/calculator?q=" + 
-			URLEncoder.encode(expr, "UTF-8");
+	public String eval(@ParameterName("expr") String expr) throws Exception {
+		String url = CALC_API_URL + "?q=" + URLEncoder.encode(expr, "UTF-8");
 		String resp = HttpUtil.get(url);
 		JSONObject json = (JSONObject) JSONSerializer.toJSON(resp);
 		

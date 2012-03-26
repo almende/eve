@@ -17,7 +17,8 @@ public class MemoryContext implements AgentContext, Serializable {
 	private String agentClass = null;
 	private String id = null;
 
-	private static Map<String, Object> nullProperties = new HashMap<String, Object>();
+	private static Map<String, Object> nullProperties = 
+		new HashMap<String, Object>();
 	private static Map<String, Map<String, Object>> allProperties = 
 		new HashMap<String, Map<String, Object>>();
 

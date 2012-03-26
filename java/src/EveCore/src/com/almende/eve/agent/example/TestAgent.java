@@ -24,8 +24,12 @@
  */
 package com.almende.eve.agent.example;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.entity.Person;
@@ -41,12 +45,30 @@ public class TestAgent extends Agent {
 	}
 	
 	public String getName(@ParameterName("person") Person person) {
+		System.out.println("marks:" + person.getMarks());
+		Object mark = person.getMarks().get(3);
+		System.out.println("mark[3]:" + mark.getClass().getName());
 		return person.getName();
+	}
+
+	public Double getMarksAvg(@ParameterName("person") Person person) {
+		List<Double> marks = person.getMarks();
+		Double sum = new Double(0);
+		if (marks != null) {
+			for (Double mark : marks) {
+				sum += mark;
+			}
+		}
+		return sum;
 	}
 
 	public Person getPerson(@ParameterName("name") String name) {
 		Person person = new Person();
 		person.setName(name);
+		List<Double> marks = new ArrayList<Double>();
+		marks.add(6.8);
+		marks.add(5.0);
+		person.setMarks(marks);
 		return person;
 	}
 
@@ -55,26 +77,56 @@ public class TestAgent extends Agent {
 		return a + b;
 	}
 
+	public Double subtract(@ParameterName("a") Double a, 
+			@ParameterName("b") Double b) {
+		return a - b;
+	}
+
 	public Double multiply(@ParameterName("a") Double a, 
 			@ParameterName("b") Double b) {
 		return a * b;
 	}
 
-	// TODO: get this working
+	public Double divide(@ParameterName("a") Double a, 
+			@ParameterName("b") Double b) {
+		return a / b;
+	}
+
+	public String printParams(JSONObject params) {
+		return "fields: " + params.size();
+	}
+
+	public void throwInternalError() throws Exception {
+		throw new Exception("Something went wrong...");
+	}
+	
 	public Double sum(@ParameterName("values") List<Double> values) {
 		Double sum = new Double(0);
-		
 		for (Double value : values) {
 			sum += value;
 		}
-		
+		return sum;
+	}
+	
+	public Double sumArray(@ParameterName("values") Double[] values) {
+		Double sum = new Double(0);
+		for (Double value : values) {
+			sum += value;
+		}
+		return sum;
+	}
+
+	public Double sumJSONArray(@ParameterName("values") JSONArray values) {
+		Double sum = new Double(0);
+		for (int i = 0; i < values.size(); i++) {
+			sum += values.getDouble(i);
+		}
 		return sum;
 	}
 
 	public void complexParameter(
 			@ParameterName("values") Map<String, List<Double>> values) {
 	}
-	
 	
 	public Double increment() {
 		Double value = new Double(0);
@@ -87,12 +139,12 @@ public class TestAgent extends Agent {
 		return value;
 	}
 	
-	public Object get(@ParameterName("key") String key) {
-		return context.get(key);
+	public String get(@ParameterName("key") String key) {
+		return (String)context.get(key);
 	}
 
 	public void put(@ParameterName("key") String key, 
-			@ParameterName("value") Object value) {
+			@ParameterName("value") String value) {
 		context.put(key, value);
 	}
 
