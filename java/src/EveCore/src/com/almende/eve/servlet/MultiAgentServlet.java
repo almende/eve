@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.context.AgentContext;
-import com.almende.eve.agent.context.MemoryContext;
+import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
@@ -25,7 +25,7 @@ public class MultiAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private Map<String, Class<?>> agentClasses = null;
-	private Class<?> contextClass = null;
+	private AgentContext contextFactory = null;
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -63,14 +63,13 @@ public class MultiAgentServlet extends HttpServlet {
 				throw new Exception("Unknown agent class " + simpleName);
 			}
 			
-			// instantiate the agent and its context
-			// TODO: load context depending on id
+			// instantiate the agent
 			Class<?> agentClass = agentClasses.get(simpleName);
 			Agent agent = (Agent) agentClass.getConstructor().newInstance();
-			AgentContext context = (AgentContext) contextClass.getConstructor().newInstance();
-			context.setServletUrlFromRequest(req);
-			context.setAgentClass(agentClass.getSimpleName().toLowerCase());
-			context.setId(id);
+
+			// instantiate context of the agent
+			String agentClassName = agentClass.getSimpleName().toLowerCase();
+			AgentContext context = contextFactory.getInstance(agentClassName, id);
 			agent.setContext(context);
 			
 			// invoke the method onto the agent
@@ -142,7 +141,7 @@ public class MultiAgentServlet extends HttpServlet {
 	 * @throws ServletException
 	 */
 	private void initContext(HttpServletRequest req) throws Exception {
-		if (contextClass != null) {
+		if (contextFactory != null) {
 			return;
 		}
 
@@ -150,8 +149,10 @@ public class MultiAgentServlet extends HttpServlet {
 		
 		if (className == null || className.isEmpty()) {
 			className = MemoryContext.class.getName();
+			// TODO: isn't it better to just return null?
 		}
 		
+		Class<?> contextClass = null;
 		try {
 			contextClass = Class.forName(className);
 		} catch (ClassNotFoundException e) {
@@ -163,6 +164,9 @@ public class MultiAgentServlet extends HttpServlet {
 					"Context class " + contextClass.getName() + 
 					" must implement interface " + AgentContext.class.getName());
 		}
+
+		contextFactory = (AgentContext) contextClass.getConstructor().newInstance();
+		contextFactory.setServletUrl(req);
 
 		logger.info("Context class " + contextClass.getName() + " loaded");
 	}

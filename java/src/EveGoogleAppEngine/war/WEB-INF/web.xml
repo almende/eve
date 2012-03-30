@@ -24,7 +24,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <init-param>
       <description>The context for reading/writing persistent data</description> 
       <param-name>context</param-name>
-      <param-value>com.almende.eve.agent.context.google.DatastoreContext</param-value>
+      <param-value>com.almende.eve.context.google.DatastoreContext</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

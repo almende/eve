@@ -16,32 +16,37 @@ public class JSONRequest implements JSON {
 	}
 
 	public JSONRequest (JSONObject object) throws JSONRPCException {
-		// check if the object contains a valid JSON-RPC 2.0 message		
-		if (object.has("jsonrpc")) {
-			if (!object.getString("jsonrpc").equals("2.0")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-						"Value of member 'jsonrpc' is not equal to '2.0'");
+		if (object != null && !object.isNullObject()) {
+	 		// check if the object contains a valid JSON-RPC 2.0 message		
+			if (object.has("jsonrpc")) {
+				if (!object.getString("jsonrpc").equals("2.0")) {
+					throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+							"Value of member 'jsonrpc' is not equal to '2.0'");
+				}
 			}
+			if (!object.has("method")) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Member 'method' missing in request");
+			}
+			if (!(object.get("method") instanceof String)) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Member 'method' is no String");
+			}
+			if (!object.has("params")) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Member 'params' missing in request");
+			}
+			if (!(object.get("params") instanceof JSONObject)) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Member 'params' is no JSONObject");
+			}
+			
+			init (object.get("id"), object.getString("method"), 
+					object.getJSONObject("params"));
 		}
-		if (!object.has("method")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'method' missing in request");
+		else {
+			init (null, null, null);
 		}
-		if (!(object.get("method") instanceof String)) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'method' is no String");
-		}
-		if (!object.has("params")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'params' missing in request");
-		}
-		if (!(object.get("params") instanceof JSONObject)) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'params' is no JSONObject");
-		}
-		
-		init (object.get("id"), object.getString("method"), 
-				object.getJSONObject("params"));
 	}
 
 	public JSONRequest (String method, JSONObject params) {

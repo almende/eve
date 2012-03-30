@@ -17,7 +17,7 @@
     <init-param>
       <description>The context for reading and writing persistent data</description> 
       <param-name>context</param-name>
-      <param-value>com.almende.eve.agent.context.MemoryContext</param-value>
+      <param-value>com.almende.eve.context.MemoryContext</param-value>
     </init-param>	  
   </servlet>  
   <servlet-mapping>
@@ -33,13 +33,14 @@
       <param-name>agents</param-name>
       <param-value>
         com.almende.eve.agent.example.EchoAgent;
+        com.almende.eve.agent.example.TestAgent;
         com.almende.eve.agent.example.CalcAgent;
       </param-value>
     </init-param>   
     <init-param>
       <description>The context for reading and writing persistent data</description> 
       <param-name>context</param-name>
-      <param-value>com.almende.eve.agent.context.MemoryContext</param-value>
+      <param-value>com.almende.eve.context.MemoryContext</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

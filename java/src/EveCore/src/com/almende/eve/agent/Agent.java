@@ -1,5 +1,5 @@
 /**
- * @file AbstractAgent.java
+ * @file Agent.java
  * 
  * @brief 
  * TODO: brief
@@ -17,10 +17,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  *
- * Copyright © 2010-2011 Almende B.V.
+ * Copyright © 2010-2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2011-05-02
+ * @date	  2012-03-26
  */
 
 package com.almende.eve.agent;
@@ -38,9 +38,7 @@ import java.util.TreeSet;
 
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.agent.context.AgentContext;
-import com.almende.eve.agent.context.MemoryContext;
-import com.almende.eve.entity.Subscription;
+import com.almende.eve.context.AgentContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.annotation.ParameterName;
@@ -52,7 +50,7 @@ import net.sf.json.JSONObject;
 
 @SuppressWarnings("serial")
 abstract public class Agent implements Serializable {
-	protected AgentContext context = new MemoryContext();
+	private AgentContext context = null;
 	//protected Context session = new SimpleContext(); // todo: add session context?
 	
 	public abstract String getDescription();
@@ -60,12 +58,14 @@ abstract public class Agent implements Serializable {
 
 	public Agent() {}
 	
+	@Access(AccessType.UNAVAILABLE)
 	final public void setContext(AgentContext context) {
 		if (context != null) {
 			this.context = context;
 		}
 	}
 
+	@Access(AccessType.UNAVAILABLE)
 	final public AgentContext getContext() {
 		return context;
 	}
@@ -97,6 +97,30 @@ abstract public class Agent implements Serializable {
 		return null;
 	}
 	
+	
+	/**
+	 * Helper class to store a callback url and method
+	 */
+	private class Callback implements Serializable {
+		public Callback(String callbackUrl, String callbackMethod) {
+			this.callbackUrl = callbackUrl;
+			this.callbackMethod = callbackMethod;
+		}
+		public String callbackUrl = null;
+		public String callbackMethod = null;
+	}
+	
+	/**
+	 * Create the subscription key for a given event.
+	 * the resulting key will be "subscriptions.event"
+	 * @param event
+	 * @return
+	 */
+	private String getSubscriptionsKey(String event) {
+		String key = "subscriptions." + event;
+		return key;
+	}
+	
 	/**
 	 * Subscribe to an event.
 	 * When the event is triggered, a callback will be send to the provided
@@ -106,26 +130,33 @@ abstract public class Agent implements Serializable {
 	 * @param callbackMethod
 	 */
 	//@Access(AccessType.PRIVATE) // TODO
-	final public void subscribe(@ParameterName("event") String event, 
+	@SuppressWarnings("unchecked")
+	final public void subscribe(
+			@ParameterName("event") String event, 
 			@ParameterName("callbackUrl") String callbackUrl, 
 			@ParameterName("callbackMethod") String callbackMethod) {
-		/* TODO
-		
-		List<Subscription> subscriptions = null;
-		if (context.has("subscriptions")) {
-			subscriptions = (List<Subscription>) context.get("subscriptions");
+		List<Callback> subscriptions = null;
+		String key = getSubscriptionsKey(event);
+		Object value = context.get(key);		
+		if (value != null) {
+			subscriptions = (List<Callback>) value;
 		}
 		else {
-			subscriptions = new ArrayList<Subscription>(); 
+			subscriptions = new ArrayList<Callback>(); 
 		}
 		
-		// first unsubscribe to prevent double subscriptions
-		unsubscribe(event, callbackUrl, callbackMethod);
+		for (Callback s : subscriptions) {
+			if (s.callbackUrl.equals(callbackUrl) && 
+					s.callbackMethod.equals(callbackMethod)) {
+				// The callback already exists. do not duplicate it
+				return;
+			}
+		}
 		
-		Subscription subscription = new Subscription(event, callbackUrl, 
-				callbackMethod);
-		subscriptions.add(subscription);
-		*/
+		// the callback does not yet exist. create it and store it
+		Callback callback = new Callback(callbackUrl, callbackMethod);
+		subscriptions.add(callback);
+		context.put(key, subscriptions);
 	}
 	
 	/**
@@ -134,65 +165,59 @@ abstract public class Agent implements Serializable {
 	 * @param callbackUrl
 	 */
 	//@Access(AccessType.PRIVATE) // TODO
-	final public void unsubscribe(@ParameterName("event") String event, 
+	@SuppressWarnings("unchecked")
+	final public void unsubscribe(
+			@ParameterName("event") String event, 
 			@ParameterName("callbackUrl") String callbackUrl,
 			@ParameterName("callbackMethod") String callbackMethod) {
-		
-		/* TODO
-		List<Subscription> subscriptions = null;
-		if (context.has("subscriptions")) {
-			subscriptions = (List<Subscription>) context.get("subscriptions");
+		String key = getSubscriptionsKey(event);
+		Object value = context.get(key);
+		if (value != null) {
+			List<Callback> subscriptions = (List<Callback>) value;
 			
-			if (subscriptions == null) {
-				// there are no subscriptions so lets just do nothing and return
-				return;
+			for (Callback s : subscriptions) {
+				if (s.callbackUrl.equals(callbackUrl) && 
+						s.callbackMethod.equals(callbackMethod)) {
+					// callback is found. remove it and store the subscriptions 
+					//again
+					subscriptions.remove(s);
+					context.put(key, subscriptions);
+					return;
+				}
 			}
-
-			// TODO: create a way to unsubscribe an url from all subscribed events at once?
-			int i = 0;
-			while (i < subscriptions.size()) {
-				Subscription subscription = subscriptions.get(i);
-				if (event.equals(subscription.event) && 
-						callbackUrl.equals(subscription.callbackUrl) &&
-						callbackMethod.equals(subscription.callbackMethod)) {
-					subscriptions.remove(i);
-				}
-				else {
-					i++;
-				}
-			}			
 		}
-		*/
-
 	}
 	
 	/**
 	 * Trigger an event
 	 * @param event
 	 * @param params
+	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void trigger(@ParameterName("event") String event, 
-			@ParameterName("params") JSONObject params) {
-		/* TODO
-		if (subscriptions == null) {
-			// there are no subscriptions so lets just do nothing and return
-			return;
-		}
-
-		for (Subscription subscription : subscriptions) {
-			if (subscription.event.equals(event)) {
+			@ParameterName("params") JSONObject params) throws Exception {
+		String url = getUrl();
+		String key = getSubscriptionsKey(event);
+		Object value = context.get(key);
+		if (value != null) {
+			@SuppressWarnings("unchecked")
+			List<Callback> subscriptions = (List<Callback>) value;
+			
+			JSONObject callbackParams = new JSONObject();
+			callbackParams.put("agent", url);
+			callbackParams.put("event", event);
+			callbackParams.put("params", params);
+			
+			for (Callback s : subscriptions) {
 				try {
-					// TODO: change for async callback!
-					send(subscription.callbackUrl, subscription.callbackMethod, 
-							params);
+					send(s.callbackUrl, s.callbackMethod, callbackParams);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
+					// TODO: how to handle exceptions in trigger?
 				}
 			}
 		}
-		*/
 	}
 
 	/**
@@ -303,6 +328,15 @@ abstract public class Agent implements Serializable {
 						}
 					}
 
+					// TODO: not so nice 
+					if (!validParamNames) {
+						Class<?>[] pt = method.getParameterTypes();
+						if (pt.length == 1 && pt[0].equals(JSONObject.class)) {
+							paramNames[0] = "params";
+							validParamNames = true;
+						}
+					}
+					
 					// get return type
 					String returnType = getType(method.getGenericReturnType());
 					

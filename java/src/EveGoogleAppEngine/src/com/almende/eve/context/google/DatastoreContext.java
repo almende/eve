@@ -1,31 +1,34 @@
-package com.almende.eve.agent.context.google;
+package com.almende.eve.context.google;
 
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.almende.eve.agent.context.AgentContext;
+import com.almende.eve.context.AgentContext;
+import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.scheduler.google.AppEngineScheduler;
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class DatastoreContext implements AgentContext {
-	private String servletUrl = null;
+	private static String servletUrl = null;
 	private String agentClass = null;
 	private String id = null;
-	private ObjectDatastore datastore = new AnnotationObjectDatastore();
+	private Scheduler scheduler = null;
 	
 	public DatastoreContext() {}
 
-	public DatastoreContext(String id) {
-		setId(id);
-	}
-	
 	@Override
-	public void setId(String id) {
+	public DatastoreContext getInstance(String agentClass, String id) {
+		return new DatastoreContext(agentClass, id);
+	}
+
+	protected DatastoreContext(String agentClass, String id) {
+		this.agentClass = agentClass;
 		this.id = id;
 	}
-	
+
 	@Override
 	public String getId() {
 		return id;
@@ -42,6 +45,8 @@ public class DatastoreContext implements AgentContext {
 	
 	@Override
 	public Object get(String key) {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		
 		String fullKey = getFullKey(key);
 		KeyValue entity = datastore.load(KeyValue.class, fullKey);
 		if (entity != null) {
@@ -60,6 +65,8 @@ public class DatastoreContext implements AgentContext {
 
 	@Override
 	public void put(String key, Object value) {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+
 		try {
 			String fullKey = getFullKey(key);
 			KeyValue entity= new KeyValue(fullKey, value);
@@ -72,22 +79,17 @@ public class DatastoreContext implements AgentContext {
 
 	@Override
 	public boolean has(String key) {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+
 		String fullKey = getFullKey(key);
 		KeyValue entity = datastore.load(KeyValue.class, fullKey);
 		return (entity != null);
 	}
 
 	@Override
-	public void setServletUrlFromRequest(HttpServletRequest req) {
-		// this class does not utilize the request
+	public void setServletUrl(HttpServletRequest req) {
+		// this class does not utilize the request for building the servlet url
 		servletUrl = getAppUrl() +  req.getServletPath() + "/" ;
-	}
-
-	@Override
-	public void setAgentClass(String agentClass) {
-		if (agentClass != null) {
-			this.agentClass = agentClass;
-		}
 	}
 
 	@Override
@@ -135,5 +137,13 @@ public class DatastoreContext implements AgentContext {
 		}
 		
 		return appUrl;
+	}
+
+	@Override
+	public Scheduler getScheduler() {
+		if (scheduler == null) {
+			scheduler = new AppEngineScheduler();
+		}
+		return scheduler;
 	}
 }

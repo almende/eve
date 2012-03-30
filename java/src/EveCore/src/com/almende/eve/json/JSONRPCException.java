@@ -7,6 +7,7 @@ public class JSONRPCException extends Throwable {
 	protected JSONObject error = new JSONObject();
 
 	public static enum CODE {
+		UNKNOWN_ERROR,
 		PARSE_ERROR,
 		INVALID_REQUEST,
 		METHOD_NOT_FOUND,
@@ -15,8 +16,7 @@ public class JSONRPCException extends Throwable {
 	};
 	
 	public JSONRPCException () {
-		setCode(-32000);
-		setMessage("Unknown Error");
+		init(CODE.UNKNOWN_ERROR, null);
 	}
 
 	public JSONRPCException (CODE code) {
@@ -28,54 +28,70 @@ public class JSONRPCException extends Throwable {
 	}
 	
 	public JSONRPCException (JSONRPCException error) {
-		setCode(error.getCode());
-		setMessage(error.getMessage());
-		if (error.hasData()) {
-			setData(error.getData());
+		if (error != null) {
+			setCode(error.getCode());
+			setMessage(error.getMessage());
+			if (error.hasData()) {
+				setData(error.getData());
+			}
+		}
+		else {
+			init(CODE.UNKNOWN_ERROR, null);
 		}
 	}
 
-	public JSONRPCException (JSONObject error) {
-		/* TODO: do I want this exception class to throw itself?
-		if (!error.has("code")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Exception is missing member 'code'");
+	public JSONRPCException (JSONObject error) throws JSONRPCException {
+		if (error != null && !error.isNullObject()) {
+			//* TODO: do I want this exception class to throw itself?
+			// TODO: throw a JSONException instead of a JSONRPCException?
+			if (!error.has("code")) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Exception is missing member 'code'");
+			}
+			if (!error.has("message")) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Exception is missing member 'message'");
+			}
+			//*/
+			
+			int code = 0;
+			if (error.has("code")) {
+				code = error.getInt("code");
+			}
+			setCode(code);
+			setMessage(error.getString("message"));
+			if (error.has("data")) {
+				setData(error.get("data"));
+			}
 		}
-		if (!error.has("message")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Exception is missing member 'message'");
-		}
-		*/
-		
-		setCode(error.getInt("code"));
-		setMessage(error.getString("message"));
-		if (error.has("data")) {
-			setData(error.get("data"));
+		else {
+			init(CODE.UNKNOWN_ERROR, null);
 		}
 	}	
 
 	public JSONRPCException (String message) {
-		setCode(-32000);
+		setCode(0);
 		setMessage(message);
 	}
 	
-	public JSONRPCException (int code, String message) {
+	public JSONRPCException (Integer code, String message) {
 		setCode(code);
 		setMessage(message);
 	}
 
-	public JSONRPCException (int code, String message, Object data) {
+	public JSONRPCException (Integer code, String message, Object data) {
 		setCode(code);
 		setMessage(message);
 	}
 	
 	private void init(CODE code, String description) {
 		switch (code) {
-		case PARSE_ERROR: setCode (-32700); setMessage("Parse error"); break;
-		case INVALID_REQUEST: setCode (-32600); setMessage("Invalid request"); break;
-		case METHOD_NOT_FOUND: setCode (-32601); setMessage("Method not found"); break;
-		case INVALID_PARAMS: setCode (-32602); setMessage("Invalid params"); break;
-		case INTERNAL_ERROR: setCode (-32603); setMessage("Internal error"); break;
+			case UNKNOWN_ERROR: setCode (-32000); setMessage("Unknown error"); break;
+			case PARSE_ERROR: setCode (-32700); setMessage("Parse error"); break;
+			case INVALID_REQUEST: setCode (-32600); setMessage("Invalid request"); break;
+			case METHOD_NOT_FOUND: setCode (-32601); setMessage("Method not found"); break;
+			case INVALID_PARAMS: setCode (-32602); setMessage("Invalid params"); break;
+			case INTERNAL_ERROR: setCode (-32603); setMessage("Internal error"); break;
 		}
 		
 		if (description != null) {

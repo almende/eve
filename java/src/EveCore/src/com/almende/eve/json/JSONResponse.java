@@ -14,30 +14,39 @@ public class JSONResponse implements JSON {
 	}
 
 	public JSONResponse (JSONObject object) throws JSONRPCException {
-		// TODO: check if this is a valid response object
-		if (object.has("jsonrpc")) {
-			if (!object.getString("jsonrpc").equals("2.0")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-						"Value of member 'jsonrpc' must be '2.0'");
+		if (object != null && !object.isNullObject()) {
+	
+			// TODO: check if this is a valid response object
+			if (object.has("jsonrpc")) {
+				if (!object.getString("jsonrpc").equals("2.0")) {
+					throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+							"Value of member 'jsonrpc' must be '2.0'");
+				}
 			}
-		}
-		if (object.has("result") && object.has("error")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Response contains both members 'result' and 'error' but may not contain both.");
-		}
-		if (!object.has("result") && !object.has("error")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Response is missing member 'result' or 'error'");
-		}
-		if (object.has("error")) {
-			if (!(object.get("error") instanceof JSONObject)) {
+			if (object.has("result") && object.has("error")) {
 				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-					"Member 'error' is no JSONObject");					
+					"Response contains both members 'result' and 'error' but may not contain both.");
 			}
-		}			
-		
-		init(object.get("id"), object.get("result"), 
-				new JSONRPCException(object.getJSONObject("error")));
+			if (!object.has("result") && !object.has("error")) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Response is missing member 'result' or 'error'");
+			}
+			if (object.has("error")) {
+				if (!(object.get("error") instanceof JSONObject)) {
+					throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+						"Member 'error' is no JSONObject");					
+				}
+			}			
+			
+			Object id = object.get("id"); 
+			Object result = object.get("result");
+			JSONRPCException error = new JSONRPCException(object.getJSONObject("error"));
+			
+			init(id, result, error);
+		}
+		else {
+			init(null, null, null);
+		}
 	}
 
 	public JSONResponse (Object result) {
@@ -99,7 +108,7 @@ public class JSONResponse implements JSON {
 		}
 	}
 
-	public JSONRPCException getError() {
+	public JSONRPCException getError() throws JSONRPCException {
 		if (resp.has("error")) {
 			JSONObject error = resp.getJSONObject("error");
 			return new JSONRPCException(error);

@@ -27,13 +27,16 @@ package com.almende.eve.agent.example;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.entity.Person;
+import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.annotation.ParameterRequired;
 
 
 // TODO: put TestAgent in a separate test project
@@ -45,9 +48,6 @@ public class TestAgent extends Agent {
 	}
 	
 	public String getName(@ParameterName("person") Person person) {
-		System.out.println("marks:" + person.getMarks());
-		Object mark = person.getMarks().get(3);
-		System.out.println("mark[3]:" + mark.getClass().getName());
 		return person.getName();
 	}
 
@@ -130,24 +130,65 @@ public class TestAgent extends Agent {
 	
 	public Double increment() {
 		Double value = new Double(0);
-		if (context.has("count")) {
-			value = (Double)context.get("count");
+		if (getContext().has("count")) {
+			value = (Double)getContext().get("count");
 		}
 		value++;
-		context.put("count", value);
+		getContext().put("count", value);
 
 		return value;
 	}
 	
 	public String get(@ParameterName("key") String key) {
-		return (String)context.get(key);
+		return (String)getContext().get(key);
 	}
 
 	public void put(@ParameterName("key") String key, 
 			@ParameterName("value") String value) {
-		context.put(key, value);
+		getContext().put(key, value);
+	}
+	
+	// TODO: onTrigger does not show up in getMethods
+	public void onTrigger(JSONObject params) {
+		System.out.println("onTrigger " + getId() + " " + params.toString());
 	}
 
+	public void doTrigger(@ParameterName("event") String event, 
+			@ParameterName("params") @ParameterRequired(false) JSONObject params) 
+			throws Exception {
+		trigger(event, params);
+	}
+
+	public String createTask(@ParameterName("delay") long delay) throws Exception {
+		JSONObject params = new JSONObject();
+		params.put("message", "hello world");
+		JSONRequest request = new JSONRequest("pingTask", params);
+		String id = getContext().getScheduler().setTimeout(getUrl(), request, delay);
+		return id;
+	}
+
+	public String createTaskInterval(@ParameterName("interval") long interval) throws Exception {
+		JSONObject params = new JSONObject();
+		params.put("message", "hello world");
+		JSONRequest request = new JSONRequest("pingTask", params);
+		String id = getContext().getScheduler().setInterval(getUrl(), request, interval);
+		return id;
+	}
+	
+	public void cancelTask(@ParameterName("id") String id) {
+		getContext().getScheduler().cancelTimer(id);
+	}
+	
+	public Set<String> getTasks() {
+		return getContext().getScheduler().getTimers();
+		// TODO: must a getTasks also return the contents of the task?
+	}
+	
+	
+	public void pingTask(@ParameterName("message") String message) {
+		System.out.println("ping " + message);
+	}
+	
 	@Override
 	public String getVersion() {
 		return "1.0";

@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.context.AgentContext;
-import com.almende.eve.agent.context.MemoryContext;
+import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
@@ -23,8 +23,8 @@ public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private Class<?> agentClass = null;
-	private Class<?> contextClass = null;
-
+	private AgentContext contextFactory = null;
+	
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -47,9 +47,11 @@ public class SingleAgentServlet extends HttpServlet {
 
 			// instantiate an agent and set its context
 			Agent agent = (Agent) agentClass.getConstructor().newInstance();
-			AgentContext context = 
-				(AgentContext) contextClass.getConstructor().newInstance();
-			context.setServletUrlFromRequest(req);			
+			String agentClassName = agent.getClass().getSimpleName().toLowerCase();
+			String id = "1"; // TODO: what to do with id?
+			AgentContext context = contextFactory.getInstance(agentClassName, id);
+			agent.setContext(context);			
+			context.setServletUrl(req);
 			agent.setContext(context);
 			
 			// invoke the method onto the agent
@@ -106,7 +108,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * @throws ServletException
 	 */
 	private void initContext(HttpServletRequest req) throws Exception {
-		if (contextClass != null) {
+		if (contextFactory != null) {
 			return;
 		}
 
@@ -116,6 +118,7 @@ public class SingleAgentServlet extends HttpServlet {
 			className = MemoryContext.class.getName();
 		}
 		
+		Class<?> contextClass = null;
 		try {
 			contextClass = Class.forName(className);
 		} catch (ClassNotFoundException e) {
@@ -128,6 +131,9 @@ public class SingleAgentServlet extends HttpServlet {
 					" must implement interface " + AgentContext.class.getName());
 		}
 
+		contextFactory = (AgentContext) contextClass.getConstructor().newInstance();
+		contextFactory.setServletUrl(req);
+		
 		logger.info("Context class " + contextClass.getName() + " loaded");
 	}
 	
