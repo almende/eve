@@ -79,6 +79,13 @@ public class MemoryContext implements AgentContext {
 	}
 
 	@Override
+	public synchronized void remove(String key) {
+		if (properties != null) {
+			properties.remove(key);
+		}	
+	}
+	
+	@Override
 	public Scheduler getScheduler() {
 		return scheduler;
 	}

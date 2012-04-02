@@ -19,7 +19,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         com.almende.eve.agent.example.TestAgent;
         com.almende.eve.agent.example.EchoAgent;
         com.almende.eve.agent.example.CalcAgent;
-      </param-value>
+        com.almende.eve.agent.example.ChatAgent;
+    </param-value>
     </init-param>
     <init-param>
       <description>The context for reading/writing persistent data</description> 

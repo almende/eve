@@ -41,6 +41,7 @@ import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.context.AgentContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
+import com.almende.eve.json.JSONResponse;
 import com.almende.eve.json.annotation.ParameterName;
 import com.almende.eve.json.annotation.ParameterRequired;
 
@@ -408,7 +409,8 @@ abstract public class Agent implements Serializable {
 	@Access(AccessType.UNAVAILABLE)
 	final public Object send(String url, String method, JSONObject params) 
 		throws Exception {
-			return JSONRPC.send(url, new JSONRequest(method, params));
+			JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
+			return response.getResult();
 	}
 
 

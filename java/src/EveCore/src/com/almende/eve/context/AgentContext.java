@@ -17,6 +17,7 @@ public interface AgentContext {
 	public Object get(String key);
 	public void put(String key, Object value);
 	public boolean has(String key);
+	public void remove(String key);
 	
 	// scheduler
 	public Scheduler getScheduler();

@@ -35,6 +35,7 @@
         com.almende.eve.agent.example.EchoAgent;
         com.almende.eve.agent.example.TestAgent;
         com.almende.eve.agent.example.CalcAgent;
+        com.almende.eve.agent.example.ChatAgent;
       </param-value>
     </init-param>   
     <init-param>

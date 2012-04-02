@@ -87,6 +87,14 @@ public class DatastoreContext implements AgentContext {
 	}
 
 	@Override
+	public void remove(String key) {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+
+		String fullKey = getFullKey(key);
+		datastore.delete(fullKey);
+	}
+
+	@Override
 	public void setServletUrl(HttpServletRequest req) {
 		// this class does not utilize the request for building the servlet url
 		servletUrl = getAppUrl() +  req.getServletPath() + "/" ;

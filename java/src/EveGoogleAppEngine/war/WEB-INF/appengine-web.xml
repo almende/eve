@@ -6,9 +6,8 @@
   <!--
     By default, App Engine sends requests serially to a given web server.
     To allow App Engine to send multiple requests in parallel specify:
-
-      <threadsafe>true</threadsafe>
   -->
+  <threadsafe>true</threadsafe>
 
   <!-- Configure java.util.logging -->
   <system-properties>
