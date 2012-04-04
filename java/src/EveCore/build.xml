@@ -9,7 +9,9 @@
 
   	<!-- create jar eve-core.jar and overwrite old one -->
     <jar destfile="${localbin}/eve-core-temp.jar" >
-    	<fileset dir="build/classes/" /> 
+    	<fileset dir="build/classes/" >
+        <exclude name="**/resources/*" /> 
+    	</fileset>
     	<fileset dir="src/" />
     </jar>
   	<move file="${localbin}/eve-core-temp.jar" tofile="${localbin}/eve-core.jar" />

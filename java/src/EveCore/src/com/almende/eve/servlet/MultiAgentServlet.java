@@ -1,7 +1,10 @@
 package com.almende.eve.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -28,16 +31,27 @@ public class MultiAgentServlet extends HttpServlet {
 	private AgentContext contextFactory = null;
 
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
-		// TODO: handle get requests by serving a nice HTML page
-		resp.getWriter().println(
-				"Error: POST request containing a JSON-RPC message expected");
-	}
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html");
+		String filename = "/com/almende/eve/resources/agent.html";
+		InputStream is = this.getClass().getResourceAsStream(filename);
+		if (is != null) {
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader reader = new BufferedReader(isr);
+			PrintWriter pw = response.getWriter();
+
+			String text;
+			while ((text = reader.readLine()) != null) {
+				pw.println(text);
+			}
+		}
+	}	
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
+		String request = "";
 		String response = "";
 		try {
 			// initialize the context and agent
@@ -45,7 +59,7 @@ public class MultiAgentServlet extends HttpServlet {
 			initAgents(req);
 			
 			// retrieve the request data
-			String request = streamToString(req.getInputStream());
+			request = streamToString(req.getInputStream());
 			
 			// initialize response object
 			// a servlet path is built up in three parts: first the folder 
@@ -83,6 +97,9 @@ public class MultiAgentServlet extends HttpServlet {
 			response = jsonResponse.toString();
 		}
 
+		// TODO: cleanup? or use it?
+		// logger.info("url=" + req.getRequestURI() + ", request=" + request + ", response=" + response);
+
 		// return response
 		resp.addHeader("Content-Type", "application/json");
 		resp.getWriter().println(response);
@@ -98,7 +115,7 @@ public class MultiAgentServlet extends HttpServlet {
 			return;
 		}
 
-		agentClasses = new HashMap<String, Class<?>>();
+		Map<String, Class<?>> newAgentClasses = new HashMap<String, Class<?>>();
 		
 		String classNames = getInitParameter("agents");
 		
@@ -122,7 +139,7 @@ public class MultiAgentServlet extends HttpServlet {
 					}
 					
 					String simpleName = agentClass.getSimpleName().toLowerCase();
-					agentClasses.put(simpleName, agentClass);
+					newAgentClasses.put(simpleName, agentClass);
 					
 					logger.info("Agent class " + agentClass.getName() + " loaded");
 				}
@@ -134,7 +151,11 @@ public class MultiAgentServlet extends HttpServlet {
 				logger.warning(e.getMessage()); 		
 			}
 		}
+		
+		// copy to agentClasses once the map is loaded
+		agentClasses = newAgentClasses;
 	}
+	
 	/**
 	 * Initialize the correct Context class for the SingleAgentServlet.
 	 * The class is read from the servlet init parameters in web.xml.
@@ -165,9 +186,14 @@ public class MultiAgentServlet extends HttpServlet {
 					" must implement interface " + AgentContext.class.getName());
 		}
 
-		contextFactory = (AgentContext) contextClass.getConstructor().newInstance();
-		contextFactory.setServletUrl(req);
+		// FIXME: it is not safe retrieving the servlet url from the request!
+		AgentContext newContextFactory = 
+			(AgentContext) contextClass.getConstructor().newInstance();
+		newContextFactory.setServletUrl(req);
 
+		// copy the context as soon as it is done
+		contextFactory = newContextFactory;
+		
 		logger.info("Context class " + contextClass.getName() + " loaded");
 	}
 

@@ -1,7 +1,11 @@
 package com.almende.eve.servlet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -17,7 +21,6 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
 
 
-
 @SuppressWarnings("serial")
 public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
@@ -26,12 +29,23 @@ public class SingleAgentServlet extends HttpServlet {
 	private AgentContext contextFactory = null;
 	
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
-		// TODO: handle get requests by serving a nice HTML page
-		resp.getWriter().println(
-				"Error: POST request containing a JSON-RPC message expected");
-	}
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html");
+		String filename = "/com/almende/eve/resources/agent.html";
+		InputStream is = this.getClass().getResourceAsStream(filename);
+		if (is != null) {
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader reader = new BufferedReader(isr);
+			PrintWriter pw = response.getWriter();
+
+			String text;
+			while ((text = reader.readLine()) != null) {
+				pw.println(text);
+			}
+		}
+	}	
+
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -46,13 +60,7 @@ public class SingleAgentServlet extends HttpServlet {
 			String request = streamToString(req.getInputStream());
 
 			// instantiate an agent and set its context
-			Agent agent = (Agent) agentClass.getConstructor().newInstance();
-			String agentClassName = agent.getClass().getSimpleName().toLowerCase();
-			String id = "1"; // TODO: what to do with id?
-			AgentContext context = contextFactory.getInstance(agentClassName, id);
-			agent.setContext(context);			
-			context.setServletUrl(req);
-			agent.setContext(context);
+			Agent agent = loadAgent(req);
 			
 			// invoke the method onto the agent
 			response = JSONRPC.invoke(agent, request);
@@ -71,6 +79,31 @@ public class SingleAgentServlet extends HttpServlet {
 	}
 
 	/**
+	 * instantiate an agent and set its context
+	 * @return
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws SecurityException 
+	 * @throws IllegalArgumentException 
+	 */
+	Agent loadAgent(HttpServletRequest req) 
+			throws IllegalArgumentException, SecurityException, 
+			InstantiationException, IllegalAccessException, 
+			InvocationTargetException, NoSuchMethodException {
+		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		String agentClassName = agent.getClass().getSimpleName().toLowerCase();
+		String id = "1"; // TODO: what to do with id?
+		AgentContext context = contextFactory.getInstance(agentClassName, id);
+		agent.setContext(context);			
+		context.setServletUrl(req);
+		agent.setContext(context);
+		
+		return agent;		
+	}
+	
+	/**
 	 * Initialize the correct Agent class for the SingleAgentServlet.
 	 * The class is read from the servlet init parameters in web.xml.
 	 * @throws ServletException
@@ -87,17 +120,20 @@ public class SingleAgentServlet extends HttpServlet {
 				"Init parameter 'agent' missing in servlet configuration." +
 				"This parameter must be specified in web.xml.");
 		}
-		
+		Class<?> newAgentClass;
 		try {
-			agentClass = Class.forName(className);
+			newAgentClass = Class.forName(className);
 		} catch (ClassNotFoundException e) {
 			throw new ServletException("Cannot find class " + className + "");
 		}
 		
-		if (!agentClass.getSuperclass().equals(Agent.class)) {
-			throw new ServletException("Class " + agentClass.getName() + 
+		if (!newAgentClass.getSuperclass().equals(Agent.class)) {
+			throw new ServletException("Class " + newAgentClass.getName() + 
 					" must extend " + Agent.class.getName());
 		}
+		
+		// copy to the final agentClass once loaded
+		agentClass = newAgentClass;
 		
 		logger.info("Agent class " + agentClass.getName() + " loaded");
 	}
@@ -131,9 +167,14 @@ public class SingleAgentServlet extends HttpServlet {
 					" must implement interface " + AgentContext.class.getName());
 		}
 
-		contextFactory = (AgentContext) contextClass.getConstructor().newInstance();
-		contextFactory.setServletUrl(req);
+		AgentContext newContextFactory = 
+			(AgentContext) contextClass.getConstructor().newInstance();
+		newContextFactory.setServletUrl(req);
 		
+		// copy to the final contextFactory once loaded
+		contextFactory = newContextFactory;
+		
+		// FIXME: it is not safe retrieving the servlet url from the request!
 		logger.info("Context class " + contextClass.getName() + " loaded");
 	}
 	
@@ -162,5 +203,4 @@ public class SingleAgentServlet extends HttpServlet {
 		}
 		return out.toString();
 	}
-
 }

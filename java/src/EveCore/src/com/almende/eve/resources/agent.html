@@ -1,0 +1,359 @@
+<!doctype html>
+<html  xmlns:ng="http://angularjs.org">
+
+<!-- 
+TODO: 
+- use angular service instead of jquery ajax call
+- couple the form and the json-rpc request 
+ -->
+
+<head>
+  <title>Agent</title>
+  <style>
+    body {
+      color: #4D4D4D; 
+      width: 720px;
+    }
+    body, td {
+      font-family: arial; 
+      font-size: 11pt;
+    }
+    th {
+      text-align: left;
+    }
+    td, th {
+      vertical-align: top; 
+      padding-right: 10px; 
+      padding-bottom: 5px;
+    }
+    textarea {
+      height: 100px; 
+      width: 100%; 
+      min-width: 400px; 
+      margin-top: 5px; 
+      border: 1px solid gray;
+    }
+    input[type=text] {
+      border: 1px solid gray;
+    }
+    textarea:focus, input[type=text]:focus {
+      background-color: #FFFF80;
+    }
+  </style>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+  <script src="http://code.angularjs.org/0.9.19/angular-0.9.19.min.js" ng:autobind></script>
+   
+    
+  <script type='text/javascript'>
+  
+    /**
+     * Adjust the height of given textarea to match its contents
+     * @param {HTML Textarea} elem
+     */
+    function resize (elem) {
+      elem.style.height = 'auto';    
+      elem.style.height = (elem.scrollHeight + 20) + 'px';
+    }
+   
+    /**
+     * Angular JS controller to control the page
+     */ 
+    function Ctrl() {
+      var loadingText = '...';
+      this.url         = document.location.href;
+      this.title       = loadingText;
+      this.version     = loadingText;
+      this.description = loadingText;
+      this.type        = loadingText;
+      this.id          = loadingText;
+      
+      // form
+      this.methods = [{}];
+      this.method = this.methods[0];
+      this.result = '';
+      
+      // json rpc 
+      this.request = undefined;
+      this.response = undefined;
+  
+      /**
+       * Change the currently selected method
+       */
+      this.setMethod = function () {
+        for (var i = 0; i < this.methods.length; i++) {
+          var method = this.methods[i];
+          if (method.method == this.methodName) {
+            this.method = method;
+            break;
+          }
+        }
+      }
+      
+      /**
+       * Send a JSON-RPC request
+       * @param {JSON} request      A JSON-RPC 2.0 request, like  
+       *                            {"id":1,"method":"add","params":{"a":2,"b":3}}
+       * @param {function} callback A callback method. The callback will be
+       *                            called with a JSON-RPC response as 
+       *                            first argument (of type JSON), for example 
+       *                            {"jsonrpc":"2.0","id":1,"result":5} 
+       */
+      this.send = function (request, callback, errback) {
+        var self = this;
+        $.ajax({       
+          'type': 'POST',        
+          'url': self.url,
+          'contentType': 'application/json',
+          'data': JSON.stringify(request),
+          'success': callback,
+          'error': function (err) {
+        	  if (errback) {
+        		  errback(err);
+        	  }
+        	  else {
+              console.log(err);
+        	  }
+          }
+        });
+      }
+      
+      /**
+       * Check whether a given type is a primitive type like 'string', 'long',
+       * 'double', but not some complex type like 'Map<String, String>' or
+       * 'Contact'.
+       * @param {String} type   The name of a type
+       * @return {boolean}      True if primitive, else false
+       */
+      this.isPrimitiveType = function (type) {
+        var primitives = ['string', 'char', 'long', 'double', 'int', 
+                          'number', 'float', 'byte', 'short', 'boolean'];
+        return (primitives.indexOf(type.toLowerCase()) != -1);
+      }
+      
+      /**
+       * Send an JSON-RPC request. 
+       * The request is built up from the current values in the form,
+       * and the field result in the response is filled in in the field #result
+       */
+      this.sendForm = function () {
+        var request = {};
+        request.id = 1;
+        request.method = this.method.method;
+        request.params = {};
+        for (var i = 0; i < this.method.params.length; i++) {
+          var param = this.method.params[i];
+          request.params[param.name] = param.value;
+        }
+      
+        var self = this;
+        this.send(request, function (response) {
+          if (response.error) {
+            self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
+          }
+          else {
+            if (response.result instanceof Object) {
+              self.result = JSON.stringify(response.result, null, 2) || '';
+            }
+            else {
+              self.result = response.result || '';
+            }
+          }
+          self.$root.$eval();
+          resize($('#result').get(0));
+        }); 
+      }
+
+      /**
+       * Send a JSON-RPC request.
+       * The request is read from the field #request, and the response is
+       * filled in in the field #response
+       */
+      this.sendJsonRpc = function() {
+        var self = this;
+        var request = JSON.parse(this.request);
+        this.request = JSON.stringify(request, null, 2);
+        self.$root.$eval();
+        resize($('#request').get(0));
+        
+        this.send(request, function (response) {
+          self.response = JSON.stringify(response, null, 2);
+          self.$root.$eval();
+          resize($('#response').get(0));
+        }); 
+      }
+      
+      /**
+       * Load information and data from the agent via JSON-RPC calls.
+       * Retrieve the methods, type, id, description, etc.
+       */
+      this.load = function () {
+        var self = this;
+        var reqs = [
+          {'method': 'getUrl', 'field': 'url'}, // TODO: retrieve correct url from agent itself
+          {'method': 'getType', 'field': 'type'},
+          {'method': 'getId', 'field': 'id'},
+          {'method': 'getDescription', 'field': 'description'},
+          {'method': 'getVersion', 'field': 'version'},
+          {
+            'method': 'getMethods', 
+            'field': 'methods', 
+            'params': {'asJSON': true},
+            'callback': function () {
+              if (self && self.methods && self.methods[0]) {
+                self.methodName = self.methods[0].method;
+                self.setMethod();
+                self.$root.$eval();
+              }
+            }
+          }
+        ];
+
+       	var total = reqs.length;
+       	var left = total;
+       	var decrement = function () {
+       		left--;
+       		if (left > 0) {
+            self.progress = Math.round((total - left) / total * 100) + '%';
+       		}
+       		else {
+            self.loading = false;
+       		}
+          self.$root.$eval();
+       	}
+       	for (var i = 0; i < reqs.length; i++) {
+       		(function (req) {
+       			var request = {
+       			  "id":1, 
+       			  "method": req.method, 
+       			  "params": req.params || {}
+       			};
+	          self.send(request, function(response) {
+	            self[req.field] = response.result;
+	            self.$root.$eval();
+	            if (req.callback) {
+	            	req.callback(response.result);
+	            }
+	            decrement();
+	          }, function (err) {
+	        	  decrement();
+	        	  console.log(err);
+	          });
+       		})(reqs[i]);
+       	}
+      }
+
+      this.loading = true;
+      this.load();
+    }
+  </script>
+</head>
+  
+<body ng:controller="Ctrl">
+  <div ng:show="loading">
+    loading... {{progress}}
+  </div>
+  <div ng:hide="loading">
+  <h1>{{type}} {{id}}</h1>
+  
+  <h2>Info</h2>
+  <table>
+    <tr><th>Url</th><td>{{url}}</td></tr>
+    <tr><th>Type</th><td>{{type}}</td></tr>
+    <tr><th>Id</th><td>{{id}}</td></tr>
+    <tr><th>Version</th><td>{{version}}</td></tr>
+    <tr><th>Description</th><td>{{description}}</td></tr>
+  </table>
+  
+  <h2>Talk to me</h2>
+  
+  <p>Talk to this agent via a form or via JSON-RPC requests.</p>
+  
+  <table style="width:100%;">
+    <colgroup>
+      <col />
+      <col />
+      <col />
+      <col />
+      <col width="100%" />
+    </colgroup>
+    
+    <tr>
+      <th>Mode</th>
+      <td colspan="4">
+        <input type="radio" name="mode" value="form" checked id="mode_form"> Form
+        <input type="radio" name="mode" value="jsonrpc" id="mode_jsonrpc"> JSON-RPC
+      </td>
+    </tr>
+  
+    <tr ng:show="mode=='form'">
+      <th>Method</th>
+      <td colspan="4">
+        <select name="methodName" ng:change="setMethod()">
+          <option ng:repeat="method in methods" ng:selected="setParams">{{method.method}}</option>
+        </select>
+      </td>
+    </tr>
+    <tr ng:show="mode=='form' && method.params.length > 0">
+      <th>Params</th>
+      <th>Name</th>
+      <th>Value</th>
+      <th>Type</th>
+      <th>Required</th>
+    </tr>
+    <tr ng:show="mode=='form' && method.params.length == 0">
+      <th>Params</th>
+      <td colspan="4">none</td>
+    </tr>
+    <tr ng:repeat="param in method.params" ng:show="mode=='form'">
+      <td></td>
+      <td>{{param.name}}</td>
+      <td ng:show="isPrimitiveType(param.type)"><input type="text" name="param.value" /></td>
+      <td ng:show="!isPrimitiveType(param.type)"><textarea name="param.value" onkeyup="resize(this);"></textarea></td>
+      <td>{{param.type}}</td>
+      <td>{{param.required}}</td>
+    </tr>
+    
+    <tr ng:show="mode=='form'">
+      <th></th>
+      <td colspan="4">
+        <input type="button" value="Send" ng:click="sendForm();" />
+      </td>
+    </tr>
+    
+    <tr ng:show="mode=='form'">
+      <th>Result</th>
+      <td colspan="4">
+        <textarea id="result" name="result" readonly="readonly"></textarea>
+      </td>
+    </tr>
+    
+    <tr ng:show="mode=='jsonrpc'">
+      <th>Request</th>
+      <td colspan="4">
+<textarea id='request' name="request" onkeyup="resize(this);">{
+  "id":1,
+  "method":"getMethods",
+  "params":{}
+}</textarea><br>
+      </td>
+    </tr>
+        
+    <tr ng:show="mode=='jsonrpc'">
+      <th></th>
+      <td colspan="4">
+        <input type="button" value="Send" ng:click="sendJsonRpc();" />
+      </td>
+    </tr>
+    
+    <tr ng:show="mode=='jsonrpc'">
+      <th>Response</th>
+      <td colspan="4">
+        <textarea id="response" name="response" readonly="readonly"></textarea>
+      </td>
+    </tr>
+      
+  </table>
+  </div>
+</body>
+
+</html>

@@ -80,26 +80,6 @@ abstract public class Agent implements Serializable {
 	}
 	
 	/**
-	 * Retrieve a web page via which a user can communicate with this agent
-	 * in a browser.
-	 * @return html
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	public String getHTMLPage() {
-		/* TODO
-		String html = "<html>"
-			+ "<body>"
-			+ "Sorry, this agent has no HTML page available"
-			+ "</body>" 
-			+ "</html>";
-		
-		return html;
-		*/
-		return null;
-	}
-	
-	
-	/**
 	 * Helper class to store a callback url and method
 	 */
 	private class Callback implements Serializable {
