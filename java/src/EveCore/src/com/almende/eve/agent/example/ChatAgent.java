@@ -104,13 +104,16 @@ public class ChatAgent extends Agent {
 	public void post(@ParameterName("message") String message) throws Exception {
 		JSONArray connections = getConnections();
 
-		log(getUsername() + " posts message \"" + message + "\"" + 
-				" to " + connections.size() + " agent(s)"); 
-
+		// trigger a "post message"
 		JSONObject params = new JSONObject();
 		params.put("url", getUrl());
 		params.put("username", getUsername());
 		params.put("message", message);
+		trigger("post", params);
+		
+		log(getUsername() + " posts message \"" + message + "\"" + 
+				" to " + connections.size() + " agent(s)"); 
+
 		for (int i = 0; i < connections.size(); i++) {
 			String connection = connections.getString(i);
 			send(connection, "receive", params);
@@ -127,8 +130,15 @@ public class ChatAgent extends Agent {
 	public void receive(@ParameterName("url") String url, 
 			@ParameterName("username") String username, 
 			@ParameterName("message") String message) throws Exception {
+		// trigger a "receive" message
+		JSONObject params = new JSONObject();
+		params.put("url", url);
+		params.put("username", username);
+		params.put("message", message);
+		trigger("receive", params);
+
 		log(getUsername() + " received message from " + 
-				username + ": " + message);
+				username + ": " + message);	
 	}
 	
 	/**
@@ -157,6 +167,12 @@ public class ChatAgent extends Agent {
 					// this is an agent that I didn't knew before
 					connections.add(connection);
 					newConnections.add(connection);
+				
+					// trigger a "connected" event
+					JSONObject params = new JSONObject();
+					params.put("url", connection);
+					trigger("connected", params);
+
 					log(getUsername() + " connected to " + connection);
 				}
 			}
@@ -170,6 +186,12 @@ public class ChatAgent extends Agent {
 		// add the agent that triggered the connect
 		if (connections.indexOf(url) == -1) {
 				connections.add(url);
+				
+				// trigger a "connected" event
+				JSONObject params = new JSONObject();
+				params.put("url", url);
+				trigger("connected", params);
+				
 				log(getUsername() + " connected to " + url);
 		}
 		if (!otherAlreadyConnected) {
@@ -208,6 +230,11 @@ public class ChatAgent extends Agent {
 				JSONObject params = new JSONObject();
 				params.put("url", urlSelf);
 				send(url, method, params);
+				
+				// trigger a "disconnected" event
+				JSONObject triggerParams = new JSONObject();
+				triggerParams.put("url", url);
+				trigger("disconnected", triggerParams);
 			}			
 		}		
 	}
@@ -225,6 +252,10 @@ public class ChatAgent extends Agent {
 			getContext().put("connections", connections);	
 			
 			log(getUsername() + " disconnected from " + url); 
+			// tirgger a "connected" event
+			JSONObject params = new JSONObject();
+			params.put("url", url);
+			trigger("disconnected", params);			
 		}
 	}
 

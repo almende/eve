@@ -13,37 +13,39 @@ TODO:
     body {
       color: #4D4D4D; 
       width: 720px;
+      padding: 0px 20px;
     }
-    body, td {
+    body, td, th, pre {
       font-family: arial; 
       font-size: 11pt;
     }
-    th {
-      text-align: left;
-    }
     td, th {
+      text-align: left;
       vertical-align: top; 
-      padding-right: 10px; 
-      padding-bottom: 5px;
+      padding: 5px 10px; 
+    }
+    table {
+      width: 100%;
+      background-color: #F5F5F5;
+      border: 1px solid #E5E5E5;
+      border-radius: 3px;
     }
     textarea {
       height: 100px; 
-      width: 100%; 
-      min-width: 400px; 
-      margin-top: 5px; 
-      border: 1px solid gray;
+      min-width: 400px;
     }
-    input[type=text] {
-      border: 1px solid gray;
+    textarea, input[type=text] {
+      width: 100%; 
+      background-color: white;
+      border: 1px solid lightgray;
     }
     textarea:focus, input[type=text]:focus {
-      background-color: #FFFF80;
+      border: 1px solid gray;
     }
   </style>
   <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
   <script src="http://code.angularjs.org/0.9.19/angular-0.9.19.min.js" ng:autobind></script>
-   
-    
+
   <script type='text/javascript'>
   
     /**
@@ -76,6 +78,12 @@ TODO:
       this.request = undefined;
       this.response = undefined;
   
+      // logs
+      this.lastTimestamp = 0;
+      this.pollingInterval = 10000;  // polling interval in milliseconds
+      this.logs = [];
+      this.logAgentId = Math.round(Math.random() * 1e6); // TODO: better random
+      
       /**
        * Change the currently selected method
        */
@@ -91,18 +99,21 @@ TODO:
       
       /**
        * Send a JSON-RPC request
+       * @param {String} url        Url where to send the request
        * @param {JSON} request      A JSON-RPC 2.0 request, like  
        *                            {"id":1,"method":"add","params":{"a":2,"b":3}}
        * @param {function} callback A callback method. The callback will be
        *                            called with a JSON-RPC response as 
        *                            first argument (of type JSON), for example 
        *                            {"jsonrpc":"2.0","id":1,"result":5} 
+       * @param {function} errback  Optional callback function in case of 
+       *                            an error
        */
-      this.send = function (request, callback, errback) {
+      this.send = function (url, request, callback, errback) {
         var self = this;
         $.ajax({       
           'type': 'POST',        
-          'url': self.url,
+          'url': url,
           'contentType': 'application/json',
           'data': JSON.stringify(request),
           'success': callback,
@@ -129,7 +140,12 @@ TODO:
                           'number', 'float', 'byte', 'short', 'boolean'];
         return (primitives.indexOf(type.toLowerCase()) != -1);
       }
-      
+
+      this.formatDate = function(date) {
+    	  var d = new Date(date);
+    	  return d.toISOString();
+      }
+       
       /**
        * Send an JSON-RPC request. 
        * The request is built up from the current values in the form,
@@ -142,11 +158,13 @@ TODO:
         request.params = {};
         for (var i = 0; i < this.method.params.length; i++) {
           var param = this.method.params[i];
-          request.params[param.name] = param.value;
+          if (param.required || (param.value && param.value.length > 0) ) {
+            request.params[param.name] = param.value;
+          }
         }
-      
+        
         var self = this;
-        this.send(request, function (response) {
+        this.send(self.url, request, function (response) {
           if (response.error) {
             self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
           }
@@ -175,11 +193,79 @@ TODO:
         self.$root.$eval();
         resize($('#request').get(0));
         
-        this.send(request, function (response) {
+        this.send(self.url, request, function (response) {
           self.response = JSON.stringify(response, null, 2);
           self.$root.$eval();
           resize($('#response').get(0));
         }); 
+      }
+      
+      /**
+       * Get and validate the polling interval
+       * @return {Number} interval in milliseconds
+       */
+      this.getPollingInterval = function () {
+	      var interval = Number(this.pollingInterval);
+	      if (interval <= 0) {
+	        interval = 1;
+	        this.pollingInterval = interval;
+	      }
+	      if (interval > 10000) {
+	        interval = 10000;
+	        this.pollingInterval = interval;
+	      }
+	      return interval;
+      }
+      
+      /**
+       * Create a log agent and start polling it for events
+       */
+      this.createLogAgent = function () {
+        var self = this;
+    	  var urlParts = this.url.split('/');
+        urlParts.pop();
+        urlParts.pop();
+        urlParts.push('logagent');
+        urlParts.push(String(this.logAgentId));
+        this.logAgentUrl = urlParts.join('/');
+        this.$root.$eval();
+        
+        var getLogs = function () {
+          var request = {
+            'id': 1,
+            'method': 'getLogs',
+            'params': {
+              'from': self.lastTimestamp,
+              'url': self.url
+            }
+          };
+          self.send(self.logAgentUrl, request, function (response) {
+	          var newLogs = response.result;
+	          while (newLogs.length) {
+	            var newLog = newLogs.shift();
+	            self.lastTimestamp = newLog.timestamp;
+	            self.logs.push(newLog);
+	          }
+	          self.$root.$eval();
+	          
+	          // set a new timeout
+	          self.logAgentTimer = setTimeout(getLogs, self.getPollingInterval());
+	        }, function (err) {
+	        	// set a new timeout
+	          self.logAgentTimer = setTimeout(getLogs, self.getPollingInterval());
+	        });
+        };
+        
+        var request = {
+          'id': 1,
+          'method': 'addAgent',
+          'params': {
+            'url': self.url
+          }
+        };
+        self.send(this.logAgentUrl, request, function (response) {
+          getLogs();
+        });
       }
       
       /**
@@ -189,9 +275,27 @@ TODO:
       this.load = function () {
         var self = this;
         var reqs = [
-          {'method': 'getUrl', 'field': 'url'}, // TODO: retrieve correct url from agent itself
-          {'method': 'getType', 'field': 'type'},
-          {'method': 'getId', 'field': 'id'},
+          {
+        	  'method': 'getUrl', 
+        	  'field': 'url',
+        	  'callback': function () {
+        		  self.createLogAgent();
+        	  }
+        	},
+          {
+        	  'method': 'getType', 
+        	  'field': 'type',
+        	  'callback': function () {
+              document.title = self.type + ' ' + self.id;
+            } 
+        	},
+          {
+        	  'method': 'getId', 
+        	  'field': 'id', 
+        	  'callback': function () {
+        		  document.title = self.type + ' ' + self.id;
+        	  } 
+          },
           {'method': 'getDescription', 'field': 'description'},
           {'method': 'getVersion', 'field': 'version'},
           {
@@ -227,7 +331,7 @@ TODO:
        			  "method": req.method, 
        			  "params": req.params || {}
        			};
-	          self.send(request, function(response) {
+	          self.send(self.url, request, function(response) {
 	            self[req.field] = response.result;
 	            self.$root.$eval();
 	            if (req.callback) {
@@ -256,6 +360,8 @@ TODO:
   <h1>{{type}} {{id}}</h1>
   
   <h2>Info</h2>
+  <p>General information about me.</p>
+  
   <table>
     <tr><th>Url</th><td>{{url}}</td></tr>
     <tr><th>Type</th><td>{{type}}</td></tr>
@@ -264,19 +370,10 @@ TODO:
     <tr><th>Description</th><td>{{description}}</td></tr>
   </table>
   
-  <h2>Talk to me</h2>
+  <h2>Methods</h2>
+  <p>Talk to me via a form or via JSON-RPC requests.</p>
   
-  <p>Talk to this agent via a form or via JSON-RPC requests.</p>
-  
-  <table style="width:100%;">
-    <colgroup>
-      <col />
-      <col />
-      <col />
-      <col />
-      <col width="100%" />
-    </colgroup>
-    
+  <table>    
     <tr>
       <th>Mode</th>
       <td colspan="4">
@@ -353,6 +450,33 @@ TODO:
     </tr>
       
   </table>
+  
+  <h2>Events</h2>
+  
+  <table>
+    <tr>
+      <th>timestamp</th>
+      <th>event</th>
+      <th>params</th>
+    </tr>
+    <tr ng:repeat="log in logs">
+      <td style="white-space:nowrap;">{{formatDate(log.timestamp)}}</td>
+      <td>{{log.event}}</td>
+      <td>
+        <table>
+          <tr ng:repeat="(key, value) in log.params">
+            <td>{{key}}</td><td>{{value}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  
+  <p>Events are logged by {{logAgentUrl}}</p>
+  <p>Polling interval: 
+    <input type="text" name="pollingInterval" style="width:50px;" /> milliseconds
+  </p>
+  
   </div>
 </body>
 

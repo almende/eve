@@ -2,7 +2,9 @@
  * @file Agent.java
  * 
  * @brief 
- * TODO: brief
+ * Agent is the abstract base class for all Eve agents.
+ * It provides basic functionality such as id, url, getting methods,
+ * subscribing to events, etc. 
  *
  * @license
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -20,7 +22,7 @@
  * Copyright © 2010-2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2012-03-26
+ * @date	  2012-04-04
  */
 
 package com.almende.eve.agent;
@@ -176,27 +178,43 @@ abstract public class Agent implements Serializable {
 	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
+	@SuppressWarnings("unchecked")
 	final public void trigger(@ParameterName("event") String event, 
 			@ParameterName("params") JSONObject params) throws Exception {
 		String url = getUrl();
-		String key = getSubscriptionsKey(event);
-		Object value = context.get(key);
-		if (value != null) {
-			@SuppressWarnings("unchecked")
-			List<Callback> subscriptions = (List<Callback>) value;
-			
-			JSONObject callbackParams = new JSONObject();
-			callbackParams.put("agent", url);
-			callbackParams.put("event", event);
-			callbackParams.put("params", params);
-			
-			for (Callback s : subscriptions) {
-				try {
-					send(s.callbackUrl, s.callbackMethod, callbackParams);
-				} catch (Exception e) {
-					e.printStackTrace();
-					// TODO: how to handle exceptions in trigger?
-				}
+		List<Callback> subscriptions = new ArrayList<Callback>();
+
+		if (event.equals("*")) {
+			throw new Exception("Cannot trigger * event");
+		}
+
+		// retrieve subscriptions from the event
+		String keyEvent = getSubscriptionsKey(event);
+		Object valueEvent = context.get(keyEvent);
+		if (valueEvent != null) {
+			subscriptions.addAll( (List<Callback>) valueEvent);
+		}
+		
+		// retrieve subscriptions from the all event "*"
+		String keyAll = getSubscriptionsKey("*");
+		Object valueAll = context.get(keyAll);
+		if (valueAll != null) {
+			subscriptions.addAll( (List<Callback>) valueAll);
+		}
+		
+		// TODO: smartly remove double entries?
+		
+		JSONObject callbackParams = new JSONObject();
+		callbackParams.put("agent", url);
+		callbackParams.put("event", event);
+		callbackParams.put("params", params);
+		
+		for (Callback s : subscriptions) {
+			try {
+				send(s.callbackUrl, s.callbackMethod, callbackParams);
+			} catch (Exception e) {
+				e.printStackTrace();
+				// TODO: how to handle exceptions in trigger?
 			}
 		}
 	}
