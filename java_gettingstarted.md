@@ -45,7 +45,7 @@ This tutorial uses Eclipse and the Google Web Toolkit plugin.
   Click Ok. 
   Then, select and install "Google Plugin for Eclipse" and "SDKs".
 
-Note that for a typical java web application you will need the 
+Note that for a typical java web application you would need the 
 [Web Tools Platform plugin](http://download.eclipse.org/webtools/repository/helios/) 
 and a [Tomcat server](http://tomcat.apache.org/).
 
@@ -71,12 +71,9 @@ web servlet.
 
   - [eve-core.jar](https://github.com/almende/eve/tree/master/java/bin/current)
   
-    - [json-lib-2.4-jdk15.jar](http://json-lib.sourceforge.net/)
-    - [jakarta commons-lang 2.5](http://commons.apache.org/lang/)
-    - [jakarta commons-beanutils 1.8.0](http://commons.apache.org/beanutils/)
-    - [jakarta commons-collections 3.2.1](http://commons.apache.org/collections/)
-    - [jakarta commons-logging 1.1.1](http://commons.apache.org/logging/)
-    - [ezmorph 1.0.6](http://ezmorph.sourceforge.net/)
+    - [jackson-databind-2.0.0.jar](http://jackson.codehaus.org/)
+    - [jackson-core-2.0.0.jar](http://jackson.codehaus.org/)
+    - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org/)
 
   - [eve-google-appengine.jar](https://github.com/almende/eve/tree/master/java/bin/current)
   
@@ -88,28 +85,29 @@ web servlet.
 - Now, you need to configure a web-servlet to host the agents you want. 
   Open the file web.xml under war/WEB-INF. Insert the following lines
   inside the &lt;web-app&gt; tag:
-  <pre><code>&lt;servlet&gt;
-    &lt;servlet-name&gt;MultiAgentServlet&lt;/servlet-name&gt;
-    &lt;servlet-class&gt;com.almende.eve.servlet.MultiAgentServlet&lt;/servlet-class&gt;
-    &lt;init-param&gt;
-      &lt;description&gt;The agent classes served by the servlet&lt;/description&gt; 
-      &lt;param-name&gt;agents&lt;/param-name&gt;
-      &lt;param-value&gt;
-        com.almende.eve.agent.example.EchoAgent;
-        com.almende.eve.agent.example.CalcAgent;        
-      &lt;/param-value&gt;
-    &lt;/init-param&gt;   
-    &lt;init-param&gt;
-      &lt;description&gt;The context for reading/writing persistent data&lt;/description&gt; 
-      &lt;param-name&gt;context&lt;/param-name&gt;
-      &lt;param-value&gt;com.almende.eve.agent.context.google.DatastoreContext&lt;/param-value&gt;
-    &lt;/init-param&gt;
-  &lt;/servlet&gt;
-  &lt;servlet-mapping&gt;
-    &lt;servlet-name&gt;MultiAgentServlet&lt;/servlet-name&gt;
-    &lt;url-pattern&gt;/agents/*&lt;/url-pattern&gt;
-  &lt;/servlet-mapping&gt;
-  </code></pre>
+
+      <servlet>
+        <servlet-name>MultiAgentServlet</servlet-name>
+        <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
+        <init-param>
+          <description>The agent classes served by the servlet</description> 
+          <param-name>agents</param-name>
+          <param-value>
+            com.almende.eve.agent.example.EchoAgent;
+            com.almende.eve.agent.example.CalcAgent;        
+          </param-value>
+        </init-param>   
+        <init-param>
+          <description>The context for reading/writing persistent data</description> 
+          <param-name>context</param-name>
+          <param-value>com.almende.eve.context.google.DatastoreContext</param-value>
+        </init-param>
+      </servlet>
+      <servlet-mapping>
+        <servlet-name>MultiAgentServlet</servlet-name>
+        <url-pattern>/agents/*</url-pattern>
+      </servlet-mapping>
+
 
   The configuration consists of a standard servlet and servlet mapping definition.
   The MultiAgentServlet needs two initialization parameters: 
@@ -146,23 +144,26 @@ Now the project can be started and you can see one of the example agents in acti
   or with a tool like [cURL](http://curl.haxx.se/).
 
   Perform an HTTP POST request to the CalcAgent on the url
-  <pre><code>http://localhost:8888/agents/calcagent/1</code></pre>
-  
+
+      http://localhost:8888/agents/calcagent/1
+
   With request body:
-  <pre><code>{
-    "id": 1, 
-    "method": "eval",
-    "params": {
-      "expr": "2.5 + 3 / sqrt(16)"
-    }
-  }</code></pre>
+
+      {
+        "id": 1, 
+        "method": "eval",
+        "params": {
+          "expr": "2.5 + 3 / sqrt(16)"
+        }
+      }
   
   This request will return the following response:
-  <pre><code>{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "result": "3.25"
-  }</code></pre>
+  
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": "3.25"
+      }
 
 
 ## Create your own agent {#create_your_own_agent}
@@ -175,32 +176,32 @@ your agent class in the eve.properties file.
 - Create a new java class named MyFirstAgent under com.mycompany.myproject 
   with the following contents:
   
-  <pre><code>package com.mycompany.myproject;
-
-  import com.almende.eve.agent.Agent;
-  import com.almende.eve.json.annotation.ParameterName;
-
-  public class MyFirstAgent extends Agent {
-      public String echo (@ParameterName("message") String message) {
-          return message;	
+      package com.mycompany.myproject;
+      
+      import com.almende.eve.agent.Agent;
+      import com.almende.eve.json.annotation.Name;
+      
+      public class MyFirstAgent extends Agent {
+          public String echo (@Name("message") String message) {
+              return message;  
+          }
+          
+          public double add (@Name("a") double a, 
+                  @Name("b") double b) {
+              return a + b;  
+          }
+          
+          @Override
+          public String getDescription() {
+              return "My first agent";
+          }
+          
+          @Override
+          public String getVersion() {
+              return "0.1";
+          }
       }
 
-      public double add (@ParameterName("a") double a, 
-              @ParameterName("b") double b) {
-          return a + b;	
-      }
-
-      @Override
-      public String getDescription() {
-          return "My first agent";
-      }
-
-      @Override
-      public String getVersion() {
-          return "0.1";
-      }
-  }
-  </code></pre>
   
   Each agent must contain at least two default methods: getDescription 
   and getVersion. Next, you can add your own methods, in this example the 
@@ -211,53 +212,60 @@ your agent class in the eve.properties file.
   located under war/WEB-INF. Add the full classname 
   com.mycompany.myproject.MyFirstAgent to the list with agents in the init 
   parameter *agents*. Class names must be separated by a semicolon. 
-  <pre><code>...
-  &lt;init-param&gt;
-    &lt;description&gt;The agent classes served by the servlet&lt;/description&gt; 
-    &lt;param-name&gt;agents&lt;/param-name&gt;
-    &lt;param-value&gt;
-      com.almende.eve.agent.example.EchoAgent;
-      com.almende.eve.agent.example.CalcAgent;        
-      <b>com.mycompany.myproject.MyFirstAgent;</b>
-    &lt;/param-value&gt;
-  &lt;/init-param&gt;     
-  ...
-  </code></pre>
+  
+      ...
+      <init-param>
+        <description>The agent classes served by the servlet</description> 
+        <param-name>agents</param-name>
+        <param-value>
+          com.almende.eve.agent.example.EchoAgent;
+          com.almende.eve.agent.example.CalcAgent;        
+          com.mycompany.myproject.MyFirstAgent;
+        </param-value>
+      </init-param>     
+      ...
+
 
 - Now you can (re)start the server, and perform an HTTP POST request to the url
   
-  <pre><code>http://localhost:8888/agents/myfirstagent/1234</code></pre>
+      http://localhost:8888/agents/myfirstagent/1234
   
   With as request:
-  <pre><code>{
-    "id": 1, 
-    "method": "echo", 
-    "params": {
-      "message": "Hello World"
-    }
-  }</code></pre>
+  
+      {
+        "id": 1, 
+        "method": "echo", 
+        "params": {
+          "message": "Hello World"
+        }
+      }
+  
   which returns:
-  <pre><code>{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "result": "Hello World"
-  }</code></pre>
+
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": "Hello World"
+      }
 
   or send the following request:
-  <pre><code>{
-    "id": 1, 
-    "method": "add", 
-    "params": {
-      "a": 2.1, 
-      "b": 3.5
-    }
-  }</code></pre>
+  
+      {
+        "id": 1, 
+        "method": "add", 
+        "params": {
+          "a": 2.1, 
+          "b": 3.5
+        }
+      }
+
   which returns:
-  <pre><code>{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "result": 5.6
-  }</code></pre>
+
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": 5.6
+      }
 
 <!-- TODO: explain ids -->
 

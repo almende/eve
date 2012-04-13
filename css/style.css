@@ -18,18 +18,23 @@ body {
 #container {
   margin: 0 auto;
   width: 900px;
+
+  /* TODO: cleanup
   height: 100%;
+  */
 }
 
 #menu {
   width: 150px;
-  height: 100%;
   float: left;
-  position: fixed;
   text-align: right;
 
+  /* TODO: cleanup
+  height: 100%;
+  position: fixed;
   overflow-x: hidden;
   overflow-y: auto;
+  */
 }
 
 #menu-inner {
@@ -37,8 +42,9 @@ body {
 }
 
 #contents {
+  /* TODO: cleanup
   margin-left: 150px;
-  
+  */
   padding: 50px 25px;
   
   width: 700px;

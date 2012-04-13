@@ -5,88 +5,62 @@ title: Overview
 
 # Overview
 
-Eve has libraries available for Java. The Eve libraries can be added to an existing Java project, 
-and require almost no configuration (see [this tutorial](java_gettingstarted.html)).
+Eve has libraries available for Java. 
+This makes it very easy to create and run your own agents.
+The Eve libraries can be added to an existing Java project, 
+and require almost no configuration.
 Agents are regular Java classes decorated with some annotations. 
 The agents are hosted via a regular web servlet.
 
 
+## Getting Started {#gettingstarted}
+
+The page [Getting Started](java_gettingstarted.html) gives a detailed tutorial
+on how to set up a Java project running your self created Eve agent in the cloud, 
+using Google App Engine.
+
+
 ## Libraries {#libraries}
 
-The Java libraries are spread over three different layers:
+The Java version of Eve consists of a number of libraries, which can be used
+as building blocks to build and run your own agent platform. 
+The libraries are spread over three different layers:
 
-- **Core Layer**  
-  There is one core library, named *eve-core.jar*. This is the basis of Eve, 
-  and is always required.
-  It contains abstract base classes for agents and persistency, 
-  offers functionality for communication between agents, 
-  and contains a number of ready-made servlets to host the agents. 
-  The core is independent from the deployment platform.
+- A core layer containing the required core functionality for creating and 
+  hosting agents.
+- A platform Layer, with code specific for different deployment platforms.
+- An application layer containing the actual implementations of agents.
 
-- **Platform Layer**  
-  The platform layer contains platform specific functionality for persistence
-  and scheduling. The platform libraries offer an interface to the agents for 
-  reading/writing data, and for scheduling tasks. 
-  There are platform libraries for a regular java web application, for running
-  an application on Google App Engine. In the future, libraries for 
-  Windows Azure and Amazon will be added.
-  To deploy an application on a another platform, all is needed is to swap 
-  the used platform library.
+The libraries are explained in detail on the page 
+[Libraries](java_libraries.html).
 
-- **Application Layer**  
-  The application layer contains the actual implementations of agents.
-  The agents are independent from the deployment platform.
-  Eve will come with libraries containing agents that acting on the area of planning, 
-  calendaring, and a number of agent that wrap existing web services. 
-  
 
-The image below shows a schematic overview of the layers and libraries. 
+## Hosting {#hosting}
 
-![img/java_libraries.png](img/java_libraries.png)
+In Java, Eve agents are hosted via a web servlet. 
+Eve comes with two ready-made servlets, one for hosting a single agent, and 
+one for hosting multiple agents and agent classes.
+It is possible to create a custom servlet when necessary.
 
-*Remark: Only the libraries eve-core and eve-google-appengine are 
-ready for download at this moment. More libraries will follow soon.*
+The web servlets can be configured to host a number of agent classes, and to 
+offer a specific type of persistent context and a scheduler for the agents. 
+The type of context and scheduler depends on the platform where the web servlet
+is hosted. That can be a java server such as Tomcat, or a cloud solution
+such as Google App Engine.
 
-The Java libraries can be downloaded at 
-[https://github.com/almende/eve/tree/master/java/bin](https://github.com/almende/eve/tree/master/java/bin).
+More on hosting is explained at the page [Hosting](java_hosting.html).
 
 
 ## Agents {#agents}
 
-An Eve agent is just a regular Java class, which inherits from the base class Agent.
-By default, public methods in the Agent will be available via JSON-RPC.
-The methods must have annotations to define parameter names,
-as the communication protocol uses named parameters, which are not supported natively by Java. 
-The methods can optionally have annotations to define access rights. 
+An Eve agent is created as a regular Java class. 
+Its methods will be exposed via JSON-RPC.
+Agents themselves are stateless, and it is possible to have multiple
+instances of the same agent running simultaneously in the cloud.
+An agent can store its state in a context, which offers a simple 
+key/value storage.
 
-<!-- TODO: more text on agents -->
-
-## Servlets {#servlets}
-
-In Java, agents are hosted via a web servlet. 
-Eve comes with two ready-made servlets: a SingleAgentServlet and a MultiAgentServlet.
-These servlets are located in the eve-core.jar library. 
-Furthermore, one can create its own custom servlet when needed.
-
-- The *SingleAgentServlet* will host a single agent which can be accessed 
-directly via the servlet url (http://server/servlet).
-
-- The *MultiAgentServlet* can host multiple agent classes and multiple instances
-of each agent class. To adress an instance of an agent, the url
-is built up with the servlet path, agent class name, and id of the agent 
-(http://server/servlet/agentclass/agentid).
-
-<!-- TODO: more text on servlets
-The MultiAgentServlet configuration needs two initialization parameters: 
-*agents* and *context*.
-
-- The *agents* parameter contains a list with the agent classes which will be
-hosted by the servlet. The classes must be separated by a semicolon.
-Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
-so you can use these to test if your application works. 
-
-- The *context* parameter specifies the context that will be available for the 
-agents to read and write persistent data.
--->
+The agents are explained in detail on the page 
+[Agents](java_agents.html).
 
 
