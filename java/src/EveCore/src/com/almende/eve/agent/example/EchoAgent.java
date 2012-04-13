@@ -25,10 +25,10 @@
 package com.almende.eve.agent.example;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.annotation.Name;
 
 public class EchoAgent extends Agent {
-	public Object ping(@ParameterName("message") Object message) {
+	public Object ping(@Name("message") Object message) {
 		return message;
 	}
 	

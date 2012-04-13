@@ -46,8 +46,8 @@ import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
-import com.almende.eve.json.annotation.ParameterName;
-import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.annotation.Name;
+import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -115,9 +115,9 @@ abstract public class Agent {
 	//@Access(AccessType.PRIVATE) // TODO
 	@SuppressWarnings("unchecked")
 	final public void subscribe(
-			@ParameterName("event") String event, 
-			@ParameterName("callbackUrl") String callbackUrl, 
-			@ParameterName("callbackMethod") String callbackMethod) {
+			@Name("event") String event, 
+			@Name("callbackUrl") String callbackUrl, 
+			@Name("callbackMethod") String callbackMethod) {
 		List<Callback> subscriptions = null;
 		String key = getSubscriptionsKey(event);
 		Object value = context.get(key);		
@@ -150,9 +150,9 @@ abstract public class Agent {
 	//@Access(AccessType.PRIVATE) // TODO
 	@SuppressWarnings("unchecked")
 	final public void unsubscribe(
-			@ParameterName("event") String event, 
-			@ParameterName("callbackUrl") String callbackUrl,
-			@ParameterName("callbackMethod") String callbackMethod) {
+			@Name("event") String event, 
+			@Name("callbackUrl") String callbackUrl,
+			@Name("callbackMethod") String callbackMethod) {
 		String key = getSubscriptionsKey(event);
 		Object value = context.get(key);
 		if (value != null) {
@@ -180,8 +180,8 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	@SuppressWarnings("unchecked")
-	final public void trigger(@ParameterName("event") String event, 
-			@ParameterName("params") ObjectNode params) throws JSONRPCException, Exception {
+	final public void trigger(@Name("event") String event, 
+			@Name("params") ObjectNode params) throws JSONRPCException, Exception {
 		String url = getUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 
@@ -270,8 +270,8 @@ abstract public class Agent {
 	 * Get all available methods of this agent
 	 * @return
 	 */
-	final public List<Object> getMethods(@ParameterName("asJSON") 
-			@ParameterRequired(false) Boolean asJSON) {
+	final public List<Object> getMethods(@Name("asJSON") 
+			@Required(false) Boolean asJSON) {
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		if (asJSON == null) {
 			asJSON = false;
@@ -312,12 +312,12 @@ abstract public class Agent {
 						
 						Annotation[] annotations = paramAnnotations[i];
 						for(Annotation annotation : annotations){
-							if(annotation instanceof ParameterName){
-								ParameterName pn = (ParameterName) annotation;
+							if(annotation instanceof Name){
+								Name pn = (Name) annotation;
 								paramNames[i] = pn.value();
 							}
-							if(annotation instanceof ParameterRequired){
-								ParameterRequired pr = (ParameterRequired) annotation;
+							if(annotation instanceof Required){
+								Required pr = (Required) annotation;
 								paramRequired[i] = pr.value();
 							}
 						}

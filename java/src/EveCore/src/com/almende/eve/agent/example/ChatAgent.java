@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -87,7 +87,7 @@ public class ChatAgent extends Agent {
 	 * Set the username, used for displaying messages
 	 * @param username
 	 */
-	public void setUsername(@ParameterName("username") String username) {
+	public void setUsername(@Name("username") String username) {
 		getContext().put("username", username);
 	}
 	
@@ -99,7 +99,7 @@ public class ChatAgent extends Agent {
 	 * @throws IOException 
 	 * @throws RuntimeException 
 	 */
-	public void post(@ParameterName("message") String message) throws Exception {
+	public void post(@Name("message") String message) throws Exception {
 		List<String> connections = getConnections();
 
 		// trigger a "post message"
@@ -125,9 +125,9 @@ public class ChatAgent extends Agent {
 	 * @param message
 	 * @throws Exception 
 	 */
-	public void receive(@ParameterName("url") String url, 
-			@ParameterName("username") String username, 
-			@ParameterName("message") String message) throws Exception {
+	public void receive(@Name("url") String url, 
+			@Name("username") String username, 
+			@Name("message") String message) throws Exception {
 		// trigger a "receive" message
 		ObjectNode params = JOM.createObjectNode();
 		params.put("url", url);
@@ -145,7 +145,7 @@ public class ChatAgent extends Agent {
 	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
-	public void connect(@ParameterName("url") String url) throws Exception {
+	public void connect(@Name("url") String url) throws Exception {
 		boolean otherAlreadyConnected = false;
 		List<String> newConnections = new ArrayList<String>();
 		
@@ -246,7 +246,7 @@ public class ChatAgent extends Agent {
 	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
-	public void removeConnection(@ParameterName("url") String url) throws Exception {
+	public void removeConnection(@Name("url") String url) throws Exception {
 		Object obj = getContext().get("connections");
 		if (obj != null) {
 			List<String> connections = (List<String>) obj;

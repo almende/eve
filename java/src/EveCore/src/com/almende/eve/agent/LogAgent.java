@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.annotation.ParameterName;
-import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.annotation.Name;
+import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -42,7 +42,7 @@ public class LogAgent extends Agent {
 	 * @param url
 	 * @throws Exception 
 	 */
-	public void addAgent(@ParameterName("url") String url) throws Exception {
+	public void addAgent(@Name("url") String url) throws Exception {
 		// send a subscribe request to the agent
 		String method = "subscribe";
 		ObjectNode params = JOM.createObjectNode();
@@ -66,7 +66,7 @@ public class LogAgent extends Agent {
 	 * @param url
 	 * @throws Exception 
 	 */
-	public void removeAgent(@ParameterName("url") String url) throws Exception {
+	public void removeAgent(@Name("url") String url) throws Exception {
 		String method = "unsubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "*");
@@ -145,7 +145,7 @@ public class LogAgent extends Agent {
 	 * @param interval      interval in milliseconds
 	 * @throws Exception 
 	 */
-	public void setTimeToLive(@ParameterName("interval") long interval) 
+	public void setTimeToLive(@Name("interval") long interval) 
 			throws Exception {
 		// remove existing timeout
 		cancelTimeToLive();
@@ -187,8 +187,8 @@ public class LogAgent extends Agent {
 	 * @return
 	 */
 	public List<Log> getLogs(
-			@ParameterRequired(false) @ParameterName("since") Long since,
-			@ParameterRequired(false) @ParameterName("url") String url) {
+			@Required(false) @Name("since") Long since,
+			@Required(false) @Name("url") String url) {
 		@SuppressWarnings("unchecked")
 		List<Log> logs = (List<Log>) getContext().get("logs");
 
@@ -232,9 +232,9 @@ public class LogAgent extends Agent {
 	 * @throws Exception
 	 */
 	public void onEvent(
-			@ParameterName("agent") String agent, 
-			@ParameterName("event") String event, 
-			@ParameterRequired(false) @ParameterName("params") ObjectNode params) 
+			@Name("agent") String agent, 
+			@Name("event") String event, 
+			@Required(false) @Name("params") ObjectNode params) 
 			throws Exception {
 		Logger logger = Logger.getLogger(this.getClass().getName());		
 		logger.info(agent + " " + event + " " + 

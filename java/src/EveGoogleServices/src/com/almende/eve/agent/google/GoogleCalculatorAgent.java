@@ -29,7 +29,7 @@ package com.almende.eve.agent.google;
 import java.net.URLEncoder;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.json.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ public class GoogleCalculatorAgent extends Agent {
 	 * @return result
 	 * @throws Exception
 	 */
-	public String eval(@ParameterName("expr") String expr) throws Exception {
+	public String eval(@Name("expr") String expr) throws Exception {
 		String url = CALC_API_URL + "?q=" + URLEncoder.encode(expr, "UTF-8");
 		String resp = HttpUtil.get(url);
 

@@ -33,7 +33,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.json.util.HttpUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,8 +62,8 @@ public class GoogleDirectionsAgent extends Agent {
 	
 	//private static String keyString = "ABQIAAAAQOJzPEiBDTDlB2oHxRVmTxRSrjmNg-hdT5E1_a3uQ7J2AKkR7hTFenoJvK-F_h8dho7B4VXJZx1pdg";
 	
-	public ObjectNode getDirections(@ParameterName("origin") String origin, 
-			@ParameterName("destination") String destination) 
+	public ObjectNode getDirections(@Name("origin") String origin, 
+			@Name("destination") String destination) 
 			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
 		
@@ -127,8 +127,8 @@ public class GoogleDirectionsAgent extends Agent {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public Integer getDuration(@ParameterName("origin") String origin, 
-			@ParameterName("destination") String destination) 
+	public Integer getDuration(@Name("origin") String origin, 
+			@Name("destination") String destination) 
 			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
 		ObjectNode directions = getDirections(origin, destination);
@@ -156,8 +156,8 @@ public class GoogleDirectionsAgent extends Agent {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public String getDurationHuman(@ParameterName("origin") String origin, 
-			@ParameterName("destination") String destination) 
+	public String getDurationHuman(@Name("origin") String origin, 
+			@Name("destination") String destination) 
 			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
 		ObjectNode directions = getDirections(origin, destination);
@@ -185,8 +185,8 @@ public class GoogleDirectionsAgent extends Agent {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public Integer getDistance(@ParameterName("origin") String origin, 
-			@ParameterName("destination") String destination) 
+	public Integer getDistance(@Name("origin") String origin, 
+			@Name("destination") String destination) 
 			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
 		ObjectNode directions = getDirections(origin, destination);
@@ -214,8 +214,8 @@ public class GoogleDirectionsAgent extends Agent {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public String getDistanceHuman(@ParameterName("origin") String origin, 
-			@ParameterName("destination") String destination) 
+	public String getDistanceHuman(@Name("origin") String origin, 
+			@Name("destination") String destination) 
 			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
 		ObjectNode directions = getDirections(origin, destination);

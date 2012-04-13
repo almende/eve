@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import com.almende.eve.json.annotation.ParameterName;
-import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.annotation.Name;
+import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.json.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -268,13 +268,13 @@ public class JSONRPC {
 				paramRequired[i] = true;
 				Annotation[] annotations = paramAnnotations[i];
 				for(Annotation annotation : annotations){
-					if(annotation instanceof ParameterName){
-						ParameterName name = (ParameterName) annotation;
+					if(annotation instanceof Name){
+						Name name = (Name) annotation;
 						paramNames[i] = name.value();
 						hasParamNames = true;
 					}
-					if(annotation instanceof ParameterRequired){
-						ParameterRequired required = (ParameterRequired) annotation;
+					if(annotation instanceof Required){
+						Required required = (Required) annotation;
 						paramRequired[i] = required.value();
 					}
 				}

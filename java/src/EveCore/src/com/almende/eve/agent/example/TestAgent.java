@@ -32,23 +32,23 @@ import java.util.Set;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.entity.Person;
 import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.annotation.ParameterName;
-import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.annotation.Name;
+import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 // TODO: put TestAgent in a separate unittest project
 public class TestAgent extends Agent {
-	public String ping(@ParameterName("message") String message) {
+	public String ping(@Name("message") String message) {
 		return message;
 	}
 	
-	public String getName(@ParameterName("person") Person person) {
+	public String getName(@Name("person") Person person) {
 		return person.getName();
 	}
 
-	public Double getMarksAvg(@ParameterName("person") Person person) {
+	public Double getMarksAvg(@Name("person") Person person) {
 		List<Double> marks = person.getMarks();
 		Double sum = new Double(0);
 		if (marks != null) {
@@ -59,7 +59,7 @@ public class TestAgent extends Agent {
 		return sum;
 	}
 
-	public Person getPerson(@ParameterName("name") String name) {
+	public Person getPerson(@Name("name") String name) {
 		Person person = new Person();
 		person.setName(name);
 		List<Double> marks = new ArrayList<Double>();
@@ -69,23 +69,23 @@ public class TestAgent extends Agent {
 		return person;
 	}
 
-	public Double add(@ParameterName("a") Double a, 
-			@ParameterName("b") Double b) {
+	public Double add(@Name("a") Double a, 
+			@Name("b") Double b) {
 		return a + b;
 	}
 
-	public Double subtract(@ParameterName("a") Double a, 
-			@ParameterName("b") Double b) {
+	public Double subtract(@Name("a") Double a, 
+			@Name("b") Double b) {
 		return a - b;
 	}
 
-	public Double multiply(@ParameterName("a") Double a, 
-			@ParameterName("b") Double b) {
+	public Double multiply(@Name("a") Double a, 
+			@Name("b") Double b) {
 		return a * b;
 	}
 
-	public Double divide(@ParameterName("a") Double a, 
-			@ParameterName("b") Double b) {
+	public Double divide(@Name("a") Double a, 
+			@Name("b") Double b) {
 		return a / b;
 	}
 
@@ -98,7 +98,7 @@ public class TestAgent extends Agent {
 	}
 	
 	// TODO: get this working
-	public Double sum(@ParameterName("values") List<Double> values) {
+	public Double sum(@Name("values") List<Double> values) {
 		Double sum = new Double(0);
 		for (Double value : values) {
 			sum += value;
@@ -106,7 +106,7 @@ public class TestAgent extends Agent {
 		return sum;
 	}
 	
-	public Double sumArray(@ParameterName("values") Double[] values) {
+	public Double sumArray(@Name("values") Double[] values) {
 		Double sum = new Double(0);
 		for (Double value : values) {
 			sum += value;
@@ -115,7 +115,7 @@ public class TestAgent extends Agent {
 	}
 
 	public void complexParameter(
-			@ParameterName("values") Map<String, List<Double>> values) {
+			@Name("values") Map<String, List<Double>> values) {
 	}
 	
 	public Double increment() {
@@ -129,12 +129,12 @@ public class TestAgent extends Agent {
 		return value;
 	}
 	
-	public String get(@ParameterName("key") String key) {
+	public String get(@Name("key") String key) {
 		return (String)getContext().get(key);
 	}
 
-	public void put(@ParameterName("key") String key, 
-			@ParameterName("value") String value) {
+	public void put(@Name("key") String key, 
+			@Name("value") String value) {
 		getContext().put(key, value);
 	}
 	
@@ -143,13 +143,13 @@ public class TestAgent extends Agent {
 		System.out.println("onTrigger " + getId() + " " + params.toString());
 	}
 
-	public void doTrigger(@ParameterName("event") String event, 
-			@ParameterName("params") @ParameterRequired(false) ObjectNode params) 
+	public void doTrigger(@Name("event") String event, 
+			@Name("params") @Required(false) ObjectNode params) 
 			throws Exception {
 		trigger(event, params);
 	}
 
-	public String createTask(@ParameterName("delay") long delay) throws Exception {
+	public String createTask(@Name("delay") long delay) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("pingTask", params);
@@ -157,7 +157,7 @@ public class TestAgent extends Agent {
 		return id;
 	}
 
-	public String createTaskInterval(@ParameterName("interval") long interval) throws Exception {
+	public String createTaskInterval(@Name("interval") long interval) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("pingTask", params);
@@ -165,7 +165,7 @@ public class TestAgent extends Agent {
 		return id;
 	}
 	
-	public void cancelTask(@ParameterName("id") String id) {
+	public void cancelTask(@Name("id") String id) {
 		getContext().getScheduler().cancelTimer(id);
 	}
 	
@@ -175,7 +175,7 @@ public class TestAgent extends Agent {
 	}
 	
 	
-	public void pingTask(@ParameterName("message") String message) {
+	public void pingTask(@Name("message") String message) {
 		System.out.println("ping " + message);
 	}
 	
