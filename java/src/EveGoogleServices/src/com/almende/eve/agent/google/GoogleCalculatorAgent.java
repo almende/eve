@@ -2,7 +2,7 @@
  * @file GoogleCalculatorAgent.java
  * 
  * @brief 
- * CalcAgent can evaluate mathematical expressions. 
+ * GoogleCalculatorAgent can evaluate mathematical expressions. 
  * It uses the Google calculator API.
  *
  * @license

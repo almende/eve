@@ -201,7 +201,7 @@ public class GoogleDirectionsAgent extends Agent {
 		Integer distance = jsonDistance.get("value").asInt();		
 		return distance;
 	}
-		
+
 	/**
 	 * Retrieve the distance between origin to destination in readable text,
 	 * for example "74.2 km"
