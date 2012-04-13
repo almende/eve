@@ -20,7 +20,7 @@
  * Copyright © 2010-2011 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2011-03-25
+ * @date	  2011-04-13
  */
 
 package com.almende.eve.agent.google;
@@ -34,14 +34,12 @@ import java.security.NoSuchAlgorithmException;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.json.util.HttpUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
-
-@SuppressWarnings("serial")
 public class GoogleDirectionsAgent extends Agent {
 	static final String DIRECTIONS_SERVICE_URL = 
 		"http://maps.googleapis.com/maps/api/directions/json";
@@ -64,9 +62,9 @@ public class GoogleDirectionsAgent extends Agent {
 	
 	//private static String keyString = "ABQIAAAAQOJzPEiBDTDlB2oHxRVmTxRSrjmNg-hdT5E1_a3uQ7J2AKkR7hTFenoJvK-F_h8dho7B4VXJZx1pdg";
 	
-	public JSONObject getDirections(@ParameterName("origin") String origin, 
+	public ObjectNode getDirections(@ParameterName("origin") String origin, 
 			@ParameterName("destination") String destination) 
-			throws IOException, JSONException, InvalidKeyException, 
+			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
 		
 		// TODO: use java API instead of URL fetch? -> I get OVER_QUERY_LIMIT issues
@@ -102,10 +100,14 @@ public class GoogleDirectionsAgent extends Agent {
 		System.out.println("response: " + response);
 		//*/
 
-		JSONObject directions = (JSONObject) JSONSerializer.toJSON(response);
+		ObjectMapper mapper = JOM.getInstance();
+		ObjectNode directions = mapper.readValue(response, ObjectNode.class);
 		
 		// Check if status is "OK". Error status can for example be "NOT_FOUND"
-		String status = directions.getString("status");
+		String status = null;
+		if (directions.has("status")) {
+			status = directions.get("status").asText();
+		}
 		if (!status.equals("OK")) {
 			throw new RuntimeException(status);
 		}
@@ -125,20 +127,20 @@ public class GoogleDirectionsAgent extends Agent {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public int getDuration(@ParameterName("origin") String origin, 
+	public Integer getDuration(@ParameterName("origin") String origin, 
 			@ParameterName("destination") String destination) 
-			throws IOException, JSONException, InvalidKeyException, 
+			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
-		JSONObject directions = getDirections(origin, destination);
-		
-		// sum the durations of all steps
-		JSONArray routes = directions.getJSONArray("routes");
-		JSONObject route = routes.getJSONObject(0);
-		JSONArray legs = route.getJSONArray("legs");
-		JSONObject leg = legs.getJSONObject(0);
-		JSONObject jsonDuration = leg.getJSONObject("duration");
-	
-		int duration = jsonDuration.getInt("value");		
+		ObjectNode directions = getDirections(origin, destination);
+
+		// TODO: check fields for being null
+		JsonNode routes = directions.get("routes");
+		JsonNode route = routes.get(0);
+		JsonNode legs = route.get("legs");
+		JsonNode leg = legs.get(0);
+		JsonNode jsonDuration = leg.get("duration");
+
+		Integer duration = jsonDuration.get("value").asInt();		
 		return duration;
 	}
 	
@@ -156,18 +158,18 @@ public class GoogleDirectionsAgent extends Agent {
 	 */
 	public String getDurationHuman(@ParameterName("origin") String origin, 
 			@ParameterName("destination") String destination) 
-			throws IOException, JSONException, InvalidKeyException, 
+			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
-		JSONObject directions = getDirections(origin, destination);
+		ObjectNode directions = getDirections(origin, destination);
 		
-		// sum the durations of all steps
-		JSONArray routes = directions.getJSONArray("routes");
-		JSONObject route = routes.getJSONObject(0);
-		JSONArray legs = route.getJSONArray("legs");
-		JSONObject leg = legs.getJSONObject(0);
-		JSONObject jsonDuration = leg.getJSONObject("duration");
-	
-		String duration = jsonDuration.getString("text");		
+		// TODO: check fields for being null
+		JsonNode routes = directions.get("routes");
+		JsonNode route = routes.get(0);
+		JsonNode legs = route.get("legs");
+		JsonNode leg = legs.get(0);
+		JsonNode jsonDuration = leg.get("duration");
+
+		String duration = jsonDuration.get("text").asText();		
 		return duration;
 	}
 	
@@ -183,20 +185,20 @@ public class GoogleDirectionsAgent extends Agent {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws InvalidKeyException 
 	 */
-	public int getDistance(@ParameterName("origin") String origin, 
+	public Integer getDistance(@ParameterName("origin") String origin, 
 			@ParameterName("destination") String destination) 
-			throws IOException, JSONException, InvalidKeyException, 
+			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
-		JSONObject directions = getDirections(origin, destination);
+		ObjectNode directions = getDirections(origin, destination);
 		
-		// sum the durations of all steps
-		JSONArray routes = directions.getJSONArray("routes");
-		JSONObject route = routes.getJSONObject(0);
-		JSONArray legs = route.getJSONArray("legs");
-		JSONObject leg = legs.getJSONObject(0);
-		JSONObject jsonDistance = leg.getJSONObject("distance");
-	
-		int distance = jsonDistance.getInt("value");		
+		// TODO: check fields for being null
+		JsonNode routes = directions.get("routes");
+		JsonNode route = routes.get(0);
+		JsonNode legs = route.get("legs");
+		JsonNode leg = legs.get(0);
+		JsonNode jsonDistance = leg.get("distance");
+		
+		Integer distance = jsonDistance.get("value").asInt();		
 		return distance;
 	}
 		
@@ -214,18 +216,18 @@ public class GoogleDirectionsAgent extends Agent {
 	 */
 	public String getDistanceHuman(@ParameterName("origin") String origin, 
 			@ParameterName("destination") String destination) 
-			throws IOException, JSONException, InvalidKeyException, 
+			throws IOException, InvalidKeyException, 
 			NoSuchAlgorithmException, URISyntaxException {
-		JSONObject directions = getDirections(origin, destination);
+		ObjectNode directions = getDirections(origin, destination);
 		
-		// sum the durations of all steps
-		JSONArray routes = directions.getJSONArray("routes");
-		JSONObject route = routes.getJSONObject(0);
-		JSONArray legs = route.getJSONArray("legs");
-		JSONObject leg = legs.getJSONObject(0);
-		JSONObject jsonDistance = leg.getJSONObject("distance");
-	
-		String distance = jsonDistance.getString("text");		
+		// TODO: check fields for being null
+		JsonNode routes = directions.get("routes");
+		JsonNode route = routes.get(0);
+		JsonNode legs = route.get("legs");
+		JsonNode leg = legs.get(0);
+		JsonNode jsonDistance = leg.get("distance");
+		
+		String distance = jsonDistance.get("text").asText();		
 		return distance;
 	}
 	

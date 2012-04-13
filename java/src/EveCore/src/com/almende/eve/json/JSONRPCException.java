@@ -1,10 +1,13 @@
 package com.almende.eve.json;
 
-import net.sf.json.JSONObject;
+import com.almende.eve.json.jackson.JOM;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("serial")
-public class JSONRPCException extends Throwable {
-	protected JSONObject error = new JSONObject();
+public class JSONRPCException extends Exception {
+	protected ObjectNode error = JOM.createObjectNode();
 
 	public static enum CODE {
 		UNKNOWN_ERROR,
@@ -40,32 +43,34 @@ public class JSONRPCException extends Throwable {
 		}
 	}
 
-	public JSONRPCException (JSONObject error) throws JSONRPCException {
-		if (error != null && !error.isNullObject()) {
-			//* TODO: do I want this exception class to throw itself?
-			// TODO: throw a JSONException instead of a JSONRPCException?
-			if (!error.has("code")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-					"Exception is missing member 'code'");
-			}
-			if (!error.has("message")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-					"Exception is missing member 'message'");
-			}
-			//*/
-			
-			int code = 0;
-			if (error.has("code")) {
-				code = error.getInt("code");
-			}
-			setCode(code);
-			setMessage(error.getString("message"));
-			if (error.has("data")) {
-				setData(error.get("data"));
-			}
+	public JSONRPCException (ObjectNode exception) throws JSONRPCException {
+		if (exception == null || exception.isNull()) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Exception is null");
 		}
-		else {
-			init(CODE.UNKNOWN_ERROR, null);
+		if (!exception.has("code")) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Exception is missing member 'code'");
+		}
+		if (!(exception.get("code").isInt())) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Member 'code' is no Integer");
+		}
+				
+		if (!exception.has("message")) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Exception is missing member 'message'");
+		}
+		if (!(exception.get("message").isTextual())) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Member 'message' is no String");
+		}
+		
+		// set code, message, and optional data
+		setCode(exception.get("code").asInt());
+		setMessage(exception.get("message").asText());
+		if (exception.has("data")) {
+			setData(exception.get("data"));
 		}
 	}	
 
@@ -95,18 +100,18 @@ public class JSONRPCException extends Throwable {
 		}
 		
 		if (description != null) {
-			JSONObject data = new JSONObject();
+			ObjectNode data = JOM.createObjectNode();
 			data.put("description", description);
 			setData(data);
 		}
 	}
-	
+		
 	public void setCode(int code) {
 		error.put("code", code);
 	}
 	
 	public int getCode() {
-		return error.getInt("code");
+		return error.get("code").asInt();
 	}
 	
 	public void setMessage(String message) {
@@ -114,11 +119,13 @@ public class JSONRPCException extends Throwable {
 	}
 	
 	public String getMessage() {
-		return error.getString("message");
+		return error.get("message").asText();
 	}
 	
 	public void setData(Object data) {
-		error.put("data", data);
+		ObjectMapper mapper = JOM.getInstance();
+		// TODO: test if convert value works
+		error.put("data", mapper.convertValue(data, JsonNode.class));
 	}
 	
 	public Object getData() {
@@ -129,12 +136,18 @@ public class JSONRPCException extends Throwable {
 		return error.has("data");
 	}
 	
-	public JSONObject getJSONObject() {
+	public ObjectNode getObjectNode() {
 		return error;
 	}
-
+	
 	@Override
 	public String toString() {
-		return error.toString();
+		ObjectMapper mapper = JOM.getInstance();
+		try {
+			return mapper.writeValueAsString(error);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

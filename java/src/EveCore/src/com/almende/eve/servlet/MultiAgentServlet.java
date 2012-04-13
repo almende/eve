@@ -60,7 +60,7 @@ public class MultiAgentServlet extends HttpServlet {
 			
 			// retrieve the request data
 			request = streamToString(req.getInputStream());
-			
+
 			// initialize response object
 			// a servlet path is built up in three parts: first the folder 
 			// agents, then the name of the agent class, then the id of the 
@@ -69,9 +69,9 @@ public class MultiAgentServlet extends HttpServlet {
 			String uri = req.getRequestURI();
 			String[] path = uri.split("\\/");
 			String simpleName = (path.length > 2) ? path[path.length - 2] : "";
-			String id = (path.length > 1) ? path[path.length - 1] : null;
+			String id = (path.length > 1) ? path[path.length - 1] : ".";
 			simpleName = simpleName.toLowerCase();
-			
+
 			// get the correct agent instance
 			if (!agentClasses.containsKey(simpleName)) {
 				throw new Exception("Unknown agent class " + simpleName);
@@ -88,7 +88,6 @@ public class MultiAgentServlet extends HttpServlet {
 			
 			// invoke the method onto the agent
 			response = JSONRPC.invoke(agent, request);
-
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = new JSONRPCException(

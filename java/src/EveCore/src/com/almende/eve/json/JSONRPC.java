@@ -2,20 +2,16 @@ package com.almende.eve.json;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import com.almende.eve.json.annotation.ParameterName;
 import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.json.util.HttpUtil;
-
-import net.sf.json.JSON;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONNull;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
-import net.sf.json.JsonConfig;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONRPC {
 	//static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
@@ -55,17 +51,16 @@ public class JSONRPC {
 	 */
 	static public JSONResponse send (String url, JSONRequest jsonRequest) 
 			throws IOException {
-		
 		String req = jsonRequest.toString();
 		String resp = HttpUtil.post(url, req);
 
 		JSONResponse jsonResponse;
 		try {
-			jsonResponse = new JSONResponse((JSONObject) JSONSerializer.toJSON(resp));
+			jsonResponse = new JSONResponse(resp);
 		} catch (JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
 		}
-
+		
 		return jsonResponse;
 	}
 
@@ -115,12 +110,15 @@ public class JSONRPC {
 	 * @param obj     Request will be invoked on the given object
 	 * @param request A request in JSON-RPC format
 	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonGenerationException 
 	 */
-	static public String invoke (Object object, String request) {
+	static public String invoke (Object object, String request) 
+			throws JsonGenerationException, JsonMappingException, IOException {
 		JSONResponse jsonResponse = null;
 		try {
-			JSONRequest jsonRequest = new JSONRequest(
-					(JSONObject) JSONSerializer.toJSON(request));
+			JSONRequest jsonRequest = new JSONRequest(request);
 
 			try {
 				jsonResponse = invoke(object, jsonRequest);
@@ -177,7 +175,7 @@ public class JSONRPC {
 			try {
 				Object result = method.invoke(object, params);
 				if (result == null) {
-					result = JSONNull.getInstance();
+					result = JOM.createNullNode();
 				}
 				resp.setResult(result);
 			}
@@ -197,7 +195,7 @@ public class JSONRPC {
 				resp.setError(jsonError);
 			}
 		}
-		
+
 		return resp;
 	}
 	
@@ -251,6 +249,7 @@ public class JSONRPC {
 	 */
 	static private Object[] castParams(Object params, Method method) 
 			throws Exception {
+		ObjectMapper mapper = JOM.getInstance();
 		Class<?>[] paramTypes = method.getParameterTypes();
 		Annotation[][] paramAnnotations = method.getParameterAnnotations();
 		
@@ -258,7 +257,7 @@ public class JSONRPC {
 			return new Object[0];
 		}
 		
-		if (params instanceof JSONObject) {
+		if (params instanceof ObjectNode) {
 			// JSON-RPC 2.0 with named parameters in a JSONObject
 
 			// find named parameter annotations
@@ -282,7 +281,7 @@ public class JSONRPC {
 			}
 			
 			if (hasParamNames) {
-				JSONObject paramsObject = (JSONObject)params;
+				ObjectNode paramsObject = (ObjectNode)params;
 				
 				Object[] objects = new Object[paramTypes.length];
 				for (int i = 0; i < paramTypes.length; i++) {
@@ -291,8 +290,13 @@ public class JSONRPC {
 					if (paramName == null) {
 						throw new Exception("Name of parameter " + i + " not defined");
 					}
-					if (paramsObject.containsKey(paramName)) {
-						objects[i] = castJSONObject(paramsObject, paramName, paramType);
+					if (paramsObject.has(paramName)) {
+						objects[i] = mapper.convertValue(
+								paramsObject.get(paramName), paramType);
+
+						/* TODO
+						objects[i] = convertParam(paramsObject.get(paramName), paramType);
+						//*/
 					}
 					else {
 						if (paramRequired[i]) {
@@ -314,7 +318,7 @@ public class JSONRPC {
 				return objects;
 			}
 			else if (paramTypes.length == 1 && 
-					paramTypes[0].equals(JSONObject.class)) {
+					paramTypes[0].equals(ObjectNode.class)) {
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];
@@ -330,163 +334,13 @@ public class JSONRPC {
 		}
 	}
 
-	/**
-	 * Cast an element from a JSONArray to the given type 
-	 * @param <T>
-	 * @param array
-	 * @param index
-	 * @param type
-	 * @return
-	 * @throws JSONException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 */
-	@SuppressWarnings("unchecked")
-	static private <T> T castJSONObject (JSONObject object, String key, 
-			Class<T> type) {
-		T param = null;
-
-		// TODO: can I leave all this stuff to the JSON library?
-		
-		if (type.equals(Boolean.class) || type.equals(boolean.class) ) {
-			param = (T) (Boolean)object.getBoolean(key);
-		}
-		else if (type.equals(Double.class) || type.equals(double.class) ) {
-			param = (T) (Double)object.getDouble(key);
-		}
-		else if (type.equals(Integer.class) || type.equals(int.class) ) {
-			param = (T) (Integer)object.getInt(key);
-		}
-		else if (type.equals(Long.class) || type.equals(long.class) ) {
-			param = (T) (Long)object.getLong(key);
-		}
-		else if (type.equals(String.class)) {
-			param = (T) (String)object.getString(key);
-		}
-		else if (type.equals(JSONArray.class)) {
-			param = (T) (JSONArray)object.getJSONArray(key);
-		}
-		else if (type.equals(JSONObject.class)) {
-			param = (T) (JSONObject)object.getJSONObject(key);
-		}
-		else if (type.isArray()) {
-			// TODO: use beans
-			if (type.equals(JSONArray.class)) {
-				param = (T) (JSONArray)object.getJSONArray(key);
-			}
-			else {
-				JSONArray json = object.getJSONArray(key);
-				Class<?> componentType = type.getComponentType();
-				param = (T) createArray(json, componentType);
-			}
-		}
-		else if (object.getJSONObject(key) != null) {
-			// TODO: use beans
-			// http://json-lib.sourceforge.net/snippets.html#JSONObject to JavaBean
-			JsonConfig jsonConfig = new JsonConfig();  
-			jsonConfig.setRootClass(type);
-			JSON value = object.getJSONObject(key);
-			param = (T) JSONSerializer.toJava(value, jsonConfig);
-		}
-		else if (object.getJSONArray(key) != null) {
-			// TODO: use beans
-			// http://json-lib.sourceforge.net/snippets.html#JSONObject to JavaBean
-			JsonConfig jsonConfig = new JsonConfig();  
-			jsonConfig.setRootClass(type);
-			JSON value = object.getJSONArray(key);
-			param = (T) JSONSerializer.toJava(value, jsonConfig);
-		}
-		else {
-			// TODO: throw error?
-			param = null;
-		}
-		
-		return param;
+	/* TODO: use or cleanup
+	static private <T> T convertParam (JsonNode param, Class<T> type) {
+		ObjectMapper mapper = JOM.getInstance();
+		return mapper.convertValue(param, new TypeReference<T>() {});
 	}
+	//*/
 	
-	/**
-	 * Cast an element from a JSONArray to the given type 
-	 * @param <T>
-	 * @param array
-	 * @param index
-	 * @param type
-	 * @return
-	 * @throws JSONException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 */
-	@SuppressWarnings("unchecked")
-	final private static <T> T castJSONArray(JSONArray array, int index, 
-			Class<T> type) {
-		T param = null;
-
-		// TODO: can I leave all this stuff to the JSON library?
-
-		if (type.equals(Boolean.class) || type.equals(boolean.class) ) {
-			param = (T) (Boolean)array.getBoolean(index);
-		}
-		else if (type.equals(Double.class) || type.equals(double.class) ) {
-			param = (T) (Double)array.getDouble(index);
-		}
-		else if (type.equals(Integer.class) || type.equals(int.class) ) {
-			param = (T) (Integer)array.getInt(index);
-		}
-		else if (type.equals(Long.class) || type.equals(long.class) ) {
-			param = (T) (Long)array.getLong(index);
-		}
-		else if (type.equals(String.class)) {
-			param = (T) (String)array.getString(index);
-		}
-		else if (type.isArray()) {
-			if (type.equals(JSONArray.class)) {
-				param = (T) (JSONArray)array.getJSONArray(index);
-			}
-			else {
-				JSONArray json = array.getJSONArray(index);
-				Class<?> componentType = type.getComponentType();
-				param = (T) createArray(json, componentType);
-			}
-		}
-		else if (type.equals(JSONArray.class)) {
-			param = (T) (JSONArray)array.getJSONArray(index);
-		}
-		else if (type.equals(JSONObject.class)) {
-			param = (T) (JSONObject)array.getJSONObject(index);
-		}
-		else if (array.getJSONObject(index) != null) {
-			// TODO: use beans
-			// http://json-lib.sourceforge.net/snippets.html#JSONObject to JavaBean
-			JsonConfig jsonConfig = new JsonConfig();  
-			jsonConfig.setRootClass(type);
-			JSON value = array.getJSONObject(index);
-			param = (T) JSONSerializer.toJava(value, jsonConfig);
-		}
-		else if (array.getJSONArray(index) != null) {
-			// TODO: use beans
-			// http://json-lib.sourceforge.net/snippets.html#JSONObject to JavaBean
-			JsonConfig jsonConfig = new JsonConfig();  
-			jsonConfig.setRootClass(type);
-			JSON value = array.getJSONArray(index);
-			param = (T) JSONSerializer.toJava(value, jsonConfig);
-		}		
-		else {
-			param = null;
-		}			
-
-		return param;
-	}
-
-	// http://forums.techarena.in/software-development/1117589.htm	
-	@SuppressWarnings("unchecked")
-	final private static <T> T[] createArray(JSONArray jsonArray, Class<T> type) {
-		T[] array = (T[]) Array.newInstance(type, jsonArray.size());
-		for (int i = 0, len = jsonArray.size(); i < len; i++) {
-			array[i] =  (T) castJSONArray(jsonArray, i, type);			
-		}
-		return array;
-	}
-	
-
 	/* TODO
 	final private boolean isInternalUrl(String url) 
 			throws FileNotFoundException, IOException {

@@ -27,7 +27,6 @@ package com.almende.eve.agent.example;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.ParameterName;
 
-@SuppressWarnings("serial")
 public class EchoAgent extends Agent {
 	public Object ping(@ParameterName("message") Object message) {
 		return message;

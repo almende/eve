@@ -27,12 +27,13 @@
 
 package com.almende.eve.agent;
 
-import java.io.Serializable;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -42,17 +43,16 @@ import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.context.AgentContext;
 import com.almende.eve.json.JSONRPC;
+import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.json.annotation.ParameterName;
 import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.jackson.JOM;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
-
-@SuppressWarnings("serial")
-abstract public class Agent implements Serializable {
+abstract public class Agent {
 	private AgentContext context = null;
 	//protected Context session = new SimpleContext(); // todo: add session context?
 	
@@ -84,7 +84,7 @@ abstract public class Agent implements Serializable {
 	/**
 	 * Helper class to store a callback url and method
 	 */
-	private class Callback implements Serializable {
+	private class Callback {
 		public Callback(String callbackUrl, String callbackMethod) {
 			this.callbackUrl = callbackUrl;
 			this.callbackMethod = callbackMethod;
@@ -170,17 +170,18 @@ abstract public class Agent implements Serializable {
 			}
 		}
 	}
-	
+
 	/**
 	 * Trigger an event
 	 * @param event
 	 * @param params
 	 * @throws Exception 
+	 * @throws JSONRPCException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	@SuppressWarnings("unchecked")
 	final public void trigger(@ParameterName("event") String event, 
-			@ParameterName("params") JSONObject params) throws Exception {
+			@ParameterName("params") ObjectNode params) throws JSONRPCException, Exception {
 		String url = getUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 
@@ -203,8 +204,7 @@ abstract public class Agent implements Serializable {
 		}
 		
 		// TODO: smartly remove double entries?
-		
-		JSONObject callbackParams = new JSONObject();
+		ObjectNode callbackParams = JOM.createObjectNode();
 		callbackParams.put("agent", url);
 		callbackParams.put("event", event);
 		callbackParams.put("params", params);
@@ -270,7 +270,7 @@ abstract public class Agent implements Serializable {
 	 * Get all available methods of this agent
 	 * @return
 	 */
-	final public JSONArray getMethods(@ParameterName("asJSON") 
+	final public List<Object> getMethods(@ParameterName("asJSON") 
 			@ParameterRequired(false) Boolean asJSON) {
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		if (asJSON == null) {
@@ -330,7 +330,7 @@ abstract public class Agent implements Serializable {
 					// TODO: not so nice 
 					if (!validParamNames) {
 						Class<?>[] pt = method.getParameterTypes();
-						if (pt.length == 1 && pt[0].equals(JSONObject.class)) {
+						if (pt.length == 1 && pt[0].equals(ObjectNode.class)) {
 							paramNames[0] = "params";
 							validParamNames = true;
 						}
@@ -342,19 +342,19 @@ abstract public class Agent implements Serializable {
 					if (validParamNames) {
 						if (asJSON) {
 							// format as JSON
-							JSONArray descParams = new JSONArray();
+							List<Object> descParams = new ArrayList<Object>();
 							for(int i = 0; i < paramNum; i++){
-								JSONObject paramData = new JSONObject();
+								Map<String, Object> paramData = new HashMap<String, Object>();
 								paramData.put("name", paramNames[i]);
 								paramData.put("type", paramTypes[i]);
 								paramData.put("required", paramRequired[i]);
 								descParams.add(paramData);
 							}
 							
-							JSONObject result = new JSONObject(); 
+							Map<String, Object> result = new HashMap<String, Object>(); 
 							result.put("type", returnType);
 							
-							JSONObject desc = new JSONObject();
+							Map<String, Object> desc = new HashMap<String, Object>();
 							desc.put("method", methodName);
 							desc.put("params", descParams);
 							desc.put("result", result);
@@ -385,30 +385,48 @@ abstract public class Agent implements Serializable {
 		}
 
 		// create a sorted array
-		JSONArray arr = new JSONArray();
+		List<Object> sortedMethods = new ArrayList<Object>();
 		TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
 		for (String methodName : methodNames) { 
-		   arr.add(methods.get(methodName));
+		   sortedMethods.add(methods.get(methodName));
 		   // do something
 		}
 		
-		return arr;
+		return sortedMethods;
 	}
 	
 	/**
 	 * Send a request to an agent in JSON-RPC format
 	 * @param url    The url of the agent
 	 * @param method The name of the method
-	 * @param params A JSONObject containing the parameter values of the method
+	 * @param params A ObjectNode containing the parameter values of the method
 	 * @return       
-	 * @throws Exception 
-	 * @throws JSONException 
+	 * @throws JSONRPCException 
+	 * @throws IOException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public Object send(String url, String method, JSONObject params) 
-		throws Exception {
-			JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
-			return response.getResult();
+	final public Object send(String url, String method, ObjectNode params) 
+			throws IOException, JSONRPCException {
+		JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
+		JSONRPCException err = response.getError();
+		if (err != null) {
+			throw err;
+		}
+		return response.getResult();
+	}
+	
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * @param url    The url of the agent
+	 * @param method The name of the method
+	 * @return       
+	 * @throws JSONRPCException 
+	 * @throws IOException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public Object send(String url, String method) 
+			throws JSONRPCException, IOException {
+		return send(url, method, null);
 	}
 
 
@@ -425,7 +443,7 @@ abstract public class Agent implements Serializable {
 	 * @throws JSONException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void sendAsync(String url, String method, JSONObject params,
+	final public void sendAsync(String url, String method, ObjectNode params,
 			String callbackMethod) throws Exception {
 		JSONRequest req = new JSONRequest(method, params);
 		String callbackUrl = getUrl();

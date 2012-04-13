@@ -22,7 +22,7 @@
     <zip destfile="${globalbin}/eve-core-bundle.zip">
       <fileset dir="bin" includes="eve-core*" /> 
       <fileset dir="war/WEB-INF/lib/" 
-      	includes="json-lib-* commons-beanutils-* commons-collections-* commons-lang-* commons-logging-* ezmorph-*" />    	
+      	includes="jackson-*" />    	
     </zip>
 
   </target>

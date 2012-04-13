@@ -1,52 +1,30 @@
 package com.almende.eve.json;
 
-import java.io.Writer;
+import java.io.IOException;
 
-import net.sf.json.JSON;
-import net.sf.json.JSONObject;
+import com.almende.eve.json.jackson.JOM;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@SuppressWarnings("serial")
-public class JSONResponse implements JSON {
-	protected JSONObject resp = new JSONObject();
+public class JSONResponse {
+	protected ObjectNode resp = JOM.createObjectNode();
 
 	public JSONResponse () {
 		init(null, null, null);
 	}
 
-	public JSONResponse (JSONObject object) throws JSONRPCException {
-		if (object != null && !object.isNullObject()) {
-	
-			// TODO: check if this is a valid response object
-			if (object.has("jsonrpc")) {
-				if (!object.getString("jsonrpc").equals("2.0")) {
-					throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-							"Value of member 'jsonrpc' must be '2.0'");
-				}
-			}
-			if (object.has("result") && object.has("error")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-					"Response contains both members 'result' and 'error' but may not contain both.");
-			}
-			if (!object.has("result") && !object.has("error")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-					"Response is missing member 'result' or 'error'");
-			}
-			if (object.has("error")) {
-				if (!(object.get("error") instanceof JSONObject)) {
-					throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-						"Member 'error' is no JSONObject");					
-				}
-			}			
-			
-			Object id = object.get("id"); 
-			Object result = object.get("result");
-			JSONRPCException error = new JSONRPCException(object.getJSONObject("error"));
-			
-			init(id, result, error);
-		}
-		else {
-			init(null, null, null);
-		}
+	public JSONResponse (String json) 
+			throws JSONRPCException, JsonParseException, JsonMappingException, 
+			IOException {
+		ObjectMapper mapper = JOM.getInstance();
+		init(mapper.readValue(json, ObjectNode.class));
+	}
+
+	public JSONResponse (ObjectNode response) throws JSONRPCException {
+		init(response);
 	}
 
 	public JSONResponse (Object result) {
@@ -64,7 +42,43 @@ public class JSONResponse implements JSON {
 	public JSONResponse (Object id, JSONRPCException error) {
 		init(id, null, error);
 	}
-	
+
+	private void init (ObjectNode response) throws JSONRPCException {
+		if (response == null || response.isNull()) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Response is null");
+		}
+		if (response.has("jsonrpc") && response.get("jsonrpc").isTextual()) {
+			if (!response.get("jsonrpc").asText().equals("2.0")) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+						"Value of member 'jsonrpc' must be '2.0'");
+			}
+		}
+		if (response.has("result") && response.has("error")) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Response contains both members 'result' and 'error' but may not contain both.");
+		}
+		if (!response.has("result") && !response.has("error")) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				"Response is missing member 'result' or 'error'");
+		}
+		if (response.has("error")) {
+			if (!(response.get("error").isObject())) {
+				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+					"Member 'error' is no JSONObject");					
+			}
+		}
+		
+		Object id = response.get("id"); 
+		Object result = response.get("result");
+		JSONRPCException error = null;
+		if (response.has("error")) {
+			new JSONRPCException((ObjectNode)response.get("error"));
+		}
+		
+		init(id, result, error);
+	}
+
 	private void init(Object id, Object result, JSONRPCException error) {
 		setVersion();
 		setId(id);
@@ -73,16 +87,19 @@ public class JSONResponse implements JSON {
 	}
 	
 	public void setId(Object id) {
-		resp.put("id", id != null ? id : 1);
+		ObjectMapper mapper = JOM.getInstance();
+		resp.put("id", mapper.convertValue(id, JsonNode.class));
 	}
 
 	public Object getId() {
-		return resp.get("id");
+		ObjectMapper mapper = JOM.getInstance();
+		return mapper.convertValue(resp.get("id"), JsonNode.class);
 	}
 
 	public void setResult(Object result) {
 		if (result != null) {
-			resp.put("result", result);
+			ObjectMapper mapper = JOM.getInstance();
+			resp.put("result", mapper.convertValue(result, JsonNode.class));
 			setError(null);
 		}
 		else {
@@ -93,12 +110,13 @@ public class JSONResponse implements JSON {
 	}
 
 	public Object getResult() {
-		return resp.get("result");
+		ObjectMapper mapper = JOM.getInstance();
+		return mapper.convertValue(resp.get("result"), Object.class);
 	}
 
 	public void setError(JSONRPCException error) {
 		if (error != null) {
-			resp.put("error", error.getJSONObject());
+			resp.put("error", error.getObjectNode());
 			setResult(null);
 		}
 		else {
@@ -110,7 +128,7 @@ public class JSONResponse implements JSON {
 
 	public JSONRPCException getError() throws JSONRPCException {
 		if (resp.has("error")) {
-			JSONObject error = resp.getJSONObject("error");
+			ObjectNode error = (ObjectNode) resp.get("error");
 			return new JSONRPCException(error);
 		}
 		else {
@@ -118,46 +136,28 @@ public class JSONResponse implements JSON {
 		}
 	}
 
+	/* TODO: gives issues with Jackson
 	public boolean isError() {
 		return (resp.get("error") != null);
 	}
+	*/
 
 	private void setVersion() {
 		resp.put("jsonrpc", "2.0");
 	}
 
-	@Override
-	public boolean isArray() {
-		return resp.isArray();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return resp.isEmpty();
-	}
-
-	@Override
-	public int size() {
-		return resp.size();
-	}
-
-	@Override
-	public String toString() {
-		return resp.toString();
+	public ObjectNode getObjectNode() {
+		return resp;
 	}
 	
 	@Override
-	public String toString(int arg0) {
-		return resp.toString(arg0);
-	}
-
-	@Override
-	public String toString(int arg0, int arg1) {
-		return resp.toString(arg0, arg1);
-	}
-
-	@Override
-	public Writer write(Writer arg0) {
-		return resp.write(arg0);
+	public String toString() {
+		ObjectMapper mapper = JOM.getInstance();
+		try {
+			return mapper.writeValueAsString(resp);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

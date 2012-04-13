@@ -21,21 +21,20 @@
  * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2011-04-02
+ * @date	  2011-04-13
  */
 
 package com.almende.eve.agent.google;
 
 import java.net.URLEncoder;
 
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
-
 import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.json.util.HttpUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@SuppressWarnings("serial")
 public class GoogleCalculatorAgent extends Agent {
 	static private String CALC_API_URL = "http://www.google.com/ig/calculator";
 
@@ -49,14 +48,23 @@ public class GoogleCalculatorAgent extends Agent {
 	public String eval(@ParameterName("expr") String expr) throws Exception {
 		String url = CALC_API_URL + "?q=" + URLEncoder.encode(expr, "UTF-8");
 		String resp = HttpUtil.get(url);
-		JSONObject json = (JSONObject) JSONSerializer.toJSON(resp);
+
 		
-		String error = json.getString("error");
+		// the field names in resp are not enclosed by quotes :( 
+		resp = resp.replaceAll("lhs:", "\"lhs\":");
+		resp = resp.replaceAll("rhs:", "\"rhs\":");
+		resp = resp.replaceAll("error:", "\"error\":");
+		resp = resp.replaceAll("icc:", "\"icc\":");
+		
+		ObjectMapper mapper = JOM.getInstance();
+		ObjectNode json = mapper.readValue(resp, ObjectNode.class);
+		
+		String error = json.get("error").asText();
 		if (error != null && !error.isEmpty()) {
 			throw new Exception(error);
 		}
 		
-		String rhs = json.getString("rhs");
+		String rhs = json.get("rhs").asText();
 		return rhs;
 	}
 	

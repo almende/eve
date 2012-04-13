@@ -67,13 +67,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.ParameterName;
+import com.almende.eve.json.jackson.JOM;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@SuppressWarnings("serial")
 public class ChatAgent extends Agent {
 	/**
 	 * Get the username
@@ -102,10 +100,10 @@ public class ChatAgent extends Agent {
 	 * @throws RuntimeException 
 	 */
 	public void post(@ParameterName("message") String message) throws Exception {
-		JSONArray connections = getConnections();
+		List<String> connections = getConnections();
 
 		// trigger a "post message"
-		JSONObject params = new JSONObject();
+		ObjectNode params = JOM.createObjectNode();
 		params.put("url", getUrl());
 		params.put("username", getUsername());
 		params.put("message", message);
@@ -115,7 +113,7 @@ public class ChatAgent extends Agent {
 				" to " + connections.size() + " agent(s)"); 
 
 		for (int i = 0; i < connections.size(); i++) {
-			String connection = connections.getString(i);
+			String connection = connections.get(i);
 			send(connection, "receive", params);
 		}
 	}	
@@ -131,7 +129,7 @@ public class ChatAgent extends Agent {
 			@ParameterName("username") String username, 
 			@ParameterName("message") String message) throws Exception {
 		// trigger a "receive" message
-		JSONObject params = new JSONObject();
+		ObjectNode params = JOM.createObjectNode();
 		params.put("url", url);
 		params.put("username", username);
 		params.put("message", message);
@@ -146,30 +144,32 @@ public class ChatAgent extends Agent {
 	 * @param url   Url of an ChatAgent
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	public void connect(@ParameterName("url") String url) throws Exception {
 		boolean otherAlreadyConnected = false;
 		List<String> newConnections = new ArrayList<String>();
-
+		
 		// retrieve all connections that the other agent has, and synchronize
 		// my own list with it.
-		JSONArray otherConnections = (JSONArray)send(url, "getConnections", 
-				new JSONObject());
-		
+		List<String> otherConnections = (List<String>)send(url, "getConnections");
+
 		// get my own connections from the context
 		String urlSelf = getUrl();
 		Object obj = getContext().get("connections");
-		JSONArray connections = (obj != null) ? (JSONArray)obj : new JSONArray();
+		List<String> connections = (obj != null) ? (List<String>)obj : 
+			new ArrayList<String>();
+
 		for (int i = 0; i < otherConnections.size(); i++) {
-			String connection = otherConnections.getString(i);
+			String connection = otherConnections.get(i);
 			if (!connection.equals(urlSelf)) {
 				// this agent is not me
 				if (connections.indexOf(connection) == -1) {
 					// this is an agent that I didn't knew before
 					connections.add(connection);
 					newConnections.add(connection);
-				
+
 					// trigger a "connected" event
-					JSONObject params = new JSONObject();
+					ObjectNode params = JOM.createObjectNode();
 					params.put("url", connection);
 					trigger("connected", params);
 
@@ -182,13 +182,13 @@ public class ChatAgent extends Agent {
 				otherAlreadyConnected = true;
 			}
 		}
-		
+
 		// add the agent that triggered the connect
 		if (connections.indexOf(url) == -1) {
 				connections.add(url);
 				
 				// trigger a "connected" event
-				JSONObject params = new JSONObject();
+				ObjectNode params = JOM.createObjectNode();
 				params.put("url", url);
 				trigger("connected", params);
 				
@@ -204,35 +204,36 @@ public class ChatAgent extends Agent {
 
 		// schedule tasks to connect to all newly connected agents
 		for (String connection : newConnections) {
-			JSONObject params = new JSONObject();
+			ObjectNode params = JOM.createObjectNode();
 			params.put("url", urlSelf);
 			send(connection, "connect", params);
-		}
+		}		
 	}
 
 	/**
 	 * Disconnect this agent from all other agents in the chat room
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	public void disconnect() throws Exception {
 		Object obj = getContext().get("connections");
 		if (obj != null) {
 			getContext().remove("connections");			
 
-			JSONArray connections = (JSONArray) obj;
+			List<String> connections = (List<String>) obj;
 			
 			log(getUsername() + " disconnecting " + connections.size() + " agent(s)"); 
 			
 			for (int i = 0; i < connections.size(); i++) {
-				String url = connections.getString(i);
+				String url = connections.get(i);
 				String urlSelf = getUrl();
 				String method = "removeConnection";
-				JSONObject params = new JSONObject();
+				ObjectNode params = JOM.createObjectNode();
 				params.put("url", urlSelf);
 				send(url, method, params);
 				
 				// trigger a "disconnected" event
-				JSONObject triggerParams = new JSONObject();
+				ObjectNode triggerParams = JOM.createObjectNode();
 				triggerParams.put("url", url);
 				trigger("disconnected", triggerParams);
 			}			
@@ -244,16 +245,17 @@ public class ChatAgent extends Agent {
 	 * @param url  Url of a connected ChatAgent
 	 * @throws Exception 
 	 */
+	@SuppressWarnings("unchecked")
 	public void removeConnection(@ParameterName("url") String url) throws Exception {
 		Object obj = getContext().get("connections");
 		if (obj != null) {
-			JSONArray connections = (JSONArray) obj;
+			List<String> connections = (List<String>) obj;
 			connections.remove(url);
 			getContext().put("connections", connections);	
 			
 			log(getUsername() + " disconnected from " + url); 
 			// tirgger a "connected" event
-			JSONObject params = new JSONObject();
+			ObjectNode params = JOM.createObjectNode();
 			params.put("url", url);
 			trigger("disconnected", params);			
 		}
@@ -263,13 +265,14 @@ public class ChatAgent extends Agent {
 	 * Retrieve the urls of all agents that are connected
 	 * @return
 	 */
-	public JSONArray getConnections() {
+	@SuppressWarnings("unchecked")
+	public List<String> getConnections() {
 		Object connections = getContext().get("connections");
 		if (connections != null) {
-			return (JSONArray) connections;
+			return (List<String>) connections;
 		}
 		else {
-			return new JSONArray();
+			return new ArrayList<String>();
 		}
 	}
 
@@ -295,6 +298,5 @@ public class ChatAgent extends Agent {
 	@Override
 	public String getVersion() {
 		return "1.0";
-	}
-	
+	}	
 }

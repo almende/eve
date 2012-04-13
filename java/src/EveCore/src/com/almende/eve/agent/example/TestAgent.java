@@ -29,19 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import com.almende.eve.agent.Agent;
 import com.almende.eve.entity.Person;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.annotation.ParameterName;
 import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.jackson.JOM;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
-// TODO: put TestAgent in a separate test project
-
-@SuppressWarnings("serial")
+// TODO: put TestAgent in a separate unittest project
 public class TestAgent extends Agent {
 	public String ping(@ParameterName("message") String message) {
 		return message;
@@ -92,7 +89,7 @@ public class TestAgent extends Agent {
 		return a / b;
 	}
 
-	public String printParams(JSONObject params) {
+	public String printParams(ObjectNode params) {
 		return "fields: " + params.size();
 	}
 
@@ -100,6 +97,7 @@ public class TestAgent extends Agent {
 		throw new Exception("Something went wrong...");
 	}
 	
+	// TODO: get this working
 	public Double sum(@ParameterName("values") List<Double> values) {
 		Double sum = new Double(0);
 		for (Double value : values) {
@@ -112,14 +110,6 @@ public class TestAgent extends Agent {
 		Double sum = new Double(0);
 		for (Double value : values) {
 			sum += value;
-		}
-		return sum;
-	}
-
-	public Double sumJSONArray(@ParameterName("values") JSONArray values) {
-		Double sum = new Double(0);
-		for (int i = 0; i < values.size(); i++) {
-			sum += values.getDouble(i);
 		}
 		return sum;
 	}
@@ -149,18 +139,18 @@ public class TestAgent extends Agent {
 	}
 	
 	// TODO: onTrigger does not show up in getMethods
-	public void onTrigger(JSONObject params) {
+	public void onTrigger(ObjectNode params) {
 		System.out.println("onTrigger " + getId() + " " + params.toString());
 	}
 
 	public void doTrigger(@ParameterName("event") String event, 
-			@ParameterName("params") @ParameterRequired(false) JSONObject params) 
+			@ParameterName("params") @ParameterRequired(false) ObjectNode params) 
 			throws Exception {
 		trigger(event, params);
 	}
 
 	public String createTask(@ParameterName("delay") long delay) throws Exception {
-		JSONObject params = new JSONObject();
+		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("pingTask", params);
 		String id = getContext().getScheduler().setTimeout(getUrl(), request, delay);
@@ -168,7 +158,7 @@ public class TestAgent extends Agent {
 	}
 
 	public String createTaskInterval(@ParameterName("interval") long interval) throws Exception {
-		JSONObject params = new JSONObject();
+		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("pingTask", params);
 		String id = getContext().getScheduler().setInterval(getUrl(), request, interval);
@@ -189,10 +179,19 @@ public class TestAgent extends Agent {
 		System.out.println("ping " + message);
 	}
 	
+
+	public void testSend() throws Exception {
+		
+		Object res = send("http://localhost:8080/EveCore/agents/chatagent/1", "getConnections" );
+		System.out.println(res);
+	}
+	
+	
 	@Override
 	public String getVersion() {
 		return "1.0";
 	}
+	
 	@Override
 	public String getDescription() {
 		return 

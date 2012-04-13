@@ -30,13 +30,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
+import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.annotation.ParameterName;
 import com.almende.eve.json.annotation.ParameterRequired;
+import com.almende.eve.json.jackson.JOM;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@SuppressWarnings("serial")
 public class LogAgent extends Agent {
 	/**
 	 * start logging an agent
@@ -46,7 +45,7 @@ public class LogAgent extends Agent {
 	public void addAgent(@ParameterName("url") String url) throws Exception {
 		// send a subscribe request to the agent
 		String method = "subscribe";
-		JSONObject params = new JSONObject();
+		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "*");
 		params.put("callbackUrl", getUrl());
 		params.put("callbackMethod", "onEvent");
@@ -69,7 +68,7 @@ public class LogAgent extends Agent {
 	 */
 	public void removeAgent(@ParameterName("url") String url) throws Exception {
 		String method = "unsubscribe";
-		JSONObject params = new JSONObject();
+		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "*");
 		params.put("callbackUrl", getUrl());
 		params.put("callbackMethod", "onEvent");
@@ -110,7 +109,7 @@ public class LogAgent extends Agent {
 		if (urls != null) {
 			for (String url : urls) {
 				String method = "unsubscribe";
-				JSONObject params = new JSONObject();
+				ObjectNode params = JOM.createObjectNode();
 				params.put("event", "*");
 				params.put("callbackUrl", getUrl());
 				params.put("callbackMethod", "onEvent");
@@ -119,18 +118,60 @@ public class LogAgent extends Agent {
 		}
 		getContext().remove("urls");
 		getContext().remove("logs");
+		
+		cancelTimeToLive();
+		
+		// TODO: remove this
+		Logger logger = Logger.getLogger(this.getClass().getName());		
+		logger.info("clear");
+	}
+	
+	/**
+	 * Remove existing time to live
+	 */
+	public void cancelTimeToLive() {
+		String timeoutId = (String) getContext().get("timeoutId");
+		if (timeoutId != null) {
+			getContext().getScheduler().cancelTimer(timeoutId);
+		}
+		getContext().remove("timeoutId");
+	}
+	
+	/**
+	 * Set a time-to-live for the LogAgent. After this timeout, it will
+	 * cleanup and destroy itself.
+	 * This is useful for a temporary LogAgent used for a single session in a
+	 * browser.
+	 * @param interval      interval in milliseconds
+	 * @throws Exception 
+	 */
+	public void setTimeToLive(@ParameterName("interval") long interval) 
+			throws Exception {
+		// remove existing timeout
+		cancelTimeToLive();
+		
+		// create a new timeout
+		JSONRequest request = new JSONRequest("clear", null);
+		String timeoutId = 
+			getContext().getScheduler().setTimeout(getUrl(), request, interval);
+		getContext().put("timeoutId", timeoutId);
+		
+		// TODO: remove this
+		Logger logger = Logger.getLogger(this.getClass().getName());		
+		logger.info("setTimeToLive " + interval);		
 	}
 	
 	/**
 	 * Helper class to store logs
 	 */
-	private class Log {
-		Date timestamp = new Date();
-		String agent;
-		String event;
-		JSONObject params;
-		
-		Log(String agent, String event, JSONObject params) {
+	public class Log {
+		public Long timestamp = null;
+		public String agent = null;
+		public String event = null;
+		public ObjectNode params = null;
+
+		Log(String agent, String event, ObjectNode params) {
+			this.timestamp = new Date().getTime();
 			this.agent = agent;
 			this.event = event;
 			this.params = params;
@@ -139,36 +180,30 @@ public class LogAgent extends Agent {
 	
 	/**
 	 * Get logs
-	 * @param from      Optional timestamp. If provided, all logs with a 
-	 *                  timstamp > from will be returned
+	 * @param since     Optional timestamp. If provided, all logs with a 
+	 *                  timstamp > since will be returned
 	 * @param url       Optional url of an agent. If provided, all logs 
 	 *                  will be filtered by this url.
 	 * @return
 	 */
-	public JSONArray getLogs(
-			@ParameterRequired(false) @ParameterName("from") Long from,
+	public List<Log> getLogs(
+			@ParameterRequired(false) @ParameterName("since") Long since,
 			@ParameterRequired(false) @ParameterName("url") String url) {
 		@SuppressWarnings("unchecked")
 		List<Log> logs = (List<Log>) getContext().get("logs");
-		
-		JSONArray arr = new JSONArray();
+
+		List<Log> output = new ArrayList<Log>();
 		if (logs != null) {
 			for (Log log : logs) {
-				Long timestamp = log.timestamp.getTime();
-				boolean timestampOk = ((from == null) || (timestamp > from));
+				boolean timestampOk = ((since == null) || (log.timestamp > since));
 				boolean urlOk = ((url == null) || (url.equals(log.agent)));
 				if (timestampOk && urlOk) {
-					JSONObject obj = new JSONObject();
-					obj.put("timestamp", timestamp);
-					obj.put("agent", log.agent);
-					obj.put("event", log.event);
-					obj.put("params", log.params);
-					arr.add(obj);
+					output.add(log);
 				}
 			}
 		}
 		
-		return arr;
+		return output;
 	}
 	
 	/**
@@ -199,7 +234,7 @@ public class LogAgent extends Agent {
 	public void onEvent(
 			@ParameterName("agent") String agent, 
 			@ParameterName("event") String event, 
-			@ParameterRequired(false) @ParameterName("params") JSONObject params) 
+			@ParameterRequired(false) @ParameterName("params") ObjectNode params) 
 			throws Exception {
 		Logger logger = Logger.getLogger(this.getClass().getName());		
 		logger.info(agent + " " + event + " " + 
