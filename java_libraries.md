@@ -59,7 +59,9 @@ They can be downloaded at
   *Dependencies: 
     jackson-databind-2.0.0.jar,
     jackson-core-2.0.0.jar, 
-    jackson-annotations-2.0.0.jar
+    jackson-annotations-2.0.0.jar.
+    Also depending on servlet-api.jar, which is normally included already when
+    the project is set up as a web project.
   *
   
 - **eve-google-appengine.jar**  
@@ -71,7 +73,9 @@ They can be downloaded at
   *Dependencies: 
     eve-core.jar,
     twig-persist-2.0-beta4.jar,
-    guava-11.0.2.jar
+    guava-11.0.2.jar.
+    Also depending on the Google App Engine libraries, which are automatically
+    included when the project is set up as a GAE project.
   *
 
 - **eve-google-services.jar**  

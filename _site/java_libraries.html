@@ -98,13 +98,13 @@
 <li>
 <p><strong>eve-core.jar</strong><br />This is the basis of Eve, and is always required. It contains abstract base classes for agents and persistency, offers functionality for communication between agents, and contains a number of ready-made servlets to host the agents. The core is independent from the deployment platform.</p>
 
-<p><em>Dependencies: jackson-databind-2.0.0.jar, jackson-core-2.0.0.jar, jackson-annotations-2.0.0.jar</em></p>
+<p><em>Dependencies: jackson-databind-2.0.0.jar, jackson-core-2.0.0.jar, jackson-annotations-2.0.0.jar. Also depending on servlet-api.jar, which is normally included already when the project is set up as a web project.</em></p>
 </li>
 
 <li>
 <p><strong>eve-google-appengine.jar</strong><br />Library needed for hosting Eve agents on Google App Engine. This libary contains platform dependent functionallity: a persistent context for the agents (DatastoreContext), and a schedular (AppEngineSchedular).</p>
 
-<p><em>Dependencies: eve-core.jar, twig-persist-2.0-beta4.jar, guava-11.0.2.jar</em></p>
+<p><em>Dependencies: eve-core.jar, twig-persist-2.0-beta4.jar, guava-11.0.2.jar. Also depending on the Google App Engine libraries, which are automatically included when the project is set up as a GAE project.</em></p>
 </li>
 
 <li>
@@ -115,7 +115,7 @@
 </ul>
   
   <div class="lastupdate">
-  Last updated: 13 April 2012
+  Last updated: 16 April 2012
   </div>
 </div>
 
