@@ -60,7 +60,7 @@ They can be downloaded at
     jackson-databind-2.0.0.jar,
     jackson-core-2.0.0.jar, 
     jackson-annotations-2.0.0.jar.
-    Also depending on servlet-api.jar, which is normally included already when
+    Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
   *
   
