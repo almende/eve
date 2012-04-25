@@ -80,19 +80,7 @@ abstract public class Agent {
 	final public String getType() {
 		return this.getClass().getSimpleName();
 	}
-	
-	/**
-	 * Helper class to store a callback url and method
-	 */
-	private class Callback {
-		public Callback(String callbackUrl, String callbackMethod) {
-			this.callbackUrl = callbackUrl;
-			this.callbackMethod = callbackMethod;
-		}
-		public String callbackUrl = null;
-		public String callbackMethod = null;
-	}
-	
+
 	/**
 	 * Create the subscription key for a given event.
 	 * the resulting key will be "subscriptions.event"

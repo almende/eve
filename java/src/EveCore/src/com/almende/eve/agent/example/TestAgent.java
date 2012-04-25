@@ -38,7 +38,7 @@ import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
-// TODO: put TestAgent in a separate unittest project
+// TODO: put TestAgent in a separate unit test project
 public class TestAgent extends Agent {
 	public String ping(@Name("message") String message) {
 		return message;
@@ -149,13 +149,6 @@ public class TestAgent extends Agent {
 		trigger(event, params);
 	}
 
-	public String createTask(@Name("delay") long delay) throws Exception {
-		ObjectNode params = JOM.createObjectNode();
-		params.put("message", "hello world");
-		JSONRequest request = new JSONRequest("pingTask", params);
-		String id = getContext().getScheduler().setTimeout(getUrl(), request, delay);
-		return id;
-	}
 
 	public String createTaskInterval(@Name("interval") long interval) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
@@ -174,9 +167,17 @@ public class TestAgent extends Agent {
 		// TODO: must a getTasks also return the contents of the task?
 	}
 	
+
+	public String createTask(@Name("delay") long delay) throws Exception {
+		ObjectNode params = JOM.createObjectNode();
+		params.put("message", "hello world");
+		JSONRequest request = new JSONRequest("myTask", params);
+		String id = getContext().getScheduler().setTimeout(getUrl(), request, delay);
+		return id;
+	}
 	
-	public void pingTask(@Name("message") String message) {
-		System.out.println("ping " + message);
+	public void myTask(@Name("message") String message) {
+		System.out.println("myTask is executed. Message: " + message);
 	}
 	
 
@@ -185,6 +186,35 @@ public class TestAgent extends Agent {
 		Object res = send("http://localhost:8080/EveCore/agents/chatagent/1", "getConnections" );
 		System.out.println(res);
 	}
+	
+	public void subscribeToAgent() throws Exception {
+		String url = "http://server/agents/agenttype/agentx";
+		String method = "subscribe";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("event", "dataChanged");
+		params.put("callbackUrl", getUrl());
+		params.put("callbackMethod", "onEvent");
+		send(url, method, params);
+	}
+
+	public void unsubscribeFromAgent() throws Exception {
+		String url = "http://server/agents/agenttype/agentx";
+		String method = "unsubscribe";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("event", "dataChanged");
+		params.put("callbackUrl", getUrl());
+		params.put("callbackMethod", "onEvent");
+		send(url, method, params);
+	}
+	
+	public void onEvent(@Name("agent") String agent, 
+			@Name("event") String event, 
+			@Required(false) @Name("params") ObjectNode params) 
+			throws Exception {
+		System.out.println("onEvent " + agent + " " + event + " " + 
+				((params != null) ? params.toString() : ""));
+	}
+
 	
 	
 	@Override

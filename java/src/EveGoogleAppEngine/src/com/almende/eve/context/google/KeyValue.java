@@ -45,7 +45,8 @@ import com.google.code.twig.annotation.Type;
 public class KeyValue implements Serializable {
 	// KeyValue stores a key and a serialized value
 	@Id private String key = null;
-	@Index(false) @Type(Blob.class) private byte[] value = null; 
+	@Index(false) @Type(Blob.class) private byte[] value = null;
+	//@Index(false) private String value = null; // TODO: cleanup
 	
 	protected KeyValue () {}
 	
@@ -62,6 +63,20 @@ public class KeyValue implements Serializable {
 		return key;
 	}
 
+	/* TODO
+	public void setValue(Object value) 
+			throws JsonGenerationException, JsonMappingException, IOException {
+		ObjectMapper mapper = JOM.getInstance();
+		this.value = mapper.writeValueAsString(value);
+	}
+	
+	public <T> T getValue() 
+			throws JsonParseException, JsonMappingException, IOException {
+		ObjectMapper mapper = JOM.getInstance();
+		return mapper.readValue(this.value, new TypeReference<T>() {});
+	}
+	*/
+	
 	public void setValue(Object value) throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ObjectOutput out = new ObjectOutputStream(bos);   
@@ -71,10 +86,11 @@ public class KeyValue implements Serializable {
 		bos.close();
 	}
 
-	public Object getValue() throws ClassNotFoundException, IOException {
+	public <T> T getValue() throws ClassNotFoundException, IOException {
 		ByteArrayInputStream bis = new ByteArrayInputStream(this.value);
 		ObjectInput in = new ObjectInputStream(bis);
-		Object value = in.readObject(); 
+		@SuppressWarnings("unchecked")
+		T value = (T) in.readObject(); 
 		bis.close();
 		in.close();
 		return value;

@@ -44,7 +44,7 @@ public class DatastoreContext implements AgentContext {
 	}
 	
 	@Override
-	public Object get(String key) {
+	public <T> T get(String key) {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		
 		String fullKey = getFullKey(key);
@@ -69,7 +69,7 @@ public class DatastoreContext implements AgentContext {
 
 		try {
 			String fullKey = getFullKey(key);
-			KeyValue entity= new KeyValue(fullKey, value);
+			KeyValue entity = new KeyValue(fullKey, value);
 			datastore.store(entity);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -91,7 +91,10 @@ public class DatastoreContext implements AgentContext {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 
 		String fullKey = getFullKey(key);
-		datastore.delete(fullKey);
+		KeyValue entity = datastore.load(KeyValue.class, fullKey);
+		if (entity != null) {
+			datastore.delete(entity);
+		}
 	}
 
 	@Override
@@ -141,7 +144,9 @@ public class DatastoreContext implements AgentContext {
 		} else {
 			// production
 			// TODO: reckon with the version of the application?
-			appUrl = "https://" + id + ".appspot.com";
+			appUrl = "http://" + id + ".appspot.com";
+			// TODO: use https by default
+			//appUrl = "https://" + id + ".appspot.com";
 		}
 		
 		return appUrl;

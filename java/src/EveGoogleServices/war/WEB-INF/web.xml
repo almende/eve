@@ -16,7 +16,7 @@
         com.almende.eve.agent.google.GoogleDirectionsAgent;
         com.almende.eve.agent.google.GoogleTranslateAgent;
       </param-value>
-    </init-param>   
+    </init-param>
     <init-param>
       <description>The context for reading and writing persistent data</description> 
       <param-name>context</param-name>

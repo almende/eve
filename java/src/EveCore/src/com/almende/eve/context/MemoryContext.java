@@ -54,12 +54,13 @@ public class MemoryContext implements AgentContext {
 		return agentUrl;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	public synchronized Object get(String key) {
+	public synchronized <T> T get(String key) {
 		if (properties == null) {
 			return null;
 		}
-		return properties.get(key);
+		return (T) properties.get(key);
 	}
 
 	@Override

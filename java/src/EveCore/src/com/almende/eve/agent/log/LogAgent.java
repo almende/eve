@@ -23,13 +23,13 @@
  * @author 	Jos de Jong, <jos@almende.org>
  * @date	  2012-04-04
  */
-package com.almende.eve.agent;
+package com.almende.eve.agent.log;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.almende.eve.agent.Agent;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
@@ -160,23 +160,7 @@ public class LogAgent extends Agent {
 		Logger logger = Logger.getLogger(this.getClass().getName());		
 		logger.info("setTimeToLive " + interval);		
 	}
-	
-	/**
-	 * Helper class to store logs
-	 */
-	public class Log {
-		public Long timestamp = null;
-		public String agent = null;
-		public String event = null;
-		public ObjectNode params = null;
 
-		Log(String agent, String event, ObjectNode params) {
-			this.timestamp = new Date().getTime();
-			this.agent = agent;
-			this.event = event;
-			this.params = params;
-		}
-	}
 	
 	/**
 	 * Get logs
@@ -195,8 +179,8 @@ public class LogAgent extends Agent {
 		List<Log> output = new ArrayList<Log>();
 		if (logs != null) {
 			for (Log log : logs) {
-				boolean timestampOk = ((since == null) || (log.timestamp > since));
-				boolean urlOk = ((url == null) || (url.equals(log.agent)));
+				boolean timestampOk = ((since == null) || (log.getTimestamp() > since));
+				boolean urlOk = ((url == null) || (url.equals(log.getAgent())));
 				if (timestampOk && urlOk) {
 					output.add(log);
 				}

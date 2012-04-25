@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.log.LogAgent;
 import com.almende.eve.context.AgentContext;
 import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
@@ -150,6 +151,10 @@ public class MultiAgentServlet extends HttpServlet {
 				logger.warning(e.getMessage()); 		
 			}
 		}
+		
+		String simpleName = LogAgent.class.getSimpleName().toLowerCase();
+		newAgentClasses.put(simpleName, LogAgent.class);
+		logger.info("Agent class " + LogAgent.class.getName() + " loaded");
 		
 		// copy to agentClasses once the map is loaded
 		agentClasses = newAgentClasses;
