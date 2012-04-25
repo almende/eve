@@ -74,7 +74,6 @@ inside the &lt;web-app&gt; tag:
           com.almende.eve.agent.example.EchoAgent;
           com.almende.eve.agent.example.CalcAgent;
           com.almende.eve.agent.example.ChatAgent;
-          com.almende.eve.agent.LogAgent;
         </param-value>
       </init-param>
       <init-param>
