@@ -8,17 +8,25 @@ title: Communication protocol
 
 Each Eve agent has its own, unique url. 
 The agents communicate via regular HTTP POST requests, 
-using the JSON-RPC protocol.
+using the [JSON-RPC](http://en.wikipedia.org/wiki/JSON_RPC) protocol.
 This is a simple and readable protocol, using JSON to format requests and responses. 
 [JSON](http://www.json.org/) (JavaScript Object Notation) 
 is a lightweight, flexible data-interchange format. 
 It is easy for humans to read and write, 
 and  easy for machines to parse and generate. 
 
+This page describes:
 
-## JSON-RPC
+- [Protocol](#protocol) describes the communication protocol for the agents.
+- [Resources](#resources) describes standardized resources such as calendar 
+  events and geolocations.
+- [Documentation](#documentation) links to resources related to the communication
+  protocol and defined resources.
 
-JSON-RPC is implemented in two ways:
+
+## Protocol {#protocol}
+
+The [JSON-RPC](http://en.wikipedia.org/wiki/JSON_RPC) is implemented in two ways:
 
 - **Synchronous**  
   Agent X performs an HTTP POST request to agent Y,
@@ -42,7 +50,7 @@ parameters, which is much more ambiguous.
 [Click here](json_rpc.html) to try JSON-RPC yourself in your browser.
 -->
 
-## Synchronous communication
+### Synchronous communication
 
 A regular request from Agent X to agent Y can look like this. 
 Agent X addresses method "add" from agent Y, and provides two values 
@@ -75,7 +83,7 @@ Agent Y executes the method with the provided parameters, and returns the result
 
 
 
-## Asynchronous communication
+### Asynchronous communication
 
 Agent X performs a request to agent Y. 
 It calls method "add" and provides two values as parameters.
@@ -139,9 +147,97 @@ via a new request, adressing the callback url and method of agent X:
 </tr>
 </table>
 
+
+## Resources {#resources}
+
+The JSON-RPC protocol does define a mechanism for invoking an agents methods.
+It does not define the structure of any resources. 
+To get interoperability between the agents,
+it is important to use a single data-structure for resources
+such as calendar events, geolocations, and others. 
+
+The standardized resources for Eve agents are described in this section. 
+
+
+### Calendar Event
+
+For handling calendar events, an event is defined accordingly to the Google 
+Calendar API. A Google Calendar Event is defined at
+
+[https://developers.google.com/google-apps/calendar/v3/reference/events#resource](https://developers.google.com/google-apps/calendar/v3/reference/events#resource)
+
+An example event looks like:
+
+    {
+      "kind": "calendar#event",
+      "etag": "\"DtwDXDyBz5ZZP0Bus85WBYkv-64/Q1BqTjhPUHlKaEVBQUFBQUFBQUFBQT09\"",
+      "id": "1u924fot5dda30tn6h23hbt6tg",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MXU5MjRmb3Q1ZGRhMzB0bjZoMjNoYnQ2dGcgam9zQGFsbWVuZGUub3Jn",
+      "created": "2012-05-08T12:42:18.000Z",
+      "updated": "2012-05-08T12:46:03.000Z",
+      "summary": "Presentation on Eve",
+      "description": "Explain the basics of Eve",
+      "location": "Rotterdam, Almende B.V.",
+      "creator": {
+        "email": "jos@almende.org",
+        "displayName": "Jos de Jong"
+      },
+      "organizer": {
+        "email": "jos@almende.org",
+        "displayName": "Jos de Jong"
+      },
+      "start": {
+        "dateTime": "2012-05-11T15:00:00+02:00"
+      },
+      "end": {
+        "dateTime": "2012-05-11T17:00:00+02:00"
+      },
+      "iCalUID": "1u924fot5dda30tn6h23hbt6tg@google.com",
+      "sequence": 0,
+      "attendees": [
+        {
+          "email": "ludo@almende.org",
+          "responseStatus": "needsAction"
+        },
+        {
+          "email": "andries@almende.org",
+          "responseStatus": "needsAction"
+        },
+        {
+          "email": "jos@almende.org",
+          "displayName": "Jos de Jong",
+          "organizer": true,
+          "self": true,
+          "responseStatus": "accepted"
+        }
+      ],
+      "guestsCanInviteOthers": true,
+      "guestsCanSeeOtherGuests": true,
+      "reminders": {
+        "useDefault": true
+      }
+    }
+
+
+### Geolocation
+
+A geolocation is described by a latitude and longitude.
+
+Example location (Rotterdam, the Netherlands):
+
+    {
+      "lat": 51.92298,
+      "lng": 4.48287
+    }
+
+
 <!-- TODO: describe authentication
 
 ## Authentication
+
+(to be documented)
+
 
 To send an authentication token with a request, an HTTP Header "Authorization" 
 must be provided with the HTTP POST request. The value of this header must 
@@ -167,3 +263,9 @@ Documentation on the JSON-RPC protocol can be found via the following links:
 - [http://jsonrpc.org](http://jsonrpc.org)
 - [http://en.wikipedia.org/wiki/Json](http://en.wikipedia.org/wiki/Json)
 - [http://en.wikipedia.org/wiki/JSON_RPC](http://en.wikipedia.org/wiki/JSON_RPC)
+
+Documentation on the Google Calendar Events can be found at:
+
+- [https://developers.google.com/google-apps/calendar/v3/reference/events#resource](https://developers.google.com/google-apps/calendar/v3/reference/events#resource)
+
+

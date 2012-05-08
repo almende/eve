@@ -156,10 +156,12 @@ td.example {
   padding: 5px;
 }
 
+pre, code {
+  font-size: 10pt;
+}
 
 pre {
   line-height: 1.5em;
-  font-size: 10pt;
   overflow-x: auto; 
   background-color: #F5F5F5;
   border: 1px solid lightgray;

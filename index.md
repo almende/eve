@@ -15,8 +15,8 @@ This page introduces the core concepts of Eve:
 
 - [Web-based, decentral, and scalable](#scalable)
 - [Simple communciation protocol](#protocol)
-- [Multiplatform](#multiplatform)
-- [Multipurpose](#multipurpose)
+- [Multi-Platform](#multiplatform)
+- [Multi-Purpose](#multipurpose)
 - [Modular](#modular)
 - [Open source](#opensource)
 
@@ -97,26 +97,32 @@ request.
 
 ### Event driven
 
-Because the HTTP protocol is used for communication, the agents are passive by nature.
-The agents are event driven: they can only react to a request.
-In order to let agents take the initiative to perform an action, actions need to be
-scheduled. This can be done either from the outside, on server level, 
-or by the agent itself.
+Eve Agents are event driven by nature. An agent is passive and only reacts
+to requests triggered by an external process.
+In order to let agents take the initiative to perform an action, actions need 
+to be scheduled. This can be done via an external schedular 
+or by the agent itself using the provided scheduling mechanism.
 
 The passiveness of the agents in Eve works quite different from most agent platforms.
 In more traditional agent platorms, agents run actively as a thread on a
 computer, and schedule their own actions via a delay.
-With Eve however, agents are normally in a sleep modus, until they
-get a request to handle. Actions are scheduled externally. 
+With Eve however, agents are normally not running at all, and become only active
+when they get a request to handle.
 
-Depending on the implementation, an agents state can be kept actively in 
-the memory, or can be loaded and persisted with each request. 
-The latter results in a so called "stateless protocol", and results in a highly 
-scalable environment. This is the default approach for the Eve libraries so
-far. 
-However, when an agent is deployed as a dedicated web service with only 
-one instance, it may not be applicable to store its state and just keep
-the agent loaded in memory (possibly utilizing caching or other optimizations).
+
+### Stateless
+
+Agents are stateless. It is possible that multiple instances of the same agent
+are running simultaneously. 
+To store a state, agents can use the provided context, which is shared amongst
+all running instances of the agent.
+The implementation of this context is dependent on the platform where the agents
+are deployed.
+
+When an agent is deployed as a dedicated web service with only 
+one instance, there is no need for keeping the agent stateless. 
+In that case it can be better to keep the agent and its state loaded in memory,
+resulting in better performance.
 
 
 ## Communication protocol {#protocol}
@@ -138,7 +144,7 @@ supported with a ready made library.
 
 
 
-## Development platforms {#multiplatform}
+## Multi-Platform {#multiplatform}
 
 Agents can be built on any development platform (Java, CGI, C, PHP, .NET, NodeJS, ...), 
 they just have to meet the protocol such that they can communicate with other 
@@ -176,7 +182,7 @@ The NodeJS library of Eve provides an abstract Agent class,
 which can be used as base class from which new types of agents can be inherited
 and created.
 
-## Multipurpose {#multipurpose}
+## Multi-Purpose {#multipurpose}
 
 
 The Eve agent platform can be used for all kind of applications. 
