@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE PROJECT>
+<project name="eve-google-appengine-sync" default="sync" basedir=".">
+  <target name="sync" description="Synchronize dependent libraries">
+
+  	<copy file="../EveCore/bin/eve-core.jar" todir="war/WEB-INF/lib" />
+  	<copy file="../EvePlanning/bin/eve-planning.jar" todir="war/WEB-INF/lib" />
+    <copy file="../EveGoogleAppEngine/bin/eve-google-appengine.jar" todir="war/WEB-INF/lib" />
+
+  </target>
+</project>
