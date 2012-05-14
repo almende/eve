@@ -73,7 +73,7 @@ public class MultiAgentServlet extends HttpServlet {
 			String id = (path.length > 1) ? path[path.length - 1] : ".";
 			simpleName = simpleName.toLowerCase();
 
-			// get the correct agent instance
+			// check whether the agent class is known
 			if (!agentClasses.containsKey(simpleName)) {
 				throw new Exception("Unknown agent class " + simpleName);
 			}

@@ -115,4 +115,20 @@ public class MemoryContext implements AgentContext {
 		
 		return context;
 	}
+	
+
+	@Override
+	public void beginTransaction() {
+		// TODO: transaction
+	}
+
+	@Override
+	public void commitTransaction() {
+		// TODO: transaction
+	}
+	
+	@Override
+	public void rollbackTransaction() {
+		// TODO: transaction
+	}
 }

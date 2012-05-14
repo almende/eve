@@ -7,10 +7,10 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class Callback implements Serializable {
-	public Callback(String callbackUrl, String callbackMethod) {
-		this.callbackUrl = callbackUrl;
-		this.callbackMethod = callbackMethod;
+	public Callback(String url, String method) {
+		this.url = url;
+		this.method = method;
 	}
-	public String callbackUrl = null;
-	public String callbackMethod = null;
+	public String url = null;
+	public String method = null;
 }

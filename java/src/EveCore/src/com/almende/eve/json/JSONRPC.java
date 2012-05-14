@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
-import com.almende.eve.json.util.HttpUtil;
+import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -19,6 +19,11 @@ public interface AgentContext {
 	public boolean has(String key);
 	public void remove(String key);
 	
+	// transactional changes
+	public void beginTransaction();
+	public void commitTransaction();
+	public void rollbackTransaction();
+	
 	// scheduler
 	public Scheduler getScheduler();
 }
