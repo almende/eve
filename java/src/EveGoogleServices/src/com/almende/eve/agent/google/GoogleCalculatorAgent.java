@@ -31,7 +31,7 @@ import java.net.URLEncoder;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.jackson.JOM;
-import com.almende.eve.json.util.HttpUtil;
+import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

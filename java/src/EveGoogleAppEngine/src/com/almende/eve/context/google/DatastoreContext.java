@@ -43,6 +43,8 @@ public class DatastoreContext implements AgentContext {
 		return id + "." + key;
 	}
 	
+	// TODO: load and save in a transaction
+	
 	@Override
 	public <T> T get(String key) {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
@@ -158,5 +160,26 @@ public class DatastoreContext implements AgentContext {
 			scheduler = new AppEngineScheduler();
 		}
 		return scheduler;
+	}
+	
+
+	@Override
+	public void beginTransaction() {
+		// TODO: transaction
+	}
+
+	@Override
+	public void commitTransaction() {
+		// TODO: transaction
+	}
+	
+	@Override
+	public void rollbackTransaction() {
+		// TODO: transaction
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		// TODO: rollback a transaction when active
 	}
 }

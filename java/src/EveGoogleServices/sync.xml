@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE PROJECT>
 <project name="eve-google-services-sync" default="sync" basedir=".">
-  <target name="sync" 
-  	  description="Synchronize the eve-core library">
-  	<property name="bin" location="../EveCore/bin" />
-    <property name="lib" location="war/WEB-INF/lib" />
-  	
-  	<copy todir="${lib}">
-  	  <fileset dir="${bin}" includes="eve-core.jar" />
-  	</copy>
+  <target name="sync" description="Synchronize dependent libraries">
+
+    <copy file="../EveCore/bin/eve-core.jar" todir="war/WEB-INF/lib"/>
 
   </target>
 </project>

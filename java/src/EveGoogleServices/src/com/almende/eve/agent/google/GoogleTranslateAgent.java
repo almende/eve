@@ -30,7 +30,7 @@ import java.net.URLEncoder;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
-import com.almende.eve.json.util.HttpUtil;
+import com.almende.util.HttpUtil;
 
 public class GoogleTranslateAgent extends Agent {
 	static private String TRANSLATE_API_URL = 
