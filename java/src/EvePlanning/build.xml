@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE PROJECT>
+<project name="eve-planning-builder" default="makejar" basedir=".">
+  <target name="makejar" description="Create a jar from the EvePlanning project">
+    <property name="localbin" location="bin" />
+  	<property name="globalbin" location="../../bin/current" />
+  	
+  	<mkdir dir="${localbin}" />
+
+  	<!-- create jar eve-core.jar and overwrite old one -->
+    <jar destfile="${localbin}/eve-planning-temp.jar" >
+    	<fileset dir="build/classes/" /> 
+      <fileset dir="src/" />
+    </jar>
+  	<move 
+  		file="${localbin}/eve-planning-temp.jar" 
+  		tofile="${localbin}/eve-planning.jar" />
+
+    <!-- copy jar to the global bin directory, 
+         and create a zip file with all dependencies bundled -->
+    <copy file="${localbin}/eve-planning.jar" todir="${globalbin}" />
+    <zip destfile="${globalbin}/eve-planning-bundle.zip">
+      <fileset dir="bin" includes="eve-planning*" /> 
+      <fileset dir="war/WEB-INF/lib/" 
+      	includes="gdata-*" />
+    </zip>
+
+  </target>
+</project>
