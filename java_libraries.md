@@ -47,7 +47,7 @@ The image below shows a schematic overview of the layers and libraries.
 
 The following Java libraries are currently available.  
 They can be downloaded at 
-[https://github.com/almende/eve/tree/master/java/bin](https://github.com/almende/eve/tree/master/java/bin).
+[https://github.com/almende/eve/tree/gh-pages/files/java](https://github.com/almende/eve/tree/gh-pages/files/java).
 
 - **eve-core.jar**  
   This is the basis of Eve, and is always required.

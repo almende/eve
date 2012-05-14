@@ -67,15 +67,15 @@ web servlet.
   If you don't want to download all libraries individually, you can download the
   zip files *eve-core-bundle.zip* and *eve-google-appengine-bundle.zip*
   containing all dependent libraries 
-  [here](https://almende.github.com/eve/files/java).  
+  [here](https://github.com/almende/eve/tree/gh-pages/files/java).  
 
-  - [eve-core.jar](https://almende.github.com/eve/files/java)
+  - [eve-core.jar](https://github.com/almende/eve/tree/gh-pages/files/java)
   
     - [jackson-databind-2.0.0.jar](http://jackson.codehaus.org/)
     - [jackson-core-2.0.0.jar](http://jackson.codehaus.org/)
     - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org/)
 
-  - [eve-google-appengine.jar](https://almende.github.com/eve/files/java)
+  - [eve-google-appengine.jar](https://github.com/almende/eve/tree/gh-pages/files/java)
   
     - [twig-persist-2.0-beta4.jar](http://code.google.com/p/twig-persist/)
     - [guava-11.0.2.jar](http://code.google.com/p/guava-libraries/)
