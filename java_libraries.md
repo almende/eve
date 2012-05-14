@@ -87,3 +87,12 @@ They can be downloaded at
     eve-core.jar
   *
 
+- **eve-planning.jar**  
+  Contains agents acting on the domain of calendaring and planning. 
+  Contains a GoogleCalendarAgent and a servlet for authorizing this agent.
+  Will contain agents planning activities in a dynamic way.
+
+  *Dependencies: 
+    eve-core.jar,
+    jodatime-2.1.jar
+  *
