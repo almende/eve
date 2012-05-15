@@ -5,6 +5,7 @@
 	<projects>
 		<project>EveCore</project>
 		<project>EveGoogleAppEngine</project>
+		<project>EveGoogleServices</project>
 		<project>EvePlanning</project>
 	</projects>
 	<buildSpec>

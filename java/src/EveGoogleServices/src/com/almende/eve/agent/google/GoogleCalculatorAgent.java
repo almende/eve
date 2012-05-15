@@ -49,7 +49,6 @@ public class GoogleCalculatorAgent extends Agent {
 		String url = CALC_API_URL + "?q=" + URLEncoder.encode(expr, "UTF-8");
 		String resp = HttpUtil.get(url);
 
-		
 		// the field names in resp are not enclosed by quotes :( 
 		resp = resp.replaceAll("lhs:", "\"lhs\":");
 		resp = resp.replaceAll("rhs:", "\"rhs\":");

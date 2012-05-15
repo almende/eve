@@ -5,6 +5,7 @@
 
   	<copy file="../EveCore/bin/eve-core.jar" todir="war/WEB-INF/lib" />
   	<copy file="../EvePlanning/bin/eve-planning.jar" todir="war/WEB-INF/lib" />
+    <copy file="../EveGoogleServices/bin/eve-google-services.jar" todir="war/WEB-INF/lib" />
     <copy file="../EveGoogleAppEngine/bin/eve-google-appengine.jar" todir="war/WEB-INF/lib" />
 
   </target>

@@ -9,22 +9,35 @@
     <servlet-name>MultiAgentServlet</servlet-name>
     <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
     <init-param>
-      <description>The agent classes served by the servlet</description> 
-      <param-name>agents</param-name>
+      <description>servlet configuration (yaml file)</description> 
+      <param-name>config</param-name>
       <param-value>
-        com.almende.eve.agent.google.GoogleCalendarAgent;
-        com.almende.eve.agent.example.CalcAgent;
+        # general servlet information
+        servlet:
+        - url: http://eveagents.appspot.com/agents
+        
+        # The agent classes served by the servlet
+        agents:
+        - com.almende.eve.agent.google.GoogleCalendarAgent
+        - com.almende.eve.agent.example.CalcAgent
+        
+        # The context for reading and writing persistent data
+        context: com.almende.eve.context.MemoryContext
       </param-value>
-    </init-param>   
-    <init-param>
-      <description>The context for reading and writing persistent data</description> 
-      <param-name>context</param-name>
-      <param-value>com.almende.eve.context.MemoryContext</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
     <servlet-name>MultiAgentServlet</servlet-name>
     <url-pattern>/agents/*</url-pattern>
   </servlet-mapping>
- 
+
+  <servlet>
+    <servlet-name>GoogleAuth</servlet-name>
+    <servlet-class>com.almende.eve.servlet.google.GoogleAuth</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GoogleAuth</servlet-name>
+    <url-pattern>/auth</url-pattern>
+  </servlet-mapping>
+
 </web-app>

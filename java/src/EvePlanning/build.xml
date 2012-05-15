@@ -3,7 +3,7 @@
 <project name="eve-planning-builder" default="makejar" basedir=".">
   <target name="makejar" description="Create a jar from the EvePlanning project">
     <property name="localbin" location="bin" />
-  	<property name="globalbin" location="../../bin/current" />
+  	<property name="globalbin" location="../../bin" />
   	
   	<mkdir dir="${localbin}" />
 
@@ -22,7 +22,7 @@
     <zip destfile="${globalbin}/eve-planning-bundle.zip">
       <fileset dir="bin" includes="eve-planning*" /> 
       <fileset dir="war/WEB-INF/lib/" 
-      	includes="gdata-*" />
+      	includes="joda-time-*" />
     </zip>
 
   </target>

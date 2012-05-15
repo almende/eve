@@ -1,9 +1,9 @@
 package com.almende.eve.servlet;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -11,6 +11,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.yaml.snakeyaml.Yaml;
 
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
@@ -21,6 +23,7 @@ import com.almende.eve.json.JSONResponse;
 public class RESTServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	private Map<String, Object> classes = null;
+	private Map<String, Object> config = null; // servlet configuration 
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -52,8 +55,6 @@ public class RESTServlet extends HttpServlet {
 				request.putParam(param, req.getParameter(param));
 			}
 			
-			System.out.println("request:" + request.toString());
-			
 			// invoke the request
 			JSONResponse response = JSONRPC.invoke(instance, request);
 			
@@ -74,33 +75,24 @@ public class RESTServlet extends HttpServlet {
 	/**
 	 * Initialize an instance of the configured class
 	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws ServletException
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws SecurityException 
-	 * @throws IllegalArgumentException 
+	 * @throws Exception
 	 */
-	private void initClasses() throws ServletException, IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private void initClasses() throws Exception {
 		if (classes != null) {
 			return;
 		}
 		
 		classes = new HashMap<String, Object>();
 		
-		String classesParam = getInitParameter("classes");
-		
-		if (classesParam == null || classesParam.isEmpty()) {
+		List<String> classNames = getConfigParameter("classes");
+		if (classNames == null || classNames.isEmpty()) {
 			throw new ServletException(
-				"Init parameter 'classes' missing in servlet configuration." +
+				"Config parameter 'classes' missing in servlet configuration." +
 				"This parameter must be specified in web.xml.");
 		}
 		
-		String[] classeNames = classesParam.split(";");
-
-		for (int i = 0; i < classeNames.length; i++) {
-			String className = classeNames[i].trim();
+		for (int i = 0; i < classNames.size(); i++) {
+			String className = classNames.get(i).trim();
 			try {
 				if (className != null && !className.isEmpty()) {
 					Class<?> c = Class.forName(className);
@@ -119,4 +111,38 @@ public class RESTServlet extends HttpServlet {
 			}
 		}		
 	}
+	
+	/**
+	 * Retrieve the configuration file
+	 * @return
+	 * @throws ServletException 
+	 */
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getConfig() throws ServletException {
+		if (config == null) {
+			String file = getInitParameter("config");
+			if (file == null) {
+				throw new ServletException(
+					"Init parameter 'config' missing in servlet configuration." +
+					"This parameter must be specified in web.xml.");
+			}
+			Yaml yaml = new Yaml();
+			config = (Map<String, Object>) yaml.load(file);
+		}
+		
+		return config;
+	}
+	
+	/**
+	 * retrieve a config parameter from the configuration file
+	 * @param param    Parameter name
+	 * @return
+	 * @throws ServletException
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> T getConfigParameter(String param) throws ServletException {
+		Map<String, Object> config = getConfig();
+		return (T) config.get(param);
+	}
+	
 }

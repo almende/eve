@@ -9,16 +9,23 @@
   <servlet>
     <servlet-name>SingleAgentServlet</servlet-name>
     <servlet-class>com.almende.eve.servlet.SingleAgentServlet</servlet-class>
-	  <init-param>
-	    <description>The agent class served by the servlet</description> 
-	    <param-name>agent</param-name>
-	    <param-value>com.almende.eve.agent.example.TestAgent</param-value>
-	  </init-param>
     <init-param>
-      <description>The context for reading and writing persistent data</description> 
-      <param-name>context</param-name>
-      <param-value>com.almende.eve.context.MemoryContext</param-value>
-    </init-param>	  
+      <description>servlet configuration (yaml file)</description> 
+      <param-name>config</param-name>
+      <param-value>
+        # general servlet information
+        servlet:
+        - url: http://eveagents.appspot.com/agents
+        
+        # The agent classes served by the servlet 
+        # (only one allowed in case of the SingleAgentServlet)
+        agents:
+        - com.almende.eve.agent.example.TestAgent
+        
+        # The context for reading and writing persistent data
+        context: com.almende.eve.context.MemoryContext
+      </param-value>
+    </init-param>
   </servlet>  
   <servlet-mapping>
     <servlet-name>SingleAgentServlet</servlet-name>
@@ -29,20 +36,24 @@
     <servlet-name>MultiAgentServlet</servlet-name>
     <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
     <init-param>
-      <description>The agent classes served by the servlet</description> 
-      <param-name>agents</param-name>
+      <description>servlet configuration (yaml file)</description> 
+      <param-name>config</param-name>
       <param-value>
-        com.almende.eve.agent.example.EchoAgent;
-        com.almende.eve.agent.example.TestAgent;
-        com.almende.eve.agent.example.CalcAgent;
-        com.almende.eve.agent.example.ChatAgent;
+        # general servlet information
+        servlet:
+        - url: http://eveagents.appspot.com/agents
+        
+        # The agent classes served by the servlet
+        agents:
+        - com.almende.eve.agent.example.EchoAgent
+        - com.almende.eve.agent.example.TestAgent
+        - com.almende.eve.agent.example.CalcAgent
+        - com.almende.eve.agent.example.ChatAgent
+        
+        # The context for reading and writing persistent data
+        context: com.almende.eve.context.MemoryContext
       </param-value>
-    </init-param>   
-    <init-param>
-      <description>The context for reading and writing persistent data</description> 
-      <param-name>context</param-name>
-      <param-value>com.almende.eve.context.MemoryContext</param-value>
-    </init-param>
+    </init-param>    
   </servlet>
   <servlet-mapping>
     <servlet-name>MultiAgentServlet</servlet-name>
@@ -53,14 +64,17 @@
     <servlet-name>RESTServlet</servlet-name>
     <servlet-class>com.almende.eve.servlet.RESTServlet</servlet-class>
     <init-param>
-      <description>The classes served by the servlet</description> 
-      <param-name>classes</param-name>
+      <description>servlet configuration (yaml file)</description> 
+      <param-name>config</param-name>
       <param-value>
-        com.almende.eve.agent.example.TestAgent;
-        com.almende.eve.agent.example.EchoAgent;
-        com.almende.eve.agent.example.CalcAgent;
+        # The classes served by the RESTServlet
+        classes:
+        - com.almende.eve.agent.example.EchoAgent
+        - com.almende.eve.agent.example.TestAgent
+        - com.almende.eve.agent.example.CalcAgent
+        - com.almende.eve.agent.example.ChatAgent
       </param-value>
-    </init-param>   
+    </init-param>
   </servlet>
   <servlet-mapping>
     <servlet-name>RESTServlet</servlet-name>

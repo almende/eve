@@ -13,19 +13,23 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-name>MultiAgentServlet</servlet-name>
     <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
     <init-param>
-      <description>The agent classes served by the servlet</description> 
-      <param-name>agents</param-name>
+      <description>servlet configuration (yaml file)</description> 
+      <param-name>config</param-name>
       <param-value>
-        com.almende.eve.agent.example.TestAgent;
-        com.almende.eve.agent.example.EchoAgent;
-        com.almende.eve.agent.example.CalcAgent;
-        com.almende.eve.agent.example.ChatAgent;
-    </param-value>
-    </init-param>
-    <init-param>
-      <description>The context for reading/writing persistent data</description> 
-      <param-name>context</param-name>
-      <param-value>com.almende.eve.context.google.DatastoreContext</param-value>
+        # general servlet information
+        servlet:
+        - url: http://eveagents.appspot.com/agents
+        
+        # The agent classes served by the servlet
+        agents:
+        - com.almende.eve.agent.example.EchoAgent
+        - com.almende.eve.agent.example.TestAgent
+        - com.almende.eve.agent.example.CalcAgent
+        - com.almende.eve.agent.example.ChatAgent
+        
+        # The context for reading and writing persistent data
+        context: com.almende.eve.context.google.DatastoreContext
+      </param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

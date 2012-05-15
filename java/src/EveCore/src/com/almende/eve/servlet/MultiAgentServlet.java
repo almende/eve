@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -13,6 +14,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.yaml.snakeyaml.Yaml;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.log.LogAgent;
@@ -30,6 +33,7 @@ public class MultiAgentServlet extends HttpServlet {
 	
 	private Map<String, Class<?>> agentClasses = null;
 	private AgentContext contextFactory = null;
+	private Map<String, Object> config = null; // servlet configuration 
 
 	@Override
 	protected void doGet(HttpServletRequest request,
@@ -47,7 +51,7 @@ public class MultiAgentServlet extends HttpServlet {
 				pw.println(text);
 			}
 		}
-	}	
+	}
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -110,25 +114,22 @@ public class MultiAgentServlet extends HttpServlet {
 	 * The class is read from the servlet init parameters in web.xml.
 	 * @throws ServletException
 	 */
-	private void initAgents(HttpServletRequest req) throws Exception {
+	private void initAgents(HttpServletRequest req) throws ServletException {
 		if (agentClasses != null) {
 			return;
 		}
 
 		Map<String, Class<?>> newAgentClasses = new HashMap<String, Class<?>>();
 		
-		String classNames = getInitParameter("agents");
-		
-		if (classNames == null || classNames.isEmpty()) {
+		List<String> classes = getConfigParameter("agents");
+		if (classes == null) {
 			throw new ServletException(
-				"Init parameter 'agents' missing in servlet configuration." +
+				"Config parameter 'agents' missing in servlet configuration." +
 				"This parameter must be specified in web.xml.");
 		}
-		
-		String[] classes = classNames.split(";");
 
-		for (int i = 0; i < classes.length; i++) {
-			String className = classes[i].trim();
+		for (int i = 0; i < classes.size(); i++) {
+			String className = classes.get(i);
 			try {
 				if (className != null && !className.isEmpty()) {
 					Class<?> agentClass = Class.forName(className);
@@ -163,14 +164,14 @@ public class MultiAgentServlet extends HttpServlet {
 	/**
 	 * Initialize the correct Context class for the SingleAgentServlet.
 	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws ServletException
+	 * @throws Exception
 	 */
 	private void initContext(HttpServletRequest req) throws Exception {
 		if (contextFactory != null) {
 			return;
 		}
 
-		String className = getInitParameter("context");
+		String className = getConfigParameter("context");
 		
 		if (className == null || className.isEmpty()) {
 			className = MemoryContext.class.getName();
@@ -218,6 +219,45 @@ public class MultiAgentServlet extends HttpServlet {
 		return false;
 	}
 	
+	/**
+	 * Retrieve the configuration file
+	 * @return
+	 * @throws ServletException 
+	 */
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getConfig() throws ServletException {
+		if (config == null) {
+			String file = getInitParameter("config");
+			if (file == null) {
+				throw new ServletException(
+					"Init parameter 'config' missing in servlet configuration." +
+					"This parameter must be specified in web.xml.");
+			}
+			Yaml yaml = new Yaml();
+			config = (Map<String, Object>) yaml.load(file);
+		}
+		
+		return config;
+	}
+	
+	/**
+	 * retrieve a config parameter from the configuration file
+	 * @param param    Parameter name
+	 * @return
+	 * @throws ServletException
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> T getConfigParameter(String param) throws ServletException {
+		Map<String, Object> config = getConfig();
+		return (T) config.get(param);
+	}
+	
+	/**
+	 * Convert a stream to a string
+	 * @param in
+	 * @return
+	 * @throws IOException
+	 */
 	private static String streamToString(InputStream in) throws IOException {
 		StringBuffer out = new StringBuffer();
 		byte[] b = new byte[4096];
@@ -226,5 +266,4 @@ public class MultiAgentServlet extends HttpServlet {
 		}
 		return out.toString();
 	}
-
 }

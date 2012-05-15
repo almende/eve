@@ -3,7 +3,7 @@
 <project name="eve-google-services-builder" default="makejar" basedir=".">
   <target name="makejar" description="Create a jar from the EveGoogleServices project">
     <property name="localbin" location="bin" />
-  	<property name="globalbin" location="../../bin/current" />
+  	<property name="globalbin" location="../../bin" />
   	
   	<mkdir dir="${localbin}" />
 

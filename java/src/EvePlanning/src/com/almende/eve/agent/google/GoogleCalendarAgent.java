@@ -203,10 +203,10 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 */
 	private Authorization getAuthorization() throws Exception {
 		Authorization auth = getContext().get("auth");
-		
+
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
-		if (expires_at != null && expires_at.isAfterNow()) {
+		if (expires_at != null && expires_at.isBeforeNow()) {
 			// TODO: remove this logging
 			System.out.println("access token is expired. refreshing now...");
 			refreshAuthorization(auth);

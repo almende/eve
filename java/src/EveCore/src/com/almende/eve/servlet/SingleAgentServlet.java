@@ -6,12 +6,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.yaml.snakeyaml.Yaml;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.context.AgentContext;
@@ -27,6 +31,7 @@ public class SingleAgentServlet extends HttpServlet {
 	
 	private Class<?> agentClass = null;
 	private AgentContext contextFactory = null;
+	private Map<String, Object> config = null; // servlet configuration 
 	
 	@Override
 	protected void doGet(HttpServletRequest request,
@@ -113,13 +118,19 @@ public class SingleAgentServlet extends HttpServlet {
 			return;
 		}
 
-		String className = getInitParameter("agent");
+		List<String> classNames = getConfigParameter("agents");
 		
-		if (className == null || className.isEmpty()) {
+		if (classNames == null || classNames.size() == 0) {
 			throw new ServletException(
-				"Init parameter 'agent' missing in servlet configuration." +
+				"Config parameter 'agents' missing in servlet configuration." +
 				"This parameter must be specified in web.xml.");
 		}
+		if (classNames.size() > 1) {
+			throw new ServletException(
+					"Config parameter 'agents' may only contain one class");
+		}
+		String className = classNames.get(0);
+		
 		Class<?> newAgentClass;
 		try {
 			newAgentClass = Class.forName(className);
@@ -148,7 +159,7 @@ public class SingleAgentServlet extends HttpServlet {
 			return;
 		}
 
-		String className = getInitParameter("context");
+		String className = getConfigParameter("context");
 		
 		if (className == null || className.isEmpty()) {
 			className = MemoryContext.class.getName();
@@ -194,7 +205,46 @@ public class SingleAgentServlet extends HttpServlet {
 		
 		return false;
 	}
+
+	/**
+	 * Retrieve the configuration file
+	 * @return
+	 * @throws ServletException 
+	 */
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getConfig() throws ServletException {
+		if (config == null) {
+			String file = getInitParameter("config");
+			if (file == null) {
+				throw new ServletException(
+					"Init parameter 'config' missing in servlet configuration." +
+					"This parameter must be specified in web.xml.");
+			}
+			Yaml yaml = new Yaml();
+			config = (Map<String, Object>) yaml.load(file);
+		}
+		
+		return config;
+	}
 	
+	/**
+	 * retrieve a config parameter from the configuration file
+	 * @param param    Parameter name
+	 * @return
+	 * @throws ServletException
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> T getConfigParameter(String param) throws ServletException {
+		Map<String, Object> config = getConfig();
+		return (T) config.get(param);
+	}
+	
+	/**
+	 * Convert a stream to a string
+	 * @param in
+	 * @return
+	 * @throws IOException
+	 */
 	private static String streamToString(InputStream in) throws IOException {
 		StringBuffer out = new StringBuffer();
 		byte[] b = new byte[4096];
