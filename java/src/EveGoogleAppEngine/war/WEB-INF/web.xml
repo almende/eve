@@ -17,8 +17,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
       <param-name>config</param-name>
       <param-value>
         # general servlet information
-        servlet:
-        - url: http://eveagents.appspot.com/agents
+        servlet_url: http://eveagents.appspot.com/agents
         
         # The agent classes served by the servlet
         agents:
@@ -28,7 +27,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         - com.almende.eve.agent.example.ChatAgent
         
         # The context for reading and writing persistent data
-        context: com.almende.eve.context.google.DatastoreContext
+        context_factory: com.almende.eve.context.google.DatastoreContextFactory
       </param-value>
     </init-param>
   </servlet>

@@ -18,7 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.yaml.snakeyaml.Yaml;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.Context;
+import com.almende.eve.context.ContextFactory;
 import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
@@ -30,11 +31,16 @@ public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private Class<?> agentClass = null;
-	private AgentContext contextFactory = null;
+	private ContextFactory contextFactory = null;
 	private Map<String, Object> config = null; // servlet configuration 
 	
 	@Override
-	protected void doGet(HttpServletRequest request,
+	public void init() {
+		
+	}
+	
+	@Override
+	public void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		String filename = "/com/almende/eve/resources/agent.html";
@@ -58,8 +64,8 @@ public class SingleAgentServlet extends HttpServlet {
 		String response = "";
 		try {
 			// initialize the context, and agent
-			initContext(req);
-			initAgent(req);
+			initContext();
+			initAgent();
 			
 			// retrieve the request data
 			String request = streamToString(req.getInputStream());
@@ -100,9 +106,7 @@ public class SingleAgentServlet extends HttpServlet {
 		Agent agent = (Agent) agentClass.getConstructor().newInstance();
 		String agentClassName = agent.getClass().getSimpleName().toLowerCase();
 		String id = "1"; // TODO: what to do with id?
-		AgentContext context = contextFactory.getInstance(agentClassName, id);
-		agent.setContext(context);			
-		context.setServletUrl(req);
+		Context context = contextFactory.getContext(agentClassName, id);
 		agent.setContext(context);
 		
 		return agent;		
@@ -113,7 +117,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * The class is read from the servlet init parameters in web.xml.
 	 * @throws ServletException
 	 */
-	private void initAgent(HttpServletRequest req) throws Exception {
+	private void initAgent() throws Exception {
 		if (agentClass != null) {
 			return;
 		}
@@ -154,12 +158,12 @@ public class SingleAgentServlet extends HttpServlet {
 	 * The class is read from the servlet init parameters in web.xml.
 	 * @throws ServletException
 	 */
-	private void initContext(HttpServletRequest req) throws Exception {
+	private void initContext() throws Exception {
 		if (contextFactory != null) {
 			return;
 		}
 
-		String className = getConfigParameter("context");
+		String className = getConfigParameter("context_factory");
 		
 		if (className == null || className.isEmpty()) {
 			className = MemoryContext.class.getName();
@@ -172,15 +176,15 @@ public class SingleAgentServlet extends HttpServlet {
 			throw new ServletException("Cannot find class " + className + "");
 		}
 		
-		if (!hasInterface(contextClass, AgentContext.class)) {
+		if (!hasInterface(contextClass, ContextFactory.class)) {
 			throw new ServletException(
 					"Context class " + contextClass.getName() + 
-					" must implement interface " + AgentContext.class.getName());
+					" must implement interface " + ContextFactory.class.getName());
 		}
 
-		AgentContext newContextFactory = 
-			(AgentContext) contextClass.getConstructor().newInstance();
-		newContextFactory.setServletUrl(req);
+		ContextFactory newContextFactory = 
+			(ContextFactory) contextClass.getConstructor().newInstance();
+		newContextFactory.init(getConfig());
 		
 		// copy to the final contextFactory once loaded
 		contextFactory = newContextFactory;

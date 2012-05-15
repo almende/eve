@@ -14,8 +14,7 @@
       <param-name>config</param-name>
       <param-value>
         # general servlet information
-        servlet:
-        - url: http://eveagents.appspot.com/agents
+        servlet_url: http://eveagents.appspot.com/agents
         
         # The agent classes served by the servlet 
         # (only one allowed in case of the SingleAgentServlet)
@@ -23,10 +22,10 @@
         - com.almende.eve.agent.example.TestAgent
         
         # The context for reading and writing persistent data
-        context: com.almende.eve.context.MemoryContext
+        context_factory: com.almende.eve.context.MemoryContextFactory
       </param-value>
     </init-param>
-  </servlet>  
+  </servlet>
   <servlet-mapping>
     <servlet-name>SingleAgentServlet</servlet-name>
     <url-pattern>/testagent</url-pattern>
@@ -40,8 +39,7 @@
       <param-name>config</param-name>
       <param-value>
         # general servlet information
-        servlet:
-        - url: http://eveagents.appspot.com/agents
+        servlet_url: http://eveagents.appspot.com/agents
         
         # The agent classes served by the servlet
         agents:
@@ -51,7 +49,7 @@
         - com.almende.eve.agent.example.ChatAgent
         
         # The context for reading and writing persistent data
-        context: com.almende.eve.context.MemoryContext
+        context_factory: com.almende.eve.context.MemoryContextFactory
       </param-value>
     </init-param>    
   </servlet>

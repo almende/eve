@@ -40,7 +40,7 @@ import java.util.Map;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.Context;
 import com.almende.eve.entity.calendar.Authorization;
 
 import com.almende.eve.json.JSONRPCException;
@@ -75,7 +75,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 			@Name("token_type") String token_type,
 			@Name("expires_in") Integer expires_in,
 			@Name("refresh_token") String refresh_token) throws IOException {
-		AgentContext context = getContext();
+		Context context = getContext();
 
 		// retrieve user information
 		String url = "https://www.googleapis.com/oauth2/v1/userinfo";
@@ -151,7 +151,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * Remove authorization tokens
 	 */
 	public void clearAuthorization() {
-		AgentContext context = getContext();
+		Context context = getContext();
 		context.remove("auth");
 		context.remove("email");
 		context.remove("name");			

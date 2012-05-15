@@ -1,15 +1,9 @@
 package com.almende.eve.context;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.almende.eve.scheduler.Scheduler;
 
-public interface AgentContext {
-	// constructor
-	public AgentContext getInstance(String agentClass, String id);
-
+public interface Context {
 	// getting info about the agent
-	public void setServletUrl(HttpServletRequest req);
 	public String getId();
 	public String getAgentUrl();
 

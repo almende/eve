@@ -17,8 +17,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
       <param-name>config</param-name>
       <param-value>
         # general servlet information
-        servlet:
-        - url: http://eveagents.appspot.com/agents
+        servlet_url: http://eveagents.appspot.com/agents
         
         # The agent classes served by the servlet
         agents:
@@ -32,14 +31,12 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         - com.almende.eve.agent.google.GoogleCalendarAgent
         
         # The context for reading and writing persistent data
-        context: com.almende.eve.context.google.DatastoreContext
+        context_factory: com.almende.eve.context.google.DatastoreContextFactory
         
         # Google API access
         google:
         - client_id: 231599786845-p4r6ka1emoj8enivejds6vma41ni2s26.apps.googleusercontent.com
-			  - client_secret: tUtHesFJEAfiyVjbJd4q0Hvq
-			  - oauth_uri: https://accounts.google.com/o/oauth2
-			  
+        - client_secret: tUtHesFJEAfiyVjbJd4q0Hvq
       </param-value>
     </init-param>
   </servlet>

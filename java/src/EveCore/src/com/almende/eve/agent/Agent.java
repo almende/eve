@@ -41,7 +41,7 @@ import java.util.TreeSet;
 
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
@@ -53,7 +53,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 abstract public class Agent {
-	private AgentContext context = null;
+	private Context context = null;
 	//protected Context session = new SimpleContext(); // todo: add session context?
 	
 	public abstract String getDescription();
@@ -62,14 +62,14 @@ abstract public class Agent {
 	public Agent() {}
 	
 	@Access(AccessType.UNAVAILABLE)
-	final public void setContext(AgentContext context) {
+	final public void setContext(Context context) {
 		if (context != null) {
 			this.context = context;
 		}
 	}
 
 	@Access(AccessType.UNAVAILABLE)
-	final public AgentContext getContext() {
+	final public Context getContext() {
 		return context;
 	}
 	

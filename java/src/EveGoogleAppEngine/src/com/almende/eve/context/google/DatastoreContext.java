@@ -2,31 +2,24 @@ package com.almende.eve.context.google;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
-
-import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.google.AppEngineScheduler;
-import com.google.appengine.api.utils.SystemProperty;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
-public class DatastoreContext implements AgentContext {
-	private static String servletUrl = null;
+public class DatastoreContext implements Context {
+	private String servletUrl = null;
 	private String agentClass = null;
 	private String id = null;
 	private Scheduler scheduler = null;
 	
 	public DatastoreContext() {}
 
-	@Override
-	public DatastoreContext getInstance(String agentClass, String id) {
-		return new DatastoreContext(agentClass, id);
-	}
-
-	protected DatastoreContext(String agentClass, String id) {
+	protected DatastoreContext(String agentClass, String id, String servletUrl) {
 		this.agentClass = agentClass;
 		this.id = id;
+		this.servletUrl = servletUrl;
 	}
 
 	@Override
@@ -100,12 +93,6 @@ public class DatastoreContext implements AgentContext {
 	}
 
 	@Override
-	public void setServletUrl(HttpServletRequest req) {
-		// this class does not utilize the request for building the servlet url
-		servletUrl = getAppUrl() +  req.getServletPath() + "/" ;
-	}
-
-	@Override
 	public String getAgentUrl() {
 		String agentUrl = null;
 		if (servletUrl != null) {
@@ -121,39 +108,6 @@ public class DatastoreContext implements AgentContext {
 		return agentUrl;
 	}	
 	
-	/**
-	 * Retrieve the url of the agents app from the system environment
-	 * eve.properties, for example "http://myapp.appspot.com"
-	 * 
-	 * @return appUrl
-	 */
-	// TODO: replace this with usage of environment
-	private String getAppUrl() {
-		String appUrl = null;
-	
-		// TODO: retrieve the servlet path from the servlet parameters itself
-		// http://www.jguru.com/faq/view.jsp?EID=14839
-		// search for "get servlet path without request"
-		// System.out.println(req.getServletPath());
-
-		String environment = SystemProperty.environment.get();
-		String id = SystemProperty.applicationId.get();
-		// String version = SystemProperty.applicationVersion.get();
-		
-		if (environment.equals("Development")) {
-			// TODO: check the port
-			appUrl = "http://localhost:8888";
-		} else {
-			// production
-			// TODO: reckon with the version of the application?
-			appUrl = "http://" + id + ".appspot.com";
-			// TODO: use https by default
-			//appUrl = "https://" + id + ".appspot.com";
-		}
-		
-		return appUrl;
-	}
-
 	@Override
 	public Scheduler getScheduler() {
 		if (scheduler == null) {

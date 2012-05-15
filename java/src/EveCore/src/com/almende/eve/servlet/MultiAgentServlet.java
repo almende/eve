@@ -19,7 +19,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.log.LogAgent;
-import com.almende.eve.context.AgentContext;
+import com.almende.eve.context.Context;
+import com.almende.eve.context.ContextFactory;
 import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
@@ -32,7 +33,7 @@ public class MultiAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private Map<String, Class<?>> agentClasses = null;
-	private AgentContext contextFactory = null;
+	private ContextFactory contextFactory = null;
 	private Map<String, Object> config = null; // servlet configuration 
 
 	@Override
@@ -60,8 +61,8 @@ public class MultiAgentServlet extends HttpServlet {
 		String response = "";
 		try {
 			// initialize the context and agent
-			initContext(req);
-			initAgents(req);
+			initContext();
+			initAgents();
 			
 			// retrieve the request data
 			request = streamToString(req.getInputStream());
@@ -88,7 +89,7 @@ public class MultiAgentServlet extends HttpServlet {
 
 			// instantiate context of the agent
 			String agentClassName = agentClass.getSimpleName().toLowerCase();
-			AgentContext context = contextFactory.getInstance(agentClassName, id);
+			Context context = contextFactory.getContext(agentClassName, id);
 			agent.setContext(context);
 			
 			// invoke the method onto the agent
@@ -114,7 +115,7 @@ public class MultiAgentServlet extends HttpServlet {
 	 * The class is read from the servlet init parameters in web.xml.
 	 * @throws ServletException
 	 */
-	private void initAgents(HttpServletRequest req) throws ServletException {
+	private void initAgents() throws ServletException {
 		if (agentClasses != null) {
 			return;
 		}
@@ -166,12 +167,12 @@ public class MultiAgentServlet extends HttpServlet {
 	 * The class is read from the servlet init parameters in web.xml.
 	 * @throws Exception
 	 */
-	private void initContext(HttpServletRequest req) throws Exception {
+	private void initContext() throws Exception {
 		if (contextFactory != null) {
 			return;
 		}
 
-		String className = getConfigParameter("context");
+		String className = getConfigParameter("context_factory");
 		
 		if (className == null || className.isEmpty()) {
 			className = MemoryContext.class.getName();
@@ -185,16 +186,16 @@ public class MultiAgentServlet extends HttpServlet {
 			throw new ServletException("Cannot find class " + className + "");
 		}
 		
-		if (!hasInterface(contextClass, AgentContext.class)) {
+		if (!hasInterface(contextClass, ContextFactory.class)) {
 			throw new ServletException(
 					"Context class " + contextClass.getName() + 
-					" must implement interface " + AgentContext.class.getName());
+					" must implement interface " + ContextFactory.class.getName());
 		}
 
 		// FIXME: it is not safe retrieving the servlet url from the request!
-		AgentContext newContextFactory = 
-			(AgentContext) contextClass.getConstructor().newInstance();
-		newContextFactory.setServletUrl(req);
+		ContextFactory newContextFactory = 
+			(ContextFactory) contextClass.getConstructor().newInstance();
+		newContextFactory.init(getConfig());
 
 		// copy the context as soon as it is done
 		contextFactory = newContextFactory;
