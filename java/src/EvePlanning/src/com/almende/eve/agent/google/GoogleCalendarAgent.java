@@ -41,6 +41,7 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.context.AgentContext;
+import com.almende.eve.entity.calendar.Authorization;
 
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.annotation.Name;
@@ -64,43 +65,65 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * Set access token and refresh token, used to authorize the calendar agent. 
 	 * These tokens must be retrieved via Oauth 2.0 authorization.
 	 * @param access_token
+	 * @param token_type
+	 * @param expires_in
 	 * @param refresh_token
 	 * @throws IOException 
 	 */
 	public void setAuthorization (
-			@Name("access_token") String access_token, 
+			@Name("access_token") String access_token,
+			@Name("token_type") String token_type,
+			@Name("expires_in") Integer expires_in,
 			@Name("refresh_token") String refresh_token) throws IOException {
 		AgentContext context = getContext();
 
 		// retrieve user information
 		String url = "https://www.googleapis.com/oauth2/v1/userinfo";
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("Authorization", "Bearer " + access_token);
+		headers.put("Authorization", token_type + " " + access_token);
 		String resp = HttpUtil.get(url, headers);
 		
 		ObjectNode info = JOM.getInstance().readValue(resp, ObjectNode.class);
 		String email = info.has("email") ? info.get("email").asText() : null;
 		String name = info.has("name") ? info.get("name").asText() : null;
 		
+		DateTime expires_at = calculateExpiresAt(expires_in);
+		Authorization auth = new Authorization(access_token, token_type, 
+				expires_at, refresh_token);
+		
 		// store the tokens in the context
-		context.put("access_token", access_token);
-		context.put("refresh_token", refresh_token);
+		context.put("auth", auth);
 		context.put("email", email);
 		context.put("name", name);		
 	}
 	
 	/**
+	 * Calculate the expiration time from a life time
+	 * @param expires_in      Expiration time in seconds
+	 * @return
+	 */
+	private DateTime calculateExpiresAt(Integer expires_in) {
+		DateTime expires_at = null;
+		if (expires_in != null && expires_in != 0) {
+			// calculate expiration time, and subtract 5 minutes for safety
+			expires_at = DateTime.now().plusSeconds(expires_in).minusMinutes(5);
+		}
+		return expires_at;
+	}
+	
+	/**
 	 * Refresh the access token using the refresh token
+	 * the tokens in provided authorization object will be updated
+	 * @param auth
 	 * @throws Exception 
 	 */
-	public void refreshAuthorization () throws Exception {
-		AgentContext context = getContext();
-		String refresh_token = context.get("refresh_token");
+	private void refreshAuthorization (Authorization auth) throws Exception {
+		String refresh_token = (auth != null) ? auth.getRefreshToken() : null;
 		if (refresh_token == null) {
 			throw new Exception("No refresh token available");
 		}
 		
-		//Map<String, String> headers = getAuthorizationHeaders();
+		// retrieve new access_token using the refresh_token
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("client_id", CLIENT_ID);
 		params.put("client_secret", CLIENT_SECRET);
@@ -113,8 +136,15 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 			throw new Exception("Retrieving new access token failed");
 		}
 		
-		String access_token = json.get("access_token").asText();
-		context.put("access_token", access_token);
+		// update authorization
+		if (json.has("access_token")) {
+			auth.setAccessToken(json.get("access_token").asText());
+		}
+		if (json.has("expires_in")) {
+			Integer expires_in = json.get("expires_in").asInt();
+			DateTime expires_at = calculateExpiresAt(expires_in);
+			auth.setExpiresAt(expires_at);
+		}
 	}
 	
 	/**
@@ -122,8 +152,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 */
 	public void clearAuthorization() {
 		AgentContext context = getContext();
-		context.remove("access_token");
-		context.remove("refresh_token");
+		context.remove("auth");
 		context.remove("email");
 		context.remove("name");			
 	}
@@ -151,15 +180,40 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * @throws Exception 
 	 */
 	private Map<String, String> getAuthorizationHeaders () throws Exception {
-		String access_token = getContext().get("access_token");
+		Authorization auth = getAuthorization();
+		
+		String access_token = (auth != null) ? auth.getAccessToken() : null;
 		if (access_token == null) {
 			throw new Exception("No authorization token available");
 		}
-		// TODO: throw exception if there is no access token?
+		String token_type = (auth != null) ? auth.getTokenType() : null;
+		if (token_type == null) {
+			throw new Exception("No token type available");
+		}
 		
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("Authorization", "Bearer " + access_token);
+		headers.put("Authorization", token_type + " " + access_token);
 		return headers;
+	}
+	
+	/**
+	 * Retrieve authorization tokens
+	 * @return
+	 * @throws Exception
+	 */
+	private Authorization getAuthorization() throws Exception {
+		Authorization auth = getContext().get("auth");
+		
+		// check if access_token is expired
+		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
+		if (expires_at != null && expires_at.isAfterNow()) {
+			// TODO: remove this logging
+			System.out.println("access token is expired. refreshing now...");
+			refreshAuthorization(auth);
+			getContext().put("auth", auth);
+		}
+		
+		return auth;
 	}
 	
 	@Override

@@ -134,6 +134,14 @@ public class GoogleAuth extends HttpServlet {
 			if (json.has("refresh_token")) {
 				refresh_token = json.get("refresh_token").asText().toString();
 			}
+			String token_type = null;
+			if (json.has("token_type")) {
+				token_type = json.get("token_type").asText();
+			}			
+			Integer expires_in = null;
+			if (json.has("expires_in")) {
+				expires_in = json.get("expires_in").asInt();
+			}			
 			
 			if (access_token != null && refresh_token != null) {
 				ObjectNode st = mapper.readValue(state, ObjectNode.class); 
@@ -145,6 +153,8 @@ public class GoogleAuth extends HttpServlet {
 				String agentUrl = AGENTS_URI + "/" + type + "/" + id;
 				ObjectNode rpcParams = JOM.createObjectNode();
 				rpcParams.put("access_token", access_token);
+				rpcParams.put("token_type", token_type);
+				rpcParams.put("expires_in", expires_in);
 				rpcParams.put("refresh_token", refresh_token);
 				JSONRequest rpcRequest = 
 					new JSONRequest("setAuthorization", rpcParams);
@@ -178,7 +188,7 @@ public class GoogleAuth extends HttpServlet {
 				// Third step: use the access token to call a Google API
 				String url2 = "https://www.googleapis.com/oauth2/v1/userinfo";
 				Map<String, String> headers = new HashMap<String, String>();
-				headers.put("Authorization", "Bearer " + access_token);
+				headers.put("Authorization", token_type + " " + access_token);
 				String info = HttpUtil.get(url2, headers);
 
 				out.println("<pre>");
