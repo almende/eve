@@ -143,7 +143,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	public String getEmail() {
 		return getContext().get("email");
 	}
-
+	
 	/**
 	 * Get ready-made HTTP request headers containing the authorization token
 	 * Example usage: HttpUtil.get(url, getAuthorizationHeaders());

@@ -3,8 +3,21 @@
 	<name>EveTest</name>
 	<comment></comment>
 	<projects>
+		<project>EveCore</project>
+		<project>EveGoogleAppEngine</project>
+		<project>EvePlanning</project>
 	</projects>
 	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/Copy libaries to EveTest.launch</value>
+				</dictionary>
+			</arguments>
+		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.wst.common.project.facet.core.builder</name>
 			<arguments>
