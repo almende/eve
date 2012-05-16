@@ -12,18 +12,7 @@
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>
-        # general servlet information
-        servlet_url: http://eveagents.appspot.com/agents
-        
-        # The agent classes served by the servlet 
-        # (only one allowed in case of the SingleAgentServlet)
-        agents:
-        - com.almende.eve.agent.example.TestAgent
-        
-        # The context for reading and writing persistent data
-        context_factory: com.almende.eve.context.MemoryContextFactory
-      </param-value>
+      <param-value>eve_singleagent.yaml</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
@@ -37,21 +26,8 @@
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>
-        # general servlet information
-        servlet_url: http://eveagents.appspot.com/agents
-        
-        # The agent classes served by the servlet
-        agents:
-        - com.almende.eve.agent.example.EchoAgent
-        - com.almende.eve.agent.example.TestAgent
-        - com.almende.eve.agent.example.CalcAgent
-        - com.almende.eve.agent.example.ChatAgent
-        
-        # The context for reading and writing persistent data
-        context_factory: com.almende.eve.context.MemoryContextFactory
-      </param-value>
-    </init-param>    
+      <param-value>eve_multiagent.yaml</param-value>
+    </init-param>
   </servlet>
   <servlet-mapping>
     <servlet-name>MultiAgentServlet</servlet-name>
@@ -64,14 +40,7 @@
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>
-        # The classes served by the RESTServlet
-        classes:
-        - com.almende.eve.agent.example.EchoAgent
-        - com.almende.eve.agent.example.TestAgent
-        - com.almende.eve.agent.example.CalcAgent
-        - com.almende.eve.agent.example.ChatAgent
-      </param-value>
+      <param-value>eve_rest.yaml</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

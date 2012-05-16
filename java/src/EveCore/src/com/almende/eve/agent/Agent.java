@@ -61,6 +61,14 @@ abstract public class Agent {
 
 	public Agent() {}
 	
+	/**
+	 * This method is called directly after the agent and its context is 
+	 * initiated. 
+	 * It can be used overridden and used to initialize variables for the agent. 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void init() {}
+	
 	@Access(AccessType.UNAVAILABLE)
 	final public void setContext(Context context) {
 		if (context != null) {
@@ -455,7 +463,7 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public String getId() {
-		return context.getId();
+		return context.getAgentId();
 	}
 	
 	/**

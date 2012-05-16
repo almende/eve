@@ -12,8 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.yaml.snakeyaml.Yaml;
-
+import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
@@ -23,12 +22,13 @@ import com.almende.eve.json.JSONResponse;
 public class RESTServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	private Map<String, Object> classes = null;
-	private Map<String, Object> config = null; // servlet configuration 
+	private Config config = null; // servlet configuration 
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		try {
+			initConfig();
 			initClasses();
 
 			// get method from url
@@ -84,7 +84,7 @@ public class RESTServlet extends HttpServlet {
 		
 		classes = new HashMap<String, Object>();
 		
-		List<String> classNames = getConfigParameter("classes");
+		List<String> classNames = config.get("classes");
 		if (classNames == null || classNames.isEmpty()) {
 			throw new ServletException(
 				"Config parameter 'classes' missing in servlet configuration." +
@@ -113,36 +113,16 @@ public class RESTServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Retrieve the configuration file
-	 * @return
+	 * Load configuration file
+	 * @throws IOException 
 	 * @throws ServletException 
+	 * @throws Exception 
 	 */
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> getConfig() throws ServletException {
-		if (config == null) {
-			String file = getInitParameter("config");
-			if (file == null) {
-				throw new ServletException(
-					"Init parameter 'config' missing in servlet configuration." +
-					"This parameter must be specified in web.xml.");
-			}
-			Yaml yaml = new Yaml();
-			config = (Map<String, Object>) yaml.load(file);
+	private void initConfig() throws ServletException, IOException {
+		if (config != null) {
+			return;
 		}
 		
-		return config;
+		config = new Config(this);
 	}
-	
-	/**
-	 * retrieve a config parameter from the configuration file
-	 * @param param    Parameter name
-	 * @return
-	 * @throws ServletException
-	 */
-	@SuppressWarnings("unchecked")
-	private <T> T getConfigParameter(String param) throws ServletException {
-		Map<String, Object> config = getConfig();
-		return (T) config.get(param);
-	}
-	
 }

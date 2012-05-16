@@ -11,18 +11,7 @@
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>
-        # general servlet information
-        servlet_url: http://eveagents.appspot.com/agents
-        
-        # The agent classes served by the servlet
-        agents:
-        - com.almende.eve.agent.google.GoogleCalendarAgent
-        - com.almende.eve.agent.example.CalcAgent
-        
-        # The context for reading and writing persistent data
-        context_factory: com.almende.eve.context.MemoryContextFactory
-      </param-value>
+      <param-value>eve.yaml</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

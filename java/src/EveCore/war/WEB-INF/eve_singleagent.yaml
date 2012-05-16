@@ -1,0 +1,18 @@
+# Eve singleagent settings
+
+# environment settings
+environment:
+  Development:
+    servlet_url: http://localhost:8080/EveCore/testagent
+  Production:
+    servlet_url: http://localhost:8080/EveCore/testagent
+
+# agent settings
+# the SingleAgentServlet can only host one agent class.
+agent:
+  classes:
+  - com.almende.eve.agent.example.TestAgent
+
+# The context for reading and writing persistent data
+context:
+  class: com.almende.eve.context.MemoryContextFactory

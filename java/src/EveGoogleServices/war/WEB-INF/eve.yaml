@@ -1,0 +1,20 @@
+# Eve settings
+
+# environment settings
+environment:
+  Development:
+    servlet_url: http://localhost:8888/agents
+  Production:
+    servlet_url: http://localhost:8888/agents
+
+# agent settings
+agent:
+  classes:
+  - com.almende.eve.agent.google.GoogleCalculatorAgent
+  - com.almende.eve.agent.google.GoogleDirectionsAgent
+  - com.almende.eve.agent.google.GoogleTranslateAgent
+
+# context settings
+# the context is used by agents for storing their state.
+context:
+  class: com.almende.eve.context.MemoryContextFactory

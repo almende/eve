@@ -5,26 +5,93 @@ import java.io.IOException;
 import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.google.AppEngineScheduler;
+import com.almende.eve.config.Config;
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class DatastoreContext implements Context {
+	private Config config = null;
 	private String servletUrl = null;
+	private String agentUrl = null;
 	private String agentClass = null;
-	private String id = null;
+	private String agentId = null;
 	private Scheduler scheduler = null;
 	
 	public DatastoreContext() {}
 
-	protected DatastoreContext(String agentClass, String id, String servletUrl) {
+	protected DatastoreContext(String agentClass, String agentId, 
+			Config config) throws Exception {
 		this.agentClass = agentClass;
-		this.id = id;
-		this.servletUrl = servletUrl;
+		this.agentId = agentId;
+		this.config = config;
+		
+		// read the servlet url from the config
+		String path = "environment." + getEnvironment() + ".servlet_url";
+		servletUrl = config.get(path);
+		if (servletUrl == null) {
+			throw new Exception("Config parameter '" + path + "' is missing");
+		}	
+		
+		// built the agentUrl
+		agentUrl = null;
+		if (servletUrl != null) {
+			agentUrl = servletUrl;
+			if (!agentUrl.endsWith("/")) {
+				agentUrl += "/";
+			}
+			if (agentClass != null) {
+				agentUrl += agentClass + "/";
+				if (agentId != null) {
+					agentUrl += agentId;
+				}
+			}
+		}				
+	}
+
+	/**
+	 * Retrieve the url of the agents app from the system environment
+	 * eve.properties, for example "http://myapp.appspot.com"
+	 * 
+	 * @return appUrl
+	 */
+	/* TODO: cleanup
+	// TODO: replace this with usage of environment
+	private String getAppUrl() {
+		String appUrl = null;
+	
+		// TODO: retrieve the servlet path from the servlet parameters itself
+		// http://www.jguru.com/faq/view.jsp?EID=14839
+		// search for "get servlet path without request"
+		// System.out.println(req.getServletPath());
+
+		String environment = SystemProperty.environment.get();
+		String id = SystemProperty.applicationId.get();
+		// String version = SystemProperty.applicationVersion.get();
+		
+		if (environment.equals("Development")) {
+			// TODO: check the port
+			appUrl = "http://localhost:8888";
+		} else {
+			// production
+			// TODO: reckon with the version of the application?
+			appUrl = "http://" + id + ".appspot.com";
+			// TODO: use https by default
+			//appUrl = "https://" + id + ".appspot.com";
+		}
+		
+		return appUrl;
+	}
+	*/
+	
+	@Override
+	public String getAgentId() {
+		return agentId;
 	}
 
 	@Override
-	public String getId() {
-		return id;
+	public String getAgentClass() {
+		return agentClass;
 	}
 	
 	/**
@@ -33,7 +100,7 @@ public class DatastoreContext implements Context {
 	 * @return
 	 */
 	private String getFullKey (String key) {
-		return id + "." + key;
+		return agentId + "." + key;
 	}
 	
 	// TODO: load and save in a transaction
@@ -94,19 +161,18 @@ public class DatastoreContext implements Context {
 
 	@Override
 	public String getAgentUrl() {
-		String agentUrl = null;
-		if (servletUrl != null) {
-			agentUrl = servletUrl;
-			if (agentClass != null) {
-				agentUrl += agentClass + "/";
-				if (id != null) {
-					agentUrl += id;
-				}
-			}
-		}
-		
 		return agentUrl;
 	}	
+
+	@Override
+	public String getServletUrl() {
+		return servletUrl;
+	}	
+	
+	@Override 
+	public String getEnvironment() {
+		return SystemProperty.environment.get(); // "Development" or "Production"
+	}
 	
 	@Override
 	public Scheduler getScheduler() {
@@ -116,7 +182,11 @@ public class DatastoreContext implements Context {
 		return scheduler;
 	}
 	
-
+	@Override
+	public Config getConfig() {
+		return config;
+	}
+	
 	@Override
 	public void beginTransaction() {
 		// TODO: transaction

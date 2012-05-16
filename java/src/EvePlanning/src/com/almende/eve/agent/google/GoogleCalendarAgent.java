@@ -47,6 +47,7 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.config.Config;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -56,10 +57,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent */ {
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	// TODO: put these constants in a configuration file instead of having them hard coded
-	private String CLIENT_ID = "231599786845-p4r6ka1emoj8enivejds6vma41ni2s26.apps.googleusercontent.com";
-	private String CLIENT_SECRET = "tUtHesFJEAfiyVjbJd4q0Hvq";
+	// note: config parameters google.client_id and google.client_secret
+	//       are loaded from the eve configuration
 	private String OAUTH_URI = "https://accounts.google.com/o/oauth2";
+
+	public String getGoogleConfig() {
+		return getContext().getConfig().get("google.client_id");
+	}
 
 	/**
 	 * Set access token and refresh token, used to authorize the calendar agent. 
@@ -123,10 +127,14 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 			throw new Exception("No refresh token available");
 		}
 		
+		Config config = getContext().getConfig();
+		String client_id = config.get("google.client_id");
+		String client_secret = config.get("google.client_secret");
+		
 		// retrieve new access_token using the refresh_token
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("client_id", CLIENT_ID);
-		params.put("client_secret", CLIENT_SECRET);
+		params.put("client_id", client_id);
+		params.put("client_secret", client_secret);
 		params.put("refresh_token", refresh_token);
 		params.put("grant_type", "refresh_token");
 		String resp = HttpUtil.postForm(OAUTH_URI + "/token", params);

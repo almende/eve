@@ -15,17 +15,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.yaml.snakeyaml.Yaml;
-
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.log.LogAgent;
+import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
-import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
-
 
 
 @SuppressWarnings("serial")
@@ -34,8 +31,8 @@ public class MultiAgentServlet extends HttpServlet {
 	
 	private Map<String, Class<?>> agentClasses = null;
 	private ContextFactory contextFactory = null;
-	private Map<String, Object> config = null; // servlet configuration 
-
+	private Config config = null;
+	
 	@Override
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -60,7 +57,8 @@ public class MultiAgentServlet extends HttpServlet {
 		String request = "";
 		String response = "";
 		try {
-			// initialize the context and agent
+			// initialize configuration file, context, and agents
+			initConfig();
 			initContext();
 			initAgents();
 			
@@ -86,11 +84,14 @@ public class MultiAgentServlet extends HttpServlet {
 			// instantiate the agent
 			Class<?> agentClass = agentClasses.get(simpleName);
 			Agent agent = (Agent) agentClass.getConstructor().newInstance();
-
+			
 			// instantiate context of the agent
 			String agentClassName = agentClass.getSimpleName().toLowerCase();
 			Context context = contextFactory.getContext(agentClassName, id);
 			agent.setContext(context);
+			
+			// execute the init method of the agent
+			agent.init();
 			
 			// invoke the method onto the agent
 			response = JSONRPC.invoke(agent, request);
@@ -100,33 +101,45 @@ public class MultiAgentServlet extends HttpServlet {
 					JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
 			JSONResponse jsonResponse = new JSONResponse(jsonError);
 			response = jsonResponse.toString();
+			
+			err.printStackTrace(); // TODO: remove printing stacktrace?
 		}
-
-		// TODO: cleanup? or use it?
-		// logger.info("url=" + req.getRequestURI() + ", request=" + request + ", response=" + response);
 
 		// return response
 		resp.addHeader("Content-Type", "application/json");
 		resp.getWriter().println(response);
 	}
-
+	
+	/**
+	 * Load configuration file
+	 * @throws IOException 
+	 * @throws ServletException 
+	 * @throws Exception 
+	 */
+	private void initConfig() throws ServletException, IOException {
+		if (config != null) {
+			return;
+		}
+		
+		config = new Config(this);
+	}
+	
 	/**
 	 * Initialize the correct Agent class for the SingleAgentServlet.
 	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws ServletException
+	 * @throws Exception 
 	 */
-	private void initAgents() throws ServletException {
+	private void initAgents() throws Exception {
 		if (agentClasses != null) {
 			return;
 		}
 
 		Map<String, Class<?>> newAgentClasses = new HashMap<String, Class<?>>();
 		
-		List<String> classes = getConfigParameter("agents");
+		List<String> classes = config.get("agent.classes");
 		if (classes == null) {
 			throw new ServletException(
-				"Config parameter 'agents' missing in servlet configuration." +
-				"This parameter must be specified in web.xml.");
+				"Config parameter 'agent.classes' missing in Eve configuration.");
 		}
 
 		for (int i = 0; i < classes.size(); i++) {
@@ -172,11 +185,12 @@ public class MultiAgentServlet extends HttpServlet {
 			return;
 		}
 
-		String className = getConfigParameter("context_factory");
+		System.out.println("initContext" + config.get());
 		
-		if (className == null || className.isEmpty()) {
-			className = MemoryContext.class.getName();
-			// TODO: isn't it better to just return null?
+		String className = config.get("context.class");
+		if (className == null) {
+			throw new ServletException(
+				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
 		Class<?> contextClass = null;
@@ -192,11 +206,10 @@ public class MultiAgentServlet extends HttpServlet {
 					" must implement interface " + ContextFactory.class.getName());
 		}
 
-		// FIXME: it is not safe retrieving the servlet url from the request!
 		ContextFactory newContextFactory = 
 			(ContextFactory) contextClass.getConstructor().newInstance();
-		newContextFactory.init(getConfig());
-
+		newContextFactory.setConfig(config);
+		
 		// copy the context as soon as it is done
 		contextFactory = newContextFactory;
 		
@@ -219,40 +232,7 @@ public class MultiAgentServlet extends HttpServlet {
 		
 		return false;
 	}
-	
-	/**
-	 * Retrieve the configuration file
-	 * @return
-	 * @throws ServletException 
-	 */
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> getConfig() throws ServletException {
-		if (config == null) {
-			String file = getInitParameter("config");
-			if (file == null) {
-				throw new ServletException(
-					"Init parameter 'config' missing in servlet configuration." +
-					"This parameter must be specified in web.xml.");
-			}
-			Yaml yaml = new Yaml();
-			config = (Map<String, Object>) yaml.load(file);
-		}
-		
-		return config;
-	}
-	
-	/**
-	 * retrieve a config parameter from the configuration file
-	 * @param param    Parameter name
-	 * @return
-	 * @throws ServletException
-	 */
-	@SuppressWarnings("unchecked")
-	private <T> T getConfigParameter(String param) throws ServletException {
-		Map<String, Object> config = getConfig();
-		return (T) config.get(param);
-	}
-	
+
 	/**
 	 * Convert a stream to a string
 	 * @param in

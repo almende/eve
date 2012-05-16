@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -15,12 +13,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.yaml.snakeyaml.Yaml;
-
 import com.almende.eve.agent.Agent;
+import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
-import com.almende.eve.context.MemoryContext;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
@@ -32,13 +28,8 @@ public class SingleAgentServlet extends HttpServlet {
 	
 	private Class<?> agentClass = null;
 	private ContextFactory contextFactory = null;
-	private Map<String, Object> config = null; // servlet configuration 
-	
-	@Override
-	public void init() {
-		
-	}
-	
+	private Config config = null; // servlet configuration 
+
 	@Override
 	public void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -63,7 +54,8 @@ public class SingleAgentServlet extends HttpServlet {
 			throws IOException {
 		String response = "";
 		try {
-			// initialize the context, and agent
+			// initialize configuration file, context, and agents
+			initConfig();
 			initContext();
 			initAgent();
 			
@@ -82,6 +74,8 @@ public class SingleAgentServlet extends HttpServlet {
 					JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
 			JSONResponse jsonResponse = new JSONResponse(jsonError);
 			response = jsonResponse.toString();
+			
+			err.printStackTrace(); // TODO: remove printing stacktrace?
 		}
 
 		// return response
@@ -90,20 +84,27 @@ public class SingleAgentServlet extends HttpServlet {
 	}
 
 	/**
+	 * Load configuration file
+	 * @throws IOException 
+	 * @throws ServletException 
+	 * @throws Exception 
+	 */
+	private void initConfig() throws ServletException, IOException {
+		if (config != null) {
+			return;
+		}
+		
+		config = new Config(this);
+	}
+	
+	/**
 	 * instantiate an agent and set its context
 	 * @return
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws SecurityException 
-	 * @throws IllegalArgumentException 
+	 * @throws Exception 
 	 */
-	Agent loadAgent(HttpServletRequest req) 
-			throws IllegalArgumentException, SecurityException, 
-			InstantiationException, IllegalAccessException, 
-			InvocationTargetException, NoSuchMethodException {
+	Agent loadAgent(HttpServletRequest req) throws Exception {
 		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		// FIXME: setting class and id results in a wrong getUrl() of the agent
 		String agentClassName = agent.getClass().getSimpleName().toLowerCase();
 		String id = "1"; // TODO: what to do with id?
 		Context context = contextFactory.getContext(agentClassName, id);
@@ -111,7 +112,7 @@ public class SingleAgentServlet extends HttpServlet {
 		
 		return agent;		
 	}
-	
+		
 	/**
 	 * Initialize the correct Agent class for the SingleAgentServlet.
 	 * The class is read from the servlet init parameters in web.xml.
@@ -122,12 +123,10 @@ public class SingleAgentServlet extends HttpServlet {
 			return;
 		}
 
-		List<String> classNames = getConfigParameter("agents");
-		
+		List<String> classNames = config.get("agent.classes");		
 		if (classNames == null || classNames.size() == 0) {
 			throw new ServletException(
-				"Config parameter 'agents' missing in servlet configuration." +
-				"This parameter must be specified in web.xml.");
+				"Config parameter 'agents' missing in Eve configuration.");
 		}
 		if (classNames.size() > 1) {
 			throw new ServletException(
@@ -163,10 +162,10 @@ public class SingleAgentServlet extends HttpServlet {
 			return;
 		}
 
-		String className = getConfigParameter("context_factory");
-		
-		if (className == null || className.isEmpty()) {
-			className = MemoryContext.class.getName();
+		String className = config.get("context.class");
+		if (className == null) {
+			throw new ServletException(
+				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
 		Class<?> contextClass = null;
@@ -184,7 +183,7 @@ public class SingleAgentServlet extends HttpServlet {
 
 		ContextFactory newContextFactory = 
 			(ContextFactory) contextClass.getConstructor().newInstance();
-		newContextFactory.init(getConfig());
+		newContextFactory.setConfig(config);
 		
 		// copy to the final contextFactory once loaded
 		contextFactory = newContextFactory;
@@ -208,39 +207,6 @@ public class SingleAgentServlet extends HttpServlet {
 		}
 		
 		return false;
-	}
-
-	/**
-	 * Retrieve the configuration file
-	 * @return
-	 * @throws ServletException 
-	 */
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> getConfig() throws ServletException {
-		if (config == null) {
-			String file = getInitParameter("config");
-			if (file == null) {
-				throw new ServletException(
-					"Init parameter 'config' missing in servlet configuration." +
-					"This parameter must be specified in web.xml.");
-			}
-			Yaml yaml = new Yaml();
-			config = (Map<String, Object>) yaml.load(file);
-		}
-		
-		return config;
-	}
-	
-	/**
-	 * retrieve a config parameter from the configuration file
-	 * @param param    Parameter name
-	 * @return
-	 * @throws ServletException
-	 */
-	@SuppressWarnings("unchecked")
-	private <T> T getConfigParameter(String param) throws ServletException {
-		Map<String, Object> config = getConfig();
-		return (T) config.get(param);
 	}
 	
 	/**

@@ -3,43 +3,69 @@ package com.almende.eve.context;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.almende.eve.config.Config;
 import com.almende.eve.scheduler.RunnableScheduler;
 import com.almende.eve.scheduler.Scheduler;
 
-public class MemoryContext implements Context {	
-	private String agentClass = null;
-	private String id = null;
+public class MemoryContext implements Context {
+	private Config config = null;
 	private String servletUrl = null;
+	private String agentUrl = null;
+	private String agentClass = null;
+	private String agentId = null;
 	
 	private Map<String, Object> properties = new HashMap<String, Object>();
 	
 	private Scheduler scheduler = new RunnableScheduler();
 	
 	public MemoryContext() {}
-	public MemoryContext(String agentClass, String id, String servletUrl) {
-		this.id = id;
+
+	public MemoryContext(String agentClass, String agentId, Config config) 
+			throws Exception {
+		this.agentId = agentId;
 		this.agentClass = agentClass;
-		this.servletUrl = servletUrl;
+		this.config = config;
+		
+		// read the servlet url from the config
+		String path = "environment." + getEnvironment() + ".servlet_url";
+		servletUrl = config.get(path);
+		if (servletUrl == null) {
+			throw new Exception("Config parameter '" + path + "' is missing");
+		}	
+
+		// built the agent url
+		agentUrl = null;
+		if (servletUrl != null) {
+			agentUrl = servletUrl;
+			if (!agentUrl.endsWith("/")) {
+				agentUrl += "/";
+			}
+			if (agentClass != null) {
+				agentUrl += agentClass + "/";
+				if (agentId != null) {
+					agentUrl += agentId;
+				}
+			}
+		}				
 	}
 	
 	@Override
-	public synchronized String getId() {
-		return id;
+	public synchronized String getAgentId() {
+		return agentId;
+	}
+	
+	@Override
+	public synchronized String getAgentClass() {
+		return agentClass;
 	}
 
 	@Override
+	public String getServletUrl() {
+		return servletUrl;		
+	}
+	
+	@Override
 	public String getAgentUrl() {
-		String agentUrl = null;
-		if (servletUrl != null) {
-			agentUrl = servletUrl;
-			if (agentClass != null) {
-				agentUrl += agentClass + "/";
-				if (id != null) {
-					agentUrl += id;
-				}
-			}
-		}
-		
 		return agentUrl;
 	}
 	
@@ -93,5 +119,16 @@ public class MemoryContext implements Context {
 	@Override
 	public void rollbackTransaction() {
 		// TODO: transaction
+	}
+
+	@Override
+	public Config getConfig() {
+		return config;
+	}
+	
+	@Override
+	public String getEnvironment() {
+		// TODO: implement environments Development and Production
+		return "Production";
 	}
 }

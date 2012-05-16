@@ -1,8 +1,9 @@
 package com.almende.eve.context;
 
-import java.util.Map;
+import com.almende.eve.config.Config;
 
 public interface ContextFactory {
-	public void init(Map<String, Object> config) throws Exception;
-	public Context getContext(String agentClass, String id);
+	public void setConfig(Config config) throws Exception;
+	public Config getConfig() throws Exception;
+	public Context getContext(String agentClass, String id) throws Exception;
 }
