@@ -46,8 +46,8 @@ The image below shows a schematic overview of the layers and libraries.
 ## Libraries {#libraries}
 
 The following Java libraries are currently available.  
-They can be downloaded at 
-[https://github.com/almende/eve/tree/gh-pages/files/java](https://github.com/almende/eve/tree/gh-pages/files/java).
+They can be downloaded at the
+[downloads page](java_downloads.html).
 
 - **eve-core.jar**  
   This is the basis of Eve, and is always required.
@@ -59,7 +59,8 @@ They can be downloaded at
   *Dependencies: 
     jackson-databind-2.0.0.jar,
     jackson-core-2.0.0.jar, 
-    jackson-annotations-2.0.0.jar.
+    jackson-annotations-2.0.0.jar,
+    snakeyaml-1.10.jar.
     Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
   *

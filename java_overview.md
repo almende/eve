@@ -13,6 +13,13 @@ Agents are regular Java classes decorated with some annotations.
 The agents are hosted via a regular web servlet.
 
 
+
+## Downloads {#downloads}
+
+All available libraries can be downloaded on the 
+[downloads page](java_downloads.html).
+
+
 ## Getting Started {#gettingstarted}
 
 The page [Getting Started](java_gettingstarted.html) gives a detailed tutorial

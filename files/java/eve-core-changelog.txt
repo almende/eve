@@ -1,0 +1,19 @@
+EVE CORE
+http://almende.github.com/eve/
+
+
+2012-05-21, version 0.2
+
+- implemented configuration file using YAML
+
+
+2012-05-14, version 0.1
+
+- Servlets implemented for hosting agents
+- Base class Agent created
+- JSON-RPC implemented
+- HTML interface for agents implemented
+- Context implemented
+- Events implemented (subscribe/unsubscribe/trigger)
+- Schedular implemented
+- Example agents implemented

@@ -1,0 +1,13 @@
+EVE GOOGLE APPENGINE
+http://almende.github.com/eve/
+
+
+2012-05-21, version 0.2
+
+- Adjusted Context for new Eve configuration files.
+
+
+2012-05-14, version 0.1
+
+- Context implemented for Google App Engine 
+- Schedular implemented for Google App Engine (halfway)

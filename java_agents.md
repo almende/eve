@@ -96,10 +96,11 @@ intensive tasks.
 
 ## Context {#context}
 
-Each agent has a context available which can be used to persist the agents state.
+Each agent has a Context available which can be used to persist the agents state.
+The Context offers an interface which is independent of the platform where the 
+agent is deployed, and is shared amongst all running instances of the agent.
 The Context can be accessed via the method `getContext`, and offers a simple
 key/value storage. 
-It is shared amongst all running instances of an agent.
 
 The Context is meant for storing a limited amount of state parameters, 
 and not as complete database solution. For storing large amounts of data,
@@ -107,8 +108,6 @@ a database natively available to the agents should be used. For example when
 running on Google App Engine, an agent can use the Google Datastore. When running 
 on Amazon Elastic Cloud, Amazons SimpleDB or DynamoDB can be used.
 
-The Context offers an interface which is independent of the platform where the 
-agent is deployed.
 
 An example of using the context is shown in the following example:
 
@@ -126,6 +125,24 @@ An example of using the context is shown in the following example:
             return null;
         }
     }
+
+From the context, an agent has access to the [scheduler](#scheduler) via the 
+method `getScheduler`:
+
+    Scheduler scheduler = getContext().getScheduler();
+
+The context offers agent specific information via the methods `getAgentUrl`, 
+`getAgentId`, and `getAgentClass`. 
+The context offers system information via the methods `getEnvironment`,
+`getServletUrl` and `getConfig`. 
+
+For example if an agent requires some specific settings, 
+these settings can be stored in the configuration file (typically eve.yaml),
+and read by the agent:
+
+    Config config = getContext().getConfig();
+    String database_url = config.get('database_url');
+
 
 ## Events {#events}
 
@@ -190,7 +207,8 @@ to execute a task. An action can be triggered in different ways:
 
 The first two ways are events triggered exernally and not by the agent itself. 
 An agent can schedule a task for itself using the built in Scheduler.
-The scheduler can be used to schedule a single task and repeating tasks.
+The Scheduler can be used to schedule a single task and repeating tasks.
+An agent can access the schedular via its [Context](#context).
 
 A task is a delayed JSON-RPC call to the agent itself. 
 Tasks can be created, listed, and canceled.

@@ -3,6 +3,11 @@ layout: default
 title: Getting Started
 ---
 
+
+{% assign eve_core_version = '0.2' %}
+{% assign eve_google_appengine_version = '0.2' %}
+
+
 # Getting Started
 
 The Eve agent platform can be easily integrated in an existing Java project
@@ -64,25 +69,29 @@ web servlet.
 
 - Download the following jar files, and put them in your Eclipse project
   in the folder war/WEB-INF/lib. 
+  
+
+  - [eve-core-{{eve_core_version}}.jar](files/java/eve-core-{{eve_core_version}}.jar)
+  
+    - [jackson-databind-2.0.0.jar](http://jackson.codehaus.org)
+    - [jackson-core-2.0.0.jar](http://jackson.codehaus.org)
+    - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org)
+    - [snakeyaml-1.10.jar](http://snakeyaml.org)
+
+  - [eve-google-appengine-{{eve_google_appengine_version}}.jar](files/java/eve-google-appengine-{{eve_google_appengine_version}}.jar)
+  
+    - [twig-persist-2.0-beta4.jar](http://code.google.com/p/twig-persist)
+    - [guava-11.0.2.jar](http://code.google.com/p/guava-libraries)
+  
   If you don't want to download all libraries individually, you can download the
-  zip files *eve-core-bundle.zip* and *eve-google-appengine-bundle.zip*
-  containing all dependent libraries 
-  [here](https://github.com/almende/eve/tree/gh-pages/files/java).  
-
-  - [eve-core.jar](https://github.com/almende/eve/tree/gh-pages/files/java)
-  
-    - [jackson-databind-2.0.0.jar](http://jackson.codehaus.org/)
-    - [jackson-core-2.0.0.jar](http://jackson.codehaus.org/)
-    - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org/)
-
-  - [eve-google-appengine.jar](https://github.com/almende/eve/tree/gh-pages/files/java)
-  
-    - [twig-persist-2.0-beta4.jar](http://code.google.com/p/twig-persist/)
-    - [guava-11.0.2.jar](http://code.google.com/p/guava-libraries/)
+  zip files 
+  [eve-core-{{eve_core_version}}-bundle.zip](files/java/eve-core-{{eve_core_version}}-bundle.zip) and 
+  [eve-google-appengine-{{eve_google_appengine_version}}-bundle.zip](files/java/eve-google-appengine-{{eve_google_appengine_version}}-bundle.zip)
+  containing all dependent libraries. 
   
 - Right-click the added jars in Eclipse, and click Build Path, "Add to Build Path". 
     
-- Now, you need to configure a web-servlet to host the agents you want. 
+- Now, you need to configure a web-servlet which will host your agents. 
   Open the file web.xml under war/WEB-INF. Insert the following lines
   inside the &lt;web-app&gt; tag:
 
@@ -90,37 +99,67 @@ web servlet.
         <servlet-name>MultiAgentServlet</servlet-name>
         <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
         <init-param>
-          <description>The agent classes served by the servlet</description> 
-          <param-name>agents</param-name>
-          <param-value>
-            com.almende.eve.agent.example.EchoAgent;
-            com.almende.eve.agent.example.CalcAgent;        
-          </param-value>
-        </init-param>   
-        <init-param>
-          <description>The context for reading/writing persistent data</description> 
-          <param-name>context</param-name>
-          <param-value>com.almende.eve.context.google.DatastoreContext</param-value>
+          <description>servlet configuration (yaml file)</description> 
+          <param-name>config</param-name>
+          <param-value>eve.yaml</param-value>
         </init-param>
       </servlet>
       <servlet-mapping>
         <servlet-name>MultiAgentServlet</servlet-name>
         <url-pattern>/agents/*</url-pattern>
       </servlet-mapping>
+      
+  Note that we have added an init-param `config` to the the servlet settings. 
+  This parameter points to a configuration file eve.yaml,
+  which we will create next. 
 
-
-  The configuration consists of a standard servlet and servlet mapping definition.
-  The MultiAgentServlet needs two initialization parameters: 
-  *agents* and *context*.
+- Create an Eve configuration file named eve.yaml in the folder war/WEB-INF 
+  (where web.xml is located too). Insert the following text in this file:
   
-  - The *agents* parameter contains a list with the agent classes which will be
-  hosted by the servlet. The classes must be separated by a semicolon.
-  Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
-  so you can use these to test if your application works. 
+      # Eve settings
 
-  - The *context* parameter specifies the context that will be available for the 
-  agents to read and write persistent data.
+      # environment settings
+      environment:
+        Development:
+          servlet_url: http://localhost:8888/agents
+        Production:
+          servlet_url: http://myeveproject.appspot.com/agents
 
+      # agent settings
+      agent:
+        classes:
+        - com.almende.eve.agent.example.EchoAgent
+        - com.almende.eve.agent.example.CalcAgent
+        - com.almende.eve.agent.example.ChatAgent
+
+      # context settings
+      # the context is used by agents for storing their state.
+      context:
+        class: com.almende.eve.context.google.DatastoreContextFactory
+  
+  The configuration is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
+  It contains:
+  
+  - A parameter *environment*. 
+    A project typically has two different environments: 
+    *Development* and *Production*.
+    The parameter *servlet_url* defines the url of the agents. 
+    This url needs to be specified, as it is not possible for an agent to know 
+    via what servlet it is being called.
+  
+  - The parameter *agent.classes* contains a list with the agent classes which 
+    will be hosted by the servlet.
+    Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
+    these agents can be used to test if the application runs correctly.
+
+  - The parameter *context.class* specifies the type of context that will be 
+    available for the agents to read and write persistent data.
+    Agents themselves are stateless. They can use a context to store data.
+
+  Each agent has access has access to this configuration file via its 
+  [context](java_agents.html#context).
+  If your agent needs specific settings (for example for database access), 
+  you can add these settings to the configuration file.
 
 
 ## Usage {#usage}
@@ -208,23 +247,20 @@ your agent class in the eve.properties file.
   methods echo and add. 
 
 - In order to make this agent available, you have to add its class name to
-  the configuration of the web servlet in the file web.xml, 
-  located under war/WEB-INF. Add the full classname 
-  com.mycompany.myproject.MyFirstAgent to the list with agents in the init 
-  parameter *agents*. Class names must be separated by a semicolon. 
+  the Eve configuration in the file eve.yaml, earlier created and stored in 
+  war/WEB-INF. 
+  Add the full classname com.mycompany.myproject.MyFirstAgent to the list with 
+  classes under *agent*, *classes*:
   
       ...
-      <init-param>
-        <description>The agent classes served by the servlet</description> 
-        <param-name>agents</param-name>
-        <param-value>
-          com.almende.eve.agent.example.EchoAgent;
-          com.almende.eve.agent.example.CalcAgent;        
-          com.mycompany.myproject.MyFirstAgent;
-        </param-value>
-      </init-param>     
+      # agent settings
+      agent:
+        classes:
+        - com.almende.eve.agent.example.EchoAgent
+        - com.almende.eve.agent.example.CalcAgent
+        - com.almende.eve.agent.example.ChatAgent
+        - com.mycompany.myproject.MyFirstAgent
       ...
-
 
 - Now you can (re)start the server, and perform an HTTP POST request to the url
   
@@ -279,10 +315,23 @@ Now you can deploy your applictation in the cloud, to Google App Engine.
   You will need a Google account for that. Create a new application by clicking
   Create Application. Enter an identifier, for example "myeveproject" and a 
   title and click Create Application.
-  
+
 - In Eclipse, go to menu Project, Properties. Go to the page Google, App Engine.
   Under *Deployment*, enter the identifier "myeveproject" of your application 
   that you have just created on the appengine site. Set version to 1. Click Ok.
+  
+- Ensure the servlet_url for the production environment in the configuration 
+  file war/WEB-INF/eve.yaml corresponds with your application
+  identifier: http://myeveproject.appspot.com/agents/
+  
+      ...
+      # environment settings
+      environment:
+        Development:
+          servlet_url: http://localhost:8888/agents
+        Production:
+          servlet_url: http://myeveproject.appspot.com/agents
+      ...
 
 - In Eclipse, right-click your project in the Package Explorer. In the context
   menu, choose Google, Deploy to App Engine. Click Deploy in the opened window,

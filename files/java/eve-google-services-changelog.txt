@@ -1,0 +1,14 @@
+EVE GOOGLE SERVICES
+http://almende.github.com/eve/
+
+
+2012-05-21, version 0.2
+
+- Adjusted the classes to use the changed HttpUtil class
+
+
+2012-05-14, version 0.1
+
+- Implemented GoogleCalculatorAgent
+- Implemented GoogleDirectionsAgent
+- Implemented GoogleTranslateAgent
