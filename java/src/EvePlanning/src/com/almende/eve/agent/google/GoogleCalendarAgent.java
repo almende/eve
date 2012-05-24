@@ -20,7 +20,7 @@
  * Copyright © 2010-2011 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2011-07-21
+ * @date	  2012-05-24
  */
 
 
@@ -60,7 +60,8 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	// note: config parameters google.client_id and google.client_secret
 	//       are loaded from the eve configuration
 	private String OAUTH_URI = "https://accounts.google.com/o/oauth2";
-
+	private String CALENDAR_URI = "https://www.googleapis.com/calendar/v3/calendars/";
+	
 	public String getGoogleConfig() {
 		return getContext().getConfig().get("google.client_id");
 	}
@@ -80,7 +81,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 			@Name("expires_in") Integer expires_in,
 			@Name("refresh_token") String refresh_token) throws IOException {
 		Context context = getContext();
-
+		
 		// retrieve user information
 		String url = "https://www.googleapis.com/oauth2/v1/userinfo";
 		Map<String, String> headers = new HashMap<String, String>();
@@ -226,7 +227,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	
 	@Override
 	public String getVersion() {
-		return "0.3";
+		return "0.4";
 	}
 	
 	@Override
@@ -237,7 +238,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	}
 
 	public ArrayNode getCalendarList() throws Exception {
-		String url = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
+		String url = CALENDAR_URI + "users/me/calendarList";
 		String resp = HttpUtil.get(url, getAuthorizationHeaders());
 		ObjectNode calendars = JOM.getInstance().readValue(resp, ObjectNode.class);
 
@@ -258,22 +259,26 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		return items;
 	}
 
+	public ArrayNode getEventsToday(
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		DateTime now = DateTime.now();
+		DateTime start = now.minusMillis(now.getMillisOfDay());
+		DateTime end = start.plusDays(1);
+		
+		return getEvents(start.toString(), end.toString(), calendarId);
+	}
+	
 	public ArrayNode getEvents(
 			@Required(false) @Name("start") String start, 
 			@Required(false) @Name("end") String end, 
-			@Required(false) @Name("calendar") String calendar) throws Exception {
-		// get calendar id
-		String calendarId = null;
-		if (calendar != null) {
-			calendarId = calendar;
-		}
-		else {
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		// initialize optional parameters
+		if (calendarId == null) {
 			calendarId = getContext().get("email");
 		}
 		
 		// built url with query parameters
-		String url = "https://www.googleapis.com/calendar/v3/calendars/" + 
-			calendarId + "/events";
+		String url = CALENDAR_URI + calendarId + "/events";
 		Map<String, String> params = new HashMap<String, String>();
 		if (start != null) {
 			params.put("timeMin", start);
@@ -307,16 +312,126 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		return items;
 	}
 	
-	public ArrayNode getEventsToday() throws Exception {
-		DateTime start = DateTime.now();
-		start = start.minusHours(start.getHourOfDay());
-		start = start.minusMinutes(start.getMinuteOfDay());
-		start = start.minusSeconds(start.getSecondOfDay());
-		start = start.minusMillis(start.getMillisOfDay());
+	public ObjectNode getEvent (@Name("eventId") String eventId,
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		// initialize optional parameters
+		if (calendarId == null) {
+			calendarId = getContext().get("email");
+		}
+
+		// built url
+		String url = CALENDAR_URI + calendarId + "/events/" + eventId;
 		
-		DateTime end = start.plusDays(1);
+		// perform GET request
+		Map<String, String> headers = getAuthorizationHeaders();
+		String resp = HttpUtil.get(url, headers);
+		ObjectMapper mapper = JOM.getInstance();
+		ObjectNode event = mapper.readValue(resp, ObjectNode.class);
+		return event;
+	}
+
+	public ObjectNode createEvent (@Name("event") ObjectNode event,
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		// initialize optional parameters
+		if (calendarId == null) {
+			calendarId = getContext().get("email");
+		}
+
+		// built url
+		String url = CALENDAR_URI + calendarId + "/events";
 		
-		return getEvents(start.toString(), end.toString(), null);
+		// perform POST request
+		ObjectMapper mapper = JOM.getInstance();
+		String body = mapper.writeValueAsString(event);
+		Map<String, String> headers = getAuthorizationHeaders();
+		headers.put("Content-Type", "application/json");
+		String resp = HttpUtil.post(url, body, headers);
+		ObjectNode createdEvent = mapper.readValue(resp, ObjectNode.class);
+		return createdEvent;
+	}
+
+	public ObjectNode createEventQuick (
+			@Required(false) @Name("start") String start,
+			@Required(false) @Name("end") String end,
+			@Required(false) @Name("summary") String summary,
+			@Required(false) @Name("location") String location,
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		ObjectNode event = JOM.createObjectNode();
+		
+		if (start == null) {
+			// set start to current time, rounded to hours
+			DateTime startDate = DateTime.now();
+			startDate = startDate.plusHours(1);
+			startDate = startDate.minusMinutes(startDate.getMinuteOfHour());
+			startDate = startDate.minusSeconds(startDate.getSecondOfMinute());
+			startDate = startDate.minusMillis(startDate.getMillisOfSecond());
+			start = startDate.toString();
+		}
+		ObjectNode startObj = JOM.createObjectNode();
+		startObj.put("dateTime", start);
+		event.put("start", startObj);
+		if (end == null) {
+			// set end to start +1 hour
+			DateTime startDate = new DateTime(start);
+			DateTime endDate = startDate.plusHours(1);
+			end = endDate.toString();
+		}
+		ObjectNode endObj = JOM.createObjectNode();
+		endObj.put("dateTime", end);
+		event.put("end", endObj);
+		if (summary != null) {
+			event.put("summary", summary);
+		}
+		if (location != null) {
+			event.put("location", location);
+		}
+		
+		ObjectNode createdEvent = createEvent(event, calendarId);
+		return createdEvent;
+	}
+	
+	public ObjectNode updateEvent (@Name("event") ObjectNode event,
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		// initialize optional parameters
+		if (calendarId == null) {
+			calendarId = getContext().get("email");
+		}
+
+		// read id from event
+		String id = event.get("id").asText();
+		if (id == null) {
+			throw new Exception("Parameter 'id' missing in event");
+		}
+		
+		// built url
+		String url = CALENDAR_URI + calendarId + "/events/" + id;
+		
+		// perform POST request
+		ObjectMapper mapper = JOM.getInstance();
+		String body = mapper.writeValueAsString(event);
+		Map<String, String> headers = getAuthorizationHeaders();
+		headers.put("Content-Type", "application/json");
+		String resp = HttpUtil.put(url, body, headers);
+		ObjectNode updatedEvent = mapper.readValue(resp, ObjectNode.class);
+		return updatedEvent;
+	}
+	
+	public void deleteEvent (@Name("eventId") String eventId,
+			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+		// initialize optional parameters
+		if (calendarId == null) {
+			calendarId = getContext().get("email");
+		}
+
+		// built url
+		String url = CALENDAR_URI + calendarId + "/events/" + eventId;
+		
+		// perform POST request
+		Map<String, String> headers = getAuthorizationHeaders();
+		String resp = HttpUtil.delete(url, headers);
+		if (!resp.isEmpty()) {
+			throw new Exception(resp);
+		}
 	}
 }
 

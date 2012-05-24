@@ -42,7 +42,6 @@ public class MultiAgentServlet extends HttpServlet {
 			initContext();
 			initAgents();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -272,8 +271,6 @@ public class MultiAgentServlet extends HttpServlet {
 		if (contextFactory != null) {
 			return;
 		}
-
-		//System.out.println("initContext" + config.get()); // TODO: cleanup
 		
 		String className = config.get("context.class");
 		if (className == null) {
