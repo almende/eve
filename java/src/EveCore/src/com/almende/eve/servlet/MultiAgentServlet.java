@@ -1,10 +1,9 @@
 package com.almende.eve.servlet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +22,7 @@ import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
+import com.almende.util.StreamingUtil;
 
 
 @SuppressWarnings("serial")
@@ -32,22 +32,119 @@ public class MultiAgentServlet extends HttpServlet {
 	private Map<String, Class<?>> agentClasses = null;
 	private ContextFactory contextFactory = null;
 	private Config config = null;
+	private static String RESOURCES = "/com/almende/eve/resources/";
 	
 	@Override
-	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType("text/html");
-		String filename = "/com/almende/eve/resources/agent.html";
+	public void init() {
+		try {
+			// initialize configuration file, context, and agents
+			initConfig();
+			initContext();
+			initAgents();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private class AgentAddress {
+		public AgentAddress(String agentClass, String agentId, String agentResource) {
+			this.agentClass = agentClass;
+			this.agentId = agentId;
+			this.agentResource = agentResource;
+		}
+		public String agentClass = null;
+		public String agentId = null;
+		public String agentResource = null;
+	}
+	
+	/**
+	 * Split the agentClass, agentId, and resource from a url
+	 * For example:
+	 * uri="/agents/GoogleCalendarAgent/b0e3af03-3265-4d63-8d4e-21f515070abb"
+	 * @param url
+	 * @return
+	 * @throws ServletException
+	 * @throws MalformedURLException
+	 */
+	private AgentAddress getAgentAddress (String url) 
+			throws ServletException, MalformedURLException {
+		String servletUrl = null;
+		try {
+			servletUrl = contextFactory.getServletUrl();
+			if (!servletUrl.endsWith("/")) {
+				servletUrl += "/";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		String servletPath = new URL(servletUrl).getPath();
+		if (!url.startsWith(servletPath)) {
+			throw new ServletException("I don't get it. The request url '"  +
+					url + "' does not match the configured servlet url '" + 
+					servletPath + "'");
+		}
+		
+		String path = url.substring(servletPath.length()); 
+		String agentClass = null;
+		String agentId = null;
+		String agentResource = null;
+		int slash1 = path.indexOf('/');
+		if (slash1 != -1) {
+			agentClass = path.substring(0, slash1);
+			int slash2 = path.indexOf('/', slash1 + 1);
+			if (slash2 != -1) {
+				agentId = path.substring(slash1 + 1, slash2);
+				agentResource = path.substring(slash2 + 1);
+			}
+			else {
+				agentId = path.substring(slash1 + 1);
+				agentResource = "";
+			}
+		}
+		else {
+			agentClass = "";
+		}
+		
+		/* TODO: cleanup
+		System.out.println("url=" + url);
+		System.out.println("agentClass=" + agentClass);
+		System.out.println("agentId=" + agentId);
+		System.out.println("agentResource=" + agentResource);
+		*/
+		
+		return new AgentAddress(agentClass, agentId, agentResource);
+	}
+	
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
+			throws ServletException, IOException {
+		String uri = req.getRequestURI();
+		
+		AgentAddress address = getAgentAddress(uri);
+		String resource = address.agentResource;
+		
+		if (resource.isEmpty()) {
+			if (!uri.endsWith("/")) {
+				String redirect = uri + "/";
+				resp.sendRedirect(redirect);
+				return;
+			}
+			else {
+				resource = "index.html";
+			}
+		}
+		String extension = resource.substring(resource.lastIndexOf(".") + 1);
+		
+		String mimetype = StreamingUtil.getMimeType(extension);
+		String filename = RESOURCES + resource;
 		InputStream is = this.getClass().getResourceAsStream(filename);
 		if (is != null) {
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader reader = new BufferedReader(isr);
-			PrintWriter pw = response.getWriter();
-
-			String text;
-			while ((text = reader.readLine()) != null) {
-				pw.println(text);
-			}
+			StreamingUtil.streamBinaryData(is, mimetype, resp);
+		}
+		else {
+			throw new ServletException("Resource '" + resource + "' not found");
 		}
 	}
 
@@ -57,37 +154,28 @@ public class MultiAgentServlet extends HttpServlet {
 		String request = "";
 		String response = "";
 		try {
-			// initialize configuration file, context, and agents
-			initConfig();
-			initContext();
-			initAgents();
-			
 			// retrieve the request data
 			request = streamToString(req.getInputStream());
 
-			// initialize response object
-			// a servlet path is built up in three parts: first the folder 
+			// a servlet path is built up in three parts: first the agents servlet
 			// agents, then the name of the agent class, then the id of the 
 			// agent. For example:
 			// uri="/agents/GoogleCalendarAgent/b0e3af03-3265-4d63-8d4e-21f515070abb"
-			String uri = req.getRequestURI();
-			String[] path = uri.split("\\/");
-			String simpleName = (path.length > 2) ? path[path.length - 2] : "";
-			String id = (path.length > 1) ? path[path.length - 1] : ".";
-			simpleName = simpleName.toLowerCase();
-
+			AgentAddress address = getAgentAddress(req.getRequestURI());
+			String classLowerCase = address.agentClass.toLowerCase();
+			
 			// check whether the agent class is known
-			if (!agentClasses.containsKey(simpleName)) {
-				throw new Exception("Unknown agent class " + simpleName);
+			if (!agentClasses.containsKey(classLowerCase)) {
+				throw new Exception("Unknown agent class " + address.agentClass);
 			}
 			
 			// instantiate the agent
-			Class<?> agentClass = agentClasses.get(simpleName);
+			Class<?> agentClass = agentClasses.get(classLowerCase);
 			Agent agent = (Agent) agentClass.getConstructor().newInstance();
 			
 			// instantiate context of the agent
 			String agentClassName = agentClass.getSimpleName().toLowerCase();
-			Context context = contextFactory.getContext(agentClassName, id);
+			Context context = contextFactory.getContext(agentClassName, address.agentId);
 			agent.setContext(context);
 			
 			// execute the init method of the agent
@@ -185,7 +273,7 @@ public class MultiAgentServlet extends HttpServlet {
 			return;
 		}
 
-		System.out.println("initContext" + config.get());
+		//System.out.println("initContext" + config.get()); // TODO: cleanup
 		
 		String className = config.get("context.class");
 		if (className == null) {

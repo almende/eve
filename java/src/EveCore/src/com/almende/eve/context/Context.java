@@ -7,7 +7,7 @@ public interface Context {
 	// servlet info
 	public String getEnvironment();
 	public String getServletUrl();	
-	public Config getConfig();
+	public Config getConfig();  // TODO: config should be read only
 	
 	// getting info about the agent
 	public String getAgentId();

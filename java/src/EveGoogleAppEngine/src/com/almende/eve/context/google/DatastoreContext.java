@@ -6,12 +6,12 @@ import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.google.AppEngineScheduler;
 import com.almende.eve.config.Config;
-import com.google.appengine.api.utils.SystemProperty;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class DatastoreContext implements Context {
 	private Config config = null;
+	private String environment = null;
 	private String servletUrl = null;
 	private String agentUrl = null;
 	private String agentClass = null;
@@ -20,33 +20,14 @@ public class DatastoreContext implements Context {
 	
 	public DatastoreContext() {}
 
-	protected DatastoreContext(String agentClass, String agentId, 
-			Config config) throws Exception {
+	protected DatastoreContext(String environment, String servletUrl, 
+			String agentClass, String agentId, Config config) {
+		this.environment = environment;
+		this.servletUrl = servletUrl;
 		this.agentClass = agentClass;
 		this.agentId = agentId;
 		this.config = config;
-		
-		// read the servlet url from the config
-		String path = "environment." + getEnvironment() + ".servlet_url";
-		servletUrl = config.get(path);
-		if (servletUrl == null) {
-			throw new Exception("Config parameter '" + path + "' is missing");
-		}	
-		
-		// built the agentUrl
-		agentUrl = null;
-		if (servletUrl != null) {
-			agentUrl = servletUrl;
-			if (!agentUrl.endsWith("/")) {
-				agentUrl += "/";
-			}
-			if (agentClass != null) {
-				agentUrl += agentClass + "/";
-				if (agentId != null) {
-					agentUrl += agentId;
-				}
-			}
-		}				
+		// Note: agentUrl will be initialized when needed
 	}
 
 	/**
@@ -161,9 +142,24 @@ public class DatastoreContext implements Context {
 
 	@Override
 	public String getAgentUrl() {
+		if (agentUrl == null) {
+			String servletUrl = getServletUrl();
+			if (servletUrl != null) {
+				agentUrl = servletUrl;
+				if (!agentUrl.endsWith("/")) {
+					agentUrl += "/";
+				}
+				if (agentClass != null) {
+					agentUrl += agentClass + "/";
+					if (agentId != null) {
+						agentUrl += agentId;
+					}
+				}
+			}			
+		}
 		return agentUrl;
-	}	
-
+	}
+	
 	@Override
 	public String getServletUrl() {
 		return servletUrl;
@@ -171,7 +167,7 @@ public class DatastoreContext implements Context {
 	
 	@Override 
 	public String getEnvironment() {
-		return SystemProperty.environment.get(); // "Development" or "Production"
+		return environment;
 	}
 	
 	@Override

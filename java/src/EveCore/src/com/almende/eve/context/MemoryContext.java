@@ -9,6 +9,7 @@ import com.almende.eve.scheduler.Scheduler;
 
 public class MemoryContext implements Context {
 	private Config config = null;
+	private String environment = null;
 	private String servletUrl = null;
 	private String agentUrl = null;
 	private String agentClass = null;
@@ -20,33 +21,15 @@ public class MemoryContext implements Context {
 	
 	public MemoryContext() {}
 
-	public MemoryContext(String agentClass, String agentId, Config config) 
-			throws Exception {
+	public MemoryContext(String environment, String servletUrl, 
+			String agentClass, String agentId, Config config) {
+		this.environment = environment;
+		this.servletUrl = servletUrl;
 		this.agentId = agentId;
 		this.agentClass = agentClass;
 		this.config = config;
-		
-		// read the servlet url from the config
-		String path = "environment." + getEnvironment() + ".servlet_url";
-		servletUrl = config.get(path);
-		if (servletUrl == null) {
-			throw new Exception("Config parameter '" + path + "' is missing");
-		}	
 
-		// built the agent url
-		agentUrl = null;
-		if (servletUrl != null) {
-			agentUrl = servletUrl;
-			if (!agentUrl.endsWith("/")) {
-				agentUrl += "/";
-			}
-			if (agentClass != null) {
-				agentUrl += agentClass + "/";
-				if (agentId != null) {
-					agentUrl += agentId;
-				}
-			}
-		}				
+		// Note: agentUrl will be initialized when needed
 	}
 	
 	@Override
@@ -61,11 +44,26 @@ public class MemoryContext implements Context {
 
 	@Override
 	public String getServletUrl() {
-		return servletUrl;		
+		return servletUrl;
 	}
 	
 	@Override
 	public String getAgentUrl() {
+		if (agentUrl == null) {
+			String servletUrl = getServletUrl();
+			if (servletUrl != null) {
+				agentUrl = servletUrl;
+				if (!agentUrl.endsWith("/")) {
+					agentUrl += "/";
+				}
+				if (agentClass != null) {
+					agentUrl += agentClass + "/";
+					if (agentId != null) {
+						agentUrl += agentId;
+					}
+				}
+			}			
+		}
 		return agentUrl;
 	}
 	
@@ -128,7 +126,6 @@ public class MemoryContext implements Context {
 	
 	@Override
 	public String getEnvironment() {
-		// TODO: implement environments Development and Production
-		return "Production";
+		return environment;
 	}
 }

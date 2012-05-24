@@ -1,10 +1,7 @@
 package com.almende.eve.servlet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -20,6 +17,7 @@ import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
+import com.almende.util.StreamingUtil;
 
 
 @SuppressWarnings("serial")
@@ -29,23 +27,27 @@ public class SingleAgentServlet extends HttpServlet {
 	private Class<?> agentClass = null;
 	private ContextFactory contextFactory = null;
 	private Config config = null; // servlet configuration 
-
+	private static String RESOURCES = "/com/almende/eve/resources/";
+	
 	@Override
 	public void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType("text/html");
-		String filename = "/com/almende/eve/resources/agent.html";
-		InputStream is = this.getClass().getResourceAsStream(filename);
-		if (is != null) {
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader reader = new BufferedReader(isr);
-			PrintWriter pw = response.getWriter();
-
-			String text;
-			while ((text = reader.readLine()) != null) {
-				pw.println(text);
-			}
+		// FIXME: this does not work!
+		// TODO: Make flexible resource streamer
+		// TODO: take the real servletUrl from the the ContextFactory, 
+		//       and cut the remaining part of the url as resource name
+		String uri = request.getRequestURI();
+		String name = uri.substring(uri.lastIndexOf("/") + 1);
+		String extension = name.substring(name.lastIndexOf(".") + 1);
+		if (extension.equals(name)) {
+			name = "index.html";
+			extension = name.substring(name.lastIndexOf(".") + 1);
 		}
+		
+		String mimetype = StreamingUtil.getMimeType(extension);
+		String filename = RESOURCES + name;
+		InputStream is = this.getClass().getResourceAsStream(filename);
+		StreamingUtil.streamBinaryData(is, mimetype, response);
 	}	
 
 
