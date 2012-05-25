@@ -151,7 +151,8 @@ public class ChatAgent extends Agent {
 		
 		// retrieve all connections that the other agent has, and synchronize
 		// my own list with it.
-		List<String> otherConnections = (List<String>)send(url, "getConnections");
+		List<String> type = new ArrayList<String>();
+		List<String> otherConnections = send(url, "getConnections", type.getClass());
 
 		// get my own connections from the context
 		String urlSelf = getUrl();

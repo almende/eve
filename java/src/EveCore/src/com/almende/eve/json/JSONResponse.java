@@ -109,9 +109,13 @@ public class JSONResponse {
 		}
 	}
 
-	public Object getResult() {
+	public JsonNode getResult() {
+		return resp.get("result");
+	}
+
+	public <T> T getResult(Class<T> type) {
 		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(resp.get("result"), Object.class);
+		return mapper.convertValue(resp.get("result"), type);
 	}
 
 	public void setError(JSONRPCException error) {

@@ -401,14 +401,17 @@ abstract public class Agent {
 	 * @throws IOException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public Object send(String url, String method, ObjectNode params) 
+	final public <T> T send(String url, String method, ObjectNode params, Class<T> type) 
 			throws IOException, JSONRPCException {
 		JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
 		}
-		return response.getResult();
+		if (type != null && type != void.class) {
+			return response.getResult(type);
+		}
+		return null;
 	}
 	
 	/**
@@ -420,9 +423,38 @@ abstract public class Agent {
 	 * @throws IOException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public Object send(String url, String method) 
+	final public <T> T send(String url, String method, Class<T> type) 
 			throws JSONRPCException, IOException {
-		return send(url, method, null);
+		return send(url, method, null, type);
+	}
+	
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * @param url    The url of the agent
+	 * @param method The name of the method
+	 * @param params A ObjectNode containing the parameter values of the method
+	 * @return 
+	 * @throws JSONRPCException 
+	 * @throws IOException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public void send(String url, String method, ObjectNode params) 
+			throws JSONRPCException, IOException {
+		send(url, method, params, void.class);
+	}
+
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * @param url    The url of the agent
+	 * @param method The name of the method
+	 * @return 
+	 * @throws JSONRPCException 
+	 * @throws IOException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public void send(String url, String method) 
+			throws JSONRPCException, IOException {
+		send(url, method, null, void.class);
 	}
 
 
