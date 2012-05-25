@@ -73,7 +73,7 @@ public class JSONResponse {
 		Object result = response.get("result");
 		JSONRPCException error = null;
 		if (response.has("error")) {
-			new JSONRPCException((ObjectNode)response.get("error"));
+			error = new JSONRPCException((ObjectNode)response.get("error"));
 		}
 		
 		init(id, result, error);

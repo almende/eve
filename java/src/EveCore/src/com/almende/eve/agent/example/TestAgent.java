@@ -189,7 +189,13 @@ public class TestAgent extends Agent {
 		System.out.println(res);
 		return res;
 	}
-	
+
+	public String testSendNonExistingMethod() throws Exception {
+		String res = send("http://localhost:8080/EveCore/agents/chatagent/1", 
+				"nonExistingMethod", String.class);
+		System.out.println(res);
+		return res;
+	}
 	public void subscribeToAgent() throws Exception {
 		String url = "http://server/agents/agenttype/agentx";
 		String method = "subscribe";
