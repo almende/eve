@@ -1,6 +1,10 @@
 EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
+2012-05-29, version 0.3
+
+- Adjusted Context to changed base classes
+
 
 2012-05-21, version 0.2
 

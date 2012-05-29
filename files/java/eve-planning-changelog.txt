@@ -1,6 +1,14 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
+2012-05-29, version 0.3
+
+- Extended GoogleCalendarAgent with methods getEvent, createEvent, updateEvent, 
+  deleteEvent. This is now the first really useable calendar agent.
+- Created a first MeetingAgent. This agent is currently only able to synchronize
+  an event for multiple participants.
+
+
 2012-05-21, version 0.2
 
 - adjusted GoogleCalendarAgent for the changed HttpUtil class

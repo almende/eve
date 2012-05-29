@@ -1,10 +1,19 @@
 EVE CORE
 http://almende.github.com/eve/
 
+2012-05-29, version 0.3
+
+- Fixed a bug in JSONResponse, not throwing an error when in the response
+- Changed JSONResponse: getResult now requires to specify the return type.
+  This is necessary for correct deserialization.
+- An agents web interface can now handle resources
+- The library includes the required javascript libraries (jquery, angularjs)
+  used for the agents web interface.
+
 
 2012-05-21, version 0.2
 
-- implemented configuration file using YAML
+- Implemented configuration file using YAML
 
 
 2012-05-14, version 0.1
