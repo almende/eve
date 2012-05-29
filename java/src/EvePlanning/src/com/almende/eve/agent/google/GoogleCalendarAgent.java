@@ -17,18 +17,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  *
- * Copyright © 2010-2011 Almende B.V.
+ * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2012-05-24
+ * @date	2012-05-29
  */
 
 
 /**
  * 
  * DOCUMENTATION:
- *   http://code.google.com/apis/calendar/data/2.0/developers_guide_java.html
- *   http://www.evolvingsolutions.ca/devwing/category/coding/
+ *   https://developers.google.com/google-apps/calendar/v3/reference/
+ *   https://developers.google.com/google-apps/calendar/v3/reference/events#resource
  */
 
 package com.almende.eve.agent.google;
@@ -36,10 +36,12 @@ package com.almende.eve.agent.google;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.CalendarAgent;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.calendar.Authorization;
 
@@ -54,18 +56,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
-public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent */ {
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+public class GoogleCalendarAgent extends Agent implements CalendarAgent {
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	// note: config parameters google.client_id and google.client_secret
 	//       are loaded from the eve configuration
 	private String OAUTH_URI = "https://accounts.google.com/o/oauth2";
 	private String CALENDAR_URI = "https://www.googleapis.com/calendar/v3/calendars/";
 	
-	public String getGoogleConfig() {
-		return getContext().getConfig().get("google.client_id");
-	}
-
 	/**
 	 * Set access token and refresh token, used to authorize the calendar agent. 
 	 * These tokens must be retrieved via Oauth 2.0 authorization.
@@ -80,6 +78,8 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 			@Name("token_type") String token_type,
 			@Name("expires_in") Integer expires_in,
 			@Name("refresh_token") String refresh_token) throws IOException {
+		logger.info("setAuthorization");
+		
 		Context context = getContext();
 		
 		// retrieve user information
@@ -123,6 +123,8 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * @throws Exception 
 	 */
 	private void refreshAuthorization (Authorization auth) throws Exception {
+		logger.info("refreshAuthorization");
+		
 		String refresh_token = (auth != null) ? auth.getRefreshToken() : null;
 		if (refresh_token == null) {
 			throw new Exception("No refresh token available");
@@ -160,6 +162,8 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * Remove authorization tokens
 	 */
 	public void clearAuthorization() {
+		logger.info("clearAuthorization");
+		
 		Context context = getContext();
 		context.remove("auth");
 		context.remove("email");
@@ -170,6 +174,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * Get the username associated with the calendar
 	 * @return name
 	 */
+	@Override
 	public String getUsername() {
 		return getContext().get("name");
 	}
@@ -178,6 +183,7 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 	 * Get the email associated with the calendar
 	 * @return email
 	 */
+	@Override
 	public String getEmail() {
 		return getContext().get("email");
 	}
@@ -237,7 +243,10 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 				"and add, edit, or remove events.";
 	}
 
+	@Override
 	public ArrayNode getCalendarList() throws Exception {
+		logger.info("getCalendarList");
+		
 		String url = CALENDAR_URI + "users/me/calendarList";
 		String resp = HttpUtil.get(url, getAuthorizationHeaders());
 		ObjectNode calendars = JOM.getInstance().readValue(resp, ObjectNode.class);
@@ -255,7 +264,8 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		}
 		else {
 			items = JOM.createArrayNode();
-		}		
+		}
+		
 		return items;
 	}
 
@@ -264,14 +274,22 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		DateTime now = DateTime.now();
 		DateTime start = now.minusMillis(now.getMillisOfDay());
 		DateTime end = start.plusDays(1);
-		
+
+		logger.info("getEventsToday start=" + start + ", end=" + end + 
+				", calendarId=" + calendarId);
+
 		return getEvents(start.toString(), end.toString(), calendarId);
 	}
 	
+	@Override
 	public ArrayNode getEvents(
 			@Required(false) @Name("start") String start, 
 			@Required(false) @Name("end") String end, 
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception {
+		logger.info("getEvents start=" + start + ", end=" + end + 
+				", calendarId=" + calendarId);
+		
 		// initialize optional parameters
 		if (calendarId == null) {
 			calendarId = getContext().get("email");
@@ -312,8 +330,11 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		return items;
 	}
 	
-	public ObjectNode getEvent (@Name("eventId") String eventId,
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+	@Override
+	public ObjectNode getEvent (
+			@Name("eventId") String eventId,
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
 			calendarId = getContext().get("email");
@@ -327,11 +348,26 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		String resp = HttpUtil.get(url, headers);
 		ObjectMapper mapper = JOM.getInstance();
 		ObjectNode event = mapper.readValue(resp, ObjectNode.class);
+		
+		// check for errors
+		if (event.has("error")) {
+			ObjectNode error = (ObjectNode)event.get("error");
+			throw new JSONRPCException(error);
+		}
+		
+		// check if cancelled
+		// TODO: be able to retrieve cancelled events?
+		if (event.has("status") && event.get("status").asText().equals("cancelled")) {
+			throw new IOException("Event cancelled");
+		}
+		
 		return event;
 	}
 
+	@Override
 	public ObjectNode createEvent (@Name("event") ObjectNode event,
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
 			calendarId = getContext().get("email");
@@ -340,6 +376,10 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		// built url
 		String url = CALENDAR_URI + calendarId + "/events";
 		
+		logger.info("createEvent event=" + 
+				JOM.getInstance().writeValueAsString(event) +
+				", calendarId=" + calendarId);
+
 		// perform POST request
 		ObjectMapper mapper = JOM.getInstance();
 		String body = mapper.writeValueAsString(event);
@@ -347,6 +387,15 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		headers.put("Content-Type", "application/json");
 		String resp = HttpUtil.post(url, body, headers);
 		ObjectNode createdEvent = mapper.readValue(resp, ObjectNode.class);
+		
+		// check for errors
+		if (createdEvent.has("error")) {
+			ObjectNode error = (ObjectNode)createdEvent.get("error");
+			throw new JSONRPCException(error);
+		}
+		
+		logger.info("createdEvent=" + JOM.getInstance().writeValueAsString(createdEvent));
+
 		return createdEvent;
 	}
 
@@ -386,16 +435,21 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 			event.put("location", location);
 		}
 		
-		ObjectNode createdEvent = createEvent(event, calendarId);
-		return createdEvent;
+		return createEvent(event, calendarId);
 	}
 	
+	@Override
 	public ObjectNode updateEvent (@Name("event") ObjectNode event,
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
 			calendarId = getContext().get("email");
 		}
+
+		logger.info("updateEvent event=" + 
+				JOM.getInstance().writeValueAsString(event) +
+				", calendarId=" + calendarId);
 
 		// read id from event
 		String id = event.get("id").asText();
@@ -413,15 +467,28 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		headers.put("Content-Type", "application/json");
 		String resp = HttpUtil.put(url, body, headers);
 		ObjectNode updatedEvent = mapper.readValue(resp, ObjectNode.class);
+		
+		// check for errors
+		if (updatedEvent.has("error")) {
+			ObjectNode error = (ObjectNode)updatedEvent.get("error");
+			throw new JSONRPCException(error);
+		}
+		
+		logger.info("updateEvent=" + JOM.getInstance().writeValueAsString(updatedEvent));
+
 		return updatedEvent;
 	}
 	
+	@Override
 	public void deleteEvent (@Name("eventId") String eventId,
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
 			calendarId = getContext().get("email");
 		}
+
+		logger.info("deleteEvent eventId=" + eventId + ", calendarId=" + calendarId);
 
 		// built url
 		String url = CALENDAR_URI + calendarId + "/events/" + eventId;
@@ -432,6 +499,8 @@ public class GoogleCalendarAgent extends Agent /* TODO implements CalendarAgent 
 		if (!resp.isEmpty()) {
 			throw new Exception(resp);
 		}
+		
+		logger.info("event deleted");
 	}
 }
 

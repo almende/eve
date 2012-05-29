@@ -25,30 +25,43 @@
 
 package com.almende.eve.agent;
 
-import java.util.List;
-
-import org.joda.time.DateTime;
-
-import com.almende.eve.entity.calendar.Event;
-import com.almende.eve.entity.calendar.TimePeriod;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface CalendarAgent {
-	abstract public Event addEvent(@Name("event") Event event) throws Exception;
-	abstract public Event updateEvent(@Name("event") Event event) throws Exception;
-	abstract public void deleteEvent(@Name("event") Event event) throws Exception ;
-
-	// TODO: correctly define retrieving an calendarlist
-	abstract public ArrayNode getCalendarList() throws Exception;
-
-	abstract public Event getEvent(@Name("id") String id) throws Exception;
-	abstract public List<Event> getEvents(
-			@Name("start") DateTime start, 
-			@Name("end") DateTime end, 
-			@Name("calendar") @Required(false) String calendar) throws Exception;
+	abstract public String getUsername();
+	abstract public String getEmail();
 	
+	public ArrayNode getCalendarList() throws Exception;
+	
+	public ArrayNode getEvents(
+			@Required(false) @Name("start") String start, 
+			@Required(false) @Name("end") String end, 
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception;
+	
+	public ObjectNode getEvent (
+			@Name("eventId") String eventId,
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception;
+	
+	public ObjectNode createEvent (
+			@Name("event") ObjectNode event,
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception;
+	
+	public ObjectNode updateEvent (@Name("event") ObjectNode event,
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception;
+	
+	public void deleteEvent (
+			@Name("eventId") String eventId,
+			@Required(false) @Name("calendarId") String calendarId) 
+			throws Exception;
+	
+	/* TODO: implement methods getChangedEvents, getFree, getBusy
 	abstract public List<Event> getChangedEvents(@Name("since") DateTime since) 
 			throws Exception;
 
@@ -61,5 +74,6 @@ public interface CalendarAgent {
 			@Name("start") DateTime start, 
 			@Name("end") DateTime end,
 			@Name("calendar") @Required(false) String calendar) throws Exception;
+	*/
 }
 
