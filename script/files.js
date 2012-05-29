@@ -18,6 +18,10 @@ function list_files(dir, pattern, container_id) {
   });  
 }
 
+function isDir(file) {
+  return (typeof(file) == 'object');
+}
+
 function getFiles(dir, pattern, callback, errback) {
   getAllFiles(function (files) {
     var names = dir.split('/');
@@ -30,7 +34,9 @@ function getFiles(dir, pattern, callback, errback) {
     if (f) {
       for (var file in f) {
         if (!pattern || pattern.test(file)) {
-          filtered[file] = f[file];
+          if (!isDir(f[file])) {
+            filtered[file] = f[file];
+          }
         }
       }
     }
