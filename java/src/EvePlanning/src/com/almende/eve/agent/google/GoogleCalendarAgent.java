@@ -159,11 +159,9 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	}
 	
 	/**
-	 * Remove authorization tokens
+	 * Remove all stored data from this agent
 	 */
-	public void clearAuthorization() {
-		logger.info("clearAuthorization");
-		
+	public void clear() {
 		Context context = getContext();
 		context.remove("auth");
 		context.remove("email");
