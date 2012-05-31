@@ -1,6 +1,9 @@
 package com.almende.eve.entity.activity;
 
-public class Attendee {
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class Attendee implements Serializable {
 	public String displayName = null;
     public String email = null;
 	public String agent = null;       // eve agent url
