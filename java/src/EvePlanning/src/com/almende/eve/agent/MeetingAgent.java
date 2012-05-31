@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.activity.Activity;
@@ -41,29 +42,47 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class MeetingAgent extends Agent {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	/**
-	 * Set the event for this meeting agent to manage
+	 * Set the event for this meeting agent
 	 * @param summary   Description for the meeting
-	 * @param duration  Duration in seconds
-	 * @param attendees
+	 * @param location
+	 * @param duration  Duration in minutes
+	 * @param attendees List with calendar agent urls of the attendees
 	 */
-	public void setEvent(@Name("summary") String summary,
+	public void setEvent(
+			@Name("summary") String summary,
 			@Required(false) @Name("location") String location,
 			@Name("duration") Integer duration,
 			@Name("attendees") List<String> attendees) {
-		Activity activity = new Activity();
+		setActivity(summary, location, duration, attendees);
+	}
+	
+	/**
+	 * Set the activity for meeting agent
+	 * @param activity
+	 */
+	public void setActivity(@Name("summary") String summary,
+			@Required(false) @Name("location") String location,
+			@Name("duration") Integer duration,
+			@Name("attendees") List<String> attendees) {
+		// TODO: change to @Name("activity") String activity
+		
+		Activity activity = getContext().get("activity");
+		if (activity == null) {
+			activity = new Activity();
+		}
 		activity.summary = summary;
 		
 		// put constraints
 		activity.constraints.time = new Time();
 		activity.constraints.time.duration = duration;
 		activity.constraints.attendees = new ArrayList<Attendee>();
+		// TODO: update previously available attendees. remove events from removed attendees
 		for (String attendeeAgent : attendees) {
 			Attendee attendee = new Attendee();
 			attendee.agent = attendeeAgent;
@@ -74,31 +93,76 @@ public class MeetingAgent extends Agent {
 			activity.constraints.locations.add(location);
 		}
 		
-		// put status
-		// TODO: implement dynamic status
-		DateTime start = DateTime.now();
-		start = start.plusHours(1);
-		start = start.minusMinutes(start.getMinuteOfHour());
-		start = start.minusSeconds(start.getSecondOfMinute());
-		start = start.minusMillis(start.getMillisOfSecond());
-		DateTime end = start.plusMinutes(duration);
-		activity.status = new Status();
-		activity.status.start = start.toString();
-		activity.status.end = end.toString();
+		if (activity.status == null) {
+			activity.status = new Status();
+		}
+		
+		// create/update start
+		DateTime start = null;
+		if (activity.status.start != null) {
+			start = new DateTime(activity.status.start);
+		}
+		else {
+			// put status
+			// TODO: implement dynamic status
+			start = DateTime.now();
+			start = start.plusHours(1);
+			start = start.minusMinutes(start.getMinuteOfHour());
+			start = start.minusSeconds(start.getSecondOfMinute());
+			start = start.minusMillis(start.getMillisOfSecond());
+
+			activity.status.start = start.toString();
+		}
+		
+		// create/update end
+		DateTime end = null;
+		if (activity.status.end != null) {
+			end = new DateTime(activity.status.end);
+			Duration currentDuration = new Duration(start, end);
+			if (currentDuration.getStandardMinutes() != duration) {
+				end = null;
+			}
+		}		
+		if (end == null ){
+			end = start.plusMinutes(duration);
+			activity.status.end = end.toString();
+		}
+		
+		// set updated timestamp
+		activity.status.updated = (new DateTime()).toString();
 		
 		getContext().put("activity", activity);
 	}
 
+	/**
+	 * Get meeting summary
+	 * @return
+	 */
 	public String getSummary() {
 		Activity activity = getContext().get("activity");
 		return (activity != null) ? activity.summary : null;
 	}
 
+	/**
+	 * Get meeting status
+	 * @return
+	 */
 	public Status getStatus() {
-		Activity activity = getContext().get("activity");
+		Activity activity = getActivity();
 		return (activity != null) ? activity.status : null;
 	}
 
+	/**
+	 * get meeting activity
+	 * @return
+	 */
+	public Activity getActivity() {
+		return getContext().get("activity");
+	}
+	
+	/**
+	 * update and synchronize the meeting
+	 */
 	public void update() {
 		logger.info("update started");
 		Activity activity = getContext().get("activity");
@@ -113,14 +177,11 @@ public class MeetingAgent extends Agent {
 			}
 		}
 	}
-
-	// TODO: remove this method, is only temporarily for testing
-	public ArrayNode getEventsToday (@Name("agent") String agent) 
-			throws JSONRPCException, IOException {
-		ArrayNode events = send(agent, "getEventsToday", ArrayNode.class);
-		return events;
-	}
 	
+	/**
+	 * Synchronize the event with given calendar agent
+	 * @param agent
+	 */
 	public void syncEvent (@Name("agent") String agent) {
 		logger.info("updateEvent started for agent " + agent);
 
@@ -132,7 +193,7 @@ public class MeetingAgent extends Agent {
 		DateTime end = (status != null) ? new DateTime(status.end) : null;
 		DateTime updated = (status != null && status.updated != null) ? 
 				new DateTime(status.updated) : null;
-		
+
 		// retrieve event
 		ObjectNode event = null;
 		DateTime eventUpdated = null;

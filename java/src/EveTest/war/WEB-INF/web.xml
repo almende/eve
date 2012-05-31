@@ -29,7 +29,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
   </servlet>
   <servlet-mapping>
     <servlet-name>GoogleAuth</servlet-name>
-    <url-pattern>/auth</url-pattern>
+    <url-pattern>/auth/google</url-pattern>
   </servlet-mapping>
 
 </web-app>
