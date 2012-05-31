@@ -15,6 +15,7 @@ package com.almende.eve.servlet.google;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,13 +38,35 @@ public class GoogleAuth extends HttpServlet {
 	// TODO: put these constants in a configuration file instead of having them hard coded
 	private String CLIENT_ID = "231599786845-p4r6ka1emoj8enivejds6vma41ni2s26.apps.googleusercontent.com";
 	private String CLIENT_SECRET = "tUtHesFJEAfiyVjbJd4q0Hvq";
-	String REDIRECT_URI = "https://eveagents.appspot.com/auth";
+	String REDIRECT_URI = "https://eveagents.appspot.com/auth/google"; 
+	//String REDIRECT_URI = "http://localhost:8888/auth/google"; // TODO: remove
 	String AGENTS_URI   = "http://eveagents.appspot.com/agents";
 	String OAUTH_URI    = "https://accounts.google.com/o/oauth2";
 	
 	@SuppressWarnings("unused")
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
+		// read parameters code and access_token from query parameters or cookies
+		String code = req.getParameter("code");
+		String state = req.getParameter("state");
+		String error = req.getParameter("error");
+		String agent = req.getParameter("agent");
+		String callback = req.getParameter("callback");
+
+		// directly redirect to google authorization page if an agents url is provided
+		if (agent != null) {
+			String url = createAuthorizationUrl();
+			ObjectNode st = JOM.createObjectNode();
+			st.put("agent", agent);
+			if (callback != null) {
+				st.put("callback", callback);
+			}
+
+			url += "&state=" + 
+				URLEncoder.encode(JOM.getInstance().writeValueAsString(st), "UTF-8");
+			resp.sendRedirect(url);
+		}
+		
 		PrintWriter out = resp.getWriter();
 		resp.setContentType("text/html");
 		out.print("<html>" +
@@ -64,27 +87,9 @@ public class GoogleAuth extends HttpServlet {
 			"for example access to your calendar." +
 			"</p>");
 		
-		// read parameters code and access_token from query parameters or cookies
-		String code = req.getParameter("code");
-		String state = req.getParameter("state");
-		String error = req.getParameter("error");
-		
+		// First step: show a form to authenticate
 		if (code == null && state == null && error == null) {
-			// show a form to authenticate
-			String space = " ";
-			String scope = 
-				"https://www.googleapis.com/auth/userinfo.email" + space + 
-				"https://www.googleapis.com/auth/userinfo.profile" + space +
-				"https://www.googleapis.com/auth/calendar";
-			Map<String, String> params = new HashMap<String, String>();
-			params.put("scope", scope);
-			params.put("redirect_uri", REDIRECT_URI);
-			params.put("response_type", "code");
-			params.put("access_type", "offline");
-			params.put("client_id", CLIENT_ID);
-			params.put("approval_prompt", "force");
-			String url = HttpUtil.appendQueryParams(OAUTH_URI + "/auth", params);
-
+			String url = createAuthorizationUrl();
 			out.print("<script type='text/javascript'>" +
 				"function auth() {" +
 				"var state={" +
@@ -113,9 +118,8 @@ public class GoogleAuth extends HttpServlet {
 				"</table>");
 		}
 
+		// Second step: exchange code with authentication token
 		if (code != null && state != null){
-			// Second step: exchange code with authentication token
-
 			Map<String, String> params = new HashMap<String, String>();
 			params.put("code", code);
 			params.put("client_id", CLIENT_ID);
@@ -126,49 +130,29 @@ public class GoogleAuth extends HttpServlet {
 
 			ObjectMapper mapper = new ObjectMapper();
 			ObjectNode json = mapper.readValue(res, ObjectNode.class);
-			String access_token = null;
-			if (json.has("access_token")) {
-				access_token = json.get("access_token").asText().toString();
-			}
-			String refresh_token = null;
-			if (json.has("refresh_token")) {
-				refresh_token = json.get("refresh_token").asText().toString();
-			}
-			String token_type = null;
-			if (json.has("token_type")) {
-				token_type = json.get("token_type").asText();
-			}			
-			Integer expires_in = null;
-			if (json.has("expires_in")) {
-				expires_in = json.get("expires_in").asInt();
-			}			
-			
-			if (access_token != null && refresh_token != null) {
+
+			if (!json.has("error")) {
 				ObjectNode st = mapper.readValue(state, ObjectNode.class); 
 				String id = st.has("id") ? st.get("id").asText() : null;
 				String type = st.has("type") ? st.get("type").asText() : null;
+				String agentUrl = st.has("agent") ? st.get("agent").asText() : null;
+				String statusCallback = st.has("callback") ? st.get("callback").asText() : null;
 				
 				// TODO: actually store the retrieved token in the agent
-				
-				String agentUrl = AGENTS_URI + "/" + type + "/" + id;
-				ObjectNode rpcParams = JOM.createObjectNode();
-				rpcParams.put("access_token", access_token);
-				rpcParams.put("token_type", token_type);
-				rpcParams.put("expires_in", expires_in);
-				rpcParams.put("refresh_token", refresh_token);
-				JSONRequest rpcRequest = 
-					new JSONRequest("setAuthorization", rpcParams);
+				if (agentUrl == null) {
+					agentUrl = AGENTS_URI + "/" + type + "/" + id;
+				}
+				JSONRequest rpcRequest = new JSONRequest("setAuthorization", json);
 				JSONResponse rpcResp = JSONRPC.send(agentUrl, rpcRequest);
 				
-				out.print("<p>" +
-					type + " with id " + id + " is authorized succesfully." +
-					"</p>");
-				out.print("<p>" +
-						"<a href=\"" + agentUrl + "\">" + agentUrl + "</a>" +
-						"</p>");
+				if (statusCallback != null) {
+					resp.sendRedirect(statusCallback);
+				}
+				
+				out.print("<p>Agent is succesfully authorized.</p>");
+				out.print("<p><a href=\"" + agentUrl + "\">" + agentUrl + "</a></p>");
 			}
-			
-			if (json.has("error")) {
+			else {
 				out.print("<p>An error occurred</p>");				
 				out.print("<pre class='error'>" + 
 						mapper.writeValueAsString(json.get("error")) + 
@@ -178,27 +162,34 @@ public class GoogleAuth extends HttpServlet {
 						REDIRECT_URI + "\";'>Ok</button>");
 
 			// TODO: cleanup
-			out.println("<pre>");
-			out.println("Authorization code exchanged for access token:");
-			out.println(res);
-			out.println("</pre>");
+			out.println("<script type='text/javascript'>");
+			out.println("console.log('Authorization code exchanged for access token:', " + res + ")");
+			out.println("</script>");
 			
 			// TODO: cleanup
-			if (access_token != null) {
+			if (!json.has("error")) {
+				String access_token = null;
+				if (json.has("access_token")) {
+					access_token = json.get("access_token").asText().toString();
+				}
+				String token_type = null;
+				if (json.has("token_type")) {
+					token_type = json.get("token_type").asText();
+				}
+								
 				// Third step: use the access token to call a Google API
 				String url2 = "https://www.googleapis.com/oauth2/v1/userinfo";
 				Map<String, String> headers = new HashMap<String, String>();
 				headers.put("Authorization", token_type + " " + access_token);
 				String info = HttpUtil.get(url2, headers);
 
-				out.println("<pre>");
-				out.println("Retrieved user information:");
-				out.println(info);
-				out.println("</pre>");
+				out.println("<script type='text/javascript'>");
+				out.println("console.log('Retrieved user information:', " + info + ")");
+				out.println("</script>");
 			}
 		}
 		
-		if (error != null && state != null) {
+		if (error != null) {
 			out.print("<p>An error occurred</p>");				
 			out.print("<pre class='error'>" + error + "</pre>");				
 			out.print("<button onclick='window.location.href=\"" + 
@@ -209,5 +200,23 @@ public class GoogleAuth extends HttpServlet {
 			"</body>" +
 			"</html>"			
 		);
+	}
+	
+	private String createAuthorizationUrl() throws IOException {
+		String space = " ";
+		String scope = 
+			"https://www.googleapis.com/auth/userinfo.email" + space + 
+			"https://www.googleapis.com/auth/userinfo.profile" + space +
+			"https://www.googleapis.com/auth/calendar";
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("scope", scope);
+		params.put("redirect_uri", REDIRECT_URI);
+		params.put("response_type", "code");
+		params.put("access_type", "offline");
+		params.put("client_id", CLIENT_ID);
+		params.put("approval_prompt", "force");
+		String url = HttpUtil.appendQueryParams(OAUTH_URI + "/auth", params);
+		
+		return url;
 	}
 }
