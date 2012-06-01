@@ -1,6 +1,12 @@
 EVE CORE
 http://almende.github.com/eve/
 
+2012-06-01, version 0.4
+
+- Changed the JSON deserialization to allow non-matched fields
+- Small changes
+
+
 2012-05-29, version 0.3
 
 - Fixed a bug in JSONResponse, not throwing an error when in the response

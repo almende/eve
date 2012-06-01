@@ -1,6 +1,12 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
+2012-06-01, version 0.4
+
+- Activity structure updated.
+- MeetingAgent improved, better activity synchronizing.
+
+
 2012-05-29, version 0.3
 
 - Extended GoogleCalendarAgent with methods getEvent, createEvent, updateEvent, 
