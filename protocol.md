@@ -26,33 +26,14 @@ This page describes:
 
 ## Protocol {#protocol}
 
-The [JSON-RPC](http://en.wikipedia.org/wiki/JSON_RPC) is implemented in two ways:
-
-- **Synchronous**  
-  Agent X performs an HTTP POST request to agent Y,
-  which returns the results in the response.
-  This can cause timeout issues, especially when the
-  request causes new, nested requests to other agents.
-    
-- **Asynchronous**  
-  Agent X performs an HTTP POST request to agent Y.
-  Agent Y does not respond, but schedules the request
-  in its task queue. When after the task is executed,
-  agent Y performs an HTTP request to agent X
-  containing the response.
-
+Eve agents communicate with each other via the 
+[JSON-RPC](http://en.wikipedia.org/wiki/JSON_RPC) protocol.
 Note that only JSON-RPC 2.0 is supported.
 In JSON-RPC 2.0, method parameters are defined as an object with *named* parameters,
 unlike JSON-RPC 1.0 where method parameters are defined as an array with *unnamed*
 parameters, which is much more ambiguous.
 
-<!--
-[Click here](json_rpc.html) to try JSON-RPC yourself in your browser.
--->
-
-### Synchronous communication
-
-A regular request from Agent X to agent Y can look like this. 
+A request from Agent X to agent Y can look as follows. 
 Agent X addresses method "add" from agent Y, and provides two values 
 as parameters. 
 Agent Y executes the method with the provided parameters, and returns the result.
@@ -76,72 +57,6 @@ Agent Y executes the method with the provided parameters, and returns the result
 <th class="example">Response</th><td class="example"><pre class="example">{
   "id": 1,
   "result": 6.7,
-  "error": null
-}</pre></td>
-</tr>
-</table>
-
-
-
-### Asynchronous communication
-
-Agent X performs a request to agent Y. 
-It calls method "add" and provides two values as parameters.
-Agent X also provides a callback url and method.
-When agent Y receives teh request, it does not execute the requested method 
-imediately, but puts the request in its task queue and returns nothing.
-
-<table class="example" summary="Asynchronous request 1/2">
-<tr>
-<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/Y</pre></td>
-</tr>
-<tr>
-<th class="example">Request</th><td class="example"><pre class="example">{ 
-  "id": 1,
-  "method": "add",
-  "params": {
-    "a": 2.2, 
-    "b": 4.5
-  },
-  "callback": {
-    "url": "http://myserver.com/agentX",
-    "method": "addCallback"
-  }
-}</pre></td>
-</tr>
-<tr>
-<th class="example">Response</th><td class="example"><pre class="example">{
-  "id": 1,
-  "result": null,
-  "error": null
-}</pre></td>
-</tr>
-</table>
-
-
-Because agent X is not waiting for the response with the result, 
-there is no problem when execution of the method takes a long time. 
-As soon as agent Y has executed the task from the queue, it returns the result
-via a new request, adressing the callback url and method of agent X:
-
-<table class="example" summary="Asynchronous request 2/2">
-<tr>
-<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/X</pre></td>
-</tr>
-<tr>
-<th class="example">Request</th><td class="example"><pre class="example">{
-  "id": 1,
-  "method": "addCallback",
-  "params": {
-    "result: 6.7,
-    "error": null
-  }
-}</pre></td>
-</tr>
-<tr>
-<th class="example">Response</th><td class="example"><pre class="example">{
-  "id": 1,
-  "result": null,
   "error": null
 }</pre></td>
 </tr>
@@ -230,6 +145,88 @@ Example location (Rotterdam, the Netherlands):
       "lat": 51.92298,
       "lng": 4.48287
     }
+
+
+### Callback
+
+A Callback is used for asynchronous requests. 
+This is useful for requests which can take a long time to complete, 
+possibly resulting in request timeouts. 
+
+In case of an asynchronous request, 
+an agent can schedule the request and return an empty response immediately. 
+It schedules the request and executes it lateron.
+The result will be send to the provided callback url and method, with the
+parameters `result` and `error`.
+
+Example callback:
+
+    {
+        "url": "http://myserver.com/agentX",
+        "method": "addCallback"
+    }
+
+
+In the folowing example, Agent X performs an asynchronous request to agent Y. 
+It calls method “add” and provides two values as parameters, `a` and `b`,
+and an additional `callback` parameter containing a url and method. 
+When agent Y receives the request, 
+it puts the request in its task queue and returns an empty response.
+
+<table class="example" summary="Asynchronous request 1/2">
+<tr>
+<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/Y</pre></td>
+</tr>
+<tr>
+<th class="example">Request</th><td class="example"><pre class="example">{
+  "id": 1,
+  "method": "add",
+  "params": {
+    "a": 2.2, 
+    "b": 4.5,
+    "callback", {
+      "url": "http://myserver.com/agentX",
+      "method": "addCallback"
+    }
+  }
+}</pre></td>
+</tr>
+<tr>
+<th class="example">Response</th><td class="example"><pre class="example">{
+  "id": 1,
+  "result": null
+}</pre></td>
+</tr>
+</table>
+
+
+Because agent X is not waiting for the response with the result, 
+there is no problem when execution of the method takes a long time. 
+As soon as agent Y has executed the task from the queue, it returns the result
+via a new request, adressing the callback url and method of agent X:
+
+<table class="example" summary="Asynchronous request 2/2">
+<tr>
+<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/X</pre></td>
+</tr>
+<tr>
+<th class="example">Request</th><td class="example"><pre class="example">{
+  "id": 1,
+  "method": "addCallback",
+  "params": {
+    "result: 6.7,
+    "error": null
+  }
+}</pre></td>
+</tr>
+<tr>
+<th class="example">Response</th><td class="example"><pre class="example">{
+  "id": 1,
+  "result": null,
+  "error": null
+}</pre></td>
+</tr>
+</table>
 
 
 <!-- TODO: describe authentication
