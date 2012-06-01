@@ -109,16 +109,14 @@
                             <input name="agent.activity.constraints.location.summary" type="text"
                                    placeholder="location" ng:change="setUpdated(agent)" />
                         </td>
-                        <td class="noborder"></td>
                     </tr>
                     <tr>
-                        <td class="noborder">Duration (sec)</td>
+                        <td class="noborder">Duration (min)</td>
                         <td class="noborder">
                             <input name="agent.activity.constraints.time.duration" type="text"
                                    placeholder="duration (min)" value="60"
                                    ng:change="setUpdated(agent)" />
                         </td>
-                        <td class="noborder"></td>
                     </tr>
                     <tr>
                         <td class="noborder">Attendees</td>
@@ -130,16 +128,15 @@
                                 <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
                                    title="Remove Attendee">&times;</a>
                             </div>
-                        </td>
-                        <td class="noborder">
-                            <a href="" class="add" ng:click="addAttendee(agent)"
-                               title="Add an attendee">&plus;</a>
+                            <div>
+                                <a href="" class="add" ng:click="addAttendee(agent)"
+                                   title="Add an attendee">&plus;</a>
+                            </div>
                         </td>
                     </tr>
-
                 </table>
             </td>
-            <td>
+            <td style="min-width:260px">
                 <span ng:show="!agent.updating">
                     <span ng:show="agent.activity.status.start">
                         Start: {{ formatDateTime(agent.activity.status.start) }}
