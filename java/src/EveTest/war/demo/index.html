@@ -45,7 +45,7 @@
                 <input type="text" name="agent.id" placeholder="id" ng:change="updateCalendarAgent(agent)"/>
             </td>
             <td>
-                <a href="{{MEETING_AGENT_URI + agent.id}}">{{agent.id}}</a>
+                <a href="{{CALENDAR_AGENT_URI + agent.id}}" target="_blank">{{agent.id}}</a>
             </td>
             <td>
                 <span ng:hide="agent.usernameUpdating">{{agent.username}}</span>
@@ -54,7 +54,7 @@
             <td>
                 <span ng:hide="agent.emailUpdating">{{agent.email}}</span>
                 <span ng:show="agent.emailUpdating" class="loading">loading...</span>
-                <button ng:click="authorizeCalendarAgent(agent)"
+                <button ng:click="authorize(agent)"
                         ng:hide="agent.email || agent.emailUpdating"
                         title="Give this agent access to Google Calendar">
                     Authorize</button>
@@ -93,23 +93,30 @@
         </tr>
         <tr ng:repeat="agent in meetingAgents">
             <td>
-                <input name="agent.id" type="text" placeholder="id" ng:change="save()" />
+                <input name="agent.id" type="text" placeholder="id"
+                       ng:change="getMeetingAgent(agent)" />
             </td>
             <td>
-                <a href="{{MEETING_AGENT_URI + agent.id}}">{{agent.id}}</a>
+                <a href="{{MEETING_AGENT_URI + agent.id}}" target="_blank">{{agent.id}}</a>
             </td>
             <td>
-                <input name="agent.summary" type="text" placeholder="summary" ng:change="save()" />
+                <input name="agent.activity.summary" type="text"
+                       placeholder="summary" ng:change="setUpdated(agent)" />
             </td>
             <td>
-                <input name="agent.location" type="text" placeholder="location" ng:change="save()" />
+                <input name="agent.activity.constraints.location.summary" type="text"
+                       placeholder="location" ng:change="setUpdated(agent)" />
             </td>
             <td>
-                <input name="agent.duration" type="text" placeholder="duration (min)" value="60" ng:change="save()" />
+                <input name="agent.activity.constraints.time.duration" type="text"
+                       placeholder="duration (min)" value="60"
+                       ng:change="setUpdated(agent)" />
             </td>
             <td>
-                <div ng:repeat="attendee in agent.attendees">
-                    <input name="attendee.id" type="text" placeholder="id" ng:change="save()" />
+                <div ng:repeat="attendee in agent.activity.constraints.attendees">
+                    <!-- TODO: create an angular widget for the attendee.agent url -->
+                    <input name="attendee.id" type="text"
+                           placeholder="id" ng:change="setUpdated(agent)" />
                     <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
                             title="Remove Attendee">&times;</a>
                 </div>
@@ -119,15 +126,15 @@
                 </div>
             </td>
             <td>
-                <span ng:show="agent.start">Start: {{agent.start}}<br></span>
-                <span ng:show="agent.end">End: {{agent.end}}</span>
+                <span ng:show="agent.activity.status.start">
+                    Start: {{ formatDateTime(agent.activity.status.start) }}
+                    <br>
+                </span>
+                <span ng:show="agent.activity.status.end">
+                    End: {{ formatDateTime(agent.activity.status.end) }}
+                </span>
             </td>
             <td>
-                <button ng:click="setActivityMeetingAgent (agent)"
-                        disabled="{{agent.saving}}"
-                        title="Send the settings to the MeetingAgent">
-                    Set</button>
-
                 <button ng:click="updateMeetingAgent(agent)"
                         disabled="{{agent.updating}}"
                         title="Let the MeetingAgent perform an update: synchronize the event">
@@ -145,9 +152,6 @@
             </td>
         </tr>
     </table>
-
-
-
 </div>
 </body>
 </html>
