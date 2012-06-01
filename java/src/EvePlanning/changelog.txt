@@ -1,10 +1,10 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
-<not yet released>, version 0.4
+2012-06-01, version 0.4
 
 - Activity structure updated.
-- MeetingAgent improved, better activity syncing.
+- MeetingAgent improved, better activity synchronizing.
 
 
 2012-05-29, version 0.3
