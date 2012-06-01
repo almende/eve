@@ -82,9 +82,7 @@
             <th>Id</th>
             <th>Url</th>
             <th>Summary</th>
-            <th>Location</th>
-            <th>Duration (min)</th>
-            <th>Attendees</th>
+            <th>Constraints</th>
             <th>Status</th>
             <th>Actions</th>
             <td class="noborder">
@@ -104,26 +102,42 @@
                        placeholder="summary" ng:change="setUpdated(agent)" />
             </td>
             <td>
-                <input name="agent.activity.constraints.location.summary" type="text"
-                       placeholder="location" ng:change="setUpdated(agent)" />
-            </td>
-            <td>
-                <input name="agent.activity.constraints.time.duration" type="text"
-                       placeholder="duration (min)" value="60"
-                       ng:change="setUpdated(agent)" />
-            </td>
-            <td>
-                <div ng:repeat="attendee in agent.activity.constraints.attendees">
-                    <!-- TODO: create an angular widget for the attendee.agent url -->
-                    <input name="attendee.id" type="text"
-                           placeholder="id" ng:change="setUpdated(agent)" />
-                    <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
-                            title="Remove Attendee">&times;</a>
-                </div>
-                <div>
-                    <a href="" class="add" ng:click="addAttendee(agent)"
-                       title="Add an attendee">&plus;</a>
-                </div>
+                <table>
+                    <tr>
+                        <td class="noborder">Location</td>
+                        <td class="noborder">
+                            <input name="agent.activity.constraints.location.summary" type="text"
+                                   placeholder="location" ng:change="setUpdated(agent)" />
+                        </td>
+                        <td class="noborder"></td>
+                    </tr>
+                    <tr>
+                        <td class="noborder">Duration (sec)</td>
+                        <td class="noborder">
+                            <input name="agent.activity.constraints.time.duration" type="text"
+                                   placeholder="duration (min)" value="60"
+                                   ng:change="setUpdated(agent)" />
+                        </td>
+                        <td class="noborder"></td>
+                    </tr>
+                    <tr>
+                        <td class="noborder">Attendees</td>
+                        <td class="noborder">
+                            <div ng:repeat="attendee in agent.activity.constraints.attendees">
+                                <!-- TODO: create an angular widget for the attendee.agent url -->
+                                <input name="attendee.id" type="text"
+                                       placeholder="id" ng:change="setUpdated(agent)" />
+                                <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
+                                   title="Remove Attendee">&times;</a>
+                            </div>
+                        </td>
+                        <td class="noborder">
+                            <a href="" class="add" ng:click="addAttendee(agent)"
+                               title="Add an attendee">&plus;</a>
+                        </td>
+                    </tr>
+
+                </table>
             </td>
             <td>
                 <span ng:show="!agent.updating">
