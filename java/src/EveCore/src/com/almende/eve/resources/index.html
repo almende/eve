@@ -104,7 +104,7 @@ TODO:
       // logs
       this.lastTimestamp = 0;
       this.pollingInterval = 10000;  // polling interval in milliseconds
-      this.timeToLive = 10*60*000;       // time to live for the logagent
+      this.timeToLive = 60*1000;       // time to live for the logagent
       this.logs = [];
       this.logAgentId = UUID.randomUUID();
       
@@ -183,6 +183,8 @@ TODO:
         for (var i = 0; i < this.method.params.length; i++) {
           var param = this.method.params[i];
           if (param.required || (param.value && param.value.length > 0) ) {
+            // TODO: reckon with the type of the parameter, in case of
+            //       object, parse as object. In case of number, parse as number
             request.params[param.name] = param.value;
           }
         }
