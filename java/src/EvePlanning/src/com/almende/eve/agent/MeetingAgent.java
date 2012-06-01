@@ -34,7 +34,6 @@ import org.joda.time.DateTime;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.activity.Activity;
 import com.almende.eve.entity.activity.Attendee;
-import com.almende.eve.entity.activity.Status;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
@@ -155,6 +154,57 @@ public class MeetingAgent extends Agent {
 	}
 	
 	/**
+	 * Merge an event into an Activity
+	 * @param activity
+	 * @param event
+	 */
+	private void merge(Activity activity, ObjectNode event) {
+		String summary = null;
+		if (event.has("summary")) {
+			summary = event.get("summary").asText();
+		}
+		activity.setSummary(summary);
+
+		String updated = null;
+		if (event.has("updated")) {
+			updated = event.get("updated").asText();
+		}		
+		activity.getStatus().setUpdated(updated);
+
+		String start = null;
+		if (event.with("start").has("dateTime")) {
+			start = event.with("start").get("dateTime").asText();
+		}
+		activity.getStatus().setStart(start);
+
+		String end = null;
+		if (event.with("end").has("dateTime")) {
+			end = event.with("end").get("dateTime").asText();
+		}
+		activity.getStatus().setEnd(end);
+
+		String location = null;
+		if (event.has("location")) {
+			location = event.get("location").asText();
+		}
+		activity.getConstraints().getLocation().setSummary(location);
+	}
+	
+	/**
+	 * Merge an activity into an event
+	 * @param event
+	 * @param activity
+	 */
+	private void merge(ObjectNode event, Activity activity) {
+		event.put("summary", activity.getSummary());
+		event.put("updated", activity.getStatus().getUpdated());
+		event.put("location", activity.getConstraints().getLocation().getSummary());
+
+		event.with("start").put("dateTime", activity.getStatus().getStart());
+		event.with("end").put("dateTime", activity.getStatus().getEnd());
+	}
+
+	/**
 	 * Synchronize the event with given calendar agent
 	 * @param agent
 	 */
@@ -163,16 +213,9 @@ public class MeetingAgent extends Agent {
 
 		Context context = getContext();
 		Activity activity = context.get("activity");
-		String summary = activity.getSummary();
-		Status status = activity.getStatus();
-		DateTime start = (status != null) ? new DateTime(status.getStart()) : null;
-		DateTime end = (status != null) ? new DateTime(status.getEnd()) : null;
-		DateTime updated = (status != null && status.getUpdated() != null) ? 
-				new DateTime(status.getUpdated()) : null;
-
+		
 		// retrieve event
 		ObjectNode event = null;
-		DateTime eventUpdated = null;
 		String eventId = context.get(agent);
 		if (eventId != null) {
 				ObjectNode params = JOM.createObjectNode();
@@ -192,68 +235,23 @@ public class MeetingAgent extends Agent {
 				}
 		}
 
-		// get the datetime when the event is updated
-		if (event != null && event.has("updated")) {
-			eventUpdated = new DateTime(event.get("updated").asText());
+		if (event == null) {
+			event = JOM.createObjectNode();
 		}
+		Activity eventActivity = new Activity();
+		merge(eventActivity, event);
 
-		// update the meeting agents data when event is newer
-		if (eventUpdated != null && (updated == null || eventUpdated.isAfter(updated))) {
-			// read new data
-			updated = new DateTime(eventUpdated);
-			if (event.has("summary")) {
-				summary = event.get("summary").asText();
-			}
-			if (event.with("start").has("dateTime")) {
-				start = new DateTime(event.with("start").get("dateTime").asText());
-			}
-			if (event.with("end").has("dateTime")) {
-				end = new DateTime(event.with("end").get("dateTime").asText());
-			}
+		if (activity.isAfter(eventActivity)) {
+			// activity is updated (event is outdated or not yet existing)
 			
-			// update activity
-			if (activity.getStatus() == null) {
-				activity.setStatus(new Status());
-			}
-			activity.setSummary(summary);
-			activity.getStatus().setUpdated(updated.toString());
-			activity.getStatus().setStart(start.toString());
-			activity.getStatus().setEnd(end.toString());
-			context.put("activity", activity);
-			
-			// TODO: check the constraints again? duration?
-			
-			logger.info("MeetingAgent is outdated. new data:" +
-					"\nSummary = " + summary + 
-					"\nUpdated = " + updated.toString() +
-					"\nStart   = " + start.toString() +
-					"\nEnd     = " + end.toString());
-		}
-				
-		// check if the event is out-dated
-		boolean eventOutdated = (eventUpdated != null && 
-				updated != null && 
-				updated.isAfter(eventUpdated));
-		
-		// update/create event when not-existing or outdated
-		if (event == null || eventOutdated) {
-			String method;
-			if (event == null) {
-				logger.info("Create event");
-				method = "createEvent";
-				event = JOM.createObjectNode();
-			}
-			else {
-				logger.info("Update event");
-				method = "updateEvent";
-			}
-			event.put("summary", summary);
-			event.with("start").put("dateTime", start.toString());
-			event.with("end").put("dateTime", end.toString());
-			
+			// merge the activity into the event
+			merge(event, activity);
+
+			// save the event
 			ObjectNode params = JOM.createObjectNode();
 			params.put("event", event);
 			try {
+				String method = event.has("id") ? "updateEvent": "createEvent";
 				ObjectNode updatedEvent = send(agent, method, params, ObjectNode.class);
 				
 				// store new eventId
@@ -271,10 +269,16 @@ public class MeetingAgent extends Agent {
 			} catch (JSONRPCException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}		
+			}					
+		}
+		else {
+			// event is updated
+			Activity syncActivity = activity.clone();
+			merge(syncActivity, event);
+			context.put("activity", syncActivity);
 		}
 	}
-
+	
 	@Override
 	public String getDescription() {
 		return "A MeetingAgent can dynamically plan and manage a meeting.";

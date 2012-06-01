@@ -53,39 +53,51 @@ public class Activity implements Serializable, Cloneable {
 		return clone;
 	}
 	
+	/**
+	 * Check if a is after b
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public boolean isAfter(Activity other) {
+		DateTime updatedThis = null;
+		if (this.getStatus().getUpdated() != null) {
+			updatedThis = new DateTime(this.getStatus().getUpdated());
+		}
+		DateTime updatedOther = null;
+		if (other.getStatus().getUpdated() != null) {
+			updatedOther = new DateTime(other.getStatus().getUpdated());
+		}
+
+		if (updatedOther == null) {
+			// take this as newest
+			return true;
+		}
+		else if (updatedThis == null) {
+			// take other as newest
+			return false;
+		}
+		else if (updatedThis.isAfter(updatedOther)) {
+			// take this as newest
+			return true;	
+		}
+		else {
+			// take other as newest
+			return false;
+		}
+	}
+	
 	public static Activity sync (Activity a, Activity b) {
-		DateTime updatedA = null;
-		if (a.getStatus().getUpdated() != null) {
-			updatedA = new DateTime(a.getStatus().getUpdated());
-		}
-		DateTime updatedB = null;
-		if (b.getStatus().getUpdated() != null) {
-			updatedB = new DateTime(b.getStatus().getUpdated());
-		}
-		
-		// TODO: simplify this
 		Activity clone;
-		if (updatedB == null) {
-			// take a as newest
+		if (a.isAfter(b)) {
 			clone = b.clone(); 
 			clone.merge(a);
 		}
-		else if (updatedA == null) {
-			// take b as newest
-			clone = a.clone(); 
-			clone.merge(b);
-		}
-		else if (updatedA.isAfter(updatedB)) {
-			// take a as newest
-			clone = b.clone(); 
-			clone.merge(a);			
-		}
 		else {
-			// take b as newest
 			clone = a.clone();
 			clone.merge(b);
 		}
-				
+
 		return clone;
 	}
 	

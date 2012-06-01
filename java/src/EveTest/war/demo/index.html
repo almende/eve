@@ -126,13 +126,16 @@
                 </div>
             </td>
             <td>
-                <span ng:show="agent.activity.status.start">
-                    Start: {{ formatDateTime(agent.activity.status.start) }}
-                    <br>
+                <span ng:show="!agent.updating">
+                    <span ng:show="agent.activity.status.start">
+                        Start: {{ formatDateTime(agent.activity.status.start) }}
+                        <br>
+                    </span>
+                    <span ng:show="agent.activity.status.end">
+                        End: {{ formatDateTime(agent.activity.status.end) }}
+                    </span>
                 </span>
-                <span ng:show="agent.activity.status.end">
-                    End: {{ formatDateTime(agent.activity.status.end) }}
-                </span>
+                <span ng:show="agent.updating" class="loading">loading...</span>
             </td>
             <td>
                 <button ng:click="updateMeetingAgent(agent)"
