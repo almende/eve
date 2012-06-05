@@ -1,0 +1,5 @@
+TODO
+
+better error handling (especially for uncatched errors)
+describe asynchronous calls. Update asynchronous calls to the changed model
+    (callback object as a method parameter instead of a JSON-RPC parameter)
