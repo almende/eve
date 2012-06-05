@@ -63,16 +63,9 @@ with no single point of failure by design.
 
 ## Platform descriptions
 
-### Eve
-
-Site: [http://almende.github.com/eve/](http://almende.github.com/eve/)
-
-Eve is a multipurpose, web based agent platform.
-The project aims to develop an open protocol for communication between software
-agents.
-Eve is designed as a decentral, scalable system for autonomously acting agents.
-Eve uses the existing world wide web as platform, and uses existing protocols
-for data exchange (HTTP) and for messaging (JSON-RPC).
+This section gives an overview of a number of known multi-agent platforms.
+The platform descriptions are taken from the websites of the concerning
+platforms themselves.
 
 
 ### AgentScape
@@ -100,34 +93,16 @@ the AgentScape model also defines services. Services provide information or
 activities on behalf of agents or the AgentScape middleware.
 
 
-### MadKit
+### Eve
 
-Site: [http://www.madkit.org/](http://www.madkit.org/)
+Site: [http://almende.github.com/eve/](http://almende.github.com/eve/)
 
-MadKit is an open source modular and scalable multiagent platform written in
-Java and built upon the AGR (Agent/Group/Role) organizational model:
-MadKit agents play roles in groups and thus create artificial societies.
-MadKit does not enforce any consideration about the internal structure of agents,
-thus allowing a developer to freely implements its own agent architectures.
-
-MadKit is a free software based on the GPL/LGPL license featuring:
-
-- Artificial agents creation and life cycle management
-- An organizational infrastructure for communication between agents
-- High heterogeneity in agent architectures: No predefined agent model
-- Multi-Agent based simulation and simulator authoring tools
-- Multi-agent based distributed application authoring facilities
-
-
-### Jason
-
-Site: [http://jason.sourceforge.net/](http://jason.sourceforge.net/)
-
-Jason is an interpreter for an extended version of AgentSpeak.
-It implements the operational semantics of that language,
-and provides a platform for the development of multi-agent systems,
-with many user-customisable features. Jason is available Open Source,
-and is distributed under GNU LGPL. See more in the Description page.
+Eve is a multipurpose, web based agent platform.
+The project aims to develop an open protocol for communication between software
+agents.
+Eve is designed as a decentral, scalable system for autonomously acting agents.
+Eve uses the existing world wide web as platform, and uses existing protocols
+for data exchange (HTTP) and for messaging (JSON-RPC).
 
 
 ### Goal
@@ -172,3 +147,34 @@ distributed across a network. Janus is built upon the CRIO organizational
 metamodel and supports the implementation of the concepts of role and
 organisation as first-class entities. It also natively manages the concept of
 recursive agents or holon.
+
+
+### Jason
+
+Site: [http://jason.sourceforge.net/](http://jason.sourceforge.net/)
+
+Jason is an interpreter for an extended version of AgentSpeak.
+It implements the operational semantics of that language,
+and provides a platform for the development of multi-agent systems,
+with many user-customisable features. Jason is available Open Source,
+and is distributed under GNU LGPL. See more in the Description page.
+
+
+### MadKit
+
+Site: [http://www.madkit.org/](http://www.madkit.org/)
+
+MadKit is an open source modular and scalable multiagent platform written in
+Java and built upon the AGR (Agent/Group/Role) organizational model:
+MadKit agents play roles in groups and thus create artificial societies.
+MadKit does not enforce any consideration about the internal structure of agents,
+thus allowing a developer to freely implements its own agent architectures.
+
+MadKit is a free software based on the GPL/LGPL license featuring:
+
+- Artificial agents creation and life cycle management
+- An organizational infrastructure for communication between agents
+- High heterogeneity in agent architectures: No predefined agent model
+- Multi-Agent based simulation and simulator authoring tools
+- Multi-agent based distributed application authoring facilities
+
