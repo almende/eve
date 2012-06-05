@@ -6,8 +6,11 @@ bin="../bin"
 package="${bin}/eve-nodejs-${version}.zip"
 files="eve.js server.js README agent node_modules"
 
+# make bin directory
+mkdir -p "${bin}"
+
 # create package
 echo "creating package ${package}..."
-zip -q -r ${package} ${files}
+zip -q -r "${package}" ${files}
 
 echo "done"
