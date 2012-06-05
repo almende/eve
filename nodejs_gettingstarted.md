@@ -197,6 +197,7 @@ The Node.js application can be deployed on any of the available hosting
 solutions for Node.js:
 
 - [JoyentCloud](https://no.de/)
+- [Nodejitsu](http://nodejitsu.com/)
 - [Nodester](http://nodester.com/)
 - [Windows Azure](http://www.windowsazure.com/en-us/develop/nodejs/)
 - others...
