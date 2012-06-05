@@ -3,7 +3,7 @@
 
 version="0.1"
 bin="../bin"
-package="${bin}/eve-nodejs-${version}"
+package="${bin}/eve-nodejs-${version}.zip"
 files="eve.js server.js README agent node_modules"
 
 # create package

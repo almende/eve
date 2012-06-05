@@ -17,17 +17,17 @@ USAGE
 
     url:      http://127.0.0.1:1337/CalcAgent
     request:  {"id":1, "method": "add", "params": {"a": 3, "b":4}}
-    response: {"id":1, "result": 7, error: null}
+    response: {"id":1, "result": 7, "error": null}
 
     url:      http://127.0.0.1:1337/CalcAgent
     request:  {"id":1, "method": "sum", "params": {
                   "values": [1.2, 4.5, 2.5, 11, 14.5]}}
-    response: {"id":1, "result": 33.7, error: null}
+    response: {"id":1, "result": 33.7, "error": null}
 
     url:      http://127.0.0.1:1337/GoogleDirectionsAgent
     request:  {"id":1, "method": "getDurationHuman", "params": {
                  "origin": "rotterdam", "destination": "utrecht"}}
-    response: {"id":1, "result": "52 mins", error: null}
+    response: {"id":1, "result": "52 mins", "error": null}
 
 
 DOCUMENTATION
