@@ -19,6 +19,9 @@ TODO:
       font-family: arial; 
       font-size: 11pt;
     }
+    h2 {
+      color: #F0209B;
+    }
     td, th {
       text-align: left;
       vertical-align: top; 
@@ -265,7 +268,11 @@ TODO:
        */
       this.createLogAgent = function () {
         var self = this;
+        
+        // built url for logAgent
+        // TODO: this url splitting is kind of dangerous... 
         var urlParts = this.url.split('/');
+        urlParts.pop();
         urlParts.pop();
         urlParts.pop();
         urlParts.push('logagent');
