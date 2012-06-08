@@ -56,7 +56,7 @@ public class JSONRequest {
 				"Member 'params' is no ObjectNode");
 		}
 		
-		init (request.get("id").asInt(), request.get("method").asText(), 
+		init (request.get("id"), request.get("method").asText(), 
 				(ObjectNode)request.get("params"));
 	}
 
