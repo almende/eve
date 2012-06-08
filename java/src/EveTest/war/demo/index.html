@@ -42,7 +42,7 @@
         </tr>
         <tr ng:repeat="agent in calendarAgents">
             <td>
-                <input type="text" name="agent.id" placeholder="id" ng:change="updateCalendarAgent(agent)"/>
+                <input type="text" name="agent.id" placeholder="id" ng:change="getCalendarAgent(agent)"/>
             </td>
             <td>
                 <a href="{{CALENDAR_AGENT_URI + agent.id}}" target="_blank">{{agent.id}}</a>

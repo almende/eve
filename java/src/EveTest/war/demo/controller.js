@@ -65,52 +65,64 @@ function Ctrl() {
     };
 
     /**
-     * Update the email from the agent
+     * Get the email from the calendar agent
      * @param agent
      */
-    scope.updateCalendarAgent = function (agent) {
+    scope.getCalendarAgent = function (agent) {
         if (!agent || agent.id == undefined || agent.id == '') {
             return;
         }
         var url = scope.CALENDAR_AGENT_URI + agent.id;
 
         // retrieve email
+        var emailUpdateSeq = agent.emailUpdateSeq ? agent.emailUpdateSeq + 1 : 1;
+        agent.emailUpdateSeq = emailUpdateSeq;
         agent.emailUpdating = true;
         jsonrpc({
             'url': url,
             'method': 'getEmail',
             'params': {},
             'success': function (email) {
-                delete agent.emailUpdating;
-                agent.email = email;
-                scope.$root.$eval();
-                scope.save();
+                if (emailUpdateSeq == agent.emailUpdateSeq) {
+                    delete agent.emailUpdating;
+                    agent.email = email;
+                    scope.$root.$eval();
+                    scope.save();
+                }
             },
             'error': function (err) {
-                delete agent.emailUpdating;
-                scope.$root.$eval();
-                scope.save();
-                console.log('error', err);
+                if (emailUpdateSeq == agent.emailUpdateSeq) {
+                    delete agent.emailUpdating;
+                    scope.$root.$eval();
+                    scope.save();
+                    console.log('error', err);
+                }
             }
         });
 
         // retrieve username
+        var usernameUpdateSeq = agent.usernameUpdateSeq ? agent.usernameUpdateSeq + 1 : 1;
+        agent.usernameUpdateSeq = usernameUpdateSeq;
         agent.usernameUpdating = true;
         jsonrpc({
             'url': url,
             'method': 'getUsername',
             'params': {},
             'success': function (username) {
-                delete agent.usernameUpdating;
-                agent.username = username;
-                scope.$root.$eval();
-                scope.save();
+                if (usernameUpdateSeq == agent.usernameUpdateSeq) {
+                    delete agent.usernameUpdating;
+                    agent.username = username;
+                    scope.$root.$eval();
+                    scope.save();
+                }
             },
             'error': function (err) {
-                delete agent.usernameUpdating;
-                scope.$root.$eval();
-                scope.save();
-                console.log('error', err);
+                if (usernameUpdateSeq == agent.usernameUpdateSeq) {
+                    delete agent.usernameUpdating;
+                    scope.$root.$eval();
+                    scope.save();
+                    console.log('error', err);
+                }
             }
         });
     };
@@ -175,26 +187,34 @@ function Ctrl() {
      * @param {Object} agent
      */
     scope.getMeetingAgent = function (agent) {
+        // keep track on the updateSeq, to prevent simultaneous update requests
+        // coming back in the wrong order.
+        var updateSeq = agent.updateSeq ? agent.updateSeq + 1 : 1;
+        agent.updateSeq = updateSeq;
         agent.updating = true;
         jsonrpc({
             'url': scope.MEETING_AGENT_URI + agent.id,
             'method': 'getActivity',
             'params': {},
             'success': function (activity) {
-                delete agent.updating;
+                if (updateSeq == agent.updateSeq) {
+                    delete agent.updating;
 
-                // post process the activity
-                scope.activityJsonToHtml(activity);
-                agent.activity = activity;
+                    // post process the activity
+                    scope.activityJsonToHtml(activity);
+                    agent.activity = activity;
 
-                scope.$root.$eval();
-                scope.save();
+                    scope.$root.$eval();
+                    scope.save();
+                }
             },
             'error': function (err) {
-                delete agent.updating;
-                scope.$root.$eval();
-                scope.save();
-                console.log('error', err);
+                if (updateSeq == agent.updateSeq) {
+                    delete agent.updating;
+                    scope.$root.$eval();
+                    scope.save();
+                    console.log('error', err);
+                }
             }
         });
     };
@@ -298,7 +318,7 @@ function Ctrl() {
      */
     scope.updateAll = function () {
         $.each(scope.calendarAgents, function(index, agent) {
-            scope.updateCalendarAgent(agent);
+            scope.getCalendarAgent(agent);
         });
 
         $.each(scope.meetingAgents, function(index, agent) {
