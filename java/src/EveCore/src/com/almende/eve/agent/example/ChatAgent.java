@@ -73,14 +73,17 @@ import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ChatAgent extends Agent {
+	@SuppressWarnings("rawtypes")
+	private static Class<? extends ArrayList> LIST_STRING_CLASS = (new ArrayList<String>()).getClass();
+	
 	/**
 	 * Get the username
 	 * @return
 	 * @throws Exception 
 	 */
 	public String getUsername() throws Exception {
-		Object username = getContext().get("username");
-		return (username != null) ? (String)username : getUrl();
+		String username = getContext().get("username", String.class);
+		return (username != null) ? username : getUrl();
 	}
 
 	/**
@@ -156,9 +159,10 @@ public class ChatAgent extends Agent {
 
 		// get my own connections from the context
 		String urlSelf = getUrl();
-		Object obj = getContext().get("connections");
-		List<String> connections = (obj != null) ? (List<String>)obj : 
-			new ArrayList<String>();
+		List<String> connections = getContext().get("connections", LIST_STRING_CLASS); 
+		if (connections == null) {	
+			connections = new ArrayList<String>();
+		}
 
 		for (int i = 0; i < otherConnections.size(); i++) {
 			String connection = otherConnections.get(i);
@@ -217,12 +221,10 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void disconnect() throws Exception {
-		Object obj = getContext().get("connections");
-		if (obj != null) {
+		List<String> connections = getContext().get("connections", LIST_STRING_CLASS);
+		if (connections != null) {
 			getContext().remove("connections");			
 
-			List<String> connections = (List<String>) obj;
-			
 			log(getUsername() + " disconnecting " + connections.size() + " agent(s)"); 
 			
 			for (int i = 0; i < connections.size(); i++) {
@@ -248,14 +250,13 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void removeConnection(@Name("url") String url) throws Exception {
-		Object obj = getContext().get("connections");
-		if (obj != null) {
-			List<String> connections = (List<String>) obj;
+		List<String> connections = getContext().get("connections", LIST_STRING_CLASS);
+		if (connections != null) {
 			connections.remove(url);
 			getContext().put("connections", connections);	
 			
 			log(getUsername() + " disconnected from " + url); 
-			// tirgger a "connected" event
+			// trigger a "connected" event
 			ObjectNode params = JOM.createObjectNode();
 			params.put("url", url);
 			trigger("disconnected", params);			
@@ -268,9 +269,9 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<String> getConnections() {
-		Object connections = getContext().get("connections");
+		List<String> connections = getContext().get("connections", LIST_STRING_CLASS);
 		if (connections != null) {
-			return (List<String>) connections;
+			return connections;
 		}
 		else {
 			return new ArrayList<String>();
@@ -290,7 +291,7 @@ public class ChatAgent extends Agent {
 	@Override
 	public String getDescription() {
 		return "A peer to peer chat agent. " +
-			"First call setUsername to set the agents usernames. " +
+			"First call setUsername to set the agents usernames (optional). " +
 			"Then use connect to connect an agent to another agent. " + 
 			"They will automatically synchronize their adress lists. " +
 			"Then, use post to post a message.";

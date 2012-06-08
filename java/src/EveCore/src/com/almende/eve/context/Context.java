@@ -9,21 +9,16 @@ public interface Context {
 	public String getServletUrl();	
 	public Config getConfig();  // TODO: config should be read only
 	
-	// getting info about the agent
+	// info about the agent
 	public String getAgentId();
 	public String getAgentClass();
 	public String getAgentUrl();
 
 	// key/value properties
-	public <T> T get(String key);
-	public void put(String key, Object value);
+	public <T> T get(String key, Class<T> type);
+	public boolean put(String key, Object value);
 	public boolean has(String key);
 	public void remove(String key);
-	
-	// transactional changes
-	public void beginTransaction();
-	public void commitTransaction();
-	public void rollbackTransaction();
 	
 	// scheduler
 	public Scheduler getScheduler();	

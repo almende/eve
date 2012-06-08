@@ -8,9 +8,7 @@ import com.almende.eve.scheduler.RunnableScheduler;
 import com.almende.eve.scheduler.Scheduler;
 
 public class MemoryContext implements Context {
-	private Config config = null;
-	private String environment = null;
-	private String servletUrl = null;
+	MemoryContextFactory factory = null;
 	private String agentUrl = null;
 	private String agentClass = null;
 	private String agentId = null;
@@ -21,14 +19,11 @@ public class MemoryContext implements Context {
 	
 	public MemoryContext() {}
 
-	public MemoryContext(String environment, String servletUrl, 
-			String agentClass, String agentId, Config config) {
-		this.environment = environment;
-		this.servletUrl = servletUrl;
+	public MemoryContext(MemoryContextFactory factory, 
+			String agentClass, String agentId) {
+		this.factory = factory;
 		this.agentId = agentId;
 		this.agentClass = agentClass;
-		this.config = config;
-
 		// Note: agentUrl will be initialized when needed
 	}
 	
@@ -43,11 +38,6 @@ public class MemoryContext implements Context {
 	}
 
 	@Override
-	public String getServletUrl() {
-		return servletUrl;
-	}
-	
-	@Override
 	public String getAgentUrl() {
 		if (agentUrl == null) {
 			String servletUrl = getServletUrl();
@@ -59,7 +49,7 @@ public class MemoryContext implements Context {
 				if (agentClass != null) {
 					agentUrl += agentClass + "/";
 					if (agentId != null) {
-						agentUrl += agentId;
+						agentUrl += agentId + "/";
 					}
 				}
 			}			
@@ -69,7 +59,7 @@ public class MemoryContext implements Context {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public synchronized <T> T get(String key) {
+	public synchronized <T> T get(String key, Class<T> type) {
 		if (properties == null) {
 			return null;
 		}
@@ -77,11 +67,13 @@ public class MemoryContext implements Context {
 	}
 
 	@Override
-	public synchronized void put(String key, Object value) {
+	public synchronized boolean put(String key, Object value) {
 		if (properties == null) {
-			return;
+			return false;
 		}		
+
 		properties.put(key, value);
+		return true;
 	}
 
 	@Override
@@ -105,27 +97,17 @@ public class MemoryContext implements Context {
 	}
 
 	@Override
-	public void beginTransaction() {
-		// TODO: transaction
-	}
-
-	@Override
-	public void commitTransaction() {
-		// TODO: transaction
-	}
-	
-	@Override
-	public void rollbackTransaction() {
-		// TODO: transaction
+	public String getServletUrl() {
+		return factory.getServletUrl();
 	}
 
 	@Override
 	public Config getConfig() {
-		return config;
+		return factory.getConfig();
 	}
 	
 	@Override
 	public String getEnvironment() {
-		return environment;
+		return factory.getEnvironment();
 	}
 }

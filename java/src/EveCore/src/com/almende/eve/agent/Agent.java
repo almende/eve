@@ -42,6 +42,7 @@ import java.util.TreeSet;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.context.Context;
+import com.almende.eve.session.Session;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
@@ -54,8 +55,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 abstract public class Agent {
 	private Context context = null;
-	//protected Context session = new SimpleContext(); // todo: add session context?
+	private Session session = null;
 	
+	@SuppressWarnings("rawtypes")
+	private static Class<? extends ArrayList> LIST_CALLBACK_CLASS = (new ArrayList<Callback>()).getClass();
+
 	public abstract String getDescription();
 	public abstract String getVersion();
 
@@ -79,6 +83,18 @@ abstract public class Agent {
 	@Access(AccessType.UNAVAILABLE)
 	final public Context getContext() {
 		return context;
+	}
+	
+	@Access(AccessType.UNAVAILABLE)
+	final public void setSession(Session session) {
+		if (session != null) {
+			this.session = session;
+		}
+	}
+
+	@Access(AccessType.UNAVAILABLE)
+	final public Session getSession() {
+		return session;
 	}
 	
 	/**
@@ -114,13 +130,10 @@ abstract public class Agent {
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod) {
-		List<Callback> subscriptions = null;
+		
 		String key = getSubscriptionsKey(event);
-		Object value = context.get(key);		
-		if (value != null) {
-			subscriptions = (List<Callback>) value;
-		}
-		else {
+		List<Callback> subscriptions = context.get(key, LIST_CALLBACK_CLASS);		
+		if (subscriptions == null) {
 			subscriptions = new ArrayList<Callback>(); 
 		}
 		
@@ -150,10 +163,8 @@ abstract public class Agent {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod) {
 		String key = getSubscriptionsKey(event);
-		Object value = context.get(key);
-		if (value != null) {
-			List<Callback> subscriptions = (List<Callback>) value;
-			
+		List<Callback> subscriptions = context.get(key, LIST_CALLBACK_CLASS);		
+		if (subscriptions != null) {
 			for (Callback s : subscriptions) {
 				if (s.callbackUrl.equals(callbackUrl) && 
 						s.callbackMethod.equals(callbackMethod)) {
@@ -187,16 +198,16 @@ abstract public class Agent {
 
 		// retrieve subscriptions from the event
 		String keyEvent = getSubscriptionsKey(event);
-		Object valueEvent = context.get(keyEvent);
+		List<Callback> valueEvent = context.get(keyEvent, LIST_CALLBACK_CLASS);
 		if (valueEvent != null) {
-			subscriptions.addAll( (List<Callback>) valueEvent);
+			subscriptions.addAll(valueEvent);
 		}
 		
 		// retrieve subscriptions from the all event "*"
 		String keyAll = getSubscriptionsKey("*");
-		Object valueAll = context.get(keyAll);
+		List<Callback> valueAll = context.get(keyAll, LIST_CALLBACK_CLASS);
 		if (valueAll != null) {
-			subscriptions.addAll( (List<Callback>) valueAll);
+			subscriptions.addAll(valueAll);
 		}
 		
 		// TODO: smartly remove double entries?

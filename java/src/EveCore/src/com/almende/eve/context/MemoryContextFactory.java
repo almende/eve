@@ -40,8 +40,7 @@ public class MemoryContextFactory implements ContextFactory {
 			if (id != null && classContexts != null) {
 				context = classContexts.get(id);
 				if (context == null) {
-					context = new MemoryContext(getEnvironment(), 
-							getServletUrl(), agentClass, id, config);
+					context = new MemoryContext(this, agentClass, id);
 					classContexts.put(id, context);
 				}
 			}

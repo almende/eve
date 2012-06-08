@@ -67,6 +67,8 @@ public class SingleAgentServlet extends HttpServlet {
 			// instantiate an agent and set its context
 			Agent agent = loadAgent(req);
 			
+			// TODO: instantiate session?
+			
 			// invoke the method onto the agent
 			response = JSONRPC.invoke(agent, request);
 

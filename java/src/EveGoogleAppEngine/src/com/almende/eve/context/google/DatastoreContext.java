@@ -10,23 +10,19 @@ import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class DatastoreContext implements Context {
-	private Config config = null;
-	private String environment = null;
-	private String servletUrl = null;
-	private String agentUrl = null;
+	private DatastoreContextFactory factory = null;
+	private Scheduler scheduler = null;
 	private String agentClass = null;
 	private String agentId = null;
-	private Scheduler scheduler = null;
+	private String agentUrl = null;
 	
 	public DatastoreContext() {}
 
-	protected DatastoreContext(String environment, String servletUrl, 
-			String agentClass, String agentId, Config config) {
-		this.environment = environment;
-		this.servletUrl = servletUrl;
+	protected DatastoreContext(DatastoreContextFactory factory, 
+			String agentClass, String agentId) {
+		this.factory = factory;
 		this.agentClass = agentClass;
 		this.agentId = agentId;
-		this.config = config;
 		// Note: agentUrl will be initialized when needed
 	}
 
@@ -87,14 +83,14 @@ public class DatastoreContext implements Context {
 	// TODO: load and save in a transaction
 	
 	@Override
-	public <T> T get(String key) {
+	public <T> T get(String key, Class<T> type) {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		
 		String fullKey = getFullKey(key);
 		KeyValue entity = datastore.load(KeyValue.class, fullKey);
 		if (entity != null) {
 			try {
-				return entity.getValue();
+				return entity.getValue(type);
 			} catch (ClassNotFoundException e) {
 				return null;
 			} catch (IOException e) {
@@ -107,16 +103,18 @@ public class DatastoreContext implements Context {
 	}
 
 	@Override
-	public void put(String key, Object value) {
+	public boolean put(String key, Object value) {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 
 		try {
 			String fullKey = getFullKey(key);
 			KeyValue entity = new KeyValue(fullKey, value);
 			datastore.store(entity);
+			return true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return false;
 		} 
 	}
 
@@ -152,7 +150,7 @@ public class DatastoreContext implements Context {
 				if (agentClass != null) {
 					agentUrl += agentClass + "/";
 					if (agentId != null) {
-						agentUrl += agentId;
+						agentUrl += agentId + "/";
 					}
 				}
 			}			
@@ -162,44 +160,24 @@ public class DatastoreContext implements Context {
 	
 	@Override
 	public String getServletUrl() {
-		return servletUrl;
+		return factory.getServletUrl();
 	}	
 	
 	@Override 
 	public String getEnvironment() {
-		return environment;
+		return factory.getEnvironment();
 	}
 	
+	@Override
+	public Config getConfig() {
+		return factory.getConfig();
+	}
+
 	@Override
 	public Scheduler getScheduler() {
 		if (scheduler == null) {
 			scheduler = new AppEngineScheduler();
 		}
 		return scheduler;
-	}
-	
-	@Override
-	public Config getConfig() {
-		return config;
-	}
-	
-	@Override
-	public void beginTransaction() {
-		// TODO: transaction
-	}
-
-	@Override
-	public void commitTransaction() {
-		// TODO: transaction
-	}
-	
-	@Override
-	public void rollbackTransaction() {
-		// TODO: transaction
-	}
-	
-	@Override
-	protected void finalize() throws Throwable {
-		// TODO: rollback a transaction when active
 	}
 }

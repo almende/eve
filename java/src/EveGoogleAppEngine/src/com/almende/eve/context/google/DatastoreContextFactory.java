@@ -20,14 +20,12 @@ public class DatastoreContextFactory implements ContextFactory {
 	public Config getConfig() {
 		return config;
 	}
-	
+
 	@Override
 	public Context getContext(String agentClass, String id) throws Exception {
-		return new DatastoreContext(getEnvironment(), getServletUrl(), 
-				agentClass, id, config);
+		return new DatastoreContext(this, agentClass, id);
 	}
 	
-
 	@Override 
 	public String getEnvironment() {
 		if (environment == null) {
@@ -49,4 +47,5 @@ public class DatastoreContextFactory implements ContextFactory {
 		}
 		return servletUrl;
 	}
+
 }

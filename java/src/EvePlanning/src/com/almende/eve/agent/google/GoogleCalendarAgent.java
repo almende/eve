@@ -174,7 +174,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public String getUsername() {
-		return getContext().get("name");
+		return getContext().get("name", String.class);
 	}
 	
 	/**
@@ -183,7 +183,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public String getEmail() {
-		return getContext().get("email");
+		return getContext().get("email", String.class);
 	}
 	
 	/**
@@ -215,7 +215,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception
 	 */
 	private Authorization getAuthorization() throws Exception {
-		Authorization auth = getContext().get("auth");
+		Authorization auth = getContext().get("auth", Authorization.class);
 
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
@@ -290,7 +290,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = getContext().get("email");
+			calendarId = getContext().get("email", String.class);
 		}
 		
 		// built url with query parameters
@@ -335,7 +335,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = getContext().get("email");
+			calendarId = getContext().get("email", String.class);
 		}
 
 		// built url
@@ -368,7 +368,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = getContext().get("email");
+			calendarId = getContext().get("email", String.class);
 		}
 
 		// built url
@@ -442,7 +442,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = getContext().get("email");
+			calendarId = getContext().get("email", String.class);
 		}
 
 		logger.info("updateEvent event=" + 
@@ -483,7 +483,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = getContext().get("email");
+			calendarId = getContext().get("email", String.class);
 		}
 
 		logger.info("deleteEvent eventId=" + eventId + ", calendarId=" + calendarId);

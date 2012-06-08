@@ -37,6 +37,11 @@ import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class LogAgent extends Agent {
+	@SuppressWarnings("rawtypes")
+	private static Class<? extends ArrayList> LIST_STRING_CLASS = (new ArrayList<String>()).getClass();
+	@SuppressWarnings("rawtypes")
+	private static Class<? extends ArrayList> LIST_LOG_CLASS = (new ArrayList<Log>()).getClass();
+
 	/**
 	 * start logging an agent
 	 * @param url
@@ -53,7 +58,7 @@ public class LogAgent extends Agent {
 		
 		// store the agents url
 		@SuppressWarnings("unchecked")
-		List<String> urls = (List<String>) getContext().get("urls");
+		List<String> urls = getContext().get("urls", LIST_STRING_CLASS);
 		if (urls == null) {
 			urls = new ArrayList<String>();
 		}
@@ -76,7 +81,7 @@ public class LogAgent extends Agent {
 		
 		// remove the agents url
 		@SuppressWarnings("unchecked")
-		List<String> urls = (List<String>) getContext().get("urls");
+		List<String> urls = getContext().get("urls", LIST_STRING_CLASS);
 		if (urls != null) {
 			urls.remove(url);
 			getContext().put("urls", urls);
@@ -90,7 +95,7 @@ public class LogAgent extends Agent {
 	 */
 	public List<String> getAgents() throws Exception {
 		@SuppressWarnings("unchecked")
-		List<String> urls = (List<String>) getContext().get("urls");
+		List<String> urls = getContext().get("urls", LIST_STRING_CLASS);
 		if (urls != null) {
 			return urls;
 		}
@@ -105,7 +110,7 @@ public class LogAgent extends Agent {
 	 */
 	public void clear() throws Exception {
 		@SuppressWarnings("unchecked")
-		List<String> urls = (List<String>) getContext().get("urls");
+		List<String> urls = getContext().get("urls", LIST_STRING_CLASS);
 		if (urls != null) {
 			for (String url : urls) {
 				String method = "unsubscribe";
@@ -130,7 +135,7 @@ public class LogAgent extends Agent {
 	 * Remove existing time to live
 	 */
 	public void cancelTimeToLive() {
-		String timeoutId = (String) getContext().get("timeoutId");
+		String timeoutId = getContext().get("timeoutId", String.class);
 		if (timeoutId != null) {
 			getContext().getScheduler().cancelTimer(timeoutId);
 		}
@@ -174,7 +179,7 @@ public class LogAgent extends Agent {
 			@Required(false) @Name("since") Long since,
 			@Required(false) @Name("url") String url) {
 		@SuppressWarnings("unchecked")
-		List<Log> logs = (List<Log>) getContext().get("logs");
+		List<Log> logs =  getContext().get("logs", LIST_LOG_CLASS);
 
 		List<Log> output = new ArrayList<Log>();
 		if (logs != null) {
@@ -198,7 +203,7 @@ public class LogAgent extends Agent {
 		@SuppressWarnings("unchecked")
 		// TODO: use a database instead of the context - when you register
 		//       more and more logs this will be very unreliable.
-		List<Log> logs = (List<Log>) getContext().get("logs");
+		List<Log> logs = getContext().get("logs", LIST_LOG_CLASS);
 		if (logs == null) {
 			logs = new ArrayList<Log>();
 		}

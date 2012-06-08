@@ -22,6 +22,7 @@ import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONResponse;
+import com.almende.eve.session.Session;
 import com.almende.util.StreamingUtil;
 
 
@@ -176,6 +177,10 @@ public class MultiAgentServlet extends HttpServlet {
 			String agentClassName = agentClass.getSimpleName().toLowerCase();
 			Context context = contextFactory.getContext(agentClassName, address.agentId);
 			agent.setContext(context);
+			
+			// instantiate session for the agent
+			Session session = new Session(req, resp);
+			agent.setSession(session);
 			
 			// execute the init method of the agent
 			agent.init();

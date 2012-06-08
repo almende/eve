@@ -74,7 +74,7 @@ public class MeetingAgent extends Agent {
 	 * @param activity
 	 */
 	public Activity updateActivity(@Name("activity") Activity updatedActivity) {
-		Activity activity = getContext().get("activity");
+		Activity activity = getContext().get("activity", Activity.class);
 		if (activity == null) {
 			activity = new Activity();
 		}
@@ -120,7 +120,7 @@ public class MeetingAgent extends Agent {
 		// update all attendees
 		update();
 		
-		return getContext().get("activity");
+		return getContext().get("activity", Activity.class);
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public String getSummary() {
-		Activity activity = getContext().get("activity");
+		Activity activity = getContext().get("activity", Activity.class);
 		return (activity != null) ? activity.getSummary() : null;
 	}
 
@@ -137,7 +137,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public Activity getActivity() {
-		return getContext().get("activity");
+		return getContext().get("activity", Activity.class);
 	}
 	
 	/**
@@ -145,7 +145,7 @@ public class MeetingAgent extends Agent {
 	 */
 	public void update() {
 		logger.info("update started");
-		Activity activity = getContext().get("activity");
+		Activity activity = getContext().get("activity", Activity.class);
 		
 		for (Attendee attendee : activity.getConstraints().getAttendees()) {
 			String agent = attendee.getAgent();
@@ -212,11 +212,11 @@ public class MeetingAgent extends Agent {
 		logger.info("updateEvent started for agent " + agent);
 
 		Context context = getContext();
-		Activity activity = context.get("activity");
+		Activity activity = context.get("activity", Activity.class);
 		
 		// retrieve event
 		ObjectNode event = null;
-		String eventId = context.get(agent);
+		String eventId = context.get(agent, String.class);
 		if (eventId != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("eventId", eventId);

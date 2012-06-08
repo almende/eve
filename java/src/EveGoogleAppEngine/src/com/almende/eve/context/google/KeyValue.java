@@ -86,13 +86,13 @@ public class KeyValue implements Serializable {
 		bos.close();
 	}
 
-	public <T> T getValue() throws ClassNotFoundException, IOException {
+	public <T> T getValue(Class<T> type) throws ClassNotFoundException, IOException {
 		ByteArrayInputStream bis = new ByteArrayInputStream(this.value);
 		ObjectInput in = new ObjectInputStream(bis);
 		@SuppressWarnings("unchecked")
-		T value = (T) in.readObject(); 
+		T value = (T) in.readObject();
 		bis.close();
 		in.close();
 		return value;
 	}
-}	
+}
