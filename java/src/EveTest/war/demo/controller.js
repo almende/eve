@@ -13,8 +13,8 @@ function Ctrl() {
     scope.CALLBACK_URI = window.location.href;
 
     // lists with agents
-    scope.calendarAgents = [];
-    scope.meetingAgents = [];
+    scope.calendarAgents = [{}];
+    scope.meetingAgents = [{}];
 
     /**
      * Add a calendar agent
