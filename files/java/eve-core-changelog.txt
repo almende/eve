@@ -1,6 +1,14 @@
 EVE CORE
 http://almende.github.com/eve/
 
+2012-06-08, version 0.5
+
+- Context adjusted:
+  - return type must now be provided when getting a parameter
+  - put method now returns a boolean with the success value.
+- Session class added, containing the raw http request and response
+
+
 2012-06-01, version 0.4
 
 - Changed the JSON deserialization to allow non-matched fields

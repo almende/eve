@@ -18,8 +18,8 @@ The Java code of a basic Eve agent looks as follows:
     import com.almende.eve.agent.Agent;
     import com.almende.eve.json.annotation.Name;
 
-    public class ExampleAgent extends Agent {
-        public Double welcome(@Name("name") String name) {
+    public class HelloWorldAgent extends Agent {
+        public String welcome(@Name("name") String name) {
             return "Hello " + name + "!";
         }
         
@@ -112,18 +112,11 @@ on Amazon Elastic Cloud, Amazons SimpleDB or DynamoDB can be used.
 An example of using the context is shown in the following example:
 
     public void setUsername(@Name("username") String username) {
-        Context context = getContext();
-        context.put("username", username);
+        getContext().put("username", username);
     }
     
     public String getUsename() {
-        Context context = getContext();
-        if (context.has("username")) {
-            return (String) context.get("username");
-        }
-        else {
-            return null;
-        }
+        return getContext().get("username");
     }
 
 From the context, an agent has access to the [scheduler](#scheduler) via the 

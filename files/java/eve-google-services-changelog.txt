@@ -1,6 +1,10 @@
 EVE GOOGLE SERVICES
 http://almende.github.com/eve/
 
+2012-06-08, version 0.3
+
+- Adjusted the agents to match the changed context get/put
+
 
 2012-05-21, version 0.2
 
