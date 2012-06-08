@@ -1,155 +1,199 @@
 <!doctype html>
 <html  xmlns:ng="http://angularjs.org">
 
-<!-- 
-TODO: 
+<!--
+TODO:
 - use angular service instead of jquery ajax call
-- couple the form and the json-rpc request 
+- couple the form and the json-rpc request
  -->
 
 <head>
-  <title>Agent</title>
+    <title>Agent</title>
 
-  <link type="text/css" rel="stylesheet" href="agent.css">
+    <!-- TODO: css loading does not work -->
+    <link type="text/css" rel="stylesheet" href="agent.css">
 
-  <script src='lib/jquery-1.7.2.min.js'></script>
-  <script src="lib/angular-0.9.19.min.js" ng:autobind></script>
-  <script src="agent.js" type='text/javascript'></script>
+    <!-- TODO: remove inline css -->
+    <style>
+        body {
+            color: #4D4D4D;
+            max-width: 720px;
+            padding: 0 20px;
+        }
+        body, td, th, pre {
+            font-family: arial, sans serif;
+            font-size: 11pt;
+        }
+        h2 {
+            color: #F0209B;
+        }
+        td, th {
+            text-align: left;
+            vertical-align: top;
+            padding: 5px 10px;
+        }
+        table {
+            width: 100%;
+            background-color: #F5F5F5;
+            border: 1px solid #E5E5E5;
+            border-radius: 3px;
+        }
+        textarea {
+            height: 100px;
+            min-width: 400px;
+        }
+        textarea, input[type=text] {
+            width: 100%;
+            background-color: white;
+            border: 1px solid lightgray;
+        }
+        textarea:focus, input[type=text]:focus {
+            border: 1px solid gray;
+        }
+        div.error {
+            color: red;
+            margin: 10px 0;
+        }
+    </style>
+
+    <script src='lib/jquery-1.7.2.min.js'></script>
+    <script src="lib/angular-0.9.19.min.js" ng:autobind></script>
+    <script src="agent.js" type='text/javascript'></script>
 </head>
-  
-<body ng:controller="Ctrl">
-  <div ng:show="error" class="error">
-    {{error}}
-  </div>
 
-  <div ng:show="loading && !error">
+<body ng:controller="Ctrl">
+<div ng:show="error" class="error">
+    {{error}}
+</div>
+
+<div ng:show="loading && !error">
     loading... {{progress}}
-  </div>
-  
-  <div ng:hide="loading">
-  <h1>{{type}} {{id}}</h1>
-  
-  <h2>Info</h2>
-  <p>General information about me.</p>
-  
-  <table>
-    <tr><th>Url</th><td>{{url}}</td></tr>
-    <tr><th>Type</th><td>{{type}}</td></tr>
-    <tr><th>Id</th><td>{{id}}</td></tr>
-    <tr><th>Version</th><td>{{version}}</td></tr>
-    <tr><th>Description</th><td>{{description}}</td></tr>
-  </table>
-  
-  <h2>Methods</h2>
-  <p>Talk to me via a form or via JSON-RPC requests.</p>
-  
-  <table>
-    <tr>
-      <th>Mode</th>
-      <td colspan="4">
-        <input type="radio" name="mode" value="form" checked id="mode_form"> Form
-        <input type="radio" name="mode" value="jsonrpc" id="mode_jsonrpc"> JSON-RPC
-      </td>
-    </tr>
-  
-    <tr ng:show="mode=='form'">
-      <th>Method</th>
-      <td colspan="4">
-        <select name="methodName" ng:change="setMethod()">
-          <option ng:repeat="method in methods" ng:selected="setParams">{{method.method}}</option>
-        </select>
-      </td>
-    </tr>
-    <tr ng:show="mode=='form' && method.params.length > 0">
-      <th>Params</th>
-      <th>Name</th>
-      <th>Value</th>
-      <th>Type</th>
-      <th>Required</th>
-    </tr>
-    <tr ng:show="mode=='form' && method.params.length == 0">
-      <th>Params</th>
-      <td colspan="4">none</td>
-    </tr>
-    <tr ng:repeat="param in method.params" ng:show="mode=='form'">
-      <td></td>
-      <td>{{param.name}}</td>
-      <td ng:show="isPrimitiveType(param.type)"><input type="text" name="param.value" /></td>
-      <td ng:show="!isPrimitiveType(param.type)"><textarea name="param.value" onkeyup="resize(this);"></textarea></td>
-      <td>{{param.type}}</td>
-      <td>{{param.required}}</td>
-    </tr>
-    
-    <tr ng:show="mode=='form'">
-      <th></th>
-      <td colspan="4">
-        <input type="button" value="Send" ng:click="sendForm();" />
-        {{formStatus}}
-      </td>
-    </tr>
-    
-    <tr ng:show="mode=='form'">
-      <th>Result</th>
-      <td colspan="4">
-        <textarea id="result" name="result" readonly="readonly"></textarea>
-      </td>
-    </tr>
-    
-    <tr ng:show="mode=='jsonrpc'">
-      <th>Request</th>
-      <td colspan="4">
-<textarea id='request' name="request" onkeyup="resize(this);">{
-  "id":1,
-  "method":"getMethods",
-  "params":{}
-}</textarea><br>
-      </td>
-    </tr>
-        
-    <tr ng:show="mode=='jsonrpc'">
-      <th></th>
-      <td colspan="4">
-        <input type="button" value="Send" ng:click="sendJsonRpc();" />
-        {{rpcStatus}}
-      </td>
-    </tr>
-    
-    <tr ng:show="mode=='jsonrpc'">
-      <th>Response</th>
-      <td colspan="4">
-        <textarea id="response" name="response" readonly="readonly"></textarea>
-      </td>
-    </tr>
-      
-  </table>
-  
-  <h2>Events</h2>
-  
-  <table>
-    <tr>
-      <th>timestamp</th>
-      <th>event</th>
-      <th>params</th>
-    </tr>
-    <tr ng:repeat="log in logs">
-      <td style="white-space:nowrap;">{{formatDate(log.timestamp)}}</td>
-      <td>{{log.event}}</td>
-      <td>
-        <table>
-          <tr ng:repeat="(key, value) in log.params">
-            <td>{{key}}</td><td>{{value}}</td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-  
-  <p>Events are logged by {{logAgentUrl}}</p>
-  <p>Polling interval: 
-    <input type="text" name="pollingInterval" style="width:50px;" /> milliseconds
-  </p>
-  
-  </div>
+</div>
+
+<div ng:hide="loading">
+    <h1>{{type}} {{id}}</h1>
+
+    <h2>Info</h2>
+    <p>General information about me.</p>
+
+    <table>
+        <tr><th>Url</th><td>{{url}}</td></tr>
+        <tr><th>Type</th><td>{{type}}</td></tr>
+        <tr><th>Id</th><td>{{id}}</td></tr>
+        <tr><th>Version</th><td>{{version}}</td></tr>
+        <tr><th>Description</th><td>{{description}}</td></tr>
+    </table>
+
+    <h2>Methods</h2>
+    <p>Talk to me via a form or via JSON-RPC requests.</p>
+
+    <table>
+        <tr>
+            <th>Mode</th>
+            <td colspan="4">
+                <input type="radio" name="mode" value="form" checked id="mode_form"> Form
+                <input type="radio" name="mode" value="jsonrpc" id="mode_jsonrpc"> JSON-RPC
+            </td>
+        </tr>
+
+        <tr ng:show="mode=='form'">
+            <th>Method</th>
+            <td colspan="4">
+                <select name="methodName" ng:change="setMethod()">
+                    <option ng:repeat="method in methods" ng:selected="setParams">{{method.method}}</option>
+                </select>
+            </td>
+        </tr>
+        <tr ng:show="mode=='form' && method.params.length > 0">
+            <th>Params</th>
+            <th>Name</th>
+            <th>Value</th>
+            <th>Type</th>
+            <th>Required</th>
+        </tr>
+        <tr ng:show="mode=='form' && method.params.length == 0">
+            <th>Params</th>
+            <td colspan="4">none</td>
+        </tr>
+        <tr ng:repeat="param in method.params" ng:show="mode=='form'">
+            <td></td>
+            <td>{{param.name}}</td>
+            <td ng:show="isPrimitiveType(param.type)"><input type="text" name="param.value" /></td>
+            <td ng:show="!isPrimitiveType(param.type)"><textarea name="param.value" onkeyup="resize(this);"></textarea></td>
+            <td>{{param.type}}</td>
+            <td>{{param.required}}</td>
+        </tr>
+
+        <tr ng:show="mode=='form'">
+            <th></th>
+            <td colspan="4">
+                <input type="button" value="Send" ng:click="sendForm();" />
+                {{formStatus}}
+            </td>
+        </tr>
+
+        <tr ng:show="mode=='form'">
+            <th>Result</th>
+            <td colspan="4">
+                <textarea id="result" name="result" readonly="readonly"></textarea>
+            </td>
+        </tr>
+
+        <tr ng:show="mode=='jsonrpc'">
+            <th>Request</th>
+            <td colspan="4">
+                <textarea id='request' name="request" onkeyup="resize(this);">{
+                    "id":1,
+                    "method":"getMethods",
+                    "params":{}
+                    }</textarea><br>
+            </td>
+        </tr>
+
+        <tr ng:show="mode=='jsonrpc'">
+            <th></th>
+            <td colspan="4">
+                <input type="button" value="Send" ng:click="sendJsonRpc();" />
+                {{rpcStatus}}
+            </td>
+        </tr>
+
+        <tr ng:show="mode=='jsonrpc'">
+            <th>Response</th>
+            <td colspan="4">
+                <textarea id="response" name="response" readonly="readonly"></textarea>
+            </td>
+        </tr>
+
+    </table>
+
+    <h2>Events</h2>
+
+    <table>
+        <tr>
+            <th>timestamp</th>
+            <th>event</th>
+            <th>params</th>
+        </tr>
+        <tr ng:repeat="log in logs">
+            <td style="white-space:nowrap;">{{formatDate(log.timestamp)}}</td>
+            <td>{{log.event}}</td>
+            <td>
+                <table>
+                    <tr ng:repeat="(key, value) in log.params">
+                        <td>{{key}}</td><td>{{value}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <p>Events are logged by {{logAgentUrl}}</p>
+    <p>Polling interval:
+        <input type="text" name="pollingInterval" style="width:50px;" /> milliseconds
+    </p>
+
+</div>
 </body>
 
 </html>
