@@ -4,10 +4,15 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.json.annotation.Name;
@@ -264,6 +269,183 @@ public class JSONRPC {
 		}
 		
 		return errors;
+	}
+	
+	/**
+	 * Describe all JSON-RPC methods of given class
+	 * @param c      The class to be described
+	 * @param asJSON If true, the described methods will be in an easy to parse
+	 *                JSON structure. If false, the returned description will
+	 *                be in human readable format.
+	 * @return
+	 */
+	public static List<Object> describe(Class<?> c, Boolean asJSON) {
+		Map<String, Object> methods = new TreeMap<String, Object>();
+		if (asJSON == null) {
+			asJSON = false;
+		}
+
+		while (c != null && c != Object.class) {
+			for (Method method : c.getDeclaredMethods()) {
+				String methodName = method.getName();
+				int mod = method.getModifiers();
+				Access access = method.getAnnotation(Access.class); 
+				// TODO: apply access when invoking a method of the agent
+
+				boolean available = 
+					Modifier.isPublic(mod) &&
+					(access == null || 
+							(access.value() != AccessType.UNAVAILABLE &&
+							 access.visible()));
+
+				if (available) {
+					//Class<?>[] types = method.getParameterTypes();
+					Type[] types = method.getGenericParameterTypes();
+					int paramNum = types.length;
+					Annotation[][] paramAnnotations = method.getParameterAnnotations();
+					String[] paramTypes = new String[paramNum];
+					for(int i = 0; i < paramNum; i++){
+						paramTypes[i] = typeToString(types[i]);	
+					}
+					
+					// get parameters
+					boolean validParamNames = true;
+					String[] paramNames = new String[paramNum];
+					boolean[] paramRequired = new boolean[paramNum];
+					for(int i = 0; i < paramNum; i++){
+						paramTypes[i] = typeToString(types[i]);	
+						paramRequired[i] = true;
+						
+						Annotation[] annotations = paramAnnotations[i];
+						for(Annotation annotation : annotations){
+							if(annotation instanceof Name){
+								Name pn = (Name) annotation;
+								paramNames[i] = pn.value();
+							}
+							if(annotation instanceof Required){
+								Required pr = (Required) annotation;
+								paramRequired[i] = pr.value();
+							}
+						}
+						
+						if (paramNames[i] == null) {
+							validParamNames = false;
+						}
+					}
+
+					// TODO: not so nice 
+					if (!validParamNames) {
+						Class<?>[] pt = method.getParameterTypes();
+						if (pt.length == 1 && pt[0].equals(ObjectNode.class)) {
+							paramNames[0] = "params";
+							validParamNames = true;
+						}
+					}
+					
+					// get return type
+					String returnType = typeToString(method.getGenericReturnType());
+					
+					if (validParamNames) {
+						if (asJSON) {
+							// format as JSON
+							List<Object> descParams = new ArrayList<Object>();
+							for(int i = 0; i < paramNum; i++){
+								Map<String, Object> paramData = new HashMap<String, Object>();
+								paramData.put("name", paramNames[i]);
+								paramData.put("type", paramTypes[i]);
+								paramData.put("required", paramRequired[i]);
+								descParams.add(paramData);
+							}
+							
+							Map<String, Object> result = new HashMap<String, Object>(); 
+							result.put("type", returnType);
+							
+							Map<String, Object> desc = new HashMap<String, Object>();
+							desc.put("method", methodName);
+							desc.put("params", descParams);
+							desc.put("result", result);
+							methods.put(methodName, desc);
+						}
+						else {
+							// format as string
+							String p = "";
+							for(int i = 0; i < paramNum; i++){
+								if (!p.isEmpty()) {
+									p += ", ";
+								}
+								if (paramRequired[i]) {
+									p += paramTypes[i] + " " + paramNames[i];
+								}
+								else {
+									p += "[" + paramTypes[i] + " " + paramNames[i] + "]";
+								}
+							}
+							String desc = returnType + " " + methodName + "(" + p + ")";
+							methods.put(methodName, desc);							
+						}
+					}
+				}
+			}
+
+			c = c.getSuperclass();
+		}
+
+		// create a sorted array
+		List<Object> sortedMethods = new ArrayList<Object>();
+		TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
+		for (String methodName : methodNames) { 
+		   sortedMethods.add(methods.get(methodName));
+		   // do something
+		}
+		
+		return sortedMethods;
+	}
+
+	/**
+	 * Get type description from a class. Returns for example "String" or 
+	 * "List<String>".
+	 * @param c
+	 * @return
+	 */
+	private static String typeToString(Type c) {
+		String s = c.toString();
+		
+		// replace full namespaces to short names
+		int point = s.lastIndexOf(".");
+		while (point >= 0) {
+			int angle = s.lastIndexOf("<", point);
+			int space = s.lastIndexOf(" ", point);
+			int start = Math.max(angle, space);
+			s = s.substring(0, start + 1) + s.substring(point + 1);
+			point = s.lastIndexOf(".");
+		}
+		
+		// remove modifiers like "class blabla" or "interface blabla"
+		int space = s.indexOf(" ");
+		int angle = s.indexOf("<", point);
+		if (space >= 0 && (angle < 0 || angle > space)) {
+			s = s.substring(space + 1);
+		}
+		
+		return s;
+		
+		/*
+		// TODO: do some more professional reflection...
+		String s = c.getSimpleName();	
+
+		// the following seems not to work
+		TypeVariable<?>[] types = c.getTypeParameters();
+		if (types.length > 0) {
+			s += "<";
+			for (int j = 0; j < types.length; j++) {
+				TypeVariable<?> jj = types[j];
+				s += jj.getName();
+				 ... not working
+				//s += types[j].getClass().getSimpleName();
+			}
+			s += ">";
+		}
+		*/
 	}
 	
 	/**
