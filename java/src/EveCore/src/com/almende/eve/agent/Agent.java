@@ -245,7 +245,7 @@ abstract public class Agent {
 	 * @param c
 	 * @return
 	 */
-	private String getType(Type c) {
+	private String typeToString(Type c) {
 		String s = c.toString();
 		
 		// replace full namespaces to short names
@@ -306,7 +306,6 @@ abstract public class Agent {
 				// TODO: apply access when invoking a method of the agent
 
 				boolean available = 
-					!Modifier.isAbstract(mod) &&
 					Modifier.isPublic(mod) &&
 					(access == null || 
 							(access.value() != AccessType.UNAVAILABLE &&
@@ -319,7 +318,7 @@ abstract public class Agent {
 					Annotation[][] paramAnnotations = method.getParameterAnnotations();
 					String[] paramTypes = new String[paramNum];
 					for(int i = 0; i < paramNum; i++){
-						paramTypes[i] = getType(types[i]);	
+						paramTypes[i] = typeToString(types[i]);	
 					}
 					
 					// get parameters
@@ -327,7 +326,7 @@ abstract public class Agent {
 					String[] paramNames = new String[paramNum];
 					boolean[] paramRequired = new boolean[paramNum];
 					for(int i = 0; i < paramNum; i++){
-						paramTypes[i] = getType(types[i]);	
+						paramTypes[i] = typeToString(types[i]);	
 						paramRequired[i] = true;
 						
 						Annotation[] annotations = paramAnnotations[i];
@@ -357,7 +356,7 @@ abstract public class Agent {
 					}
 					
 					// get return type
-					String returnType = getType(method.getGenericReturnType());
+					String returnType = typeToString(method.getGenericReturnType());
 					
 					if (validParamNames) {
 						if (asJSON) {

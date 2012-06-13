@@ -222,11 +222,15 @@ public class JSONRPC {
 		while (c != null && c != Object.class) {
 			Set<String> methodNames = new HashSet<String>();
 			for (Method method : c.getDeclaredMethods()) {
-				int modifiers = method.getModifiers();
+				int mod = method.getModifiers();
 				Access access = method.getAnnotation(Access.class);
-				boolean isPublic = Modifier.isPublic(modifiers) && 
-					(access == null || access.value() == AccessType.PUBLIC);
-				if (isPublic) {
+				boolean available = 
+					Modifier.isPublic(mod) &&
+					(access == null || 
+							(access.value() != AccessType.UNAVAILABLE && 
+							access.visible()));
+				
+				if (available) {
 					// The method name may only occur once
 					String name = method.getName();
 					if (methodNames.contains(name)) {
@@ -287,8 +291,14 @@ public class JSONRPC {
 		Class<?> c = object.getClass();
 		while (c != null && c != Object.class) {
 			for (Method m : c.getDeclaredMethods()) {
-				int modifiers = m.getModifiers();
-				if (Modifier.isPublic(modifiers)) {
+
+				int mod = m.getModifiers();
+				Access access = m.getAnnotation(Access.class);
+				boolean available = 
+					Modifier.isPublic(mod) &&
+					(access == null || access.value() != AccessType.UNAVAILABLE);
+				
+				if (available) {
 					String name = m.getName();
 					
 					if (name.equals(method)) {
