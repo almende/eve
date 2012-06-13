@@ -3,10 +3,17 @@ package com.almende.eve.json;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
+import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.agent.annotation.Access;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -200,6 +207,62 @@ public class JSONRPC {
 	}
 	
 	/**
+	 * Validate whether the given class contains valid JSON-RPC methods.
+	 * A class if valid when:<br>
+	 * - There are no public methods with equal names<br>
+	 * - The parameters of all public methods have the @Name annotation<br>
+	 * If the class is not valid, an Exception is thrown
+	 * @param c         The class to be verified
+	 * @return errors   A list with validation errors. When no problems are 
+	 *                   found, an empty list is returned 
+	 */
+	static public List<String> validate (Class<?> c) {
+		List<String> errors = new ArrayList<String>();
+		
+		while (c != null && c != Object.class) {
+			Set<String> methodNames = new HashSet<String>();
+			for (Method method : c.getDeclaredMethods()) {
+				int modifiers = method.getModifiers();
+				Access access = method.getAnnotation(Access.class);
+				boolean isPublic = Modifier.isPublic(modifiers) && 
+					(access == null || access.value() == AccessType.PUBLIC);
+				if (isPublic) {
+					// The method name may only occur once
+					String name = method.getName();
+					if (methodNames.contains(name)) {
+						errors.add("Public method \"" + name + 
+							"\" is defined more than once, which is not" + 
+							" allowed for JSON-RPC (Class " + c.getName() + ")");
+					}
+					methodNames.add(name);
+					
+					// each of the method parameters must have the @Name 
+					// annotation
+					Annotation[][] annotations = method.getParameterAnnotations();
+					for(int i = 0; i < annotations.length; i++){
+						boolean hasNameAnnotation = false;
+						for(Annotation annotation : annotations[i]){
+							if(annotation instanceof Name){
+								hasNameAnnotation = true;
+							}
+						}
+						if (!hasNameAnnotation) {
+							errors.add("Parameter " + i + " in public method \"" + name + 
+								"\" is missing the @Name annotation, which is" + 
+								" required for JSON-RPC (Class " + c.getName() + ")");
+						}
+					}					
+				}
+			}
+			
+			// continue search in the super class 
+			c = c.getSuperclass();
+		}
+		
+		return errors;
+	}
+	
+	/**
 	 * Try to retrieve the message description of an error
 	 * @param error
 	 * @return message  String with the error description, or null if not found.
@@ -224,10 +287,13 @@ public class JSONRPC {
 		Class<?> c = object.getClass();
 		while (c != null && c != Object.class) {
 			for (Method m : c.getDeclaredMethods()) {
-				String name = m.getName();
-				
-				if (name.equals(method)) {
-					return m;
+				int modifiers = m.getModifiers();
+				if (Modifier.isPublic(modifiers)) {
+					String name = m.getName();
+					
+					if (name.equals(method)) {
+						return m;
+					}
 				}
 			}
 			

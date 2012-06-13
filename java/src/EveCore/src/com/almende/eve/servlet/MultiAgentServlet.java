@@ -245,6 +245,12 @@ public class MultiAgentServlet extends HttpServlet {
 								" must extend " + Agent.class.getName());
 					}
 					
+					// test if the class contains valid JSON-RPC messages
+					List<String> errors = JSONRPC.validate(agentClass);
+					for (String e : errors) {
+						logger.warning(e);
+					}
+					
 					String simpleName = agentClass.getSimpleName().toLowerCase();
 					newAgentClasses.put(simpleName, agentClass);
 					
@@ -255,7 +261,7 @@ public class MultiAgentServlet extends HttpServlet {
 				logger.warning("Agent class " + className + " not found");
 			}
 			catch (Exception e) {
-				logger.warning(e.getMessage()); 		
+				logger.warning(e.getMessage());
 			}
 		}
 		

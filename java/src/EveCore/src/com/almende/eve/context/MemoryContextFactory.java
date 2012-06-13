@@ -65,6 +65,9 @@ public class MemoryContextFactory implements ContextFactory {
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
 				e.printStackTrace();
 			}
+			if (!servletUrl.endsWith("/")) {
+				servletUrl += "/";
+			}
 			return servletUrl;
 		}
 		return servletUrl;

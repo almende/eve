@@ -129,6 +129,8 @@ public class LogAgent extends Agent {
 		// TODO: remove this
 		Logger logger = Logger.getLogger(this.getClass().getName());		
 		logger.info("clear");
+		
+		super.clear();
 	}
 	
 	/**

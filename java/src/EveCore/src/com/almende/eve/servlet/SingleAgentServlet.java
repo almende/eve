@@ -149,6 +149,12 @@ public class SingleAgentServlet extends HttpServlet {
 			throw new ServletException("Class " + newAgentClass.getName() + 
 					" must extend " + Agent.class.getName());
 		}
+
+		// test if the class contains valid JSON-RPC messages
+		List<String> errors = JSONRPC.validate(agentClass);
+		for (String e : errors) {
+			logger.warning(e);
+		}
 		
 		// copy to the final agentClass once loaded
 		agentClass = newAgentClass;

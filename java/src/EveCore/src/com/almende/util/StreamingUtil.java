@@ -44,10 +44,12 @@ public class StreamingUtil {
 	public static String getMimeType(String format) {
 		if (format.equalsIgnoreCase("pdf")) // check the out type
 			return "application/pdf";
-		else if (format.equalsIgnoreCase("basic"))
-			return "audio/basic";
-		else if (format.equalsIgnoreCase("wav"))
-			return "audio/wav";
+		else if (format.equalsIgnoreCase("html"))
+			return "text/html";
+		else if (format.equalsIgnoreCase("js"))
+			return "text/javascript";
+		else if (format.equalsIgnoreCase("css"))
+			return "text/css";
 		else if (format.equalsIgnoreCase("gif"))
 			return "image/gif";
 		else if (format.equalsIgnoreCase("jpeg"))
@@ -62,14 +64,14 @@ public class StreamingUtil {
 			return "video/avi";
 		else if (format.equalsIgnoreCase("mpeg"))
 			return "video/mpeg";
-		else if (format.equalsIgnoreCase("html"))
-			return "text/html";
 		else if (format.equalsIgnoreCase("xml"))
 			return "text/xml";
 		else if (format.equalsIgnoreCase("json"))
 			return "application/json";
-		else if (format.equalsIgnoreCase("js"))
-			return "text/javascript";
+		else if (format.equalsIgnoreCase("basic"))
+			return "audio/basic";
+		else if (format.equalsIgnoreCase("wav"))
+			return "audio/wav";
 		else
 			return null;
 	}

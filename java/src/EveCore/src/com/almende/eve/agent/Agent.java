@@ -96,6 +96,19 @@ abstract public class Agent {
 	final public Session getSession() {
 		return session;
 	}
+
+	/**
+	 * Clear the agents context, unsubscribe from all subscribed events, 
+	 * cancel all running tasks
+	 */
+	public void clear() throws Exception {
+	// final public void clear() {
+		// TODO: unsubscribe from all subscriptions 
+		
+		// TODO: cancel all scheduled tasks.
+
+		// TODO: loop through the context keys and remove everything.
+	}
 	
 	/**
 	 * Retrieve the type name of this agent, its class
@@ -163,7 +176,7 @@ abstract public class Agent {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod) {
 		String key = getSubscriptionsKey(event);
-		List<Callback> subscriptions = context.get(key, LIST_CALLBACK_CLASS);		
+		List<Callback> subscriptions = context.get(key, LIST_CALLBACK_CLASS);
 		if (subscriptions != null) {
 			for (Callback s : subscriptions) {
 				if (s.callbackUrl.equals(callbackUrl) && 
@@ -524,7 +537,7 @@ abstract public class Agent {
 	 * @param url
 	 * @return
 	 */
-	final public static String getClassName(String url) {
+	final protected static String getClassName(String url) {
 		String[] parts = url.split("/");
 		if (parts.length > 1) {
 			return parts[parts.length - 2];

@@ -1,6 +1,13 @@
 EVE CORE
 http://almende.github.com/eve/
 
+
+<not yet released>, version 0.6
+
+- Updated agents web interface
+- Slight improvements in the Context
+
+
 2012-06-08, version 0.5
 
 - Context adjusted:

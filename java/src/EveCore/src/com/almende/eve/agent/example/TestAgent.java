@@ -224,6 +224,20 @@ public class TestAgent extends Agent {
 				((params != null) ? params.toString() : ""));
 	}
 
+	private String privateMethod() {
+		return "You should not be able to execute this method via JSON-RPC! " +
+			"It is private.";
+	}
+	
+	// multiple methods with the same name
+	public void methodVersionOne() {
+	}
+	public void methodVersionOne(@Name("param") String param) {
+	}
+
+	public String invalidMethod(@Name("param1") String param1, int param2) {
+		return "This method is no valid JSON-RPC method: misses an @Name annotation.";
+	}
 	
 	
 	@Override
