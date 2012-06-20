@@ -71,7 +71,6 @@ public class SingleAgentServlet extends HttpServlet {
 			
 			// invoke the method onto the agent
 			response = JSONRPC.invoke(agent, request);
-
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = new JSONRPCException(

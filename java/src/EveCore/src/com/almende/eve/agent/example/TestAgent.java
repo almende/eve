@@ -31,7 +31,9 @@ import java.util.Set;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.entity.Person;
+import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
+import com.almende.eve.json.JSONRPCException.CODE;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
@@ -93,8 +95,12 @@ public class TestAgent extends Agent {
 		return "fields: " + params.size();
 	}
 
-	public void throwInternalError() throws Exception {
+	public void throwException() throws Exception {
 		throw new Exception("Something went wrong...");
+	}
+	
+	public void throwJSONRPCException() throws Exception {
+		throw new JSONRPCException(CODE.NOT_FOUND);
 	}
 	
 	// TODO: get this working

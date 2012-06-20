@@ -190,10 +190,10 @@ public class MultiAgentServlet extends HttpServlet {
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = new JSONRPCException(
-					JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
+						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
 			JSONResponse jsonResponse = new JSONResponse(jsonError);
 			response = jsonResponse.toString();
-			
+
 			err.printStackTrace(); // TODO: remove printing stacktrace?
 		}
 

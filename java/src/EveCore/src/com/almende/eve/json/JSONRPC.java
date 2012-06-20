@@ -128,28 +128,14 @@ public class JSONRPC {
 	 */
 	static public String invoke (Object object, String request) 
 			throws JsonGenerationException, JsonMappingException, IOException {
+		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
-			JSONRequest jsonRequest = new JSONRequest(request);
-
-			try {
-				jsonResponse = invoke(object, jsonRequest);
-			}
-			catch (Throwable err) {
-				// TODO: make printing the stack trace optional
-				err.printStackTrace(); 
-				throw err;
-			}
+			jsonRequest = new JSONRequest(request);
+			jsonResponse = invoke(object, jsonRequest);
 		}
-		catch (Throwable err) {
-			if (err instanceof JSONRPCException) {
-				jsonResponse = new JSONResponse((JSONRPCException) err);
-			}
-			else {
-				JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.PARSE_ERROR, getMessage(err));
-				jsonResponse = new JSONResponse(jsonError);
-			}
+		catch (JSONRPCException err) {
+			jsonResponse = new JSONResponse(err);
 		}
 		
 		return jsonResponse.toString();
@@ -184,30 +170,29 @@ public class JSONRPC {
 		try {
 			Method method = getMethod(object, request.getMethod());
 			Object[] params = castParams(request.getParams(), method);
-			try {
-				Object result = method.invoke(object, params);
-				if (result == null) {
-					result = JOM.createNullNode();
-				}
-				resp.setResult(result);
+			Object result = method.invoke(object, params);
+			if (result == null) {
+				result = JOM.createNullNode();
 			}
-			catch (Throwable err) {
-				// TODO: make printing the stack trace optional
-				err.printStackTrace(); 
-				throw err;
-			}
+			resp.setResult(result);
 		}
-		catch (Throwable err) {
+		catch (Exception err) {
 			if (err instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) err);
 			}
+			else if (err.getCause() != null && 
+					err.getCause() instanceof JSONRPCException) {
+				resp.setError((JSONRPCException) err.getCause());
+			}
 			else {
+				err.printStackTrace(); // TODO: remove printing stacktrace?
+				
 				JSONRPCException jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
 				resp.setError(jsonError);
 			}
 		}
-
+		
 		return resp;
 	}
 	

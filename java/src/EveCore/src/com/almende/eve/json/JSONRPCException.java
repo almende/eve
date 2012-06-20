@@ -15,7 +15,8 @@ public class JSONRPCException extends Exception {
 		INVALID_REQUEST,
 		METHOD_NOT_FOUND,
 		INVALID_PARAMS,
-		INTERNAL_ERROR
+		INTERNAL_ERROR,
+		NOT_FOUND
 	};
 	
 	public JSONRPCException () {
@@ -97,6 +98,7 @@ public class JSONRPCException extends Exception {
 			case METHOD_NOT_FOUND: setCode (-32601); setMessage("Method not found"); break;
 			case INVALID_PARAMS: setCode (-32602); setMessage("Invalid params"); break;
 			case INTERNAL_ERROR: setCode (-32603); setMessage("Internal error"); break;
+			case NOT_FOUND: setCode(404); setMessage("Not found"); break;
 		}
 		
 		if (description != null) {
