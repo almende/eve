@@ -126,32 +126,34 @@ public class DatastoreContext implements Context {
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
-	private void refresh() throws IOException {
-		ObjectDatastore datastore = new AnnotationObjectDatastore();
-		
-		String propertiesKey = agentClass + "." + agentId;
-		if (entity == null) {
-			entity = datastore.load(KeyValue.class, propertiesKey);
-			if (entity == null) {
-				entity = new KeyValue(propertiesKey, properties);
-				datastore.store(entity);
-			}
-		}
-		else {
-			datastore.associate(entity);
-			datastore.refresh(entity);
-		}
-		
+	private void refresh() {
 		try {
+			ObjectDatastore datastore = new AnnotationObjectDatastore();
+			String propertiesKey = agentClass + "." + agentId;
+			if (entity == null) {
+				entity = datastore.load(KeyValue.class, propertiesKey);
+				if (entity == null) {
+					entity = new KeyValue(propertiesKey, properties);
+					datastore.store(entity);
+				}
+			}
+			else {
+				datastore.associate(entity);
+				datastore.refresh(entity);
+			}
+			
 			@SuppressWarnings("rawtypes")
 			Class<? extends HashMap> MAP_OBJECT_CLASS = 
 				(new HashMap<String, Object>()).getClass();
 			
 			properties = entity.getValue(MAP_OBJECT_CLASS);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		// ensure there is always a properties initialized!
 		if (properties == null) {
 			properties = new HashMap<String, Object>();
 		}
@@ -162,161 +164,93 @@ public class DatastoreContext implements Context {
 	 * @param entity
 	 * @throws IOException 
 	 */
-	private void update() throws IOException {
-		// TODO: does it give better performance when making a datastore
-		//       in the context and make this synchronized?
-		
-		ObjectDatastore datastore = new AnnotationObjectDatastore();
-		entity.setValue(properties);
-		datastore.associate(entity);
-		datastore.update(entity);
+	private void update() {
+		try {
+			ObjectDatastore datastore = new AnnotationObjectDatastore();
+			// TODO: check if entity != null
+			entity.setValue(properties);
+			datastore.associate(entity);
+			datastore.update(entity);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
 	public Object get(Object key) {
-		try {
-			refresh();
-			return properties.get(key);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		refresh();
+		return properties.get(key);
 	}
 
 	@Override
 	public Object put(String key, Object value) {
-		try {
-			refresh();
-			properties.put(key, value);
-			update();
-			return true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		refresh();
+		Object ret = properties.put(key, value);
+		update();
+		return ret;
 	}
 
 	@Override
 	public boolean containsKey(Object key) {
-		try {
-			refresh();
-			return properties.containsKey(key);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return false;
+		refresh();
+		return properties.containsKey(key);
 	}
 
 	@Override
 	public Object remove(Object key) {
-		try {
-			refresh();
-			Object value = properties.remove(key);
-			update();
-			return value;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		refresh();
+		Object value = properties.remove(key);
+		update();
+		return value;
 	}
 
 	@Override
 	public void clear() {
-		try {
-			refresh();
-			properties.clear();
-			update();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		refresh();
+		properties.clear();
+		update();
 	}
 
 	@Override
 	public boolean containsValue(Object value) {
-		try {
-			refresh();
-			return properties.containsValue(value);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return false;
+		refresh();
+		return properties.containsValue(value);
 	}
 
 	@Override
 	public Set<java.util.Map.Entry<String, Object>> entrySet() {
-		try {
-			refresh();
-			return properties.entrySet();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		refresh();
+		return properties.entrySet();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		try {
-			refresh();
-			return properties.isEmpty();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return true;
+		refresh();
+		return properties.isEmpty();
 	}
 
 	@Override
 	public Set<String> keySet() {
-		try {
-			refresh();
-			return properties.keySet();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		refresh();
+		return properties.keySet();
 	}
 
 	@Override
 	public void putAll(Map<? extends String, ? extends Object> map) {
-		try {
-			refresh();
-			properties.putAll(map);
-			update();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		refresh();
+		properties.putAll(map);
+		update();
 	}
 
 	@Override
 	public int size() {
-		try {
-			refresh();
-			return properties.size();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return 0;
+		refresh();
+		return properties.size();
 	}
 
 	@Override
 	public Collection<Object> values() {
-		try {
-			refresh();
-			return properties.values();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		refresh();
+		return properties.values();
 	}
 }
