@@ -101,14 +101,6 @@ abstract public class Agent {
 
 		// TODO: loop through the context keys and remove everything.
 	}
-	
-	/**
-	 * Retrieve the type name of this agent, its class
-	 * @return classname
-	 */
-	final public String getType() {
-		return this.getClass().getSimpleName();
-	}
 
 	/**
 	 * Create the subscription key for a given event.
@@ -129,7 +121,6 @@ abstract public class Agent {
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
-	//@Access(AccessType.PRIVATE) // TODO
 	@SuppressWarnings("unchecked")
 	final public void subscribe(
 			@Name("event") String event, 
@@ -161,7 +152,6 @@ abstract public class Agent {
 	 * @param event
 	 * @param callbackUrl
 	 */
-	//@Access(AccessType.PRIVATE) // TODO
 	@SuppressWarnings("unchecked")
 	final public void unsubscribe(
 			@Name("event") String event, 
@@ -333,7 +323,6 @@ abstract public class Agent {
 	 * @return
 	 * @throws Exception 
 	 */
-	@Access(AccessType.UNAVAILABLE)
 	final public String getUrl() throws Exception {
 		return context.getAgentUrl();
 	}
@@ -342,32 +331,15 @@ abstract public class Agent {
 	 * Get the Id of this agent
 	 * @return
 	 */
-	@Access(AccessType.UNAVAILABLE)
 	final public String getId() {
 		return context.getAgentId();
 	}
 	
 	/**
-	 * Get a UUID from an url
-	 * @param url
-	 * @return
+	 * Retrieve the type name of this agent, its class
+	 * @return classname
 	 */
-	@Access(AccessType.UNAVAILABLE)
-	final public static String getUuid(String url) {
-		return url.substring(url.lastIndexOf('/') + 1);
-	}
-	
-	/**
-	 * Get the classname of an agent from its url
-	 * @param url
-	 * @return
-	 */
-	final protected static String getClassName(String url) {
-		String[] parts = url.split("/");
-		if (parts.length > 1) {
-			return parts[parts.length - 2];
-		}
-		
-		return "";
+	final public String getType() {
+		return this.getClass().getSimpleName();
 	}
 }

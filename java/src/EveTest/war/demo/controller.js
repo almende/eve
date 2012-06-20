@@ -31,8 +31,9 @@ function Ctrl() {
     scope.authorize = function (agent) {
         // redirect to a url to authorize this agent
         window.location.href = scope.AUTH_SERVLET +
-            '?agent=' + scope.CALENDAR_AGENT_URI + agent.id +
-            '&callback=' + scope.CALLBACK_URI;
+            '?agentUrl=' + scope.CALENDAR_AGENT_URI + agent.id +
+            '&agentMethod=setAuthorization' +
+            '&applicationCallback=' + scope.CALLBACK_URI;
     };
 
     /**
@@ -324,8 +325,6 @@ function Ctrl() {
         $.each(scope.meetingAgents, function(index, agent) {
             scope.getMeetingAgent(agent);
         });
-
-
     };
 
     /**

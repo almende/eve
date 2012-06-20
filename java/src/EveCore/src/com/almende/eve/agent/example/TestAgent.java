@@ -231,8 +231,10 @@ public class TestAgent extends Agent {
 	
 	// multiple methods with the same name
 	public void methodVersionOne() {
+		privateMethod();
 	}
 	public void methodVersionOne(@Name("param") String param) {
+		privateMethod();
 	}
 
 	public String invalidMethod(@Name("param1") String param1, int param2) {

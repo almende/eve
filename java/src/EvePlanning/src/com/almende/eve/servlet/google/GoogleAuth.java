@@ -41,7 +41,8 @@ public class GoogleAuth extends HttpServlet {
 	String REDIRECT_URI = null; 
 	
 	// hard coded uri's
-	private String AGENTS_URI = "http://eveagents.appspot.com/agents"; // TODO: do not hardcode
+	private String AGENTS_URL = "http://eveagents.appspot.com/agents/googlecalendaragent/id"; // TODO: do not hardcode
+	private String AGENTS_METHOD = "setAuthorization";
 	private String OAUTH_URI  = "https://accounts.google.com/o/oauth2";
 
 	private ObjectMapper mapper = new ObjectMapper();
@@ -79,8 +80,9 @@ public class GoogleAuth extends HttpServlet {
 		String code = req.getParameter("code");
 		String state = req.getParameter("state");
 		String error = req.getParameter("error");
-		String agent = req.getParameter("agent");
-		String callback = req.getParameter("callback");
+		String agentUrl = req.getParameter("agentUrl");
+		String agentMethod = req.getParameter("agentMethod");
+		String applicationCallback = req.getParameter("applicationCallback");
 
 		PrintWriter out = resp.getWriter();
 		resp.setContentType("text/html");
@@ -94,8 +96,8 @@ public class GoogleAuth extends HttpServlet {
 		}
 		
 		// directly redirect to Google authorization page if an agents URL is provided
-		if (agent != null) {
-			redirectToGoogleAuthorization(resp, agent, callback);
+		if (agentUrl != null && agentMethod != null) {
+			redirectToGoogleAuthorization(resp, agentUrl, agentMethod, applicationCallback);
 			return;
 		}
 
@@ -123,20 +125,21 @@ public class GoogleAuth extends HttpServlet {
 				return;
 			}
  
-			ObjectNode authJson = mapper.readValue(state, ObjectNode.class); 
-			String agentUrl = authJson.has("agent") ? authJson.get("agent").asText() : null;
-			String statusCallback = authJson.has("callback") ? authJson.get("callback").asText() : null;
+			ObjectNode stateJson = mapper.readValue(state, ObjectNode.class); 
+			String statusAgentUrl = stateJson.has("agentUrl") ? stateJson.get("agentUrl").asText() : null;
+			String statusAgentMethod = stateJson.has("agentMethod") ? stateJson.get("agentMethod").asText() : null;
+			String statusApplicationCallback = stateJson.has("applicationCallback") ? stateJson.get("applicationCallback").asText() : null;
 
 			// send the retrieved authorization to the agent
-			sendAuthorizationToAgent(agentUrl, auth);
+			sendAuthorizationToAgent(statusAgentUrl, statusAgentMethod, auth);
 
-			if (statusCallback != null) {
-				resp.sendRedirect(statusCallback);
+			if (statusApplicationCallback != null) {
+				resp.sendRedirect(statusApplicationCallback);
 				return;
 			}
 			else {
 				printPageStart(out);
-				printSuccess(out, agentUrl);
+				printSuccess(out, statusAgentUrl);
 				printPageEnd(out);
 				return;
 			}
@@ -162,12 +165,13 @@ public class GoogleAuth extends HttpServlet {
 	}
 	
 	private void redirectToGoogleAuthorization(HttpServletResponse resp,
-			String agentUrl, String callbackUrl) throws IOException {
+			String agentUrl, String agentMethod, String applicationCallback) throws IOException {
 		String url = createAuthorizationUrl();
 		ObjectNode st = JOM.createObjectNode();
-		st.put("agent", agentUrl);
-		if (callbackUrl != null) {
-			st.put("callback", callbackUrl);
+		st.put("agentUrl", agentUrl);
+		st.put("agentMethod", agentMethod);
+		if (applicationCallback != null) {
+			st.put("applicationCallback", applicationCallback);
 		}
 
 		url += "&state=" + 
@@ -188,9 +192,9 @@ public class GoogleAuth extends HttpServlet {
 		return json;
 	}
 	
-	private void sendAuthorizationToAgent(String agentUrl, ObjectNode auth) 
-			throws IOException {
-		JSONRequest rpcRequest = new JSONRequest("setAuthorization", auth);
+	private void sendAuthorizationToAgent(String agentUrl, String agentMethod, 
+			ObjectNode auth) throws IOException {
+		JSONRequest rpcRequest = new JSONRequest(agentMethod, auth);
 		JSONRPC.send(agentUrl, rpcRequest);
 	}
 	
@@ -226,15 +230,21 @@ public class GoogleAuth extends HttpServlet {
 		out.print("<script type='text/javascript'>" +
 			"function auth() {" +
 			"  var state={" +
-			"    \"agent\": document.getElementById('agent').value" +
+			"    \"agentUrl\": document.getElementById('agentUrl').value," +
+			"    \"agentMethod\": document.getElementById('agentMethod').value" +
 			"  };" +
 			"  var url='" + url + "'+ '&state=' + encodeURI(JSON.stringify(state));" +
 			"  window.location.href=url;" + 
 			"}" +
 			"</script>" +
-			"Agent url: <input type='text' id='agent' value='" + 
-				AGENTS_URI + "/googlecalendaragent/id' style='width: 400px;'/>" + 
-			"<button onclick='auth();'>Authorize</button>");		
+			"<table>" +
+			"<tr><td>Agent url</td><td><input type='text' id='agentUrl' value='" + 
+				AGENTS_URL + "' style='width: 400px;'/></td></tr>" + 
+				"<tr><td>Agent method</td><td><input type='text' id='agentMethod' value='" + 
+				AGENTS_METHOD + "' style='width: 400px;'/></td></tr>" +
+			"<tr><td><button onclick='auth();'>Authorize</button></td></tr>" +
+			"</table>"
+		);		
 	}
 	
 	private void printSuccess(PrintWriter out, String agentUrl) {

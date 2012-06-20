@@ -40,6 +40,7 @@ import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+// TODO: rename to AppointmentAgent
 public class MeetingAgent extends Agent {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
@@ -67,7 +68,9 @@ public class MeetingAgent extends Agent {
 		update();
 	}
 	
-	// TODO: create a method clear
+	// TODO: create a method setActivity 
+	
+	// TODO: create a method clear, which removes the created events from the calendars
 	
 	/**
 	 * update the activity for meeting agent

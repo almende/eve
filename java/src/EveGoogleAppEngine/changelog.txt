@@ -1,6 +1,10 @@
 EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
+<not yet released>, version 0.5
+
+- Slight changes in the context
+
 
 2012-06-08, version 0.4
 

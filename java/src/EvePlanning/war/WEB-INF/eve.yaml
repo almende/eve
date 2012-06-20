@@ -3,9 +3,9 @@
 # environment settings
 environment:
   Development:
-    servlet_url: http://localhost:8888/EvePlanning/agents
+    servlet_url: http://localhost:8080/EvePlanning/agents
   Production:
-    servlet_url: http://localhost:8888/EvePlanning/agents
+    servlet_url: http://localhost:8080/EvePlanning/agents
 
 # agent settings
 agent:
@@ -26,4 +26,4 @@ google:
 # auth servlet
 auth:
   google:
-    servlet_url: http://localhost:8888/EvePlanning/auth/google
+    servlet_url: http://localhost:8080/EvePlanning/auth/google

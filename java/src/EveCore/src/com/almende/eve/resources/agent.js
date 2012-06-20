@@ -369,6 +369,8 @@ function Ctrl() {
         }
     };
 
+    this.request = JSON.stringify(this.request, null, 2); // TODO: this does not work
+
     this.loading = true;
     this.load();
 }

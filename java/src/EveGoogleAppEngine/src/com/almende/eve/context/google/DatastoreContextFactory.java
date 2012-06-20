@@ -44,6 +44,9 @@ public class DatastoreContextFactory implements ContextFactory {
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
 				e.printStackTrace();
 			}
+			if (!servletUrl.endsWith("/")) {
+				servletUrl += "/";
+			}
 		}
 		return servletUrl;
 	}

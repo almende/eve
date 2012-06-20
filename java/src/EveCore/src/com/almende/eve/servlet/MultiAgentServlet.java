@@ -166,7 +166,7 @@ public class MultiAgentServlet extends HttpServlet {
 			
 			// check whether the agent class is known
 			if (!agentClasses.containsKey(classLowerCase)) {
-				throw new Exception("Unknown agent class " + address.agentClass);
+				throw new Exception("Unknown agent class '" + address.agentClass + "'");
 			}
 			
 			// instantiate the agent
@@ -258,7 +258,7 @@ public class MultiAgentServlet extends HttpServlet {
 				}
 			} 
 			catch (ClassNotFoundException e) {
-				logger.warning("Agent class " + className + " not found");
+				logger.warning("Agent class '" + className + "' not found");
 			}
 			catch (Exception e) {
 				logger.warning(e.getMessage());

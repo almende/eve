@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 public class Activity implements Serializable, Cloneable {
 	public Activity() {
 		setSummary(null);
+		setAgent(null);
 		setConstraints(null);
 		setStatus(null);
 	}
@@ -18,6 +19,14 @@ public class Activity implements Serializable, Cloneable {
 	
 	public String getSummary() {
 		return summary;
+	}
+
+	public void setAgent(String agent) {
+		this.agent = agent;
+	}
+	
+	public String getAgent() {
+		return agent;
 	}
 
 	public void setConstraints(Constraints constraints) {
@@ -40,6 +49,9 @@ public class Activity implements Serializable, Cloneable {
 		if (other.summary != null) {
 			summary = other.summary;
 		}
+		if (other.agent != null) {
+			agent = other.agent;
+		}		
 		constraints.merge(other.constraints);
 		status.merge(other.status);
 	}
@@ -47,6 +59,7 @@ public class Activity implements Serializable, Cloneable {
 	public Activity clone() {
 		Activity clone = new Activity();
 		clone.summary = summary;
+		clone.agent = agent;
 		clone.constraints = constraints.clone();
 		clone.status = status.clone();
 		
@@ -54,9 +67,8 @@ public class Activity implements Serializable, Cloneable {
 	}
 	
 	/**
-	 * Check if a is after b
-	 * @param a
-	 * @param b
+	 * Check if this Activity is after other Activity
+	 * @param other
 	 * @return
 	 */
 	public boolean isAfter(Activity other) {
@@ -87,6 +99,13 @@ public class Activity implements Serializable, Cloneable {
 		}
 	}
 	
+	/**
+	 * Synchronize two activities. 
+	 * The newest activity will be merged into a clone of the oldest activity.
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public static Activity sync (Activity a, Activity b) {
 		Activity clone;
 		if (a.isAfter(b)) {
@@ -102,6 +121,7 @@ public class Activity implements Serializable, Cloneable {
 	}
 	
 	private String summary = "";
+	private String agent = null;   // The agent managing the activity
 	private Constraints constraints = new Constraints();
 	private Status status = new Status();
 }
