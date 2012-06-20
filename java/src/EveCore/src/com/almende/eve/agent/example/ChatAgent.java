@@ -73,16 +73,13 @@ import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ChatAgent extends Agent {
-	@SuppressWarnings("rawtypes")
-	private static Class<? extends ArrayList> LIST_STRING_CLASS = (new ArrayList<String>()).getClass();
-	
 	/**
 	 * Get the username
 	 * @return
 	 * @throws Exception 
 	 */
 	public String getUsername() throws Exception {
-		String username = getContext().get("username", String.class);
+		String username = (String) getContext().get("username");
 		return (username != null) ? username : getUrl();
 	}
 
@@ -159,7 +156,7 @@ public class ChatAgent extends Agent {
 
 		// get my own connections from the context
 		String urlSelf = getUrl();
-		List<String> connections = getContext().get("connections", LIST_STRING_CLASS); 
+		List<String> connections = (List<String>) getContext().get("connections"); 
 		if (connections == null) {	
 			connections = new ArrayList<String>();
 		}
@@ -221,7 +218,7 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void disconnect() throws Exception {
-		List<String> connections = getContext().get("connections", LIST_STRING_CLASS);
+		List<String> connections = (List<String>) getContext().get("connections");
 		if (connections != null) {
 			getContext().remove("connections");			
 
@@ -250,7 +247,7 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void removeConnection(@Name("url") String url) throws Exception {
-		List<String> connections = getContext().get("connections", LIST_STRING_CLASS);
+		List<String> connections = (List<String>) getContext().get("connections");
 		if (connections != null) {
 			connections.remove(url);
 			getContext().put("connections", connections);	
@@ -269,7 +266,7 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<String> getConnections() {
-		List<String> connections = getContext().get("connections", LIST_STRING_CLASS);
+		List<String> connections = (List<String>) getContext().get("connections");
 		if (connections != null) {
 			return connections;
 		}

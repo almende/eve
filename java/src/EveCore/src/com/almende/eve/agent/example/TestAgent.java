@@ -126,8 +126,8 @@ public class TestAgent extends Agent {
 	
 	public Double increment() {
 		Double value = new Double(0);
-		if (getContext().has("count")) {
-			value = getContext().get("count", Double.class);
+		if (getContext().containsKey("count")) {
+			value = (Double) getContext().get("count");
 		}
 		value++;
 		getContext().put("count", value);
@@ -136,7 +136,7 @@ public class TestAgent extends Agent {
 	}
 	
 	public String get(@Name("key") String key) {
-		return getContext().get(key, String.class);
+		return (String) getContext().get(key);
 	}
 
 	public void put(@Name("key") String key, 

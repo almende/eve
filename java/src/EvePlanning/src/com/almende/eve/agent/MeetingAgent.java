@@ -77,7 +77,7 @@ public class MeetingAgent extends Agent {
 	 * @param activity
 	 */
 	public Activity updateActivity(@Name("activity") Activity updatedActivity) {
-		Activity activity = getContext().get("activity", Activity.class);
+		Activity activity = (Activity) getContext().get("activity");
 		if (activity == null) {
 			activity = new Activity();
 		}
@@ -118,12 +118,14 @@ public class MeetingAgent extends Agent {
 			activity.getStatus().setEnd(end.toString());
 		}
 		
+		// TODO: remove events from removed attendees
+		
 		getContext().put("activity", activity);
 		
 		// update all attendees
 		update();
 		
-		return getContext().get("activity", Activity.class);
+		return (Activity) getContext().get("activity");
 	}
 
 	/**
@@ -131,7 +133,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public String getSummary() {
-		Activity activity = getContext().get("activity", Activity.class);
+		Activity activity = (Activity) getContext().get("activity");
 		return (activity != null) ? activity.getSummary() : null;
 	}
 
@@ -140,7 +142,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public Activity getActivity() {
-		return getContext().get("activity", Activity.class);
+		return (Activity) getContext().get("activity");
 	}
 	
 	/**
@@ -148,7 +150,7 @@ public class MeetingAgent extends Agent {
 	 */
 	public void update() {
 		logger.info("update started");
-		Activity activity = getContext().get("activity", Activity.class);
+		Activity activity = (Activity) getContext().get("activity");
 		
 		for (Attendee attendee : activity.getConstraints().getAttendees()) {
 			String agent = attendee.getAgent();
@@ -215,11 +217,11 @@ public class MeetingAgent extends Agent {
 		logger.info("updateEvent started for agent " + agent);
 
 		Context context = getContext();
-		Activity activity = context.get("activity", Activity.class);
+		Activity activity = (Activity) context.get("activity");
 		
 		// retrieve event
 		ObjectNode event = null;
-		String eventId = context.get(agent, String.class);
+		String eventId = (String) context.get(agent);
 		if (eventId != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("eventId", eventId);
@@ -279,6 +281,34 @@ public class MeetingAgent extends Agent {
 			Activity syncActivity = activity.clone();
 			merge(syncActivity, event);
 			context.put("activity", syncActivity);
+		}
+	}
+	
+	/**
+	 * Clear an event from given agent
+	 * @param agent
+	 */
+	public void clearEvent (@Name("agent") String agent) { 
+		Context context = getContext();
+		String eventId = (String) context.get(agent);
+		if (eventId != null) {
+			try {
+				ObjectNode params = JOM.createObjectNode();
+				params.put("eventId", eventId);
+				send(agent, "deleteEvent", params);
+				
+				context.remove(agent);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONRPCException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+				// TODO: distinguish between deleted event and other errors
+				//       in case of error other than deleted event
+				//       this sync action must be cancelled
+			}
 		}
 	}
 	

@@ -6,7 +6,8 @@ http://almende.github.com/eve/
 
 - Updated agents web interface
 - Added JSON-RPC class validation
-- Slight improvements in the Context
+- Changed the Context: it now extends Map, which allows for better/easier Java
+  integration.
 
 
 2012-06-08, version 0.5

@@ -49,9 +49,6 @@ abstract public class Agent {
 	private Context context = null;
 	private Session session = null;
 	
-	@SuppressWarnings("rawtypes")
-	private static Class<? extends ArrayList> LIST_CALLBACK_CLASS = (new ArrayList<Callback>()).getClass();
-
 	public abstract String getDescription();
 	public abstract String getVersion();
 
@@ -128,7 +125,7 @@ abstract public class Agent {
 			@Name("callbackMethod") String callbackMethod) {
 		
 		String key = getSubscriptionsKey(event);
-		List<Callback> subscriptions = context.get(key, LIST_CALLBACK_CLASS);		
+		List<Callback> subscriptions = (List<Callback>) context.get(key);		
 		if (subscriptions == null) {
 			subscriptions = new ArrayList<Callback>(); 
 		}
@@ -158,7 +155,7 @@ abstract public class Agent {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod) {
 		String key = getSubscriptionsKey(event);
-		List<Callback> subscriptions = context.get(key, LIST_CALLBACK_CLASS);
+		List<Callback> subscriptions = (List<Callback>) context.get(key);
 		if (subscriptions != null) {
 			for (Callback s : subscriptions) {
 				if (s.callbackUrl.equals(callbackUrl) && 
@@ -193,14 +190,14 @@ abstract public class Agent {
 
 		// retrieve subscriptions from the event
 		String keyEvent = getSubscriptionsKey(event);
-		List<Callback> valueEvent = context.get(keyEvent, LIST_CALLBACK_CLASS);
+		List<Callback> valueEvent = (List<Callback>) context.get(keyEvent);
 		if (valueEvent != null) {
 			subscriptions.addAll(valueEvent);
 		}
 		
 		// retrieve subscriptions from the all event "*"
 		String keyAll = getSubscriptionsKey("*");
-		List<Callback> valueAll = context.get(keyAll, LIST_CALLBACK_CLASS);
+		List<Callback> valueAll = (List<Callback>) context.get(keyAll);
 		if (valueAll != null) {
 			subscriptions.addAll(valueAll);
 		}

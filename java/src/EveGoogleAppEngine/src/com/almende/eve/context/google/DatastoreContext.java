@@ -1,6 +1,10 @@
 package com.almende.eve.context.google;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
@@ -15,6 +19,8 @@ public class DatastoreContext implements Context {
 	private String agentClass = null;
 	private String agentId = null;
 	private String agentUrl = null;
+	private KeyValue entity = null;
+	private Map<String, Object> properties = null;
 	
 	public DatastoreContext() {}
 
@@ -70,73 +76,6 @@ public class DatastoreContext implements Context {
 	public String getAgentClass() {
 		return agentClass;
 	}
-	
-	/**
-	 * Generate the full key, which is defined as "id.key"
-	 * @param key
-	 * @return
-	 */
-	private String getFullKey (String key) {
-		return agentId + "." + key;
-	}
-	
-	// TODO: load and save in a transaction
-	
-	@Override
-	public <T> T get(String key, Class<T> type) {
-		ObjectDatastore datastore = new AnnotationObjectDatastore();
-		
-		String fullKey = getFullKey(key);
-		KeyValue entity = datastore.load(KeyValue.class, fullKey);
-		if (entity != null) {
-			try {
-				return entity.getValue(type);
-			} catch (ClassNotFoundException e) {
-				return null;
-			} catch (IOException e) {
-				return null;
-			}
-		}
-		else {
-			return null;
-		}
-	}
-
-	@Override
-	public boolean put(String key, Object value) {
-		ObjectDatastore datastore = new AnnotationObjectDatastore();
-
-		try {
-			String fullKey = getFullKey(key);
-			KeyValue entity = new KeyValue(fullKey, value);
-			datastore.store(entity);
-			return true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		} 
-	}
-
-	@Override
-	public boolean has(String key) {
-		ObjectDatastore datastore = new AnnotationObjectDatastore();
-
-		String fullKey = getFullKey(key);
-		KeyValue entity = datastore.load(KeyValue.class, fullKey);
-		return (entity != null);
-	}
-
-	@Override
-	public void remove(String key) {
-		ObjectDatastore datastore = new AnnotationObjectDatastore();
-
-		String fullKey = getFullKey(key);
-		KeyValue entity = datastore.load(KeyValue.class, fullKey);
-		if (entity != null) {
-			datastore.delete(entity);
-		}
-	}
 
 	@Override
 	public String getAgentUrl() {
@@ -179,5 +118,205 @@ public class DatastoreContext implements Context {
 			scheduler = new AppEngineScheduler();
 		}
 		return scheduler;
+	}
+
+	/**
+	 * Load/refresh the entity, retrieve it from the datastore
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
+	 */
+	@SuppressWarnings("unchecked")
+	private void refresh() throws IOException {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		
+		String propertiesKey = agentClass + "." + agentId;
+		if (entity == null) {
+			entity = datastore.load(KeyValue.class, propertiesKey);
+			if (entity == null) {
+				entity = new KeyValue(propertiesKey, properties);
+				datastore.store(entity);
+			}
+		}
+		else {
+			datastore.associate(entity);
+			datastore.refresh(entity);
+		}
+		
+		try {
+			@SuppressWarnings("rawtypes")
+			Class<? extends HashMap> MAP_OBJECT_CLASS = 
+				(new HashMap<String, Object>()).getClass();
+			
+			properties = entity.getValue(MAP_OBJECT_CLASS);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (properties == null) {
+			properties = new HashMap<String, Object>();
+		}
+	}
+	
+	/**
+	 * Update the entity, store changes to the datastore
+	 * @param entity
+	 * @throws IOException 
+	 */
+	private void update() throws IOException {
+		// TODO: does it give better performance when making a datastore
+		//       in the context and make this synchronized?
+		
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		entity.setValue(properties);
+		datastore.associate(entity);
+		datastore.update(entity);
+	}
+	
+	@Override
+	public Object get(Object key) {
+		try {
+			refresh();
+			return properties.get(key);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public Object put(String key, Object value) {
+		try {
+			refresh();
+			properties.put(key, value);
+			update();
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean containsKey(Object key) {
+		try {
+			refresh();
+			return properties.containsKey(key);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@Override
+	public Object remove(Object key) {
+		try {
+			refresh();
+			Object value = properties.remove(key);
+			update();
+			return value;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public void clear() {
+		try {
+			refresh();
+			properties.clear();
+			update();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public boolean containsValue(Object value) {
+		try {
+			refresh();
+			return properties.containsValue(value);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@Override
+	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+		try {
+			refresh();
+			return properties.entrySet();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		try {
+			refresh();
+			return properties.isEmpty();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+	}
+
+	@Override
+	public Set<String> keySet() {
+		try {
+			refresh();
+			return properties.keySet();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public void putAll(Map<? extends String, ? extends Object> map) {
+		try {
+			refresh();
+			properties.putAll(map);
+			update();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public int size() {
+		try {
+			refresh();
+			return properties.size();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	@Override
+	public Collection<Object> values() {
+		try {
+			refresh();
+			return properties.values();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

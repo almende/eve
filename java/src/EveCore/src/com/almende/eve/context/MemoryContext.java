@@ -1,7 +1,9 @@
 package com.almende.eve.context;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.almende.eve.config.Config;
 import com.almende.eve.scheduler.RunnableScheduler;
@@ -56,58 +58,108 @@ public class MemoryContext implements Context {
 		}
 		return agentUrl;
 	}
-	
+
+	/* TODO: cleanup
 	@SuppressWarnings("unchecked")
 	@Override
 	public synchronized <T> T get(String key, Class<T> type) {
-		if (properties == null) {
-			return null;
-		}
 		return (T) properties.get(key);
 	}
 
 	@Override
 	public synchronized boolean put(String key, Object value) {
-		if (properties == null) {
-			return false;
-		}		
-
 		properties.put(key, value);
 		return true;
 	}
 
 	@Override
 	public synchronized boolean has(String key) {
-		if (properties == null) {
-			return false;
-		}		
 		return properties.containsKey(key);
 	}
 
 	@Override
 	public synchronized void remove(String key) {
-		if (properties != null) {
-			properties.remove(key);
-		}	
+		properties.remove(key);
 	}
+	*/
 	
 	@Override
-	public Scheduler getScheduler() {
+	public synchronized Scheduler getScheduler() {
 		return scheduler;
 	}
 
 	@Override
-	public String getServletUrl() {
+	public synchronized String getServletUrl() {
 		return factory.getServletUrl();
 	}
 
 	@Override
-	public Config getConfig() {
+	public synchronized Config getConfig() {
 		return factory.getConfig();
 	}
 	
 	@Override
-	public String getEnvironment() {
+	public synchronized String getEnvironment() {
 		return factory.getEnvironment();
+	}
+
+	@Override
+	public synchronized void clear() {
+		properties.clear();
+	}
+
+	@Override
+	public synchronized Set<String> keySet() {
+		return properties.keySet();
+	}
+
+	@Override
+	public synchronized boolean containsKey(Object key) {
+		return properties.containsKey(key);
+	}
+
+	@Override
+	public synchronized boolean containsValue(Object value) {
+		return properties.containsValue(value);
+	}
+
+	@Override
+	public synchronized Set<java.util.Map.Entry<String, Object>> entrySet() {
+		return properties.entrySet();
+	}
+
+	@Override
+	public synchronized Object get(Object key) {
+		return properties.get(key);
+	}
+
+	@Override
+	public synchronized boolean isEmpty() {
+		return properties.isEmpty();
+	}
+
+	@Override
+	public synchronized Object put(String key, Object value) {
+		return properties.put(key, value);
+	}
+
+	@Override
+	public synchronized void putAll(Map<? extends String, ? extends Object> map) {
+		properties.putAll(map);
+	}
+
+	@Override
+	public synchronized Object remove(Object key) {
+		return properties.remove(key);
+	}
+
+	@Override
+	public synchronized int size() {
+		return properties.size();
+	}
+
+	@Override
+	public synchronized Collection<Object> values() {
+		return properties.values();
 	}
 }
