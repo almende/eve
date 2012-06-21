@@ -53,19 +53,19 @@ public class GoogleAuth extends HttpServlet {
 			// load configuration
 			Config config = new Config(this);
 
-			CLIENT_ID = config.get("google.client_id");
+			CLIENT_ID = config.get("google", "client_id");
 			if (CLIENT_ID == null) {
-				throw new Exception("google.client_id missing in config");
+				throw new Exception("Parameter 'google.client_id' missing in config");
 			}
 			
-			CLIENT_SECRET = config.get("google.client_secret");
+			CLIENT_SECRET = config.get("google", "client_secret");
 			if (CLIENT_SECRET == null) {
-				throw new Exception("google.client_secret missing in config");
+				throw new Exception("Parameter 'google.client_secret' missing in config");
 			}
 
-			REDIRECT_URI = config.get("auth.google.servlet_url");
+			REDIRECT_URI = config.get("auth", "google", "servlet_url");
 			if (REDIRECT_URI == null) {
-				throw new Exception("auth.google.servlet_url missing in config");
+				throw new Exception("Parameter 'auth.google.servlet_url' missing in config");
 			}
 			// TODO: redirect_uri should reckon with the current environment
 		} catch (Exception e) {

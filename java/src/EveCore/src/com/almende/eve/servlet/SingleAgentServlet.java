@@ -50,7 +50,6 @@ public class SingleAgentServlet extends HttpServlet {
 		StreamingUtil.streamBinaryData(is, mimetype, response);
 	}	
 
-
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -171,7 +170,7 @@ public class SingleAgentServlet extends HttpServlet {
 			return;
 		}
 
-		String className = config.get("context.class");
+		String className = config.get("context", "class");
 		if (className == null) {
 			throw new ServletException(
 				"Config parameter 'context.class' missing in Eve configuration.");

@@ -57,9 +57,9 @@ public class DatastoreContextFactory implements ContextFactory {
 	public String getServletUrl() {
 		if (servletUrl == null) {
 			// read the servlet url from the config
-			String path = "environment." + getEnvironment() + ".servlet_url";
-			servletUrl = config.get(path);
+			servletUrl = config.get("environment", getEnvironment(), "servlet_url");
 			if (servletUrl == null) {
+				String path = "environment." + getEnvironment() + ".servlet_url";
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
 				e.printStackTrace();
 			}

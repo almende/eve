@@ -60,21 +60,19 @@ public class Config {
 	
 	/**
 	 * retrieve a (nested) parameter from the config
-	 * the parameter name can be a simple name like "url", or a path with names 
-	 * separated by a dot, for example "servlet.config.url"
+	 * the parameter name can be a simple name like config.get("url"), 
+	 * or nested parameter like config.get("servlet", "config", "url")
 	 * null is returned when the parameter is not found
-	 * @param path    Parameter path
+	 * @param params    One or multiple (nested) parameters
 	 * @return
-	 */	
+	 */
 	@SuppressWarnings("unchecked")
-	public <T> T get(String path) {
+	public <T> T get(String ... params) {
 		if (config == null) {
 			return null;
 		}
 		
-		String[] params = path.split("\\.");
 		Map<String, Object> c = config;
-
 		for (int i = 0; i < params.length - 1; i++) {
 			String key = params[i];
 			// FIXME: check instance

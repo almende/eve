@@ -228,7 +228,7 @@ public class MultiAgentServlet extends HttpServlet {
 
 		Map<String, Class<?>> newAgentClasses = new HashMap<String, Class<?>>();
 		
-		List<String> classes = config.get("agent.classes");
+		List<String> classes = config.get("agent", "classes");
 		if (classes == null) {
 			throw new ServletException(
 				"Config parameter 'agent.classes' missing in Eve configuration.");
@@ -283,7 +283,7 @@ public class MultiAgentServlet extends HttpServlet {
 			return;
 		}
 		
-		String className = config.get("context.class");
+		String className = config.get("context", "class");
 		if (className == null) {
 			throw new ServletException(
 				"Config parameter 'context.class' missing in Eve configuration.");

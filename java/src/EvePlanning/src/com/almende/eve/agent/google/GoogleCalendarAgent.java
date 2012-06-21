@@ -132,8 +132,8 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		}
 		
 		Config config = getContext().getConfig();
-		String client_id = config.get("google.client_id");
-		String client_secret = config.get("google.client_secret");
+		String client_id = config.get("google", "client_id");
+		String client_secret = config.get("google", "client_secret");
 		
 		// retrieve new access_token using the refresh_token
 		Map<String, String> params = new HashMap<String, String>();

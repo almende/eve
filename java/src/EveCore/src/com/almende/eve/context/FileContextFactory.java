@@ -62,7 +62,7 @@ public class FileContextFactory implements ContextFactory {
 	public String getPath() {
 		if (path == null) {
 			// retrieve the path from config file
-			path = getConfig().get("context.path");
+			path = getConfig().get("context", "path");
 			if (path == null) {
 				path = ".eveagents";
 				logger.warning(
@@ -91,9 +91,9 @@ public class FileContextFactory implements ContextFactory {
 	public String getServletUrl() {
 		if (servletUrl == null) {
 			// read the servlet url from the config
-			String path = "environment." + getEnvironment() + ".servlet_url";
-			String servletUrl = config.get(path);
+			String servletUrl = config.get("environment", getEnvironment(), "servlet_url");
 			if (servletUrl == null) {
+				String path = "environment." + getEnvironment() + ".servlet_url";
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
 				e.printStackTrace();
 			}
