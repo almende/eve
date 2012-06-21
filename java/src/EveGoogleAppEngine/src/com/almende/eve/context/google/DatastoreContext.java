@@ -137,6 +137,7 @@ public class DatastoreContext implements Context {
 	public Scheduler getScheduler() {
 		if (scheduler == null) {
 			scheduler = new AppEngineScheduler();
+			scheduler.setContext(this);
 		}
 		return scheduler;
 	}

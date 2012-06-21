@@ -29,7 +29,10 @@ public class AppEngineScheduler implements Scheduler {
 	@Override
 	public String createTask(JSONRequest request, long delay) {
 		try {
-			String url = context.getAgentUrl();
+			String url = null;
+			if (context != null) {
+				url = context.getAgentUrl();
+			}
 			if (url == null) {
 				return null;
 			}
