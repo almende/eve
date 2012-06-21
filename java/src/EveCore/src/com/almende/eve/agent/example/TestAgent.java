@@ -155,21 +155,20 @@ public class TestAgent extends Agent {
 		trigger(event, params);
 	}
 
-
 	public String createTaskInterval(@Name("interval") long interval) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("pingTask", params);
-		String id = getContext().getScheduler().setInterval(getUrl(), request, interval);
+		String id = getContext().getScheduler().createRepeatingTask(request, interval);
 		return id;
 	}
 	
 	public void cancelTask(@Name("id") String id) {
-		getContext().getScheduler().cancelTimer(id);
+		getContext().getScheduler().cancelTask(id);
 	}
 	
 	public Set<String> getTasks() {
-		return getContext().getScheduler().getTimers();
+		return getContext().getScheduler().getTasks();
 		// TODO: must a getTasks also return the contents of the task?
 	}
 	
@@ -178,7 +177,7 @@ public class TestAgent extends Agent {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("myTask", params);
-		String id = getContext().getScheduler().setTimeout(getUrl(), request, delay);
+		String id = getContext().getScheduler().createTask(request, delay);
 		return id;
 	}
 	

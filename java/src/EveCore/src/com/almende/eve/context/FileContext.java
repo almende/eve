@@ -1,5 +1,6 @@
 package com.almende.eve.context;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,7 +47,7 @@ public class FileContext implements Context {
 
 	private Map<String, Object> properties = new HashMap<String, Object>();
 	
-	private Scheduler scheduler = new RunnableScheduler();
+	private Scheduler scheduler = null;
 	
 	public FileContext() {}
 
@@ -56,6 +57,9 @@ public class FileContext implements Context {
 		this.agentId = agentId;
 		this.agentClass = agentClass;
 		// Note: agentUrl and filename will be initialized when needed
+		
+		this.scheduler = new RunnableScheduler();
+		this.scheduler.setContext(this);
 	}
 	
 	@Override
@@ -108,7 +112,7 @@ public class FileContext implements Context {
 		return factory.getEnvironment();
 	}
 	
-	private String getFileName() {
+	private String getFilename() {
 		if (filename == null) {
 			String path = factory.getPath();
 			filename = path + agentClass + "." + agentId;
@@ -123,7 +127,7 @@ public class FileContext implements Context {
 	 */
 	private boolean write() {
 		try {
-			FileOutputStream fos = new FileOutputStream(getFileName());
+			FileOutputStream fos = new FileOutputStream(getFilename());
 			ObjectOutput out = new ObjectOutputStream(fos);   
 			out.writeObject(properties);
 			out.close();
@@ -144,7 +148,7 @@ public class FileContext implements Context {
 	@SuppressWarnings("unchecked")
 	private boolean read() {
 		try {
-			FileInputStream fis = new FileInputStream(getFileName());
+			FileInputStream fis = new FileInputStream(getFilename());
 			ObjectInput in = new ObjectInputStream(fis);
 			properties = (Map<String, Object>) in.readObject();
 			fis.close();
@@ -160,11 +164,20 @@ public class FileContext implements Context {
 		return false;
 	}
 	
+	/**
+	 * Delete the file from disk
+	 * @return
+	 */
+	private boolean delete() {
+		File file = new File(getFilename());
+		return file.delete();
+	}
+	
 	@Override
 	public synchronized void clear() {
 		read();
 		properties.clear();
-		write();
+		delete();
 	}
 
 	@Override

@@ -142,8 +142,8 @@ public class DatastoreContext implements Context {
 	}
 
 	/**
-	 * Load/refresh the entity, retrieve it from the datastore
-	 * @return success    True if succesfully refreshed
+	 * Load/refresh the entity, retrieve it from the Datastore
+	 * @return success    True if successfully refreshed
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
 	 */
@@ -187,9 +187,9 @@ public class DatastoreContext implements Context {
 	}
 	
 	/**
-	 * Update the entity, store changes to the datastore
+	 * Update the entity, store changes to the Datastore
 	 * @param entity
-	 * @return success    True if succesfully updated
+	 * @return success    True if successfully updated
 	 * @throws IOException 
 	 */
 	private boolean update() {
@@ -204,6 +204,20 @@ public class DatastoreContext implements Context {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	
+	/**
+	 * Delete the entity from the Datastore
+	 * @param entity
+	 * @return success    True if successfully deleted
+	 * @throws IOException 
+	 */
+	private boolean delete() {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		datastore.associate(entity);
+		datastore.delete(entity);
+		return true;
 	}
 	
 	@Override
@@ -238,7 +252,7 @@ public class DatastoreContext implements Context {
 	public void clear() {
 		refresh();
 		properties.clear();
-		update();
+		delete();
 	}
 
 	@Override

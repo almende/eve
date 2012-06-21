@@ -3,7 +3,9 @@ package com.almende.eve.scheduler.google;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 
@@ -13,19 +15,47 @@ import com.google.appengine.api.taskqueue.TaskHandle;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 public class AppEngineScheduler implements Scheduler {
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+
+	private Context context = null;
+	
 	public AppEngineScheduler () {}
+
+	@Override
+	public void setContext(Context context) {
+		this.context = context;
+	}
 	
 	@Override
-	public String setTimeout(String url, JSONRequest request, 
-			long delay) {
+	public String createTask(JSONRequest request, long delay) {
 		try {
+			String url = context.getAgentUrl();
+			if (url == null) {
+				return null;
+			}
+			
 			URL uri = new URL(url);
 			String path = uri.getPath();
 			
 			Queue queue = QueueFactory.getDefaultQueue();
 			TaskHandle task = queue.add(withUrl(path)
 					.payload(request.toString())
-					.countdownMillis(delay));		
+					.countdownMillis(delay));
+			
+			/* TODO: store the task
+			if (context != null) {
+				Set<String> tasks = (Set<String>) context.get("tasks");
+				if (tasks == null) {
+					tasks = new HashSet<String>();
+				}
+				tasks.add(task.getName());
+				
+				context.put("tasks", tasks);
+			}
+			else {
+				logger.warning("No context initialized. Timers cannot be stored");
+			}
+			*/
 			
 			return task.getName();			
 		} catch (MalformedURLException e) {
@@ -38,8 +68,7 @@ public class AppEngineScheduler implements Scheduler {
 	}
 
 	@Override
-	public String setInterval(String url, JSONRequest request, 
-			long interval) {
+	public String createRepeatingTask(JSONRequest request, long interval) {
 		// TODOL implement setInterval
 		
 		System.out.println("setInterval not yet supported by AppEngineScheduler");
@@ -48,16 +77,41 @@ public class AppEngineScheduler implements Scheduler {
 	}
 
 	@Override
-	public void cancelTimer(String id) {
+	public void cancelTask(String id) {
+		/* TODO: store the task
+		if (context != null) {
+			Set<String> tasks = (Set<String>) context.get("tasks");
+			if (tasks != null && tasks.contains(id)) {
+				Queue queue = QueueFactory.getDefaultQueue();
+				queue.deleteTask(id);
+				tasks.remove(id);
+				context.put("tasks", tasks);
+			}
+		}
+		else {
+			logger.warning("No context initialized. Timers cannot be canceled");
+		}
+		*/
 		Queue queue = QueueFactory.getDefaultQueue();
 		queue.deleteTask(id);
 	}
 
 	@Override
-	public Set<String> getTimers() {
-		// TODOL implement getTimers
+	public Set<String> getTasks() {
+		/* TODO: be able to retrieve all tasks
+		Set<String> tasks = null;
 		
-		System.out.println("getTimers not yet supported by AppEngineScheduler");
+		if (context != null) {
+			tasks = (Set<String>) context.get("tasks");
+		}
+		
+		if (tasks == null) {
+			tasks = new HashSet<String>();
+		}
+
+		return tasks;
+		*/
+		logger.warning("getTasks not yet implemented for AppEngineScheduler");
 		
 		return null;
 	}

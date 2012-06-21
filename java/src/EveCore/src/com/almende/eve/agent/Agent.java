@@ -29,7 +29,9 @@ package com.almende.eve.agent;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
@@ -91,23 +93,48 @@ abstract public class Agent {
 	 * cancel all running tasks
 	 */
 	public void clear() throws Exception {
-	// final public void clear() {
 		// TODO: unsubscribe from all subscriptions 
 		
 		// TODO: cancel all scheduled tasks.
-
-		// TODO: loop through the context keys and remove everything.
+		
+		// remove all keys from the context
+		context.clear();
 	}
 
 	/**
-	 * Create the subscription key for a given event.
-	 * the resulting key will be "subscriptions.event"
+	 * Retrieve the list with subscriptions on given event.
+	 * If there are no subscriptions for this event, an empty list is returned
 	 * @param event
 	 * @return
 	 */
-	private String getSubscriptionsKey(String event) {
-		String key = "subscriptions." + event;
-		return key;
+	@SuppressWarnings("unchecked")
+	private List<Callback> getSubscriptions(String event) {
+		Map<String, List<Callback> > allSubscriptions = 
+			(Map<String, List<Callback> >) context.get("subscriptions");
+		if (allSubscriptions != null) {
+			List<Callback> eventSubscriptions = allSubscriptions.get(event);
+			if (eventSubscriptions != null) {
+				return eventSubscriptions;
+			}
+		}
+		
+		return new ArrayList<Callback>();
+	}
+	
+	/**
+	 * Store a list with subscriptions for an event
+	 * @param event
+	 * @param subscriptions
+	 */
+	@SuppressWarnings("unchecked")
+	private void putSubscriptions(String event, List<Callback> subscriptions) {
+		Map<String, List<Callback> > allSubscriptions = 
+			(Map<String, List<Callback> >) context.get("subscriptions");
+		if (allSubscriptions == null) {
+			allSubscriptions = new HashMap<String, List<Callback>> ();
+		}
+		allSubscriptions.put(event, subscriptions);
+		context.put("subscriptions", allSubscriptions);
 	}
 	
 	/**
@@ -118,18 +145,11 @@ abstract public class Agent {
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
-	@SuppressWarnings("unchecked")
 	final public void subscribe(
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod) {
-		
-		String key = getSubscriptionsKey(event);
-		List<Callback> subscriptions = (List<Callback>) context.get(key);		
-		if (subscriptions == null) {
-			subscriptions = new ArrayList<Callback>(); 
-		}
-		
+		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback s : subscriptions) {
 			if (s.callbackUrl.equals(callbackUrl) && 
 					s.callbackMethod.equals(callbackMethod)) {
@@ -141,7 +161,9 @@ abstract public class Agent {
 		// the callback does not yet exist. create it and store it
 		Callback callback = new Callback(callbackUrl, callbackMethod);
 		subscriptions.add(callback);
-		context.put(key, subscriptions);
+		
+		// store the subscriptions
+		putSubscriptions(event, subscriptions);
 	}
 	
 	/**
@@ -149,21 +171,19 @@ abstract public class Agent {
 	 * @param event
 	 * @param callbackUrl
 	 */
-	@SuppressWarnings("unchecked")
 	final public void unsubscribe(
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod) {
-		String key = getSubscriptionsKey(event);
-		List<Callback> subscriptions = (List<Callback>) context.get(key);
+		List<Callback> subscriptions = getSubscriptions(event);
 		if (subscriptions != null) {
-			for (Callback s : subscriptions) {
-				if (s.callbackUrl.equals(callbackUrl) && 
-						s.callbackMethod.equals(callbackMethod)) {
-					// callback is found. remove it and store the subscriptions 
-					//again
-					subscriptions.remove(s);
-					context.put(key, subscriptions);
+			for (Callback subscription : subscriptions) {
+				if (subscription.callbackUrl.equals(callbackUrl) && 
+						subscription.callbackMethod.equals(callbackMethod)) {
+					// callback is found
+					// remove it and store the subscriptions again
+					subscriptions.remove(subscription);
+					putSubscriptions(event, subscriptions);
 					return;
 				}
 			}
@@ -178,7 +198,6 @@ abstract public class Agent {
 	 * @throws JSONRPCException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	@SuppressWarnings("unchecked")
 	final public void trigger(@Name("event") String event, 
 			@Name("params") ObjectNode params) throws JSONRPCException, Exception {
 		String url = getUrl();
@@ -189,18 +208,12 @@ abstract public class Agent {
 		}
 
 		// retrieve subscriptions from the event
-		String keyEvent = getSubscriptionsKey(event);
-		List<Callback> valueEvent = (List<Callback>) context.get(keyEvent);
-		if (valueEvent != null) {
-			subscriptions.addAll(valueEvent);
-		}
+		List<Callback> valueEvent = getSubscriptions(event);
+		subscriptions.addAll(valueEvent);
 		
 		// retrieve subscriptions from the all event "*"
-		String keyAll = getSubscriptionsKey("*");
-		List<Callback> valueAll = (List<Callback>) context.get(keyAll);
-		if (valueAll != null) {
-			subscriptions.addAll(valueAll);
-		}
+		List<Callback> valueAll = getSubscriptions("*");
+		subscriptions.addAll(valueAll);
 		
 		// TODO: smartly remove double entries?
 		ObjectNode callbackParams = JOM.createObjectNode();

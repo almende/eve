@@ -37,7 +37,7 @@ public class MemoryContext implements Context {
 	
 	private Map<String, Object> properties = new HashMap<String, Object>();
 	
-	private Scheduler scheduler = new RunnableScheduler();
+	private Scheduler scheduler = null;
 	
 	public MemoryContext() {}
 
@@ -47,6 +47,9 @@ public class MemoryContext implements Context {
 		this.agentId = agentId;
 		this.agentClass = agentClass;
 		// Note: agentUrl will be initialized when needed
+		
+		this.scheduler = new RunnableScheduler();
+		this.scheduler.setContext(this);
 	}
 	
 	@Override
