@@ -9,6 +9,26 @@ import com.almende.eve.config.Config;
 import com.almende.eve.scheduler.RunnableScheduler;
 import com.almende.eve.scheduler.Scheduler;
 
+/**
+ * @class MemoryContext
+ * 
+ * A context for an Eve Agent, which stores the data in memory.
+ * (After a restart of the application, the data will be gone!)
+ * 
+ * The context provides general information for the agent (about itself,
+ * the environment, and the system configuration), and the agent can store its 
+ * state in the context. 
+ * The context extends a standard Java Map.
+ * 
+ * Usage:<br>
+ *     ContextFactory factory = new FileContextFactory();<br>
+ *     factory.setConfig(config);<br>
+ *     Context context = factory.getContext("agentClass", "agentId");<br>
+ *     context.put("key", "value");<br>
+ *     System.out.println(context.get("key")); // "value"<br>
+ * 
+ * @author jos
+ */
 public class MemoryContext implements Context {
 	MemoryContextFactory factory = null;
 	private String agentUrl = null;
@@ -58,30 +78,6 @@ public class MemoryContext implements Context {
 		}
 		return agentUrl;
 	}
-
-	/* TODO: cleanup
-	@SuppressWarnings("unchecked")
-	@Override
-	public synchronized <T> T get(String key, Class<T> type) {
-		return (T) properties.get(key);
-	}
-
-	@Override
-	public synchronized boolean put(String key, Object value) {
-		properties.put(key, value);
-		return true;
-	}
-
-	@Override
-	public synchronized boolean has(String key) {
-		return properties.containsKey(key);
-	}
-
-	@Override
-	public synchronized void remove(String key) {
-		properties.remove(key);
-	}
-	*/
 	
 	@Override
 	public synchronized Scheduler getScheduler() {

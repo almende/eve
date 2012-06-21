@@ -8,6 +8,7 @@ http://almende.github.com/eve/
 - Added JSON-RPC class validation
 - Changed the Context: it now extends Map, which allows for better/easier Java
   integration.
+- FileContext created. Stores agents data on disk.
 
 
 2012-06-08, version 0.5

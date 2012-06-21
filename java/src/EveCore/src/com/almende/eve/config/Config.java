@@ -57,6 +57,7 @@ public class Config {
 	public Map<String, Object> get() {
 		return config;		
 	}
+	
 	/**
 	 * retrieve a (nested) parameter from the config
 	 * the parameter name can be a simple name like "url", or a path with names 

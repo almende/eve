@@ -5,6 +5,28 @@ import java.util.Map;
 
 import com.almende.eve.config.Config;
 
+/**
+ * @class MemoryContextFactory
+ * 
+ * Factory for instantiating a MemoryContext for an Eve Agent.
+ * A MemoryContext stores the state of an agent only in memory, 
+ * after a restart of the application, the data will be gone!
+ * 
+ * The context provides general information for the agent (about itself,
+ * the environment, and the system configuration), and the agent can store its 
+ * state in the context. 
+ * The context extends a standard Java Map.
+ * 
+ * Usage:<br>
+ *     FileContextFactory factory = new MemoryContextFactory();<br>
+ *     factory.setConfig(config);<br>
+ *     Context context = factory.getContext("MyAgentClass", "agentId");<br>
+ *     Agent agent = new MyAgentClass();
+ *     agent.setContext(context);
+ * 
+ * @author jos
+ *
+ */
 public class MemoryContextFactory implements ContextFactory {
 	private String servletUrl = null;
 	private Config config = null;

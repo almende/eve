@@ -13,6 +13,27 @@ import com.almende.eve.config.Config;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
+/**
+ * @class DatastoreContext
+ * 
+ * A context for an Eve Agent, which stores the data in the Google Datastore.
+ * This context is only available when the application is running in Google 
+ * App Engine.
+ * 
+ * The context provides general information for the agent (about itself,
+ * the environment, and the system configuration), and the agent can store its 
+ * state in the context. 
+ * The context extends a standard Java Map.
+ * 
+ * Usage:<br>
+ *     ContextFactory factory = new DatastoreContextFactory();<br>
+ *     factory.setConfig(config);<br>
+ *     Context context = factory.getContext("agentClass", "agentId");<br>
+ *     context.put("key", "value");<br>
+ *     System.out.println(context.get("key")); // "value"<br>
+ * 
+ * @author jos
+ */
 public class DatastoreContext implements Context {
 	private DatastoreContextFactory factory = null;
 	private Scheduler scheduler = null;
@@ -122,11 +143,13 @@ public class DatastoreContext implements Context {
 
 	/**
 	 * Load/refresh the entity, retrieve it from the datastore
+	 * @return success    True if succesfully refreshed
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
-	private void refresh() {
+	private boolean refresh() {
+		boolean success = false;
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
 			String propertiesKey = agentClass + "." + agentId;
@@ -147,6 +170,8 @@ public class DatastoreContext implements Context {
 				(new HashMap<String, Object>()).getClass();
 			
 			properties = entity.getValue(MAP_OBJECT_CLASS);
+			
+			success = true;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -157,23 +182,28 @@ public class DatastoreContext implements Context {
 		if (properties == null) {
 			properties = new HashMap<String, Object>();
 		}
+		
+		return success;
 	}
 	
 	/**
 	 * Update the entity, store changes to the datastore
 	 * @param entity
+	 * @return success    True if succesfully updated
 	 * @throws IOException 
 	 */
-	private void update() {
+	private boolean update() {
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
 			// TODO: check if entity != null
 			entity.setValue(properties);
 			datastore.associate(entity);
 			datastore.update(entity);
+			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return false;
 	}
 	
 	@Override

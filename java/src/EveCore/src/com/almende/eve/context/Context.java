@@ -5,6 +5,25 @@ import java.util.Map;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.config.Config;
 
+
+/**
+ * @class Context
+ * 
+ * An interface for a context for Eve agents.
+ * The context provides general information for the agent (about itself,
+ * the environment, and the system configuration), and the agent can store its 
+ * state in the context. 
+ * The context extends a standard Java Map.
+ * 
+ * Usage:<br>
+ *     ContextFactory factory = new FileContextFactory();<br>
+ *     factory.setConfig(config);<br>
+ *     Context context = factory.getContext("agentClass", "agentId");<br>
+ *     context.put("key", "value");<br>
+ *     System.out.println(context.get("key")); // "value"<br>
+ * 
+ * @author jos
+ */
 public interface Context extends Map<String, Object> {
 	// servlet info
 	public String getEnvironment();
@@ -16,23 +35,6 @@ public interface Context extends Map<String, Object> {
 	public String getAgentClass();
 	public String getAgentUrl();
 
-	/* TODO: what more methods to take over from Map?
-	// key/value properties
-	public <T> T get(String key, Class<T> type);
-	public boolean put(String key, Object value);
-	public boolean has(String key);
-	public void remove(String key);
-	public void clear();
-	public Set<String> keySet();
-	public boolean containsKey(String key);  -> no, use has(String key)
-	public boolean containsValue(Object value);
-	public Set<String> entrySet();
-	public boolean isEmpty();
-	public void putAll(Map<String, Object> values);
-	public int size();
-	public Collection values();
-	*/
-	
 	// scheduler
 	public Scheduler getScheduler();	
 }

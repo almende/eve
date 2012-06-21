@@ -16,7 +16,8 @@ agent:
 # context settings
 # the context is used by agents for storing their state.
 context:
-  class: com.almende.eve.context.MemoryContextFactory
+  class: com.almende.eve.context.FileContextFactory
+  # class: com.almende.eve.context.MemoryContextFactory
 
 # Google API access
 google:
