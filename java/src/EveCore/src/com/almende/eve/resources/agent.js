@@ -133,9 +133,12 @@ function Ctrl() {
         for (var i = 0; i < this.method.params.length; i++) {
             var param = this.method.params[i];
             if (param.required || (param.value && param.value.length > 0) ) {
-                // TODO: reckon with the type of the parameter, in case of
-                //       object, parse as object. In case of number, parse as number
-                request.params[param.name] = param.value;
+                if (param.type.toLowerCase() == 'string') {
+                    request.params[param.name] = param.value;
+                }
+                else {
+                    request.params[param.name] = JSON.parse(param.value);
+                }
             }
         }
 
