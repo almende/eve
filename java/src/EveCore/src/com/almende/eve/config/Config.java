@@ -3,13 +3,9 @@ package com.almende.eve.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -20,25 +16,12 @@ public class Config {
 	public Config() {}
 
 	/**
-	 * Load the configuration file
-	 * The filename is read from the init-parameter "config" in the servlet
-	 * configuration, and is supposed to be located in war/WEB-INF/
-	 * @param servlet
-	 * @return
-	 * @throws ServletException 
-	 * @throws IOException 
-	 */
-	public Config(HttpServlet servlet) throws ServletException, IOException {
-		load(servlet);
-	}
-	
-	/**
 	 * Load the configuration file by filename (absolute path)
 	 * @param filename
 	 * @return
 	 * @throws FileNotFoundException 
 	 */
-	public Config(String filename) throws ServletException, IOException {
+	public Config(String filename) throws FileNotFoundException {
 		load(filename);
 	}
 	
@@ -48,37 +31,19 @@ public class Config {
 	 * @return
 	 * @throws FileNotFoundException 
 	 */
-	public Config(InputStream inputStream) throws ServletException, IOException {
+	public Config(InputStream inputStream) {
 		load(inputStream);
 	}
 	
 	/**
-	 * Load the configuration file
-	 * The filename is read from the init-parameter "config" in the servlet
-	 * configuration, and is supposed to be located in war/WEB-INF/
-	 * @param servlet
+	 * Load the configuration file by the default filename "/WEB-INF/eve.yaml"
+	 * @param filename
 	 * @return
-	 * @throws ServletException 
-	 * @throws IOException 
+	 * @throws FileNotFoundException 
 	 */
-	public void load(HttpServlet servlet) throws ServletException, IOException {
-		if (servlet == null) {
-			throw new ServletException("No servlet specified to load configuration");
-		}
-		
-		String filename = servlet.getInitParameter("config");
-		if (filename == null) {
-			filename = "eve.yaml";
-			logger.warning(
-				"Init parameter 'config' missing in servlet configuration web.xml. " +
-				"Trying default filename '" + filename + "'.");
-		}
-		
-		String fullname = "/WEB-INF/" + filename;
-		logger.info("Loading configuration file " + fullname);
-		
-		InputStream in = servlet.getServletContext().getResourceAsStream(fullname);
-		load(in);
+	public void loadDefault() throws FileNotFoundException{
+		String filename = "/WEB-INF/eve.yaml";
+		load(filename);
 	}
 	
 	/**
@@ -89,7 +54,7 @@ public class Config {
 	 */
 	public void load(String filename) throws FileNotFoundException{
 		File file = new File(filename);
-		logger.info("Loading configuration file " + file.getAbsoluteFile());
+		logger.info("Loading configuration file " + file.getAbsoluteFile() + "...");
 
 		FileInputStream in = new FileInputStream(filename);
 		load(in);

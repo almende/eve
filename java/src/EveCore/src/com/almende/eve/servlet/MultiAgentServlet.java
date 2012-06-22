@@ -213,7 +213,17 @@ public class MultiAgentServlet extends HttpServlet {
 			return;
 		}
 		
-		config = new Config(this);
+		String filename = getInitParameter("config");
+		if (filename == null) {
+			filename = "eve.yaml";
+			logger.warning(
+				"Init parameter 'config' missing in servlet configuration web.xml. " +
+				"Trying default filename '" + filename + "'.");
+		}
+		String fullname = "/WEB-INF/" + filename;
+		logger.info("loading configuration file '" + 
+				getServletContext().getRealPath(fullname) + "'...");
+		config = new Config(getServletContext().getResourceAsStream(fullname));	
 	}
 	
 	/**

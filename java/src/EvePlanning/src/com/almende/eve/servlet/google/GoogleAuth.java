@@ -51,7 +51,8 @@ public class GoogleAuth extends HttpServlet {
 	public void init() {
 		try {
 			// load configuration
-			Config config = new Config(this);
+			Config config = new Config();
+			config.loadDefault();
 
 			CLIENT_ID = config.get("google", "client_id");
 			if (CLIENT_ID == null) {
