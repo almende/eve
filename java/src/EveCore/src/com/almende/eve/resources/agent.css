@@ -22,7 +22,7 @@ table {
     border-radius: 3px;
 }
 textarea {
-    height: 100px;
+    height: 120px;
     min-width: 400px;
 }
 textarea, input[type=text] {

@@ -372,7 +372,15 @@ function Ctrl() {
         }
     };
 
-    this.request = JSON.stringify(this.request, null, 2); // TODO: this does not work
+    // fill in an initial JSON-RPC request
+    var defaultRequest = {
+        "id": 1,
+        "method": "getMethods",
+        "params": {
+            "asJSON": false
+        }
+    };
+    this.request = JSON.stringify(defaultRequest, null, 2);
 
     this.loading = true;
     this.load();
