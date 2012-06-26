@@ -126,47 +126,106 @@ function Ctrl() {
      * and the field result in the response is filled in in the field #result
      */
     this.sendForm = function () {
-        var request = {};
-        request.id = 1;
-        request.method = this.method.method;
-        request.params = {};
-        for (var i = 0; i < this.method.params.length; i++) {
-            var param = this.method.params[i];
-            if (param.required || (param.value && param.value.length > 0) ) {
-                if (param.type.toLowerCase() == 'string') {
-                    request.params[param.name] = param.value;
-                }
-                else {
-                    request.params[param.name] = JSON.parse(param.value);
+        try {
+            var request = {};
+            request.id = 1;
+            request.method = this.method.method;
+            request.params = {};
+            for (var i = 0; i < this.method.params.length; i++) {
+                var param = this.method.params[i];
+                if (param.required || (param.value && param.value.length > 0) ) {
+                    if (param.type.toLowerCase() == 'string') {
+                        request.params[param.name] = param.value;
+                    }
+                    else {
+                        request.params[param.name] = JSON.parse(param.value);
+                    }
                 }
             }
+
+            var start = +new Date();
+            this.formStatus = 'sending...';
+            var self = this;
+            this.send(self.url, request, function (response) {
+                var end = +new Date();
+                var diff = (end - start);
+                self.formStatus = 'ready in ' + diff + ' ms';
+
+                if (response.error) {
+                    self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
+                }
+                else {
+                    if (response.result instanceof Object) {
+                        self.result = JSON.stringify(response.result, null, 2) || '';
+                    }
+                    else {
+                        self.result = response.result || '';
+                    }
+                }
+                self.$root.$eval();
+                resize($('#result').get(0));
+            }, function (err) {
+                self.self.formStatus = 'failed. Error: ' + JSON.stringify(err);
+                self.$root.$eval();
+            });
         }
+        catch (err) {
+            this.formStatus = 'Error: ' + err;
+        }
+    };
 
-        var start = +new Date();
-        this.formStatus = 'sending...';
-        var self = this;
-        this.send(self.url, request, function (response) {
-            var end = +new Date();
-            var diff = (end - start);
-            self.formStatus = 'ready in ' + diff + ' ms';
-
-            if (response.error) {
-                self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
+    /**
+     * Send an JSON-RPC request.
+     * The request is built up from the current values in the form,
+     * and the field result in the response is filled in in the field #result
+     */
+    this.sendForm = function () {
+        try {
+            var request = {};
+            request.id = 1;
+            request.method = this.method.method;
+            request.params = {};
+            for (var i = 0; i < this.method.params.length; i++) {
+                var param = this.method.params[i];
+                if (param.required || (param.value && param.value.length > 0) ) {
+                    if (param.type.toLowerCase() == 'string') {
+                        request.params[param.name] = param.value;
+                    }
+                    else {
+                        request.params[param.name] = JSON.parse(param.value);
+                    }
+                }
             }
-            else {
-                if (response.result instanceof Object) {
-                    self.result = JSON.stringify(response.result, null, 2) || '';
+
+            var start = +new Date();
+            this.formStatus = 'sending...';
+            var self = this;
+            this.send(self.url, request, function (response) {
+                var end = +new Date();
+                var diff = (end - start);
+                self.formStatus = 'ready in ' + diff + ' ms';
+
+                if (response.error) {
+                    self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
                 }
                 else {
-                    self.result = response.result || '';
+                    if (response.result instanceof Object) {
+                        self.result = JSON.stringify(response.result, null, 2) || '';
+                    }
+                    else {
+                        self.result = response.result || '';
+                    }
                 }
-            }
-            self.$root.$eval();
-            resize($('#result').get(0));
-        }, function (err) {
-            self.self.formStatus = 'failed. Error: ' + JSON.stringify(err);
-            self.$root.$eval();
-        });
+                self.$root.$eval();
+                resize($('#result').get(0));
+            }, function (err) {
+                self.self.formStatus = 'failed. Error: ' + JSON.stringify(err);
+                self.$root.$eval();
+            });
+        }
+        catch (err) {
+            this.formStatus = 'Error: ' + err;
+        }
     };
 
     /**
@@ -175,25 +234,30 @@ function Ctrl() {
      * filled in in the field #response
      */
     this.sendJsonRpc = function() {
-        var self = this;
-        var request = JSON.parse(this.request);
-        this.request = JSON.stringify(request, null, 2);
-        self.$root.$eval();
-        resize($('#request').get(0));
+        try {
+            var self = this;
+            var request = JSON.parse(this.request);
+            this.request = JSON.stringify(request, null, 2);
+            self.$root.$eval();
+            resize($('#request').get(0));
 
-        this.rpcStatus = 'sending...';
-        var start = +new Date();
-        this.send(self.url, request, function (response) {
-            var end = +new Date();
-            var diff = (end - start);
-            self.response = JSON.stringify(response, null, 2);
-            self.rpcStatus = 'ready in ' + diff + ' ms';
-            self.$root.$eval();
-            resize($('#response').get(0));
-        }, function (err) {
-            self.rpcStatus = 'failed. Error: ' + JSON.stringify(err);
-            self.$root.$eval();
-        });
+            this.rpcStatus = 'sending...';
+            var start = +new Date();
+            this.send(self.url, request, function (response) {
+                var end = +new Date();
+                var diff = (end - start);
+                self.response = JSON.stringify(response, null, 2);
+                self.rpcStatus = 'ready in ' + diff + ' ms';
+                self.$root.$eval();
+                resize($('#response').get(0));
+            }, function (err) {
+                self.rpcStatus = 'failed. Error: ' + JSON.stringify(err);
+                self.$root.$eval();
+            });
+        }
+        catch (err) {
+            this.rpcStatus = 'Error: ' + err;
+        }
     };
 
     /**
