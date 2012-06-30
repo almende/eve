@@ -1,7 +1,5 @@
 package com.almende.eve.scheduler;
 
-import java.util.Set;
-
 import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRequest;
 
@@ -21,24 +19,10 @@ public interface Scheduler {
 	 * @return taskId
 	 */
 	public String createTask(JSONRequest request, long delay);
-	
-	/**
-	 * Schedule a repeating task
-	 * @param request   A JSONRequest with method and params
-	 * @param interval  The interval in milliseconds
-	 * @return taskId
-	 */
-	public String createRepeatingTask(JSONRequest request, long interval);
-	
+
 	/**
 	 * Cancel a scheduled task by its id
 	 * @param taskId
 	 */
 	public void cancelTask(String id);
-	
-	/**
-	 * Retrieve a list with all scheduled tasks
-	 * @return taskIds
-	 */
-	public Set<String> getTasks();
 }

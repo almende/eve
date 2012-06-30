@@ -27,7 +27,6 @@ package com.almende.eve.agent.example;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.entity.Person;
@@ -155,24 +154,10 @@ public class TestAgent extends Agent {
 		trigger(event, params);
 	}
 
-	public String createTaskInterval(@Name("interval") long interval) throws Exception {
-		ObjectNode params = JOM.createObjectNode();
-		params.put("message", "hello world");
-		JSONRequest request = new JSONRequest("pingTask", params);
-		String id = getContext().getScheduler().createRepeatingTask(request, interval);
-		return id;
-	}
-	
 	public void cancelTask(@Name("id") String id) {
 		getContext().getScheduler().cancelTask(id);
 	}
 	
-	public Set<String> getTasks() {
-		return getContext().getScheduler().getTasks();
-		// TODO: must a getTasks also return the contents of the task?
-	}
-	
-
 	public String createTask(@Name("delay") long delay) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");

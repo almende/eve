@@ -3,7 +3,6 @@ package com.almende.eve.scheduler;
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -82,6 +81,7 @@ public class RunnableScheduler implements Scheduler {
 	 * @param interval  The interval in milliseconds
 	 * @return taskId
 	 */
+	/* TODO: cleanup deprecated repeating task
 	@Override
 	public synchronized String createRepeatingTask(JSONRequest request, long interval) {
 		String url = getUrl();
@@ -95,6 +95,7 @@ public class RunnableScheduler implements Scheduler {
 	    
 		return task.getId();
 	}
+	*/
 	
 	/**
 	 * Cancel a scheduled task by its id
@@ -116,6 +117,7 @@ public class RunnableScheduler implements Scheduler {
 	 * Retrieve a list with all scheduled tasks
 	 * @return taskIds
 	 */
+	/* TODO: cleanup getTasks()
 	@Override
 	public synchronized Set<String> getTasks() {
 		if (tasks != null) {
@@ -123,6 +125,7 @@ public class RunnableScheduler implements Scheduler {
 		}
 		return null;
 	}
+	*/
 	
 	/**
 	 * Get the agents url from the currently set context

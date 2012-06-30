@@ -2,8 +2,6 @@ package com.almende.eve.scheduler.google;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Set;
-import java.util.logging.Logger;
 
 import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRequest;
@@ -15,8 +13,6 @@ import com.google.appengine.api.taskqueue.TaskHandle;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 public class AppEngineScheduler implements Scheduler {
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-
 	private Context context = null;
 	
 	public AppEngineScheduler () {}
@@ -77,21 +73,6 @@ public class AppEngineScheduler implements Scheduler {
 	}
 
 	/**
-	 * Schedule a repeating task
-	 * @param request   A JSONRequest with method and params
-	 * @param interval  The interval in milliseconds
-	 * @return taskId
-	 */
-	@Override
-	public String createRepeatingTask(JSONRequest request, long interval) {
-		// TODOL implement setInterval
-		
-		System.out.println("setInterval not yet supported by AppEngineScheduler");
-		
-		return null;
-	}
-
-	/**
 	 * Cancel a scheduled task by its id
 	 * @param taskId
 	 */
@@ -113,29 +94,5 @@ public class AppEngineScheduler implements Scheduler {
 		*/
 		Queue queue = QueueFactory.getDefaultQueue();
 		queue.deleteTask(id);
-	}
-
-	/**
-	 * Retrieve a list with all scheduled tasks
-	 * @return taskIds
-	 */
-	@Override
-	public Set<String> getTasks() {
-		/* TODO: be able to retrieve all tasks
-		Set<String> tasks = null;
-		
-		if (context != null) {
-			tasks = (Set<String>) context.get("tasks");
-		}
-		
-		if (tasks == null) {
-			tasks = new HashSet<String>();
-		}
-
-		return tasks;
-		*/
-		logger.warning("getTasks not yet implemented for AppEngineScheduler");
-		
-		return null;
 	}
 }

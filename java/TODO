@@ -1,0 +1,20 @@
+TODO
+
+- store a default availability profile (-> in the PersonalAgent?)
+- the meetingagent must automatically start autoUpdate
+- change subscribe and unsubscribe to onSubscribe and onUnsubscribe
+
+EXTRA
+
+MeetingAgent:
+  - handle event status (for example set to declined when a user deleted the 
+    event from its calendar)
+  - be able to manipulate attendees in your google calendar 
+  - start negotiating with other agents for a timeslot
+  - schedule over different locations
+  - schedule a (minimum?) number of people from a group
+  - schedule optional people
+  - in case of not satisfiable constraints, give feedback on which of the 
+    constraints can be changed best (exclude some people, plan later, make 
+    event shorter, find an other location, etc)
+
