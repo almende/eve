@@ -17,6 +17,7 @@ public class Config {
 
 	/**
 	 * Load the configuration file by filename (absolute path)
+	 * Default filename is /WEB-INF/eve.yaml
 	 * @param filename
 	 * @return
 	 * @throws FileNotFoundException 
@@ -36,18 +37,8 @@ public class Config {
 	}
 	
 	/**
-	 * Load the configuration file by the default filename "/WEB-INF/eve.yaml"
-	 * @param filename
-	 * @return
-	 * @throws FileNotFoundException 
-	 */
-	public void loadDefault() throws FileNotFoundException{
-		String filename = "/WEB-INF/eve.yaml";
-		load(filename);
-	}
-	
-	/**
 	 * Load the configuration file by filename (absolute path)
+	 * Default filename is /WEB-INF/eve.yaml
 	 * @param filename
 	 * @return
 	 * @throws FileNotFoundException 

@@ -88,6 +88,7 @@ public class JSONRPCException extends Exception {
 	public JSONRPCException (Integer code, String message, Object data) {
 		setCode(code);
 		setMessage(message);
+		setData(data);
 	}
 	
 	private void init(CODE code, String description) {

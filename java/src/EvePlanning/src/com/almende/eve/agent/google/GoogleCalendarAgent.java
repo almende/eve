@@ -34,11 +34,15 @@
 package com.almende.eve.agent.google;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.CalendarAgent;
@@ -52,6 +56,7 @@ import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.config.Config;
 import com.almende.util.HttpUtil;
+import com.almende.util.IntervalsUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -116,7 +121,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		}
 		return expires_at;
 	}
-	
+		
 	/**
 	 * Refresh the access token using the refresh token
 	 * the tokens in provided authorization object will be updated
@@ -124,8 +129,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception 
 	 */
 	private void refreshAuthorization (Authorization auth) throws Exception {
-		logger.info("refreshAuthorization");
-		
 		String refresh_token = (auth != null) ? auth.getRefreshToken() : null;
 		if (refresh_token == null) {
 			throw new Exception("No refresh token available");
@@ -222,7 +225,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
 		if (expires_at != null && expires_at.isBeforeNow()) {
 			// TODO: remove this logging
-			System.out.println("access token is expired. refreshing now...");
+			logger.info("access token is expired. refreshing now...");
 			refreshAuthorization(auth);
 			getContext().put("auth", auth);
 		}
@@ -242,6 +245,47 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 				"and add, edit, or remove events.";
 	}
 
+	/**
+	 * Convert the event from a Eve event to a Google event 
+	 * @param event
+	 */
+	private void toGoogleEvent(ObjectNode event) {
+		if (event.has("agent")) {
+			// move agent url from event.agent to extendedProperties
+			String agent = event.get("agent").asText();
+			event.with("extendedProperties").with("shared").put("agent", agent);
+		}
+	}
+
+	/**
+	 * Convert the event from a Google event to a Eve event 
+	 * @param event
+	 */
+	private void toEveEvent(ObjectNode event) {
+		ObjectNode extendedProperties = (ObjectNode) event.get("extendedProperties");
+		if (extendedProperties != null) {
+			ObjectNode shared = (ObjectNode) extendedProperties.get("shared");
+			if (shared != null && shared.has("agent")) {
+				// move agent url from extended properties to event.agent
+				String agent = shared.get("agent").asText();
+				event.put("agent", agent);
+				
+				/* TODO: remove agent from extended properties
+				shared.remove("agent");
+				if (shared.size() == 0) {
+					extendedProperties.remove("shared");
+					if (extendedProperties.size() == 0) {
+						event.remove("extendedProperties");
+					}
+				}
+				*/
+			}
+		}
+	}
+	
+	/**
+	 * Retrieve a list with all calendars in this google calendar
+	 */
 	@Override
 	public ArrayNode getCalendarList() throws Exception {
 		logger.info("getCalendarList");
@@ -268,25 +312,38 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		return items;
 	}
 
+	/**
+	 * Get todays events. A convenience method for easy testing
+	 * @param calendarId
+	 * @return
+	 * @throws Exception
+	 */
 	public ArrayNode getEventsToday(
 			@Required(false) @Name("calendarId") String calendarId) throws Exception {
 		DateTime now = DateTime.now();
-		DateTime start = now.minusMillis(now.getMillisOfDay());
-		DateTime end = start.plusDays(1);
+		DateTime timeMin = now.minusMillis(now.getMillisOfDay());
+		DateTime timeMax = timeMin.plusDays(1);
 
-		logger.info("getEventsToday start=" + start + ", end=" + end + 
+		logger.info("getEventsToday timeMin=" + timeMin + ", end=" + timeMax + 
 				", calendarId=" + calendarId);
 
-		return getEvents(start.toString(), end.toString(), calendarId);
+		return getEvents(timeMin.toString(), timeMax.toString(), calendarId);
 	}
 	
+	/**
+	 * Get all events in given interval
+	 * @param timeMin 		start of the interval
+	 * @param timeMax 		end of the interval
+	 * @param calendarId   	optional calendar id. If not provided, the default
+	 *                      calendar is used
+	 */
 	@Override
 	public ArrayNode getEvents(
-			@Required(false) @Name("start") String start, 
-			@Required(false) @Name("end") String end, 
+			@Required(false) @Name("timeMin") String timeMin, 
+			@Required(false) @Name("timeMax") String timeMax, 
 			@Required(false) @Name("calendarId") String calendarId) 
 			throws Exception {
-		logger.info("getEvents start=" + start + ", end=" + end + 
+		logger.info("getEvents timeMin=" + timeMin + ", timeMax=" + timeMax + 
 				", calendarId=" + calendarId);
 		
 		// initialize optional parameters
@@ -297,12 +354,14 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// built url with query parameters
 		String url = CALENDAR_URI + calendarId + "/events";
 		Map<String, String> params = new HashMap<String, String>();
-		if (start != null) {
-			params.put("timeMin", start);
+		if (timeMin != null) {
+			params.put("timeMin", new DateTime(timeMin).toString());
 		}
-		if (end != null) {
-			params.put("timeMax", end);
+		if (timeMax != null) {
+			params.put("timeMax", new DateTime(timeMax).toString());
 		}
+		// Set singleEvents=true to expand recurring events into instances
+		params.put("singleEvents", "true");
 		url = HttpUtil.appendQueryParams(url, params);
 		
 		// perform GET request
@@ -321,6 +380,12 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		ArrayNode items = null;
 		if (json.has("items")){
 			items = (ArrayNode) json.get("items");
+			
+			// convert from Google to Eve event
+			for (int i = 0; i < items.size(); i++) {
+				ObjectNode item = (ObjectNode) items.get(i);
+				toEveEvent(item);
+			}
 		}
 		else {
 			items = JOM.createArrayNode();
@@ -328,7 +393,71 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		
 		return items;
 	}
+
+	/**
+	 * Get busy intervals of today. A convenience method for easy testing
+	 * @param calendarId
+	 * @return
+	 * @throws Exception
+	 */
+	public ArrayNode getBusyToday(
+			@Required(false) @Name("calendarId") String calendarId,
+			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds) 
+			throws Exception {
+		DateTime now = DateTime.now();
+		DateTime timeMin = now.minusMillis(now.getMillisOfDay());
+		DateTime timeMax = timeMin.plusDays(1);
+
+		return getBusy(timeMin.toString(), timeMax.toString(), calendarId, 
+				excludeEventIds);
+	}
 	
+	/**
+	 * Retrieve the busy intervals in the calendar
+	 * @throws Exception 
+	 */
+	@Override
+	public ArrayNode getBusy(
+			@Name("timeMin") String timeMin, 
+			@Name("timeMax") String timeMax,
+			@Required(false) @Name("calendarId") String calendarId,
+			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds) 
+			throws Exception {
+		
+		ArrayNode events = getEvents(timeMin, timeMax, calendarId);
+		
+		List<Interval> busy = new ArrayList<Interval>();
+        for (int i = 0; i < events.size(); i++) {
+        	ObjectNode event = (ObjectNode) events.get(i);
+        	
+        	// filter excludes
+        	String eventId = event.has("id") ? event.get("id").asText() : null;
+        	boolean exclude = (eventId != null && excludeEventIds != null &&
+        			excludeEventIds.contains(eventId));
+        	if (!exclude) {
+	        	// TODO: deal with day-events too!!
+	        	// TODO: check for null
+	        	DateTime start = new DateTime(event.with("start").get("dateTime").asText());
+	        	DateTime end = new DateTime(event.with("end").get("dateTime").asText());
+	        	Interval interval = new Interval(start, end);
+	        	busy.add(interval);
+        	}
+        }
+
+        // merge the intervals
+        List<Interval> merged = IntervalsUtil.merge(busy);
+        
+        // convert to JSON array
+        ArrayNode array = JOM.createArrayNode();
+        for (Interval interval : merged) {
+        	ObjectNode obj = JOM.createObjectNode();
+        	obj.put("start", interval.getStart().toString());
+        	obj.put("end", interval.getEnd().toString());
+        	array.add(obj);
+        }
+        return array;
+	}
+
 	@Override
 	public ObjectNode getEvent (
 			@Name("eventId") String eventId,
@@ -347,6 +476,9 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		String resp = HttpUtil.get(url, headers);
 		ObjectMapper mapper = JOM.getInstance();
 		ObjectNode event = mapper.readValue(resp, ObjectNode.class);
+		
+		// convert from Google to Eve event
+		toEveEvent(event);
 		
 		// check for errors
 		if (event.has("error")) {
@@ -391,6 +523,9 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		headers.put("Content-Type", "application/json");
 		String resp = HttpUtil.post(url, body, headers);
 		ObjectNode createdEvent = mapper.readValue(resp, ObjectNode.class);
+		
+		// convert from Google to Eve event
+		toEveEvent(event);
 		
 		// check for errors
 		if (createdEvent.has("error")) {
@@ -451,9 +586,12 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			calendarId = (String) getContext().get("email");
 		}
 
+		// convert from Eve to Google event
+		toGoogleEvent(event);
+
 		logger.info("updateEvent event=" + 
 				JOM.getInstance().writeValueAsString(event) +
-				", calendarId=" + calendarId);
+				", calendarId=" + calendarId); // TODO: cleanup
 
 		// read id from event
 		String id = event.get("id").asText();
@@ -477,8 +615,11 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			ObjectNode error = (ObjectNode)updatedEvent.get("error");
 			throw new JSONRPCException(error);
 		}
+
+		// convert from Google to Eve event
+		toEveEvent(event);
 		
-		logger.info("updateEvent=" + JOM.getInstance().writeValueAsString(updatedEvent));
+		logger.info("updateEvent=" + JOM.getInstance().writeValueAsString(updatedEvent)); // TODO: cleanup
 
 		return updatedEvent;
 	}
@@ -492,7 +633,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			calendarId = (String) getContext().get("email");
 		}
 
-		logger.info("deleteEvent eventId=" + eventId + ", calendarId=" + calendarId);
+		logger.info("deleteEvent eventId=" + eventId + ", calendarId=" + calendarId); // TODO: cleanup
 
 		// built url
 		String url = CALENDAR_URI + calendarId + "/events/" + eventId;
@@ -504,7 +645,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throw new Exception(resp);
 		}
 		
-		logger.info("event deleted");
+		logger.info("event deleted"); // TODO: cleanup
 	}
 }
 

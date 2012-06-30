@@ -44,7 +44,15 @@ public class Status implements Serializable, Cloneable {
 	public void setEnd(String end) {
 		this.end = end;
 	}
-	
+
+	public void setError(String error) {
+		this.error = error;
+	}
+
+	public String getError() {
+		return error;
+	}
+
 	public String getUpdated() {
 		return updated;
 	}
@@ -72,6 +80,9 @@ public class Status implements Serializable, Cloneable {
 		if (other.end != null) {
 			end = other.end;
 		}
+		if (other.error != null) {
+			error = other.error;
+		}
 		if (other.updated != null) {
 			updated = other.updated;
 		}
@@ -88,15 +99,17 @@ public class Status implements Serializable, Cloneable {
 		clone.location = location;
 		clone.start = start;
 		clone.end = end;
+		clone.error = error;
 		clone.updated = updated;
 		
 		return clone;
 	}
-	
+
 	private String description = null;
 	private List<Attendee> attendees = null;
 	private String location = null;
 	private String start = null;
 	private String end = null;
+	private String error = null;
 	private String updated = null;
 }

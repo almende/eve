@@ -546,7 +546,8 @@ public class JSONRPC {
 							throw new Exception("Required parameter '" + 
 									paramName + "' missing");
 						}
-						else if (paramType.getSuperclass() == null) {
+						//else if (paramType.getSuperclass() == null) {
+						else if (paramType.isPrimitive()) {
 							throw new Exception(
 									"Parameter '" + paramName +
 									"' cannot be both optional and " +

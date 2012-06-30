@@ -25,6 +25,8 @@
 
 package com.almende.eve.agent;
 
+import java.util.Set;
+
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -46,7 +48,14 @@ public interface CalendarAgent {
 			@Name("eventId") String eventId,
 			@Required(false) @Name("calendarId") String calendarId) 
 			throws Exception;
-	
+
+	public ArrayNode getBusy(
+			@Name("timeMin") String timeMin, 
+			@Name("timeMax") String timeMax,
+			@Required(false) @Name("calendarId") String calendarId,
+			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds)
+			throws Exception;
+			
 	public ObjectNode createEvent (
 			@Name("event") ObjectNode event,
 			@Required(false) @Name("calendarId") String calendarId) 
@@ -60,6 +69,7 @@ public interface CalendarAgent {
 			@Name("eventId") String eventId,
 			@Required(false) @Name("calendarId") String calendarId) 
 			throws Exception;
+	
 	
 	/* TODO: implement methods getChangedEvents, getFree, getBusy
 	abstract public List<Event> getChangedEvents(@Name("since") DateTime since) 

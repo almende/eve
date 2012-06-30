@@ -60,7 +60,6 @@ function Ctrl() {
             'success': function (resp) {
                 scope.removeCalendarAgent(agent);
                 scope.$root.$eval();
-
             }
         });
     };
@@ -154,7 +153,7 @@ function Ctrl() {
     scope.updateMeetingAgent = function (agent) {
         agent.updating = true;
 
-        // pre process the activity
+        // pre-process the activity
         scope.activityHtmlToJson(agent.activity);
 
         jsonrpc({
@@ -178,6 +177,32 @@ function Ctrl() {
                 delete agent.updating;
                 scope.$root.$eval();
                 scope.save();
+                console.log('error', err);
+            }
+        });
+    };
+
+    /**
+     * Delete the meeting agent.
+     */
+    scope.deleteMeetingAgent = function (agent) {
+        agent.updating = true;
+
+        // pre-process the activity
+        scope.activityHtmlToJson(agent.activity);
+
+        jsonrpc({
+            'url': scope.MEETING_AGENT_URI + agent.id,
+            'method': 'clear',
+            'success': function () {
+                delete agent.updating;
+                scope.removeMeetingAgent(agent);
+                scope.$root.$eval();
+            },
+            'error': function (err) {
+                delete agent.updating;
+                scope.removeMeetingAgent(agent);
+                scope.$root.$eval();
                 console.log('error', err);
             }
         });
@@ -238,6 +263,13 @@ function Ctrl() {
                 }
             });
         }
+
+        // update duration
+        if (activity.constraints && activity.constraints.time &&
+                activity.constraints.time.durationMinutes != undefined) {
+            activity.constraints.time.duration =
+                activity.constraints.time.durationMinutes * 60 * 1000;
+        }
     };
 
     /**
@@ -249,6 +281,7 @@ function Ctrl() {
             return;
         }
 
+        // update agent ids from urls
         if (activity.constraints && activity.constraints.attendees) {
             var attendees = activity.constraints.attendees;
             $.each(attendees, function (index, attendee) {
@@ -257,6 +290,18 @@ function Ctrl() {
                     attendee.id = attendee.agent.substring(start, attendee.agent.length);
                 }
             });
+        }
+
+        // update duration
+        if (activity.constraints && activity.constraints.time &&
+                activity.constraints.time.duration != undefined) {
+            if (activity.constraints.time.duration > 0) {
+                activity.constraints.time.durationMinutes =
+                    activity.constraints.time.duration / 60 / 1000;
+            }
+            else {
+                activity.constraints.time.durationMinutes = 0;
+            }
         }
     };
 

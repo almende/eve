@@ -26,6 +26,12 @@ public class AppEngineScheduler implements Scheduler {
 		this.context = context;
 	}
 	
+	/**
+	 * Schedule a task
+	 * @param request   A JSONRequest with method and params
+	 * @param delay     The delay in milliseconds
+	 * @return taskId
+	 */
 	@Override
 	public String createTask(JSONRequest request, long delay) {
 		try {
@@ -70,6 +76,12 @@ public class AppEngineScheduler implements Scheduler {
 		return null;
 	}
 
+	/**
+	 * Schedule a repeating task
+	 * @param request   A JSONRequest with method and params
+	 * @param interval  The interval in milliseconds
+	 * @return taskId
+	 */
 	@Override
 	public String createRepeatingTask(JSONRequest request, long interval) {
 		// TODOL implement setInterval
@@ -79,6 +91,10 @@ public class AppEngineScheduler implements Scheduler {
 		return null;
 	}
 
+	/**
+	 * Cancel a scheduled task by its id
+	 * @param taskId
+	 */
 	@Override
 	public void cancelTask(String id) {
 		/* TODO: store the task
@@ -99,6 +115,10 @@ public class AppEngineScheduler implements Scheduler {
 		queue.deleteTask(id);
 	}
 
+	/**
+	 * Retrieve a list with all scheduled tasks
+	 * @return taskIds
+	 */
 	@Override
 	public Set<String> getTasks() {
 		/* TODO: be able to retrieve all tasks

@@ -6,24 +6,24 @@ import java.io.Serializable;
 public class Time implements Serializable, Cloneable {
 	public Time() {}
 	
-	public Integer getDuration() {
+	public Long getDuration() {
 		return duration;
 	}
-	public void setDuration(Integer duration) {
+	public void setDuration(Long duration) {
 		this.duration = duration;
 	}
 	
-	public Integer getDurationMin() {
+	public Long getDurationMin() {
 		return durationMin;
 	}
-	public void setDurationMin(Integer durationMin) {
+	public void setDurationMin(Long durationMin) {
 		this.durationMin = durationMin;
 	}
 	
-	public Integer getDurationMax() {
+	public Long getDurationMax() {
 		return durationMax;
 	}
-	public void setDurationMax(Integer durationMax) {
+	public void setDurationMax(Long durationMax) {
 		this.durationMax = durationMax;
 	}
 	
@@ -69,9 +69,9 @@ public class Time implements Serializable, Cloneable {
 		return clone;
 	}
 	
-	private Integer duration = null;        // seconds
-	private Integer durationMin = null;     // seconds
-	private Integer durationMax = null;     // seconds
+	private Long duration = null;        // milliseconds
+	private Long durationMin = null;     // milliseconds
+	private Long durationMax = null;     // milliseconds
 	private String periodStart = null;
 	private String periodEnd = null;
 }

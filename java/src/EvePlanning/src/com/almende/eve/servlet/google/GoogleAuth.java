@@ -14,6 +14,7 @@
 package com.almende.eve.servlet.google;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -44,6 +45,12 @@ public class GoogleAuth extends HttpServlet {
 	private String AGENTS_URL = "http://eveagents.appspot.com/agents/googlecalendaragent/id"; // TODO: do not hardcode
 	private String AGENTS_METHOD = "setAuthorization";
 	private String OAUTH_URI  = "https://accounts.google.com/o/oauth2";
+	private String CONFIG_FILENAME = "/WEB-INF/eve.yaml";
+	private String SPACE = " ";
+	private String SCOPE = 
+		"https://www.googleapis.com/auth/userinfo.email" + SPACE + 
+		"https://www.googleapis.com/auth/userinfo.profile" + SPACE +
+		"https://www.googleapis.com/auth/calendar";
 
 	private ObjectMapper mapper = new ObjectMapper();
 
@@ -51,8 +58,8 @@ public class GoogleAuth extends HttpServlet {
 	public void init() {
 		try {
 			// load configuration
-			Config config = new Config();
-			config.loadDefault();
+			InputStream is = getServletContext().getResourceAsStream(CONFIG_FILENAME);
+			Config config = new Config(is);
 
 			CLIENT_ID = config.get("google", "client_id");
 			if (CLIENT_ID == null) {
@@ -148,13 +155,8 @@ public class GoogleAuth extends HttpServlet {
 	}
 	
 	private String createAuthorizationUrl() throws IOException {
-		String space = " ";
-		String scope = 
-			"https://www.googleapis.com/auth/userinfo.email" + space + 
-			"https://www.googleapis.com/auth/userinfo.profile" + space +
-			"https://www.googleapis.com/auth/calendar";
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("scope", scope);
+		params.put("scope", SCOPE);
 		params.put("redirect_uri", REDIRECT_URI);
 		params.put("response_type", "code");
 		params.put("access_type", "offline");

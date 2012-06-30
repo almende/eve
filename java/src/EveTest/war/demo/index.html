@@ -113,7 +113,7 @@
                     <tr>
                         <td class="noborder">Duration (min)</td>
                         <td class="noborder">
-                            <input name="agent.activity.constraints.time.duration" type="text"
+                            <input name="agent.activity.constraints.time.durationMinutes" type="text"
                                    placeholder="duration (min)" value="60"
                                    ng:change="setUpdated(agent)" />
                         </td>
@@ -153,7 +153,11 @@
                         disabled="{{agent.updating}}"
                         title="Let the MeetingAgent perform an update: synchronize the event">
                     Update</button>
-
+                <button ng:click="deleteMeetingAgent(agent)"
+                        disabled="{{agent.updating}}"
+                        title="Delete the meeting agent. All created calendar events will be removed.">
+                    Delete</button>
+                    
                 <!-- TODO: implement delete
                 <button ng:click="deleteCalendarAgent(agent)"
                         title="Delete the agent and remove it from the list">

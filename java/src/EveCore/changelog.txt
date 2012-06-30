@@ -10,6 +10,9 @@ http://almende.github.com/eve/
   integration.
 - FileContext created. Stores agents data on disk.
 - Agents interface improved: methods-form now handles parameter types correctly.
+- fixed a bug in JSONRPC which wrongly identified List and Set as a primitive 
+  types.
+
 
 2012-06-08, version 0.5
 

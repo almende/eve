@@ -18,6 +18,14 @@ public class Constraints implements Serializable, Cloneable {
 	public void setAttendees(List<Attendee> attendees) {
 		this.attendees = attendees != null ? attendees : new ArrayList<Attendee>();
 	}
+	public Attendee getAttendee(String agent) {
+		for (Attendee attendee : attendees) {
+			if (attendee.getAgent().equals(agent)) {
+				return attendee;
+			}
+		}
+		return null;
+	}
 	
 	public Location getLocation() {
 		return location;

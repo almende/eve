@@ -32,6 +32,12 @@ public class RunnableScheduler implements Scheduler {
 	
 	public RunnableScheduler () {}
 	
+	/**
+	 * Set the agent context for the scheduler. 
+	 * This is needed for example to know for which agent the scheduler
+	 * needs to schedule a task
+	 * @param context
+	 */
 	@Override
 	public void setContext(Context context) {
 		this.context = context;
@@ -49,6 +55,12 @@ public class RunnableScheduler implements Scheduler {
 		}
 	}
 	
+	/**
+	 * Schedule a task
+	 * @param request   A JSONRequest with method and params
+	 * @param delay     The delay in milliseconds
+	 * @return taskId
+	 */
 	@Override
 	public synchronized String createTask(JSONRequest request, long delay) {
 		String url = getUrl();
@@ -64,6 +76,12 @@ public class RunnableScheduler implements Scheduler {
 		return task.getId();	
 	}
 
+	/**
+	 * Schedule a repeating task
+	 * @param request   A JSONRequest with method and params
+	 * @param interval  The interval in milliseconds
+	 * @return taskId
+	 */
 	@Override
 	public synchronized String createRepeatingTask(JSONRequest request, long interval) {
 		String url = getUrl();
@@ -77,7 +95,11 @@ public class RunnableScheduler implements Scheduler {
 	    
 		return task.getId();
 	}
-
+	
+	/**
+	 * Cancel a scheduled task by its id
+	 * @param taskId
+	 */
 	@Override
 	public synchronized void cancelTask(String id) {
 		ScheduledFuture<?> scheduledFuture = tasks.get(id);
@@ -90,6 +112,10 @@ public class RunnableScheduler implements Scheduler {
 		tasks.remove(id);
 	}
 
+	/**
+	 * Retrieve a list with all scheduled tasks
+	 * @return taskIds
+	 */
 	@Override
 	public synchronized Set<String> getTasks() {
 		if (tasks != null) {
@@ -98,6 +124,10 @@ public class RunnableScheduler implements Scheduler {
 		return null;
 	}
 	
+	/**
+	 * Get the agents url from the currently set context
+	 * @return
+	 */
 	private String getUrl() {
 		if (context == null) {
 			logger.warning("No context initialized, cannot retrieve url of agent");
@@ -110,6 +140,10 @@ public class RunnableScheduler implements Scheduler {
 		return url;
 	}
 
+	/**
+	 * Create a new unique taskId
+	 * @return
+	 */
 	private synchronized String createId() {
 		count++;
 		long id = count;
