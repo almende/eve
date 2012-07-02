@@ -6,9 +6,13 @@ http://almende.github.com/eve/
 
 - GoogleAuth made more generic.
 - Added a method clear for the GoogleCalendarAgent and the MeetingAgent
+- GoogleCalendarAgent has a new method getBusy, returning the busy intervals
+  for a given time window.
 - MeetingAgent extended. This agent now actually finds a free timeslot in the 
   calendars, reckons with office hours, and leaves its url in the calendar 
   events.
+- MeetingAgent now regularly checks for changes in the calendar, with a dynamic
+  interval. Once the meeting is past, it stops checking.
 
 
 2012-06-01, version 0.4

@@ -20,7 +20,7 @@
  * Copyright © 2010-2011 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2012-05-09
+ * @date	  2012-07-02
  */
 
 package com.almende.eve.agent;
@@ -53,7 +53,8 @@ public interface CalendarAgent {
 			@Name("timeMin") String timeMin, 
 			@Name("timeMax") String timeMax,
 			@Required(false) @Name("calendarId") String calendarId,
-			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds)
+			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds,
+			@Required(false) @Name("timeZone") String timeZone)
 			throws Exception;
 			
 	public ObjectNode createEvent (
@@ -74,16 +75,6 @@ public interface CalendarAgent {
 	/* TODO: implement methods getChangedEvents, getFree, getBusy
 	abstract public List<Event> getChangedEvents(@Name("since") DateTime since) 
 			throws Exception;
-
-	abstract public List<TimePeriod> getFree (
-			@Name("start") DateTime start, 
-			@Name("end") DateTime end,
-			@Name("calendar") @Required(false) String calendar) throws Exception;
-
-	abstract public List<TimePeriod> getBusy (
-			@Name("start") DateTime start, 
-			@Name("end") DateTime end,
-			@Name("calendar") @Required(false) String calendar) throws Exception;
 	*/
 }
 

@@ -154,9 +154,11 @@
                     </span>
                     <span ng:show="agent.activity.status.end">
                         End: {{ formatDateTime(agent.activity.status.end) }}
+                        <br>
                     </span>
-                    <span ng:show="agent.activity.status.error" style="color: red;">
+                    <span ng:show="agent.activity.status.error" class="error">
                         Error: {{ agent.activity.status.error }}
+                        <br>
                     </span>
                 </span>
                 <span ng:show="agent.updating" class="loading">loading...</span>

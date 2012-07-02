@@ -58,6 +58,9 @@ input[type=text] {
 span.loading {
     color: lightgray;
 }
+span.error {
+    color: red;
+}
 
 a {
     color: #F0209B;

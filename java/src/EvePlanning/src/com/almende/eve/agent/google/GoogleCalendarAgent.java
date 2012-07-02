@@ -20,7 +20,7 @@
  * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	2012-05-29
+ * @date	2012-07-02
  */
 
 
@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 
 import com.almende.eve.agent.Agent;
@@ -57,6 +58,7 @@ import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.config.Config;
 import com.almende.util.HttpUtil;
 import com.almende.util.IntervalsUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -288,8 +290,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public ArrayNode getCalendarList() throws Exception {
-		logger.info("getCalendarList");
-		
 		String url = CALENDAR_URI + "users/me/calendarList";
 		String resp = HttpUtil.get(url, getAuthorizationHeaders());
 		ObjectNode calendars = JOM.getInstance().readValue(resp, ObjectNode.class);
@@ -323,9 +323,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		DateTime now = DateTime.now();
 		DateTime timeMin = now.minusMillis(now.getMillisOfDay());
 		DateTime timeMax = timeMin.plusDays(1);
-
-		logger.info("getEventsToday timeMin=" + timeMin + ", end=" + timeMax + 
-				", calendarId=" + calendarId);
 
 		return getEvents(timeMin.toString(), timeMax.toString(), calendarId);
 	}
@@ -407,9 +404,88 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		DateTime now = DateTime.now();
 		DateTime timeMin = now.minusMillis(now.getMillisOfDay());
 		DateTime timeMax = timeMin.plusDays(1);
+		String dateTimeZone = null;
 
 		return getBusy(timeMin.toString(), timeMax.toString(), calendarId, 
-				excludeEventIds);
+				excludeEventIds, dateTimeZone);
+	}
+	
+	/**
+	 * Get the start time from a google event (including all-day-events)
+	 * Returns null if not found
+	 * @param event
+	 * @param timeZone   Timezone, needed for all-day-events
+	 * @return start
+	 */
+	private static DateTime getStart(ObjectNode event, DateTimeZone timeZone) {
+		if (!event.has("start")) {
+			return null;
+		}
+		JsonNode startObj = event.get("start");
+		
+		DateTime start = null;
+		if (startObj.has("dateTime") && !startObj.get("dateTime").isNull()) {
+			String dateTimeStr = startObj.get("dateTime").asText();
+			start = new DateTime(dateTimeStr);
+		}
+		else if (startObj.has("date") && !startObj.get("date").isNull()) {
+			String dateStr = startObj.get("date").asText();
+			
+			if (startObj.has("timeZone") && !startObj.get("timeZone").isNull()) {
+				String timeZoneStr = startObj.get("timeZone").asText();
+				timeZone = DateTimeZone.forID(timeZoneStr);
+			}
+			if (timeZone != null) {
+				start = new DateTime(dateStr, timeZone);
+			}
+			else {
+				start = new DateTime(dateStr);
+			}
+		}
+		else {
+			start = null;
+		}
+		
+		return start;
+	}
+	
+	/**
+	 * Get the end time from a google event (including all-day-events)
+	 * Returns null if not found
+	 * @param event
+	 * @param timeZone   Timezone, needed for all-day-events
+	 * @return end
+	 */
+	private static DateTime getEnd(ObjectNode event, DateTimeZone timeZone) {
+		if (!event.has("end")) {
+			return null;
+		}
+		JsonNode endObj = event.get("end");
+		
+		DateTime end = null;
+		if (endObj.has("dateTime") && !endObj.get("dateTime").isNull()) {
+			String dateTimeStr = endObj.get("dateTime").asText();
+			end = new DateTime(dateTimeStr);
+		}
+		else if (endObj.has("date") && !endObj.get("date").isNull()) {
+			String dateStr = endObj.get("date").asText();
+			
+			if (endObj.has("timeZone") && !endObj.get("timeZone").isNull()) {
+				String timeZoneStr = endObj.get("timeZone").asText();
+				timeZone = DateTimeZone.forID(timeZoneStr);
+			}
+			if (timeZone != null) {
+				end = new DateTime(dateStr, timeZone);
+			}
+			else {
+				end = new DateTime(dateStr);
+			}
+		}
+		else {
+			end = null;
+		}
+		
+		return end;
 	}
 	
 	/**
@@ -421,8 +497,13 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			@Name("timeMin") String timeMin, 
 			@Name("timeMax") String timeMax,
 			@Required(false) @Name("calendarId") String calendarId,
-			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds) 
+			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds,
+			@Required(false) @Name("timeZone") String timeZone ) 
 			throws Exception {
+		DateTimeZone dtz = DateTimeZone.UTC;
+		if (timeZone != null) {
+			dtz = DateTimeZone.forID(timeZone);
+		}		
 		
 		ArrayNode events = getEvents(timeMin, timeMax, calendarId);
 		
@@ -435,12 +516,12 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
         	boolean exclude = (eventId != null && excludeEventIds != null &&
         			excludeEventIds.contains(eventId));
         	if (!exclude) {
-	        	// TODO: deal with day-events too!!
-	        	// TODO: check for null
-	        	DateTime start = new DateTime(event.with("start").get("dateTime").asText());
-	        	DateTime end = new DateTime(event.with("end").get("dateTime").asText());
-	        	Interval interval = new Interval(start, end);
-	        	busy.add(interval);
+        		DateTime start = getStart(event, dtz);
+        		DateTime end = getEnd(event, dtz);
+        		if (start != null && end != null) {
+		        	Interval interval = new Interval(start, end);
+		        	busy.add(interval);
+        		}
         	}
         }
 
@@ -480,6 +561,9 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// convert from Google to Eve event
 		toEveEvent(event);
 		
+		logger.info("getEvent event=" + (event != null ? 
+				JOM.getInstance().writeValueAsString(event) : null));
+		
 		// check for errors
 		if (event.has("error")) {
 			ObjectNode error = (ObjectNode)event.get("error");
@@ -515,10 +599,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// convert from Google to Eve event
 		toGoogleEvent(event);
 		
-		logger.info("createEvent event=" + 
-				JOM.getInstance().writeValueAsString(event) +
-				", calendarId=" + calendarId);
-		
 		// perform POST request
 		ObjectMapper mapper = JOM.getInstance();
 		String body = mapper.writeValueAsString(event);
@@ -536,7 +616,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throw new JSONRPCException(error);
 		}
 		
-		logger.info("createdEvent=" + JOM.getInstance().writeValueAsString(createdEvent));
+		logger.info("createEvent=" + JOM.getInstance().writeValueAsString(createdEvent));
 
 		return createdEvent;
 	}
@@ -592,10 +672,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// convert from Eve to Google event
 		toGoogleEvent(event);
 
-		logger.info("updateEvent event=" + 
-				JOM.getInstance().writeValueAsString(event) +
-				", calendarId=" + calendarId); // TODO: cleanup
-
 		// read id from event
 		String id = event.get("id").asText();
 		if (id == null) {
@@ -647,8 +723,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		if (!resp.isEmpty()) {
 			throw new Exception(resp);
 		}
-		
-		logger.info("event deleted"); // TODO: cleanup
 	}
 }
 
