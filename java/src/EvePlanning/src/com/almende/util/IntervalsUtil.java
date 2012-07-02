@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 
@@ -150,7 +151,8 @@ public class IntervalsUtil {
 	/**
 	 * Create a busy profile with office hours. The method returns the 
 	 * the available hours, inside office hours.
-	 * By default, the office hours are from Monday-Friday, 09:00-17:00
+	 * By default, the office hours are from Monday-Friday, 09:00-17:00, with 
+	 * time zone CET.
 	 * @param timeMin
 	 * @param timeMax
 	 * @return available
@@ -165,8 +167,10 @@ public class IntervalsUtil {
 		
 		int hourStart = 9;
 		int hourEnd = 17;
+		DateTimeZone timeZone = DateTimeZone.forID("CET"); // Central European Time
 		
-		return getOfficeHours(timeMin, timeMax, workingDays, hourStart, hourEnd);
+		return getOfficeHours(timeMin, timeMax, workingDays, hourStart, 
+				hourEnd, timeZone);
 	}
 	
 	/**
@@ -177,16 +181,21 @@ public class IntervalsUtil {
 	 * @param workingDays   Set with working days. 1 = Monday, 7 = Sunday
 	 * @param hourStart     start hour, for example 9
 	 * @param hourStart     end hour, for example 17
+	 * @param timeZone      the timezone to be used to determine the working hours
 	 * @return available
 	 */
-	public static List<Interval> getOfficeHours(DateTime timeMin, DateTime timeMax,
-			Set<Integer> workingDays, int hourStart, int hourEnd) {
+	public static List<Interval> getOfficeHours(
+			DateTime timeMin, DateTime timeMax,
+			Set<Integer> workingDays, 
+			int hourStart, int hourEnd, DateTimeZone timeZone) {
 		List<Interval> available = new ArrayList<Interval>();
 		
 		MutableDateTime workingDayMin = MutableDateTime.now(); // 09:00:00
-		workingDayMin.setMillisOfDay(0);		
+		workingDayMin.setZoneRetainFields(timeZone);
+		workingDayMin.setMillisOfDay(0);
 		workingDayMin.setHourOfDay(hourStart);
 		MutableDateTime workingDayMax = MutableDateTime.now();   // 17:00:000
+		workingDayMax.setZoneRetainFields(timeZone);
 		workingDayMax.setMillisOfDay(0);
 		workingDayMax.setHourOfDay(hourEnd);
 		
