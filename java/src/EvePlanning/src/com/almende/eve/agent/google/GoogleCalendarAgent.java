@@ -250,7 +250,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @param event
 	 */
 	private void toGoogleEvent(ObjectNode event) {
-		if (event.has("agent")) {
+		if (event.has("agent") && event.get("agent").isTextual()) {
 			// move agent url from event.agent to extendedProperties
 			String agent = event.get("agent").asText();
 			event.with("extendedProperties").with("shared").put("agent", agent);
@@ -265,7 +265,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		ObjectNode extendedProperties = (ObjectNode) event.get("extendedProperties");
 		if (extendedProperties != null) {
 			ObjectNode shared = (ObjectNode) extendedProperties.get("shared");
-			if (shared != null && shared.has("agent")) {
+			if (shared != null && shared.has("agent") && shared.get("agent").isTextual()) {
 				// move agent url from extended properties to event.agent
 				String agent = shared.get("agent").asText();
 				event.put("agent", agent);
@@ -511,11 +511,14 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 
 		// built url
 		String url = CALENDAR_URI + calendarId + "/events";
+
+		// convert from Google to Eve event
+		toGoogleEvent(event);
 		
 		logger.info("createEvent event=" + 
 				JOM.getInstance().writeValueAsString(event) +
 				", calendarId=" + calendarId);
-
+		
 		// perform POST request
 		ObjectMapper mapper = JOM.getInstance();
 		String body = mapper.writeValueAsString(event);

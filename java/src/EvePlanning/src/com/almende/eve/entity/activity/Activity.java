@@ -51,7 +51,7 @@ public class Activity implements Serializable, Cloneable {
 		}
 		if (other.agent != null) {
 			agent = other.agent;
-		}		
+		}
 		constraints.merge(other.constraints);
 		status.merge(other.status);
 	}

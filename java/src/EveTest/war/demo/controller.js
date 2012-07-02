@@ -320,6 +320,12 @@ function Ctrl() {
      * @param agent
      */
     scope.addAttendee = function (agent) {
+        if (!agent.activity) {
+            agent.activity ={};
+        }
+        if (!agent.activity.constraints) {
+            agent.activity.constraints ={};
+        }
         if (!agent.activity.constraints.attendees) {
             agent.activity.constraints.attendees = [];
         }
@@ -333,7 +339,8 @@ function Ctrl() {
      * @param attendee
      */
     scope.removeAttendee = function (agent, attendee) {
-        if (!agent.activity.constraints.attendees) {
+        if (!agent.activity || ! agent.activity.constraints ||
+                !agent.activity.constraints.attendees) {
             return;
         }
         var index = agent.activity.constraints.attendees.indexOf(attendee);

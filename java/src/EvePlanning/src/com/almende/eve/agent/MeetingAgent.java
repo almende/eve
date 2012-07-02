@@ -120,6 +120,7 @@ public class MeetingAgent extends Agent {
 		
 		Set<String> prevAttendees = getAttendeesAgents(activity);
 		
+		/* TODO: cleanup, this check just gives issues
 		// check if the correct agent url is entered
 		String agent = updatedActivity.getAgent();
 		String myUrl = getUrl();
@@ -129,6 +130,7 @@ public class MeetingAgent extends Agent {
 				// TODO: more detailed error description (output urls)
 			}
 		}
+		*/
 		
 		// if no updated timestamp is provided, set the timestamp to now
 		if (updatedActivity.getStatus().getUpdated() == null) {
@@ -139,6 +141,7 @@ public class MeetingAgent extends Agent {
 		activity = Activity.sync(activity, updatedActivity);
 		
 		// ensure the url of the meeting agent is filled in
+		String myUrl = getUrl();
 		activity.setAgent(myUrl);
 		
 		// create duration when missing
@@ -157,6 +160,8 @@ public class MeetingAgent extends Agent {
 		}
 		
 		getContext().put("activity", activity);
+		
+		logger.info("updatedActivity=" + JOM.getInstance().writeValueAsString(activity));
 		
 		// update all attendees
 		update();

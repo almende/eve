@@ -7,6 +7,8 @@ TODO
 EXTRA
 
 MeetingAgent:
+  - automatically start auto updating
+  - handle whole-day events
   - handle event status (for example set to declined when a user deleted the 
     event from its calendar)
   - be able to manipulate attendees in your google calendar 
