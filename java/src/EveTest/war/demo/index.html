@@ -42,7 +42,9 @@
         </tr>
         <tr ng:repeat="agent in calendarAgents">
             <td>
-                <input type="text" name="agent.id" placeholder="id" ng:change="getCalendarAgent(agent)"/>
+                <input type="text" name="agent.id"
+                       title="Id of the CalendarAgent"
+                       placeholder="id" ng:change="getCalendarAgent(agent)"/>
             </td>
             <td>
                 <a href="{{CALENDAR_AGENT_URI + agent.id}}" target="_blank">{{agent.id}}</a>
@@ -92,6 +94,7 @@
         <tr ng:repeat="agent in meetingAgents">
             <td>
                 <input name="agent.id" type="text" placeholder="id"
+                       title="Id of the MeetingAgent"
                        ng:change="getMeetingAgent(agent)" />
             </td>
             <td>
@@ -99,6 +102,7 @@
             </td>
             <td>
                 <input name="agent.activity.summary" type="text"
+                       title="Summary, description of the meeting"
                        placeholder="summary" ng:change="setUpdated(agent)" />
             </td>
             <td>
@@ -106,14 +110,19 @@
                     <tr>
                         <td class="noborder">Location</td>
                         <td class="noborder">
-                            <input name="agent.activity.constraints.location.summary" type="text"
-                                   placeholder="location" ng:change="setUpdated(agent)" />
+                            <input name="agent.activity.constraints.location.summary"
+                                   type="text"
+                                   title="Location for the meeting"
+                                   placeholder="location"
+                                   ng:change="setUpdated(agent)" />
                         </td>
                     </tr>
                     <tr>
                         <td class="noborder">Duration (min)</td>
                         <td class="noborder">
-                            <input name="agent.activity.constraints.time.durationMinutes" type="text"
+                            <input name="agent.activity.constraints.time.durationMinutes"
+                                   type="text"
+                                   title="Duration in minutes"
                                    placeholder="duration (min)" value="60"
                                    ng:change="setUpdated(agent)" />
                         </td>
@@ -124,6 +133,7 @@
                             <div ng:repeat="attendee in agent.activity.constraints.attendees">
                                 <!-- TODO: create an angular widget for the attendee.agent url -->
                                 <input name="attendee.id" type="text"
+                                       title="Enter the id of the Attendees CalendarAgent"
                                        placeholder="id" ng:change="setUpdated(agent)" />
                                 <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
                                    title="Remove Attendee">&times;</a>
@@ -144,6 +154,9 @@
                     </span>
                     <span ng:show="agent.activity.status.end">
                         End: {{ formatDateTime(agent.activity.status.end) }}
+                    </span>
+                    <span ng:show="agent.activity.status.error" style="color: red;">
+                        Error: {{ agent.activity.status.error }}
                     </span>
                 </span>
                 <span ng:show="agent.updating" class="loading">loading...</span>
