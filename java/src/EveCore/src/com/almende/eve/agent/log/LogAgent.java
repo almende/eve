@@ -44,7 +44,7 @@ public class LogAgent extends Agent {
 	 */
 	public void addAgent(@Name("url") String url) throws Exception {
 		// send a subscribe request to the agent
-		String method = "subscribe";
+		String method = "onSubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "*");
 		params.put("callbackUrl", getUrl());
@@ -67,7 +67,7 @@ public class LogAgent extends Agent {
 	 * @throws Exception 
 	 */
 	public void removeAgent(@Name("url") String url) throws Exception {
-		String method = "unsubscribe";
+		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "*");
 		params.put("callbackUrl", getUrl());
@@ -108,7 +108,7 @@ public class LogAgent extends Agent {
 		List<String> urls =  (List<String>) getContext().get("urls");
 		if (urls != null) {
 			for (String url : urls) {
-				String method = "unsubscribe";
+				String method = "onUnsubscribe";
 				ObjectNode params = JOM.createObjectNode();
 				params.put("event", "*");
 				params.put("callbackUrl", getUrl());

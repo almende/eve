@@ -188,7 +188,7 @@ public class TestAgent extends Agent {
 	}
 	public void subscribeToAgent() throws Exception {
 		String url = "http://server/agents/agenttype/agentx";
-		String method = "subscribe";
+		String method = "onSubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "dataChanged");
 		params.put("callbackUrl", getUrl());
@@ -198,7 +198,7 @@ public class TestAgent extends Agent {
 
 	public void unsubscribeFromAgent() throws Exception {
 		String url = "http://server/agents/agenttype/agentx";
-		String method = "unsubscribe";
+		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", "dataChanged");
 		params.put("callbackUrl", getUrl());

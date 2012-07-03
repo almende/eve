@@ -36,6 +36,7 @@ import java.util.Map;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.context.Context;
+import com.almende.eve.entity.Callback;
 import com.almende.eve.session.Session;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
@@ -138,21 +139,21 @@ abstract public class Agent {
 	}
 	
 	/**
-	 * Subscribe to an event.
+	 * Let an other agent subscribe to one of this agents events
 	 * When the event is triggered, a callback will be send to the provided
 	 * callbackUrl.
 	 * @param event
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
-	final public void subscribe(
+	final public void onSubscribe(
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback s : subscriptions) {
-			if (s.callbackUrl.equals(callbackUrl) && 
-					s.callbackMethod.equals(callbackMethod)) {
+			if (s.url.equals(callbackUrl) && 
+					s.method.equals(callbackMethod)) {
 				// The callback already exists. do not duplicate it
 				return;
 			}
@@ -167,19 +168,19 @@ abstract public class Agent {
 	}
 	
 	/**
-	 * Unsubscribe from an event
+	 * Let an other agent unsubscribe from one of this agents events
 	 * @param event
 	 * @param callbackUrl
 	 */
-	final public void unsubscribe(
+	final public void onUnsubscribe(
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		if (subscriptions != null) {
 			for (Callback subscription : subscriptions) {
-				if (subscription.callbackUrl.equals(callbackUrl) && 
-						subscription.callbackMethod.equals(callbackMethod)) {
+				if (subscription.url.equals(callbackUrl) && 
+						subscription.method.equals(callbackMethod)) {
 					// callback is found
 					// remove it and store the subscriptions again
 					subscriptions.remove(subscription);
@@ -189,7 +190,38 @@ abstract public class Agent {
 			}
 		}
 	}
+	
+	/**
+	 * Subscribe to an other agents event
+	 * @param url
+	 * @param event
+	 * @param callbackMethod
+	 * @throws Exception
+	 */
+	protected void subscribe(String url, String event, String callbackMethod) 
+			throws Exception {
+		String method = "onSubscribe";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("event", event);
+		params.put("callbackUrl", getUrl());
+		params.put("callbackMethod", callbackMethod);
+		send(url, method, params);
+	}
 
+	/**
+	 * Unsubscribe from an other agents event
+	 * @throws Exception
+	 */
+	protected void unsubscribe(String url, String event, String callbackMethod) 
+			throws Exception {
+		String method = "onUnsubscribe";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("event", event);
+		params.put("callbackUrl", getUrl());
+		params.put("callbackMethod", callbackMethod);
+		send(url, method, params);
+	}
+	
 	/**
 	 * Trigger an event
 	 * @param event
@@ -223,7 +255,7 @@ abstract public class Agent {
 		
 		for (Callback s : subscriptions) {
 			try {
-				send(s.callbackUrl, s.callbackMethod, callbackParams);
+				send(s.url, s.method, callbackParams);
 			} catch (Exception e) {
 				e.printStackTrace();
 				// TODO: how to handle exceptions in trigger?

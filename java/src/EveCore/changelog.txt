@@ -2,7 +2,7 @@ EVE CORE
 http://almende.github.com/eve/
 
 
-<not yet released>, version 0.6
+2012-07-03, version 0.6
 
 - Updated agents web interface
 - Added JSON-RPC class validation
