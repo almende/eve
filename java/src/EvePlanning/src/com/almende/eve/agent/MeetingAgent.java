@@ -2,6 +2,47 @@
  * @brief 
  * The MeetingAgent can dynamically schedule a meeting with multiple attendees.
  *
+ * The MeetingAgent synchronizes a meeting for one or multiple attendees, 
+ * and dynamically schedules the meeting on a free time slot in all calendars, 
+ * reckoning with office hours (Mon-Fri, 9:00-17:00, CET). The duration, 
+ * summary, location, and one or multiple attendees can be specified. 
+ * After having created a meeting, the meeting can be updated (add/remove
+ * attendees, change summary, duration, start time, etc.). The meetings can be
+ * changed in both your Google Calendar and via the MeetingAgent itself.
+ * 
+ * The MeetingAgent regularly checks for updates its meeting and reschedules it
+ * when needed. The update frequency depends on the time the meeting was last 
+ * changed. When just changed, the MeetingAgent checks every 10 seconds, and 
+ * this interval is linearly decreased towards once an hour. 
+ * 
+ * The MeetingAgent uses Activity as data structure, and uses this structure
+ * to describe a meeting. To setup a MeetingAgent call the method setActivity
+ * or updateActivity. The MeetingAgent will automatically start scheduling and
+ * monitoring the meeting, and stops with monitoring once the event is past.
+ * 
+ * Core methods are:
+ *     setActivity     Clear current meeting and setup a new meeting
+ *     updateActivity  Update current meeting
+ *     update          Force an update: synchronize and reschedule the meeting
+ *     clear           Remove the meetings from the attendees calendars, and
+ *                     delete all stored information.
+ * 
+ * A minimal, valid Activity structure looks like:
+ *     {
+ *         "summary": "Test C",
+ *         "constraints": {
+ *             "attendees": [
+ *                 {
+ *                     "agent": "http://myserver.com/agents/googlecalendaragent/123/",
+ *                 },
+ *                 {
+ *                     "agent": "http://myserver.com/agents/googlecalendaragent/456/",
+ *                 }
+ *             ]
+ *         }
+ *     }
+ * 
+ * 
  * @license
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy 
@@ -18,7 +59,7 @@
  * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date   2012-07-02
+ * @date   2012-07-03
  */
 
 package com.almende.eve.agent;
@@ -51,7 +92,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-// TODO: rename to AppointmentAgent
+// TODO: rename to AppointmentAgent?
 public class MeetingAgent extends Agent {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private int LOOK_AHEAD_DAYS = 7; // number of days to look ahead when
@@ -86,7 +127,6 @@ public class MeetingAgent extends Agent {
 
 	/**
 	 * Set a new activity. Currently stored activity will be removed.
-	 * 
 	 * @param activity
 	 * @return
 	 * @throws Exception
@@ -271,16 +311,15 @@ public class MeetingAgent extends Agent {
 		// TODO: optimize the update method
 		logger.info("updating...");
 
-
 		// stop running tasks
 		stopAutoUpdate();
 		
-		applyConstraints();
-
 		boolean changed = syncEvents();
 		if (changed) {
 			syncEvents();
 		}
+
+		applyConstraints();
 
 		updateBusyIntervals();
 

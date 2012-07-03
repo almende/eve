@@ -2,7 +2,7 @@ EVE PLANNING
 http://almende.github.com/eve/
 
 
-<not yet released>, version 0.5
+2012-07-03, version 0.5
 
 - GoogleAuth made more generic.
 - Added a method clear for the GoogleCalendarAgent and the MeetingAgent

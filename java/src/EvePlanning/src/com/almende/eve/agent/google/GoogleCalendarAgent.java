@@ -2,8 +2,28 @@
  * @file GoogleCalendarAgent.java
  * 
  * @brief 
- * TODO: brief
- *
+ * The GoogleCalendarAgent can connect to a single Google Calendar, and 
+ * get, create, update, and delete events. The agent uses Goolges RESTful API v3 
+ * to access a Google Calendar, and does not use any specific Java libraries
+ * for that. See:
+ * https://developers.google.com/google-apps/calendar/v3/reference/
+ * 
+ * To setup authorization for a calendar agent, the method setAuthorization 
+ * must be executed with valid authorization tokens. The agent will store
+ * the tokens and refresh them automatically when needed.
+ * To retrieve valid access tokens from google, the servlet GoogleAuth.java
+ * can be used. This servlet is typically running at /auth/google.
+ * Authorization needs to be setup only once for an agent.
+ * 
+ * The GoogleCalendarAgent contains the following core methods:
+ *     - getEvents    Get all events in a given time window
+ *     - getEvent     Get a specific event by its id
+ *     - createEvent  Create a new event
+ *     - updateEvent  Update an existing event
+ *     - deleteEvent  Delete an existing event
+ *     - getBusy      Get the busy intervals in given time window
+ *     - clear        Delete all stored information 
+ * 
  * @license
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy 
@@ -20,7 +40,7 @@
  * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	2012-07-02
+ * @date	2012-07-03
  */
 
 
@@ -235,11 +255,17 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		return auth;
 	}
 	
+	/**
+	 * Get the calendar agents version
+	 */
 	@Override
 	public String getVersion() {
 		return "0.4";
 	}
 	
+	/**
+	 * Get the calendar agents description
+	 */
 	@Override
 	public String getDescription() {
 		return "This agent gives access to a Google Calendar. " +
@@ -487,9 +513,17 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		
 		return end;
 	}
-	
+
 	/**
 	 * Retrieve the busy intervals in the calendar
+	 * @param timeMin         Start time
+	 * @param timeMax         End time
+	 * @param calendarId      Optional calendar id. the primary calendar is 
+	 *                         used by default
+	 * @param excludeEventIds Optional list with ids of events to be excluded
+	 *                         from the busy intervals.
+	 * @param timeZone        Optional time zone. UTC is used by default. 
+	 *                         Needed to correctly process all-day-events.
 	 * @throws Exception 
 	 */
 	@Override
@@ -539,6 +573,12 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
         return array;
 	}
 
+	/**
+	 * Get a single event by id
+	 * @param eventId         Id of the event
+	 * @param calendarId      Optional calendar id. the primary calendar is 
+	 *                         used by default
+	 */
 	@Override
 	public ObjectNode getEvent (
 			@Name("eventId") String eventId,
@@ -584,6 +624,13 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		return event;
 	}
 
+	/**
+	 * Create an event
+	 * @param event           JSON structure containing the calendar event
+	 * @param calendarId      Optional calendar id. the primary calendar is 
+	 *                         used by default
+	 * @return createdEvent   JSON structure with the created event
+	 */
 	@Override
 	public ObjectNode createEvent (@Name("event") ObjectNode event,
 			@Required(false) @Name("calendarId") String calendarId) 
@@ -621,6 +668,16 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		return createdEvent;
 	}
 
+	/**
+	 * Quick create an event
+	 * @param start
+	 * @param end
+	 * @param summary
+	 * @param location
+	 * @param calendarId
+	 * @return
+	 * @throws Exception
+	 */
 	public ObjectNode createEventQuick (
 			@Required(false) @Name("start") String start,
 			@Required(false) @Name("end") String end,
@@ -660,6 +717,14 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		return createEvent(event, calendarId);
 	}
 	
+	/**
+	 * Update an existing event
+	 * @param event           JSON structure containing the calendar event
+	 *                         (event must have an id)
+	 * @param calendarId      Optional calendar id. the primary calendar is 
+	 *                         used by default
+	 * @return updatedEvent   JSON structure with the updated event
+	 */
 	@Override
 	public ObjectNode updateEvent (@Name("event") ObjectNode event,
 			@Required(false) @Name("calendarId") String calendarId) 
@@ -703,6 +768,12 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		return updatedEvent;
 	}
 	
+	/**
+	 * Delete an existing event
+	 * @param eventId         id of the event to be deleted
+	 * @param calendarId      Optional calendar id. the primary calendar is 
+	 *                         used by default
+	 */
 	@Override
 	public void deleteEvent (@Name("eventId") String eventId,
 			@Required(false) @Name("calendarId") String calendarId) 
