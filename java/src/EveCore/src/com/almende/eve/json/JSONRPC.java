@@ -75,6 +75,44 @@ public class JSONRPC {
 		
 		return jsonResponse;
 	}
+	
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * @param url    The url of the agent
+	 * @param method The name of the method
+	 * @param params A ObjectNode containing the parameter values of the method
+	 * @param type   The return type of the method
+	 * @return       
+	 * @throws JSONRPCException 
+	 * @throws IOException 
+	 */
+	static public <T> T send(String url, String method, ObjectNode params, 
+			Class<T> type) throws IOException, JSONRPCException {
+		JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
+		JSONRPCException err = response.getError();
+		if (err != null) {
+			throw err;
+		}
+		if (type != null && type != void.class) {
+			return response.getResult(type);
+		}
+		return null;
+	}
+
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * @param url    The url of the agent
+	 * @param method The name of the method
+	 * @param params A ObjectNode containing the parameter values of the method
+	 * @return 
+	 * @throws JSONRPCException 
+	 * @throws IOException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	static public void send(String url, String method, ObjectNode params) 
+			throws JSONRPCException, IOException {
+		send(url, method, params, void.class);
+	}
 
 	/**
 	 * Send a request to an agent in JSON-RPC 1.0 format (array with parameters)

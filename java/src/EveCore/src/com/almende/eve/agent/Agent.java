@@ -277,6 +277,7 @@ abstract public class Agent {
 	 * @param url    The url of the agent
 	 * @param method The name of the method
 	 * @param params A ObjectNode containing the parameter values of the method
+	 * @param type   The return type of the method
 	 * @return       
 	 * @throws JSONRPCException 
 	 * @throws IOException 
