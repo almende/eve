@@ -42,7 +42,7 @@ public class GoogleAuth extends HttpServlet {
 	String REDIRECT_URI = null; 
 	
 	// hard coded uri's
-	private String AGENTS_URL = "http://eveagents.appspot.com/agents/googlecalendaragent/id"; // TODO: do not hardcode
+	private String AGENTS_URL = "http://localhost:8888/agents/googletaskagent/id"; // TODO: do not hardcode
 	private String AGENTS_METHOD = "setAuthorization";
 	private String OAUTH_URI  = "https://accounts.google.com/o/oauth2";
 	private String CONFIG_FILENAME = "/WEB-INF/eve.yaml";
@@ -50,7 +50,8 @@ public class GoogleAuth extends HttpServlet {
 	private String SCOPE = 
 		"https://www.googleapis.com/auth/userinfo.email" + SPACE + 
 		"https://www.googleapis.com/auth/userinfo.profile" + SPACE +
-		"https://www.googleapis.com/auth/calendar";
+		"https://www.googleapis.com/auth/calendar" + SPACE +
+		"https://www.googleapis.com/auth/tasks";
 
 	private ObjectMapper mapper = new ObjectMapper();
 
