@@ -1,6 +1,10 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
+<not yet released>, version 0.6
+
+- Data type of latitude longitude changed from Integer to Double 
+
 
 2012-07-03, version 0.5
 

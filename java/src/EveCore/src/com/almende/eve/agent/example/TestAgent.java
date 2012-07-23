@@ -24,6 +24,7 @@
  */
 package com.almende.eve.agent.example;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,27 @@ public class TestAgent extends Agent {
 		return sum;
 	}
 
+	public String callMyself(@Name("method") String method, 
+			@Name("params") ObjectNode params) 
+			throws IOException, JSONRPCException, Exception {
+		String resp = send(getUrl(), method, params, String.class);
+		System.out.println("callMyself method=" + method  + ", params=" + params.toString() + ", resp=" +  resp);
+		return resp;
+	}
+
+	public String cascade() throws IOException, JSONRPCException, Exception {
+		String name1 = get("name");
+		ObjectNode params = JOM.createObjectNode();
+		params.put("key", "name");
+		params.put("value", Math.round(Math.random() * 1000));
+		send(getUrl(), "put" , params);
+
+		String name2 = (String)get("name");
+
+		System.out.println("callMyself name1=" + name1 + ", name2=" + name2);
+		return name1 + " " + name2;
+	}
+	
 	public Person getPerson(@Name("name") String name) {
 		Person person = new Person();
 		person.setName(name);
