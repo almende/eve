@@ -14,19 +14,19 @@ public class Location implements Serializable, Cloneable {
 		this.summary = summary;
 	}
 
-	public Integer getLat() {
+	public Double getLat() {
 		return lat;
 	}
 
-	public void setLat(Integer lat) {
+	public void setLat(Double lat) {
 		this.lat = lat;
 	}
 
-	public Integer getLng() {
+	public Double getLng() {
 		return lng;
 	}
 
-	public void setLng(Integer lng) {
+	public void setLng(Double lng) {
 		this.lng = lng;
 	}
 
@@ -51,6 +51,6 @@ public class Location implements Serializable, Cloneable {
 	}
 
 	private String summary = null;
-	private Integer lat = null;  // latitude
-	private Integer lng = null;  // longitude
+	private Double lat = null;  // latitude
+	private Double lng = null;  // longitude
 }
