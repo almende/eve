@@ -19,7 +19,7 @@ agent:
   - com.almende.eve.agent.google.GoogleTranslateAgent
   - com.almende.eve.agent.google.GoogleCalendarAgent
   - com.almende.eve.agent.MeetingAgent
-  - com.almende.eve.agent.PersonalAgent
+  - com.almende.eve.agent.MessageAgent
 
 # context settings
 # the context is used by agents for storing their state.
