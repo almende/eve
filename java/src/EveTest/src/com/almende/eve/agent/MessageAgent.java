@@ -66,8 +66,21 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * inbox of agent 2 and 3. To check if the message is in the inbox of agent 2,
  * Go the the webpage of agent 2 and execute the method getInbox.
  * 
+ * Note that the used GAE TaskQueue processes maximum 5 tasks per second by 
+ * default. This rate can be configured, see 
+ *     https://developers.google.com/appengine/docs/java/config/queue
+ * Example configuration:
+ *     <queue-entries>
+ *       <queue>
+ *         <name>default</name>
+ *         <rate>20/s</rate>
+ *         <bucket-size>40</bucket-size>
+ *         <max-concurrent-requests>10</max-concurrent-requests>
+ *       </queue>
+ *     </queue-entries>
+ * 
  * @author jos
- * @date 2012-07-24
+ * @date 2012-07-25
  */
 public class MessageAgent extends Agent {
 	/**
