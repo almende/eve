@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>EveTest</name>
+	<name>EveDemo</name>
 	<comment></comment>
 	<projects>
 		<project>EveCore</project>
@@ -15,7 +15,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/Copy libaries to EveTest.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/Copy libaries to EveDemo.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
