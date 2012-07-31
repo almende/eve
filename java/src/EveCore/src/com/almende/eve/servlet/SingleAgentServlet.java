@@ -2,6 +2,7 @@ package com.almende.eve.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -30,20 +31,53 @@ public class SingleAgentServlet extends HttpServlet {
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
 	@Override
+	public void init() {
+		try {
+			// initialize configuration file, context, and agents
+			initConfig();
+			initContext();
+			initAgent();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
 	public void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		// FIXME: this does not work!
-		// TODO: Make flexible resource streamer
-		// TODO: take the real servletUrl from the the ContextFactory, 
-		//       and cut the remaining part of the url as resource name
-		String uri = request.getRequestURI();
-		String name = uri.substring(uri.lastIndexOf("/") + 1);
+		String url = request.getRequestURI();
+		
+		// retrieve the servlet url from the context
+		String servletUrl = null;
+		try {
+			servletUrl = contextFactory.getServletUrl();
+			if (!servletUrl.endsWith("/")) {
+				servletUrl += "/";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// verify the path
+		String servletPath = new URL(servletUrl).getPath();
+		if (!url.startsWith(servletPath)) {
+			throw new ServletException("I don't get it. The request url '"  +
+					url + "' does not match the configured servlet url '" + 
+					servletPath + "'");
+		}
+
+		// extract the resource name from the url
+		String name = url.substring(servletPath.length());
+		if (name.startsWith("/")) {
+			name = name.substring(1);
+		}
 		String extension = name.substring(name.lastIndexOf(".") + 1);
 		if (extension.equals(name)) {
 			name = "index.html";
 			extension = name.substring(name.lastIndexOf(".") + 1);
 		}
 		
+		// retrieve and stream the resource
 		String mimetype = StreamingUtil.getMimeType(extension);
 		String filename = RESOURCES + name;
 		InputStream is = this.getClass().getResourceAsStream(filename);
@@ -55,11 +89,6 @@ public class SingleAgentServlet extends HttpServlet {
 			throws IOException {
 		String response = "";
 		try {
-			// initialize configuration file, context, and agents
-			initConfig();
-			initContext();
-			initAgent();
-			
 			// retrieve the request data
 			String request = streamToString(req.getInputStream());
 
@@ -135,14 +164,14 @@ public class SingleAgentServlet extends HttpServlet {
 			return;
 		}
 
-		List<String> classNames = config.get("agent.classes");		
+		List<String> classNames = config.get("agent", "classes");		
 		if (classNames == null || classNames.size() == 0) {
 			throw new ServletException(
-				"Config parameter 'agents' missing in Eve configuration.");
+				"Config parameter 'agent.classes' missing in Eve configuration.");
 		}
 		if (classNames.size() > 1) {
 			throw new ServletException(
-					"Config parameter 'agents' may only contain one class");
+					"Config parameter 'agent.classes' may only contain one class");
 		}
 		String className = classNames.get(0);
 		

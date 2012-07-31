@@ -5,6 +5,8 @@ http://almende.github.com/eve/
 
 - Added a convenience method send(url, method, params, type) to the JSONRPC 
   class
+- Fixed the SingleAgentServlet, which now works correctly with the multiple
+  resources for the web page of an agent.
 
 
 2012-07-03, version 0.6
