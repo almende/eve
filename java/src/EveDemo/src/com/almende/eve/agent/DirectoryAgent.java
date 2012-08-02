@@ -1,0 +1,167 @@
+package com.almende.eve.agent;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.almende.eve.entity.Registration;
+import com.almende.eve.json.annotation.Name;
+import com.almende.eve.json.annotation.Required;
+import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.code.twig.ObjectDatastore;
+import com.google.code.twig.FindCommand.RootFindCommand;
+import com.google.code.twig.annotation.AnnotationObjectDatastore;
+
+
+public class DirectoryAgent extends Agent {
+	/**
+	 * Add an agent to the registered agents
+	 * @param url      Url of the agent
+	 * @param type     Class name of the agent (for example "GoogleCalendarAgent")
+	 * @param username
+	 * @param email
+	 * @return
+	 * @throws Exception
+	 */
+	public Registration register(
+			@Name("url") String url, 
+			@Name("type") @Required(false) String type, 
+			@Name("username") @Required(false) String username, 
+			@Name("email") @Required(false) String email) throws Exception {
+		// remove any existing registration
+		unregister(url, email);
+		
+		// create a new registration
+		Registration registration = new Registration();
+		registration.setDirectoryAgent(getUrl());
+		registration.setUrl(url);
+		registration.setType(type);
+		registration.setUsername(username);
+		registration.setEmail(email);
+		
+		// store the registration
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		datastore.store(registration);
+		
+		return registration;
+	}
+
+	/**
+	 * Remove an agent from the registered agents
+	 * an agent can be removed by url or by email or both
+	 * @param url      Url of the agent. Optional
+	 * @param email    Email of the agent. Optional
+	 * @throws Exception
+	 */
+	public void unregister(
+			@Name("url") @Required(false) String url, 
+			@Name("email") @Required(false) String email) throws Exception {
+		// remove registrations with this url
+		if (url != null) {
+			delete("url", url);
+		}
+
+		// remove registrations with this email
+		if (email != null) {
+			delete("email", email);
+		}
+	}
+	
+	/**
+	 * Find registrations
+	 * @param url      Url of the agent
+	 * @param type     Class name of the agent (for example "GoogleCalendarAgent")
+	 * @param username
+	 * @param email
+	 * @return messages
+	 * @throws Exception
+	 */
+	public List<Registration> find (
+			@Name("url") @Required(false) String url, 
+			@Name("type") @Required(false) String type, 
+			@Name("username") @Required(false) String username, 
+			@Name("email") @Required(false) String email) 
+			throws Exception {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		
+		RootFindCommand<Registration> command = datastore.find()
+			.type(Registration.class)
+			.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl());
+		if (url != null) {
+			command = command.addFilter("url", FilterOperator.EQUAL, url);
+		}
+		if (type != null) {
+			command = command.addFilter("type", FilterOperator.EQUAL, type);
+		}
+		if (username != null) {
+			command = command.addFilter("username", FilterOperator.EQUAL, username);
+		}
+		if (email != null) {
+			command = command.addFilter("email", FilterOperator.EQUAL, email);
+		}
+
+		QueryResultIterator<Registration> it = command.now();
+		List<Registration> registrations = new ArrayList<Registration>();
+		while (it.hasNext()) {
+			registrations.add(it.next());
+		}		
+		return registrations;
+	}
+
+	/**
+	 * Delete all registrations filtered by given field and value.
+	 * For example field="email", value="jos@almende.org", all registrations
+	 * with this email will be deleted
+	 * @param field
+	 * @param value
+	 * @throws Exception 
+	 */
+	private void delete (String field, String value) throws Exception {
+		if (field == null || value == null) {
+			return;
+		}		
+		
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		
+		QueryResultIterator<Registration> it = datastore.find()
+		.type(Registration.class)
+		.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl())
+		.addFilter(field, FilterOperator.EQUAL, value)
+		.now();
+	
+		while (it.hasNext()) {
+			Registration registration = it.next();
+			datastore.delete(registration);
+		}	
+	}
+	
+	/**
+	 * Remove all registrations stored by this DirectoryAgent
+	 */
+	@Override
+	public void clear() throws Exception {
+		ObjectDatastore datastore = new AnnotationObjectDatastore();
+		QueryResultIterator<Registration> it = datastore.find()
+			.type(Registration.class)
+			.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl())
+			.now();
+		
+		while (it.hasNext()) {
+			Registration registration = it.next();
+			datastore.delete(registration);
+			// TODO: bulk delete all registrations instead of one by one
+		}
+		
+		super.clear();
+	}
+	
+	@Override
+	public String getDescription() {
+		return "DirectoryAgent stores a list with registered agents.";
+	}
+
+	@Override
+	public String getVersion() {
+		return "0.1";
+	}
+}

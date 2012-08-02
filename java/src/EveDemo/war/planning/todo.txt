@@ -1,0 +1,6 @@
+planning demo todo
+
+create auto completion for the attendees (use http://harvesthq.github.com/chosen/ ?)
+DirectoryAgent should also match on email, and delete similar emails
+read all contacts from the user (and filter on those which have a calendaragent)
+create a personal agent which manages your office hours

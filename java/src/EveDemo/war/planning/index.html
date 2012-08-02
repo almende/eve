@@ -1,0 +1,166 @@
+<!doctype html>
+<html ng-app>
+<head>
+    <title>Eve Planning Demo</title>
+
+    <link type="text/css" rel="stylesheet" href="lib/chosen/chosen.css">
+    <link type="text/css" rel="stylesheet" href="style.css">
+
+    <script src='lib/jquery-1.7.2.min.js'></script>
+    <script src="lib/angular-1.0.1.min.js"></script>
+    <script src="lib/date.format.js"></script>
+    <script src="lib/chosen/chosen.jquery.min.js"></script>
+    <script src="util.js" type="text/javascript" ></script>
+    <script src="planning.js" type="text/javascript" ></script>
+</head>
+<body>
+<div id="container" ng-controller="Planning">
+    <h1>Eve Planning Demo</h1>
+    <p>
+        Eve Planning offers a
+        <a href="http://en.wikipedia.org/wiki/Software_agent" target="_blank">software agent</a>
+        based solution for dynamically planning and managing calendar events.
+    </p>
+
+    <h2>Settings</h2>
+
+    <p>
+        Choose a unique username. This username will be used to create
+        a PersonalAgent which manages your calendar and dynamic events.
+    </p>
+
+    <div>
+        Username: <input type="text" ng-model="username" ng-change="usernameChanged=true"
+                      placeholder="username">
+        <button ng-disabled="!usernameChanged" ng-click="applyUsername()">Save</button>
+        <button ng-disabled="!username" ng-click="delete();">Delete</button>
+        <span ng-show="agentLoading">saving...</span>
+    </div>
+
+    <div ng-show="calendarAgent && !usernameChanged">
+        <p ng-show="!authorized">
+            You need to authorize your PersonalAgent once to give it access to your google calendar.
+            <button ng-click="authorize();">Authorize</button>
+        </p>
+        <p ng-show="authorized">
+            You have authorized your PersonalAgent to access your google calendar ({{email}}).
+        </p>
+    </div>
+
+    <div ng-show="emailLoading">
+        loading...
+    </div>
+
+    <h2>Calendar Events</h2>
+
+    <p>
+        Your calendar events are listed below. Both your static and dynamic
+        events are displayed. Dynamic events are displayed with
+        a star <span class="managed-event">&#9733;</span>,
+        these events are actively monitored and managed by a MeetingAgent.
+        Only dynamic events can be created, edited, and deleted via this interface.
+        It may take a while before changes are noticed by the agent.
+    </p>
+
+    <button ng-click="createEvent();"
+            ng-show="authorized"
+            title="Create a new, dynamic event">New</button>
+
+    <div ng-repeat="(day, events) in days"
+         ng-show="authorized">
+        <h3>{{day}}</h3>
+
+        <ul class="events">
+            <li ng-repeat="event in events | orderBy:getEventStart"
+                ng-class="getEventClass(event)">
+                <div ng-show="event.agent" style="float: right;" >
+                    <button class="menu" ng-click="editor.load(event.agent)">Edit</button>
+                    <button class="menu" ng-click="deleteEvent(event.agent)">Delete</button>
+                </div>
+                <div class="summary">
+                    {{event.summary}}
+                <span class="managed-event"
+                      title="This event is managed by a software agent"
+                      ng-show="event.agent" >&#9733;</span>
+                </div>
+                <div class="time">{{event.formattedDate}}</div>
+            </li>
+        </ul>
+    </div>
+
+    <span ng-show="updating">updating...</span>
+
+    <!-- TODO: put styles in css -->
+    <div ng-show="editor.show" class="dialog-overlay">
+    </div>
+    <div ng-show="editor.show" class="dialog-bg">
+        <div  class="dialog">
+            <h2>Event</h2>
+
+            <table>
+                <tr>
+                    <th>Summary</th>
+                    <td><input type="text" ng-model="editor.activity.summary"
+                            ></td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td><input type="text"
+                               ng-model="editor.activity.constraints.location.summary"
+                               ng-disabled="editor.saving || editor.loading"></td>
+                </tr>
+                <tr>
+                    <th>Duration</th>
+                    <td>
+                        <select ng-model="editor.activity.constraints.time.duration">
+                            <option value="900000">15 minutes</option>
+                            <option value="1800000">30 minutes</option>
+                            <option value="2700000">45 minutes</option>
+                            <option value="3600000">1 hour</option>
+                            <option value="5400000">1&frac12; hours</option>
+                            <option value="7200000">2 hours</option>
+                            <option value="14400000">4 hours</option>
+                        </select>
+                        <!-- TODO: enable raw input in minutes
+                        <input type="text"
+                               ng-model="editor.activity.constraints.time.duration"
+                               ng-disabled="editor.saving || editor.loading">
+                        -->
+                    </td>
+                </tr>
+                <tr>
+                    <th>Attendees</th>
+                    <td>
+                        <div ng-repeat="attendee in editor.activity.constraints.attendees">
+                            <select data-placeholder="Select a contact"
+                                    class="chzn-select"
+                                    ng-model="attendee.agent"
+                                    ng-options="r.url as (r.username + ' (' + r.email + ')') for r in registrations">
+                            </select>
+
+                            <a href="" class="remove"
+                               ng-click="removeAttendee(editor.activity, attendee)"
+                               ng-disabled="editor.saving || editor.loading"
+                               title="Remove Attendee">&times;</a>
+                        </div>
+                        <div>
+                            <a href="" class="add"
+                               ng-click="addAttendee(editor.activity)"
+                               ng-disabled="editor.saving || editor.loading"
+                               title="Add an attendee">&plus;</a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <p>
+                <button ng-click="editor.update();" ng-disabled="editor.saving || editor.loading">Save</button>
+                <button ng-click="editor.cancel();">Cancel</button>
+                <span ng-show="editor.loading">loading...</span>
+                <span ng-show="editor.saving">saving...</span>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

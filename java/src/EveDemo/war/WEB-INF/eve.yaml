@@ -20,6 +20,7 @@ agent:
   - com.almende.eve.agent.google.GoogleCalendarAgent
   - com.almende.eve.agent.MeetingAgent
   - com.almende.eve.agent.MessageAgent
+  - com.almende.eve.agent.DirectoryAgent
 
 # context settings
 # the context is used by agents for storing their state.
@@ -36,5 +37,5 @@ google:
 # auth servlet
 auth:
   google:
-    servlet_url: https://eveagents.appspot.com/auth/google
-    # servlet_url: http://localhost:8888/auth/google
+    # servlet_url: https://eveagents.appspot.com/auth/google
+    servlet_url: http://localhost:8888/auth/google
