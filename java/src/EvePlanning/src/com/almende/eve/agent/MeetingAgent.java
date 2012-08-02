@@ -148,7 +148,10 @@ public class MeetingAgent extends Agent {
 	private Set<String> getAttendeesAgents(Activity activity) {
 		Set<String> agents = new TreeSet<String>();
 		for (Attendee attendee : activity.getConstraints().getAttendees()) {
-			agents.add(attendee.getAgent());
+			String agent = attendee.getAgent();
+			if (agent != null) {
+				agents.add(agent);
+			}
 		}
 
 		return agents;
@@ -291,7 +294,9 @@ public class MeetingAgent extends Agent {
 
 			for (Attendee attendee : activity.getConstraints().getAttendees()) {
 				String agent = attendee.getAgent();
-				syncEvent(agent);
+				if (agent != null) {
+					syncEvent(agent);
+				}
 			}
 
 			activity = (Activity) getContext().get("activity");

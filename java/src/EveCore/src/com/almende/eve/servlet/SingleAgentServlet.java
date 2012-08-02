@@ -151,6 +151,8 @@ public class SingleAgentServlet extends HttpServlet {
 		Context context = contextFactory.getContext(agentClassName, id);
 		agent.setContext(context);
 		
+		// FIXME: getUrl() of the agent does not work
+		
 		return agent;		
 	}
 		
