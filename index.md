@@ -11,6 +11,11 @@ Eve is designed as a decentral, scalable system for autonomously acting agents.
 Eve uses the existing world wide web as platform, 
 and uses existing protocols for data exchange (HTTP) and for messaging (JSON-RPC).
 
+Eve is being developed by [Almende](http://www.almende.com),
+a Dutch research company specialized in information and communication technologies.
+At the core of all Almende solutions are hybrid agent networks: humans and computers working together.
+Almende looks towards agent technology to develop smart software that truly supports people in organizing their own lives.
+
 This page introduces the core concepts of Eve:
 
 - [Web-based, decentral, and scalable](#scalable)
