@@ -8,7 +8,7 @@ function Planning($scope) {
     var ORIGIN = window.location.protocol + '//' + window.location.host + '/';
     var AUTH_SERVLET = ORIGIN + 'auth/google';
     var AGENTS_SERVLET = ORIGIN + 'agents/';
-    var CALENDAR_AGENT_URI = AGENTS_SERVLET + 'googlecalendaragent/';
+    var PERSONAL_AGENT_URI = AGENTS_SERVLET + 'googlecalendaragent/';
     var MEETING_AGENT_URI = AGENTS_SERVLET + 'meetingagent/';
     var DIRECTORY_AGENT_URI = AGENTS_SERVLET + 'directoryagent/1/';
     var CALLBACK_URI = window.location.href;
@@ -27,32 +27,32 @@ function Planning($scope) {
      * Get the email from the calendar agent
      */
     $scope.getEmail = function () {
-        if (!$scope.calendarAgent) {
+        if (!$scope.personalAgent) {
             $scope.authorized = false;
             return;
         }
 
-        $scope.emailLoading = true;
+        $scope.authorizing = true;
         jsonrpc({
-            'url': $scope.calendarAgent,
+            'url': $scope.personalAgent,
             'method': 'getEmail',
             'params': {},
             'success': function (email) {
-                delete $scope.emailLoading;
+                delete $scope.authorizing;
                 $scope.authorized = (email != null);
                 $scope.email = email;
                 $scope.$apply();
                 console.log('email', email);
 
-                $scope.registerCalendarAgent({
-                    'url': $scope.calendarAgent,
+                $scope.registerAgent({
+                    'agent': $scope.personalAgent,
                     'username': $scope.username,
                     'email': $scope.email
                 });
             },
             'error': function (err) {
                 $scope.authorized = false;
-                delete $scope.emailLoading;
+                delete $scope.authorizing;
                 delete $scope.email;
                 $scope.$apply();
                 console.log('error', err);
@@ -152,7 +152,7 @@ function Planning($scope) {
      * Get the email from the calendar agent
      */
     $scope.getEvents = function (interval) {
-        if (!$scope.calendarAgent) {
+        if (!$scope.personalAgent) {
             return;
         }
 
@@ -165,7 +165,7 @@ function Planning($scope) {
 
         $scope.updating = true;
         jsonrpc({
-            'url': $scope.calendarAgent,
+            'url': $scope.personalAgent,
             'method': 'getEvents',
             'params': {
                 'timeMin': now.format('yyyy-mm-dd'),
@@ -210,6 +210,7 @@ function Planning($scope) {
         }
         $scope.timer = setTimeout(function () {
             $scope.getEvents($scope.interval);
+            $scope.getRegistrations();
         }, $scope.interval);
     };
 
@@ -227,34 +228,14 @@ function Planning($scope) {
     });
 
     /**
-     * Authorize the current calendarAgent
+     * Authorize the current personalAgent
      */
     $scope.authorize = function () {
         // redirect to a url to authorize this agent
         window.location.href = AUTH_SERVLET +
-            '?agentUrl=' + $scope.calendarAgent +
+            '?agentUrl=' + $scope.personalAgent +
             '&agentMethod=setAuthorization' +
             '&applicationCallback=' + CALLBACK_URI;
-    };
-
-    /**
-     * Delete current calendarAgent
-     */
-    $scope.delete = function () {
-        jsonrpc({
-            'url': $scope.calendarAgent,
-            'method': 'clear',
-            'params': {}
-        });
-
-        this.unregisterCalendarAgent();
-
-        $scope.authorized = false;
-        delete $scope.email;
-        delete $scope.username;
-        delete $scope.calendarAgent;
-        delete $scope.events;
-        $scope.save();
     };
 
     $scope.addAttendee = function (activity, attendee) {
@@ -281,9 +262,9 @@ function Planning($scope) {
 
     $scope.createEvent = function () {
         var uuid = UUID.randomUUID();
-        var url = MEETING_AGENT_URI + uuid;
+        var agent = MEETING_AGENT_URI + uuid;
         var activity = {
-            'agent': url,
+            'agent': agent,
             'summary': 'new event',
             'constraints': {
                 'time': {
@@ -291,7 +272,7 @@ function Planning($scope) {
                 },
                 'attendees': [
                     {
-                        'agent': $scope.calendarAgent,
+                        'agent': $scope.personalAgent,
                         'username': $scope.username,
                         'email': $scope.email
                     }
@@ -303,6 +284,7 @@ function Planning($scope) {
     };
 
     $scope.deleteEvent = function (agent) {
+        // TODO: directly remove the event from the list? Or disable it?
         jsonrpc({
             'url': agent,
             'method': 'clear',
@@ -378,15 +360,15 @@ function Planning($scope) {
         });
     };
 
-    $scope.registerCalendarAgent = function(params) {
-        if (params.url && params.email) {
+    $scope.registerAgent = function(params) {
+        if (params.agent && params.email) {
             // register the calendar agent when all fields are populated
             jsonrpc({
                 'url': DIRECTORY_AGENT_URI,
                 'method': 'register',
                 'params': {
-                    'url': params.url,
-                    'type': 'calendaragent',
+                    'agent': params.agent,
+                    'type': 'personalagent',
                     'username': params.username,
                     'email': params.email
                 },
@@ -397,12 +379,12 @@ function Planning($scope) {
         }
     };
 
-    $scope.unregisterCalendarAgent = function() {
+    $scope.unregisterAgent = function() {
         jsonrpc({
             'url': DIRECTORY_AGENT_URI,
             'method': 'unregister',
             'params': {
-                'url': $scope.calendarAgent,
+                'agent': $scope.personalAgent,
                 'username': $scope.username,
                 'email': $scope.email
             },
@@ -418,28 +400,52 @@ function Planning($scope) {
             'method': 'find',
             'params': {},
             'success' : function (registrations) {
+                console.log('registrations', registrations);
                 $scope.registrations = registrations;
                 $scope.$apply();
             }
         });
     };
 
-    $scope.applyUsername = function () {
+    $scope.login = function () {
         $scope.authorized = false;
         $scope.usernameChanged = false;
 
         if ($scope.username && $scope.username.length > 0) {
-            $scope.calendarAgent = CALENDAR_AGENT_URI + $scope.username;
+            $scope.personalAgent = PERSONAL_AGENT_URI + $scope.username + '/';
         }
         else {
-            delete $scope.calendarAgent;
+            delete $scope.personalAgent;
         }
         console.log('username', $scope.username);
-        console.log('calendarAgent', $scope.calendarAgent);
+        console.log('personalagent', $scope.personalAgent);
 
         $scope.getEmail();
         $scope.getEvents();
         $scope.getRegistrations();
+    };
+
+    $scope.logout = function () {
+        $scope.authorized = false;
+        delete $scope.email;
+        delete $scope.username;
+        delete $scope.personalAgent;
+        delete $scope.events;
+        $scope.save();
+    };
+
+    /**
+     * Delete current personalAgent
+     */
+    $scope.delete = function () {
+        jsonrpc({
+            'url': $scope.personalAgent,
+            'method': 'clear',
+            'params': {}
+        });
+
+        this.unregisterAgent();
+        this.logout();
     };
 
     $scope.renderSelectBoxes = function () {
@@ -460,7 +466,7 @@ function Planning($scope) {
      */
     $scope.load = function() {
         $scope.username = localStorage['username'];
-        $scope.applyUsername();
+        $scope.login();
     };
 
     /**

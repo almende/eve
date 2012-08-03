@@ -1,7 +1,7 @@
 <!doctype html>
 <html ng-app>
 <head>
-    <title>Eve Planning Demo</title>
+    <title>Eve Planning - dynamically managed calendar events</title>
 
     <link type="text/css" rel="stylesheet" href="lib/chosen/chosen.css">
     <link type="text/css" rel="stylesheet" href="style.css">
@@ -15,86 +15,98 @@
 </head>
 <body>
 <div id="container" ng-controller="Planning">
-    <h1>Eve Planning Demo</h1>
+    <div id="settings" ng-show="username && !usernameChanged">
+        {{username}}
+        <span ng-show="email" title="Your PersonalAgent has access to your google calendar {{email}}">({{email}})</span> &nbsp;
+        <a ng-disabled="!username" ng-click="logout();"
+                title="Logout. Your PersonalAgent will stay alive">logout</a> &nbsp;
+        <a ng-disabled="!username" ng-click="delete();"
+                title="Delete your account including your PersonalAgent">delete</a>
+    </div>
+
+    <h1>Eve Planning</h1>
     <p>
         Eve Planning offers a
         <a href="http://en.wikipedia.org/wiki/Software_agent" target="_blank">software agent</a>
         based solution for dynamically planning and managing calendar events.
     </p>
 
-    <h2>Settings</h2>
+    <div ng-show="!authorized">
+        <h2>Account</h2>
 
-    <p>
-        Choose a unique username. This username will be used to create
-        a PersonalAgent which manages your calendar and dynamic events.
-    </p>
-
-    <div>
-        Username: <input type="text" ng-model="username" ng-change="usernameChanged=true"
-                      placeholder="username">
-        <button ng-disabled="!usernameChanged" ng-click="applyUsername()">Save</button>
-        <button ng-disabled="!username" ng-click="delete();">Delete</button>
-        <span ng-show="agentLoading">saving...</span>
-    </div>
-
-    <div ng-show="calendarAgent && !usernameChanged">
-        <p ng-show="!authorized">
-            You need to authorize your PersonalAgent once to give it access to your google calendar.
-            <button ng-click="authorize();">Authorize</button>
+        <p>
+            Choose a unique username. This username will be used to create
+            a PersonalAgent which manages your calendar and dynamic events.
         </p>
-        <p ng-show="authorized">
-            You have authorized your PersonalAgent to access your google calendar ({{email}}).
+
+        <div>
+            <form ng-submit="login()">
+            Username: <input type="text" ng-model="username" ng-change="usernameChanged=true"
+                          placeholder="username">
+            <button ng-disabled="!usernameChanged">Login</button>
+            <span ng-show="agentLoading">logging in...</span>
+            </form>
+        </div>
+
+        <div ng-show="personalAgent && !usernameChanged && !authorizing">
+            <p ng-show="!authorized">
+                You need to authorize your PersonalAgent once to give it access to your google calendar.
+                <button ng-click="authorize();">Authorize</button>
+            </p>
+            <p ng-show="authorized">
+                You have authorized your PersonalAgent to access your google calendar ({{email}}).
+            </p>
+        </div>
+
+        <div ng-show="authorizing">
+            loading...
+        </div>
+    </div>
+
+    <div ng-show="authorized">
+        <h2>Calendar Events</h2>
+
+        <p>
+            Your calendar events are listed below. Both your static and dynamic
+            events are displayed. Dynamic events are displayed with
+            a star <span class="managed-event">&#9733;</span>,
+            these events are actively monitored and managed by a MeetingAgent.
+            Only dynamic events can be created, edited, and deleted via this interface.
+            It may take a while before changes are noticed by the agent.
         </p>
+
+        <button ng-click="createEvent();"
+                title="Create a new, dynamic event">New</button>
+
+        <div ng-repeat="(day, events) in days">
+            <h3>{{day}}</h3>
+
+            <ul class="events">
+                <li ng-repeat="event in events | orderBy:getEventStart"
+                    ng-class="getEventClass(event)">
+                    <div ng-show="event.agent" style="float: right;" >
+                        <button class="menu" ng-click="editor.load(event.agent)">Edit</button>
+                        <button class="menu" ng-click="deleteEvent(event.agent)">Delete</button>
+                    </div>
+                    <div class="summary">
+                        {{event.summary}}
+                    <span class="managed-event"
+                          title="This event is managed by a software agent"
+                          ng-show="event.agent" >&#9733;</span>
+                    </div>
+                    <div class="time">{{event.formattedDate}}</div>
+                </li>
+            </ul>
+        </div>
+
+        <span ng-show="updating">updating...</span>
     </div>
-
-    <div ng-show="emailLoading">
-        loading...
-    </div>
-
-    <h2>Calendar Events</h2>
-
-    <p>
-        Your calendar events are listed below. Both your static and dynamic
-        events are displayed. Dynamic events are displayed with
-        a star <span class="managed-event">&#9733;</span>,
-        these events are actively monitored and managed by a MeetingAgent.
-        Only dynamic events can be created, edited, and deleted via this interface.
-        It may take a while before changes are noticed by the agent.
-    </p>
-
-    <button ng-click="createEvent();"
-            ng-show="authorized"
-            title="Create a new, dynamic event">New</button>
-
-    <div ng-repeat="(day, events) in days"
-         ng-show="authorized">
-        <h3>{{day}}</h3>
-
-        <ul class="events">
-            <li ng-repeat="event in events | orderBy:getEventStart"
-                ng-class="getEventClass(event)">
-                <div ng-show="event.agent" style="float: right;" >
-                    <button class="menu" ng-click="editor.load(event.agent)">Edit</button>
-                    <button class="menu" ng-click="deleteEvent(event.agent)">Delete</button>
-                </div>
-                <div class="summary">
-                    {{event.summary}}
-                <span class="managed-event"
-                      title="This event is managed by a software agent"
-                      ng-show="event.agent" >&#9733;</span>
-                </div>
-                <div class="time">{{event.formattedDate}}</div>
-            </li>
-        </ul>
-    </div>
-
-    <span ng-show="updating">updating...</span>
 
     <!-- TODO: put styles in css -->
     <div ng-show="editor.show" class="dialog-overlay">
     </div>
     <div ng-show="editor.show" class="dialog-bg">
-        <div  class="dialog">
+        <div class="dialog">
             <h2>Event</h2>
 
             <table>
@@ -135,7 +147,7 @@
                             <select data-placeholder="Select a contact"
                                     class="chzn-select"
                                     ng-model="attendee.agent"
-                                    ng-options="r.url as (r.username + ' (' + r.email + ')') for r in registrations">
+                                    ng-options="r.agent as (r.username + ' (' + r.email + ')') for r in registrations">
                             </select>
 
                             <a href="" class="remove"
@@ -161,6 +173,7 @@
             </p>
         </div>
     </div>
+
 </div>
 </body>
 </html>

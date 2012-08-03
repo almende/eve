@@ -16,7 +16,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 public class DirectoryAgent extends Agent {
 	/**
 	 * Add an agent to the registered agents
-	 * @param url      Url of the agent
+	 * @param agent    Url of the agent
 	 * @param type     Class name of the agent (for example "GoogleCalendarAgent")
 	 * @param username
 	 * @param email
@@ -24,17 +24,17 @@ public class DirectoryAgent extends Agent {
 	 * @throws Exception
 	 */
 	public Registration register(
-			@Name("url") String url, 
+			@Name("agent") String agent, 
 			@Name("type") @Required(false) String type, 
 			@Name("username") @Required(false) String username, 
 			@Name("email") @Required(false) String email) throws Exception {
 		// remove any existing registration
-		unregister(url, email);
+		unregister(agent, email);
 		
 		// create a new registration
 		Registration registration = new Registration();
 		registration.setDirectoryAgent(getUrl());
-		registration.setUrl(url);
+		registration.setAgent(agent);
 		registration.setType(type);
 		registration.setUsername(username);
 		registration.setEmail(email);
@@ -49,16 +49,16 @@ public class DirectoryAgent extends Agent {
 	/**
 	 * Remove an agent from the registered agents
 	 * an agent can be removed by url or by email or both
-	 * @param url      Url of the agent. Optional
+	 * @param agent    Url of the agent. Optional
 	 * @param email    Email of the agent. Optional
 	 * @throws Exception
 	 */
 	public void unregister(
-			@Name("url") @Required(false) String url, 
+			@Name("agent") @Required(false) String agent, 
 			@Name("email") @Required(false) String email) throws Exception {
 		// remove registrations with this url
-		if (url != null) {
-			delete("url", url);
+		if (agent != null) {
+			delete("agent", agent);
 		}
 
 		// remove registrations with this email
@@ -69,7 +69,7 @@ public class DirectoryAgent extends Agent {
 	
 	/**
 	 * Find registrations
-	 * @param url      Url of the agent
+	 * @param agent    Url of the agent
 	 * @param type     Class name of the agent (for example "GoogleCalendarAgent")
 	 * @param username
 	 * @param email
@@ -77,7 +77,7 @@ public class DirectoryAgent extends Agent {
 	 * @throws Exception
 	 */
 	public List<Registration> find (
-			@Name("url") @Required(false) String url, 
+			@Name("agent") @Required(false) String agent, 
 			@Name("type") @Required(false) String type, 
 			@Name("username") @Required(false) String username, 
 			@Name("email") @Required(false) String email) 
@@ -87,8 +87,8 @@ public class DirectoryAgent extends Agent {
 		RootFindCommand<Registration> command = datastore.find()
 			.type(Registration.class)
 			.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl());
-		if (url != null) {
-			command = command.addFilter("url", FilterOperator.EQUAL, url);
+		if (agent != null) {
+			command = command.addFilter("agent", FilterOperator.EQUAL, agent);
 		}
 		if (type != null) {
 			command = command.addFilter("type", FilterOperator.EQUAL, type);

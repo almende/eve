@@ -32,17 +32,17 @@ public class Registration implements Serializable {
 		return email;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setAgent(String agent) {
+		this.agent = agent;
 	}
-	public String getUrl() {
-		return url;
+	public String getAgent() {
+		return agent;
 	}
 
 	private String directoryAgent = null;
 	private String type = null;
 	private String username = null;
 	private String email = null;
-	private String url = null;
+	private String agent = null;
 
 }
