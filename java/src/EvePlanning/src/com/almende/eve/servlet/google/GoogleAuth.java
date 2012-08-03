@@ -20,9 +20,11 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
 import com.almende.eve.config.Config;
+import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.jackson.JOM;
@@ -72,14 +74,60 @@ public class GoogleAuth extends HttpServlet {
 				throw new Exception("Parameter 'google.client_secret' missing in config");
 			}
 
-			REDIRECT_URI = config.get("auth", "google", "servlet_url");
+			String environment = getEnvironment(config); 
+			REDIRECT_URI = config.get("environment", environment, "auth_google_servlet_url");
 			if (REDIRECT_URI == null) {
-				throw new Exception("Parameter 'auth.google.servlet_url' missing in config");
+				String path = "environment." + environment + ".auth_google_servlet_url";
+				Exception e = new Exception("Config parameter '" + path + "' is missing");
+				e.printStackTrace();
 			}
-			// TODO: redirect_uri should reckon with the current environment
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
+	}
+	
+	private String getEnvironment(Config config) throws Exception {
+		String className = config.get("context", "class");
+		if (className == null) {
+			throw new ServletException(
+				"Config parameter 'context.class' missing in Eve configuration.");
+		}
+		
+		Class<?> contextClass = null;
+		try {
+			contextClass = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			throw new ServletException("Cannot find class " + className + "");
+		}
+		
+		if (!hasInterface(contextClass, ContextFactory.class)) {
+			throw new ServletException(
+					"Context class " + contextClass.getName() + 
+					" must implement interface " + ContextFactory.class.getName());
+		}
+
+		ContextFactory contextFactory = 
+			(ContextFactory) contextClass.getConstructor().newInstance();
+		contextFactory.setConfig(config);
+		
+		return contextFactory.getEnvironment();
+	}
+
+	/**
+	 * Check if checkClass has implemented interfaceClass
+	 * @param checkClass
+	 * @param interfaceClass
+	 */
+	private boolean hasInterface(Class<?> checkClass, Class<?> interfaceClass) {
+		Class<?>[] interfaces = checkClass.getInterfaces();
+		
+		for (Class<?> i : interfaces) {
+			if (i.equals(interfaceClass)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	@Override
