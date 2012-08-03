@@ -1,6 +1,13 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
+2012-08-03, version 0.6
+
+- GoogleTaskAgent added
+- GoogleAuth servlet now reckons with the context environment
+- Data type of latitude longitude changed from Integer to Double 
+- Small improvements and bug fixes
+
 
 2012-07-03, version 0.5
 

@@ -42,7 +42,7 @@ inside the &lt;web-app&gt; tag:
     </servlet>
     <servlet-mapping>
       <servlet-name>SingleAgentServlet</servlet-name>
-      <url-pattern>/testagent</url-pattern>
+      <url-pattern>/testagent/*</url-pattern>
     </servlet-mapping>
 
 The servlet configuration contains an init-param `config`, 
