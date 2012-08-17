@@ -1,7 +1,15 @@
 EVE CORE
 http://almende.github.com/eve/
 
-<not yet released>, version 0.7
+
+<not yet released>, version 0.8
+
+- Event callbacks (fired via "trigger") are now send asynchronously to all
+  subscribers. This allows for sending all callbacks in parallel, and 
+  prevents any of the subscribers blocking the trigger method. 
+
+
+2012-08-03, version 0.7
 
 - Added a convenience method send(url, method, params, type) to the JSONRPC 
   class

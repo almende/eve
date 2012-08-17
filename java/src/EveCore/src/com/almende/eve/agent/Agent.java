@@ -192,6 +192,23 @@ abstract public class Agent {
 	}
 	
 	/**
+	 * Asynchronously trigger an event.
+	 * the onTrigger method is called from a scheduled task
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @throws JSONRPCException
+	 * @throws IOException
+	 */
+	final public void onTrigger (
+			@Name("url") String url, 
+			@Name("method") String method, 
+			@Name("params") ObjectNode params) throws JSONRPCException, IOException {
+		// TODO: send the trigger as a JSON-RPC 2.0 Notification
+		send(url, method, params);
+	}
+	
+	/**
 	 * Subscribe to an other agents event
 	 * @param url
 	 * @param event
@@ -231,7 +248,7 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void trigger(@Name("event") String event, 
-			@Name("params") ObjectNode params) throws JSONRPCException, Exception {
+			@Name("params") ObjectNode params) throws Exception {
 		String url = getUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 
@@ -254,12 +271,19 @@ abstract public class Agent {
 		callbackParams.put("params", params);
 		
 		for (Callback s : subscriptions) {
-			try {
-				send(s.url, s.method, callbackParams);
-			} catch (Exception e) {
-				e.printStackTrace();
-				// TODO: how to handle exceptions in trigger?
-			}
+			// TODO: send asynchronous, plan a task!!!!
+			//send(s.url, s.method, params); // TODO: cleanup
+			
+			// create a task to send this trigger. 
+			// This way, it is sent asynchronously and cannot block this
+			// trigger method
+			ObjectNode taskParams = JOM.createObjectNode();
+			taskParams.put("url", s.url);
+			taskParams.put("method", s.method);
+			taskParams.put("params", callbackParams);
+			JSONRequest request = new JSONRequest("onTrigger", taskParams);
+			long delay = 0;
+			getContext().getScheduler().createTask(request, delay);
 		}
 	}
 

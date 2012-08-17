@@ -165,14 +165,26 @@ public class TestAgent extends Agent {
 		getContext().put(key, value);
 	}
 	
-	// TODO: onTrigger does not show up in getMethods
-	public void onTrigger(ObjectNode params) {
-		System.out.println("onTrigger " + getId() + " " + params.toString());
+	public void registerPingEvent() throws Exception {
+		subscribe(getUrl(), "ping", "pingCallback");
 	}
-
-	public void doTrigger(@Name("event") String event, 
-			@Name("params") @Required(false) ObjectNode params) 
-			throws Exception {
+	
+	public void unregisterPingEvent() throws Exception {
+		subscribe(getUrl(), "ping", "pingCallback");
+	}
+	
+	public void pingCallback(@Name("params") ObjectNode params) {
+		System.out.println("pingCallback " + getId() + " " + params.toString());
+	}
+	
+	public void triggerPingEvent(
+			@Name("message") @Required(false) String message ) throws Exception {
+		String event = "ping";
+		ObjectNode params = null;
+		if (message != null) {
+			params = JOM.createObjectNode();
+			params.put("message", message);
+		}
 		trigger(event, params);
 	}
 
@@ -196,44 +208,40 @@ public class TestAgent extends Agent {
 	public List<String> testSend() throws Exception {
 		ArrayList<String> type = new ArrayList<String>();
 		@SuppressWarnings("unchecked")
-		List<String> res = send("http://localhost:8080/EveCore/agents/chatagent/1", 
+		List<String> res = send("http://localhost:8080/EveCore/agents/chatagent/1/", 
 				"getConnections", type.getClass());
 		System.out.println(res);
 		return res;
 	}
 
 	public String testSendNonExistingMethod() throws Exception {
-		String res = send("http://localhost:8080/EveCore/agents/chatagent/1", 
+		String res = send("http://localhost:8080/EveCore/agents/chatagent/1/", 
 				"nonExistingMethod", String.class);
 		System.out.println(res);
 		return res;
 	}
 	public void subscribeToAgent() throws Exception {
-		String url = "http://server/agents/agenttype/agentx";
-		String method = "onSubscribe";
-		ObjectNode params = JOM.createObjectNode();
-		params.put("event", "dataChanged");
-		params.put("callbackUrl", getUrl());
-		params.put("callbackMethod", "onEvent");
-		send(url, method, params);
+		String url = "http://localhost:8080/EveCore/agents/testagent/2/";
+		String event = "dataChanged";
+		String callback = "onEvent";
+		subscribe(url, event, callback);
 	}
 
 	public void unsubscribeFromAgent() throws Exception {
-		String url = "http://server/agents/agenttype/agentx";
-		String method = "onUnsubscribe";
-		ObjectNode params = JOM.createObjectNode();
-		params.put("event", "dataChanged");
-		params.put("callbackUrl", getUrl());
-		params.put("callbackMethod", "onEvent");
-		send(url, method, params);
+		String url = "http://localhost:8080/EveCore/agents/testagent/2/";
+		String event = "dataChanged";
+		String callback = "onEvent";
+		subscribe(url, event, callback);
 	}
 	
-	public void onEvent(@Name("agent") String agent, 
-			@Name("event") String event, 
-			@Required(false) @Name("params") ObjectNode params) 
-			throws Exception {
-		System.out.println("onEvent " + agent + " " + event + " " + 
-				((params != null) ? params.toString() : ""));
+	public void onEvent(
+	        @Name("agent") String agent,
+	        @Name("event") String event, 
+	        @Required(false) @Name("params") ObjectNode params) throws Exception {
+	    System.out.println("onEvent " +
+	            "agent=" + agent + ", " +
+	            "event=" + event + ", " +
+	            "params=" + ((params != null) ? params.toString() : null));
 	}
 
 	private String privateMethod() {

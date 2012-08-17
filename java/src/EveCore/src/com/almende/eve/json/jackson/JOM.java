@@ -40,6 +40,7 @@ public class JOM {
 		
 		// set configuration
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL , false);
 		
 		return mapper;
 	}	
