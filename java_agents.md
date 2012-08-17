@@ -199,7 +199,6 @@ subscribed to that particular event.
 
 
 
-
 ## Scheduler {#scheduler}
 
 Unlike some traditional agent platforms, Eve agents are not contiuously running
@@ -210,27 +209,29 @@ to execute a task. An action can be triggered in different ways:
 - An event is triggered.
 - A scheduled task is triggered.
 
-The first two ways are events triggered exernally and not by the agent itself. 
+The first two ways are events triggered externally and not by the agent itself.
 An agent can schedule a task for itself using the built in Scheduler.
 The Scheduler can be used to schedule a single task and repeating tasks.
-An agent can access the schedular via its [Context](#context).
+An agent can access the scheduler via its [Context](#context).
 
 A task is a delayed JSON-RPC call to the agent itself. 
-Tasks can be created, listed, and canceled.
-A task can be scheduled in the following way 
+Tasks can be created and canceled.
+The following example shows how to schedule a task:
 
     public String createTask() throws Exception {
-        String url = getUrl();
         ObjectNode params = JOM.createObjectNode();
         params.put("message", "hello world");
         JSONRequest request = new JSONRequest("myTask", params);
         long delay = 5000; // milliseconds
         
-        Scheduler scheduler = getContext().getScheduler();
-        String id = scheduler.setTimeout(url, request, delay);
+        String id = getContext().getScheduler().createTask(request, delay);
         return id;
     }
-    
+
+    public void cancelTask(@Name("id") String id) {
+        getContext().getScheduler().cancelTask(id);
+    }
+
     public void myTask(@Name("message") String message) {
         System.out.println("myTask is executed. Message: " + message);
     }
