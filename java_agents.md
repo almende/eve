@@ -63,8 +63,8 @@ All agents automatically inherit the following methods from the base class Agent
 - `getType` returns the class name of the agent.
 - `getUrl` returns the full url of the agent.
 - `getId` returns the id of the agent
-- `subscribe` to subscribe to an event
-- `unsubscribe` to unsubscribe from an event 
+- `onSubscribe` to recevie a subscription to an event
+- `onUnsubscribe` to receive an unsubscription from an event
 
 The parameters of a method must be named using the `@Name` annotation.
 Parameters can be marked as optional using the annotation `@Required`. 
@@ -142,49 +142,61 @@ and read by the agent:
 Agents can subscribe on events from other agent.
 They will be triggered when the event occurs.
 
-To subscribe AgentX to an event from AgentY, a JSON-RPC call is made to AgentY.
-The method `subscribe` is called, with three parameters: the name of the event, 
-a callback url containing the url of AgentX, and a callback method on which
-AgentX wants to receive the triggered event.
+To subscribe AgentX to an event from AgentY, the method `subscribe` can be used.
+This method is called with three parameters: the url of the agent
+to subscribe to, the name of the event, and the callback method on which to
+retrieve a callback when the event is triggered. Similarly, an agent can use
+the `unsubscribe` method to remove a subscription.
+Behind the scenes, AgentX will make an JSON-RPC call to the `onSubscribe` or
+`onUnsubscribe` methods of AgentY, providing its own url and the event parameters.
+
+An agent can subscribe to a single event using the event name,
+or subscribe to all events by specifying a star `*` as event name.
+
+
 In the example below, AgentX subscribes to the event `dataChanged`, and wants
-to receive a triggered event on its method `onEvent`.
+to receive a callback on its method `onEvent` when the event happens.
 
-    public void subscribeToAgent() throws Exception {
-        String url = "http://server/agents/agenttype/agentx";
-        String method = "subscribe";
-        ObjectNode params = JOM.createObjectNode();
-        params.put("event", "dataChanged");
-        params.put("callbackUrl", getUrl());
-        params.put("callbackMethod", "onEvent");
-        send(url, method, params);
+    public void subscribeToAgentY() throws Exception {
+        String url = "http://server/agents/agenttype/agenty";
+        String event = "dataChanged";
+        String callback = "onEvent";
+
+        subscribe(url, event, callback);
     }
 
-    public void unsubscribeFromAgent() throws Exception {
-        String url = "http://server/agents/agenttype/agentx";
-        String method = "unsubscribe";
-        ObjectNode params = JOM.createObjectNode();
-        params.put("event", "dataChanged");
-        params.put("callbackUrl", getUrl());
-        params.put("callbackMethod", "onEvent");
-        send(url, method, params);
+    public void unsubscribeFromAgentY() throws Exception {
+        String url = "http://server/agents/agenttype/agenty";
+        String event = "dataChanged";
+        String callback = "onEvent";
+
+        unsubscribe(url, event, callback);
     }
 
-    public void onEvent(@Name("agent") String agent, 
+    public void onEvent(
+            @Name("agent") String agent,
             @Name("event") String event, 
-            @Required(false) @Name("params") ObjectNode params) 
-            throws Exception {
-        System.out.println("onEvent " + agent + " " + event + " " + 
-                ((params != null) ? params.toString() : ""));
+            @Required(false) @Name("params") ObjectNode params) throws Exception {
+        System.out.println("onEvent " +
+                "agent=" + agent + ", " +
+                "event=" + event + ", " +
+                "params=" + ((params != null) ? params.toString() : null));
     }
 
 To let AgentY trigger the event `dataChanged`, the method `trigger` can be used.
-This will send a JSON-RPC call to all agents that have subscribed to that event.
+Behind the scenes, a JSON-RPC call will be sent to all agents that have
+subscribed to that particular event.
 
-    trigger("dataChanged");
+    public void triggerDataChangedEvent () throws Exception {
+        String event = "dataChanged";
 
+        // optionally send extra parameters (can contain anything)
+        ObjectNode params = JOM.createObjectNode();
+        params.put("message": "Hi, I changed the data.");
 
-An agent can subscribe to a single event using the event name, 
-or subscribe to all events by specifying a star `*` as event name.
+        trigger(event, params);
+    }
+
 
 
 
