@@ -87,11 +87,14 @@ An activity consists of two parts:
   (such as a recurring event, a group composition, or a geolocation)
   is not processed by the activity itself, but by a calendaring system or
   a software agent which manages the activity.
+  Note that the status of an Activity is compatible with a Calendar Event
+  description.
 
 An example of an activity:
 
     {
         "summary": "Meeting on project X",
+        "description": "Extensive description of the meeting",
         "agent": "https://eveagents.appspot.com/agents/meetingagent/ac87c9b4c94f3d1da6d64bfc9d03ee7f/",
         "constraints": {
             "attendees": [
@@ -120,16 +123,41 @@ An example of an activity:
                 "durationMin": null,
                 "durationMax": null,
                 "periodStart": null,
-                "periodEnd": null
+                "periodEnd": null,
+                "preferences": [
+                    {
+                        "start": null,
+                        "end": null,
+                        "weight": null   // positive for preferred intervals, negative for undesirable intervals
+                    }
+                ]
             }
         },
         "status": {
-            "description": null,
-            "attendees": [],
-            "location": null,
+            "activityStatus": "planned", // "progress", "planned", "executed", "error"
+            "attendees": [
+                {
+                    "displayName": null,
+                    "email": null,
+                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/ac87c9b4c94f3d1da6d64bfc9d03ee7f/",
+                    "optional": null,
+                    "responseStatus": null   // "needsAction", "declined", "tentative", "accepted"
+                },
+                {
+                    "displayName": null,
+                    "email": null,
+                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/6c646e0d79b48eac8ef766388a7afc93/",
+                    "optional": null,
+                    "responseStatus": null
+                }
+            ],
+            "location": {
+                "summary": null,
+                "lat": null,
+                "lng": null
+            },
             "start": "2012-07-02T14:00:00+02:00",
             "end": "2012-07-02T15:00:00+02:00",
-            "error": null,
             "updated": "2012-07-02T13:21:56.000Z"
         }
     }
