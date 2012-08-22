@@ -109,7 +109,7 @@ public class IntervalsUtil {
 		}
 		
 		// gaps between the intervals
-		for (int i = 1, iMax = intervals.size() - 1; i < iMax; i++) {
+		for (int i = 1, iMax = intervals.size(); i < iMax; i++) {
 			DateTime start = intervals.get(i - 1).getEnd();
 			DateTime end = intervals.get(i).getStart();
 			
@@ -125,6 +125,13 @@ public class IntervalsUtil {
 			if (start.isBefore(end)) {
 				inverse.add(new Interval(start, end));
 			}
+		}
+		
+		// no intervals at all
+		if (intervals.size() == 0) {
+			DateTime start = new DateTime(timeMin);
+			DateTime end = new DateTime(timeMax);
+			inverse.add(new Interval(start, end));
 		}
 		
 		return inverse;

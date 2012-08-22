@@ -59,47 +59,62 @@
  * Copyright © 2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date   2012-07-03
+ * @date   2012-08-09
  */
 
 package com.almende.eve.agent;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
+import org.joda.time.MutableDateTime;
 
 import com.almende.eve.context.Context;
+import com.almende.eve.entity.Issue;
+import com.almende.eve.entity.Issue.TYPE;
+import com.almende.eve.entity.Weight;
 import com.almende.eve.entity.activity.Activity;
 import com.almende.eve.entity.activity.Attendee;
-import com.almende.eve.entity.calendar.CalendarAgentData;
+import com.almende.eve.entity.activity.Attendee.RESPONSE_STATUS;
+import com.almende.eve.entity.activity.Preference;
+import com.almende.eve.entity.activity.Status;
+import com.almende.eve.entity.calendar.AgentData;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.util.IntervalsUtil;
+import com.almende.util.WeightsUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-// TODO: rename to AppointmentAgent?
 public class MeetingAgent extends Agent {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private int LOOK_AHEAD_DAYS = 7; // number of days to look ahead when
-										// planning a meeting
+	private final int LOOK_AHEAD_DAYS = 7; // number of days to look ahead when
+										     // planning a meeting
+	private final Double WEIGHT_BUSY_OPTIONAL_ATTENDEE = -1.0;
+	private final Double WEIGHT_OFFICE_HOURS = 10.0;
+	private final Double WEIGHT_PREFERRED_INTERVAL = 0.1;
+	// private final Double WEIGHT_UNDESIRED_INTERVAL = -0.1;
+	private final Double WEIGHT_DELAY_PER_DAY = -0.1;
 
 	/**
-	 * Set the event for this meeting agent
+	 * Convenience method to quickly set a new activity. 
+	 * Currently stored activity will be removed.
 	 * 
 	 * @param summary
 	 *            Description for the meeting
@@ -109,17 +124,17 @@ public class MeetingAgent extends Agent {
 	 * @param agents
 	 *            List with calendar agent urls of the attendees
 	 */
-	public void setEvent(@Name("summary") String summary,
+	public void setActivityQuick(@Name("summary") String summary,
 			@Required(false) @Name("location") String location,
 			@Name("duration") Integer duration,
 			@Name("agents") List<String> agents) {
 		Activity activity = new Activity();
 		activity.setSummary(summary);
-		activity.getConstraints().getLocation().setSummary(location);
+		activity.withConstraints().withLocation().setSummary(location);
 		for (String agent : agents) {
 			Attendee attendee = new Attendee();
 			attendee.setAgent(agent);
-			activity.getConstraints().getAttendees().add(attendee);
+			activity.withConstraints().withAttendees().add(attendee);
 		}
 
 		update();
@@ -145,9 +160,9 @@ public class MeetingAgent extends Agent {
 	 * @param activity
 	 * @return
 	 */
-	private Set<String> getAttendeesAgents(Activity activity) {
+	private Set<String> getAgents(Activity activity) {
 		Set<String> agents = new TreeSet<String>();
-		for (Attendee attendee : activity.getConstraints().getAttendees()) {
+		for (Attendee attendee : activity.withConstraints().withAttendees()) {
 			String agent = attendee.getAgent();
 			if (agent != null) {
 				agents.add(agent);
@@ -170,20 +185,11 @@ public class MeetingAgent extends Agent {
 			activity = new Activity();
 		}
 
-		Set<String> prevAttendees = getAttendeesAgents(activity);
-
-		/*
-		 * TODO: cleanup, this check just gives issues // check if the correct
-		 * agent url is entered String agent = updatedActivity.getAgent();
-		 * String myUrl = getUrl(); if (agent != null) { if
-		 * (!agent.equals(myUrl)) { throw new
-		 * Exception("Activity contains an agent url which does not match my url"
-		 * ); // TODO: more detailed error description (output urls) } }
-		 */
+		Set<String> prevAttendees = getAgents(activity);
 
 		// if no updated timestamp is provided, set the timestamp to now
-		if (updatedActivity.getStatus().getUpdated() == null) {
-			updatedActivity.getStatus().setUpdated(DateTime.now().toString());
+		if (updatedActivity.withStatus().getUpdated() == null) {
+			updatedActivity.withStatus().setUpdated(DateTime.now().toString());
 		}
 
 		// synchronize with the stored activity
@@ -194,14 +200,14 @@ public class MeetingAgent extends Agent {
 		activity.setAgent(myUrl);
 
 		// create duration when missing
-		Long duration = activity.getConstraints().getTime().getDuration();
+		Long duration = activity.withConstraints().withTime().getDuration();
 		if (duration == null) {
 			duration = Duration.standardHours(1).getMillis(); // 1 hour in ms
-			activity.getConstraints().getTime().setDuration(duration);
+			activity.withConstraints().withTime().setDuration(duration);
 		}
 
 		// remove calendar events from removed attendees
-		Set<String> currentAttendees = getAttendeesAgents(activity);
+		Set<String> currentAttendees = getAgents(activity);
 		Set<String> removedAttendees = new TreeSet<String>(prevAttendees);
 		removedAttendees.removeAll(currentAttendees);
 		for (String attendee : removedAttendees) {
@@ -239,27 +245,31 @@ public class MeetingAgent extends Agent {
 	 * Apply the constraints of the the activity (for example duration)
 	 * 
 	 * @param activity
+	 * @return changed    Returns true if the activity is changed
 	 */
-	private void applyConstraints() {
+	private boolean applyConstraints() {
 		Activity activity = (Activity) getContext().get("activity");
+		boolean changed = false;
 		if (activity == null) {
-			return;
+			return false;
 		}
 
-		// reset the error
-		if (activity.getStatus().getError() != null) {
-			activity.getStatus().setError(null);
-			activity.getStatus().setUpdated(DateTime.now().toString());
-			
-			// store the changed activity in the context
-			getContext().put("activity", activity);
+		// constraints on attendees/resources
+		/* TODO: copy actual attendees to status.attendees
+		List<Attendee> constraintsAttendees = activity.withConstraints().withAttendees();
+		List<Attendee> attendees = new ArrayList<Attendee>();
+		for (Attendee attendee : constraintsAttendees) {
+			attendees.add(attendee.clone());
 		}
+		activity.withStatus().setAttendees(attendees);
+		// TODO: is it needed to check if the attendees are changed?
+		*/
 		
 		// check time constraints
-		Long duration = activity.getConstraints().getTime().getDuration();
+		Long duration = activity.withConstraints().withTime().getDuration();
 		if (duration != null) {
-			String start = activity.getStatus().getStart();
-			String end = activity.getStatus().getEnd();
+			String start = activity.withStatus().getStart();
+			String end = activity.withStatus().getEnd();
 			if (start != null && end != null) {
 				DateTime startTime = new DateTime(start);
 				DateTime endTime = new DateTime(end);
@@ -271,36 +281,54 @@ public class MeetingAgent extends Agent {
 
 					// duration does not match. adjust the end time
 					endTime = startTime.plus(duration);
-					activity.getStatus().setEnd(endTime.toString());
-					activity.getStatus().setUpdated(DateTime.now().toString());
+					activity.withStatus().setEnd(endTime.toString());
+					activity.withStatus().setUpdated(DateTime.now().toString());
 
-					// store the changed activity in the context
-					getContext().put("activity", activity);
+					changed = true;
 				}
 			}
 		}
+		
+		// location constraints
+		String newLocation = activity.withConstraints().withLocation().getSummary();
+		String oldLocation = activity.withStatus().withLocation().getSummary();
+		if (newLocation != null && !newLocation.equals(oldLocation)) {
+			activity.withStatus().withLocation().setSummary(newLocation);
+			changed = true;
+		}
+		
+		if (changed) {
+			// store the updated activity
+			getContext().put("activity", activity);
+		}
+		return changed;
 	}
 
 	/**
 	 * synchronize the meeting in all attendees calendars
 	 */
 	private boolean syncEvents() {
-		logger.info("update started");
+		logger.info("syncEvents started");
 		Activity activity = (Activity) getContext().get("activity");
 
 		boolean changed = false;
 		if (activity != null) {
-			String updatedBefore = activity.getStatus().getUpdated();
+			String updatedBefore = activity.withStatus().getUpdated();
 
-			for (Attendee attendee : activity.getConstraints().getAttendees()) {
+			for (Attendee attendee : activity.withConstraints().withAttendees()) {
 				String agent = attendee.getAgent();
 				if (agent != null) {
-					syncEvent(agent);
+					if (attendee.getResponseStatus() != RESPONSE_STATUS.declined) {
+						syncEvent(agent);
+					}
+					else {
+						clearAttendee(agent);
+					}
 				}
 			}
 
 			activity = (Activity) getContext().get("activity");
-			String updatedAfter = activity.getStatus().getUpdated();
+			String updatedAfter = activity.withStatus().getUpdated();
 
 			changed = !updatedBefore.equals(updatedAfter);
 		}
@@ -314,24 +342,25 @@ public class MeetingAgent extends Agent {
 	 */
 	public void update() {
 		// TODO: optimize the update method
-		logger.info("updating...");
+		logger.info("update started");
 
 		// stop running tasks
 		stopAutoUpdate();
 		
-		boolean changed = syncEvents();
-		if (changed) {
+		clearIssues();
+		
+		boolean changedEvent = syncEvents();
+		if (changedEvent) {
 			syncEvents();
 		}
 
-		applyConstraints();
-
 		updateBusyIntervals();
 
-		boolean rescheduled = schedule();
-		if (rescheduled) {
-			changed = syncEvents();
-			if (changed) {
+		boolean changedConstraints = applyConstraints();
+		boolean rescheduled = scheduleActivity();
+		if (changedConstraints || rescheduled) {
+			changedEvent = syncEvents();
+			if (changedEvent) {
 				syncEvents();
 			}
 		}
@@ -339,168 +368,256 @@ public class MeetingAgent extends Agent {
 		// Check if the activity is finished
 		// If not, schedule a new update task. Else we are done
 		Activity activity = getActivity();
-		String start = (activity != null) ? 
-				activity.getStatus().getStart() : null;
+		String start = 
+				(activity != null) ? activity.withStatus().getStart() : null;
 		boolean isFinished = false;
 		if (start != null && (new DateTime(start)).isBefore(DateTime.now())) {
 			isFinished = true;
 		}
 		if (activity != null && !isFinished) {
+			// TODO: not so nice adjusting the activityStatus here this way
+			if (activity.withStatus().getActivityStatus() != Status.ACTIVITY_STATUS.error) {
+				// store status of a activity as "planned"
+				activity.withStatus().setActivityStatus(Status.ACTIVITY_STATUS.planned);
+				getContext().put("activity", activity);
+			}
+
 			startAutoUpdate();
 		} else {
-			logger.info("The activity is over, my work is done. Goodbye world.");
-		}		
-		
-	}
+			// store status of a activity as "executed"
+			activity.withStatus().setActivityStatus(Status.ACTIVITY_STATUS.executed);
+			getContext().put("activity", activity);
 
-	/**
-	 * Get the timestamp of the next rounded hour
-	 * 
-	 * @return
-	 */
-	/*
-	 * TODO: cleanup private DateTime getNextHour() { DateTime nextHour =
-	 * DateTime.now(); nextHour =
-	 * nextHour.minusMillis(nextHour.getMillisOfSecond()); nextHour =
-	 * nextHour.minusSeconds(nextHour.getSecondOfMinute()); nextHour =
-	 * nextHour.minusMinutes(nextHour.getMinuteOfHour()); nextHour =
-	 * nextHour.plusHours(1); return nextHour; }
-	 */
+			logger.info("The activity is over, my work is done. Goodbye world.");
+		}
+	}
 
 	/**
 	 * Get the timestamp rounded to the next half hour
-	 * 
 	 * @return
 	 */
 	private DateTime getNextHalfHour() {
-		DateTime nextHalfHour = DateTime.now();
-		nextHalfHour = nextHalfHour.minusMillis(nextHalfHour
-				.getMillisOfSecond());
-		nextHalfHour = nextHalfHour.minusSeconds(nextHalfHour
-				.getSecondOfMinute());
+		DateTime next = DateTime.now();
+		next = next.minusMillis(next.getMillisOfSecond());
+		next = next.minusSeconds(next.getSecondOfMinute());
 
-		if (nextHalfHour.getMinuteOfHour() > 30) {
-			nextHalfHour = nextHalfHour.minusMinutes(nextHalfHour
-					.getMinuteOfHour());
-			nextHalfHour = nextHalfHour.plusMinutes(60);
+		if (next.getMinuteOfHour() > 30) {
+			next = next.minusMinutes(next.getMinuteOfHour());
+			next = next.plusMinutes(60);
 		} else {
-			nextHalfHour = nextHalfHour.minusMinutes(nextHalfHour
-					.getMinuteOfHour());
-			nextHalfHour = nextHalfHour.plusMinutes(30);
+			next = next.minusMinutes(next.getMinuteOfHour());
+			next = next.plusMinutes(30);
 		}
 
-		return nextHalfHour;
+		return next;
 	}
 
 	/**
-	 * Schedule the meeting based on currently known event status and busy
-	 * intervals
+	 * Schedule the meeting based on currently known event status, infeasible
+	 * intervals, and preferences
 	 * 
 	 * @return rescheduled Returns true if the activity has been rescheduled
 	 *         When rescheduled, events must be synchronized again with
 	 *         syncEvents.
 	 */
-	@SuppressWarnings("unchecked")
-	private boolean schedule() {
-		// read activity and busy intervals from the context
+	private boolean scheduleActivity() {
+		logger.info("scheduleActivity started"); // TODO: cleanup
 		Context context = getContext();
 		Activity activity = (Activity) context.get("activity");
 		if (activity == null) {
 			return false;
 		}
-		List<Interval> busy = (List<Interval>) context.get("busy");
-		if (busy == null) {
-			busy = new ArrayList<Interval>();
-		}
-
+		
 		// read planned start and end from the activity
 		DateTime activityStart = null;
-		if (activity.getStatus().getStart() != null) {
-			activityStart = new DateTime(activity.getStatus().getStart());
+		if (activity.withStatus().getStart() != null) {
+			activityStart = new DateTime(activity.withStatus().getStart());
 		}
 		DateTime activityEnd = null;
-		if (activity.getStatus().getEnd() != null) {
-			activityEnd = new DateTime(activity.getStatus().getEnd());
+		if (activity.withStatus().getEnd() != null) {
+			activityEnd = new DateTime(activity.withStatus().getEnd());
 		}
-		boolean planned = (activityStart != null && activityEnd != null);
-
-		// check if there is a double booking
-		boolean overlaps = false;
-		if (planned) {
-			Interval activityInterval = new Interval(activityStart, activityEnd);
-			overlaps = IntervalsUtil.overlaps(activityInterval, busy);
+		Interval activityInterval = null;
+		if (activityStart != null && activityEnd != null) {
+			activityInterval = new Interval(activityStart, activityEnd);
 		}
 
-		if (!planned) {
-			logger.info("Activity is not yet planned");
-		}
-		if (overlaps) {
-			logger.info("Activity overlaps with another activity");
-		}
-
-		if (!planned || overlaps) {
-			// the activity is not planned yet, or there is a double booking
-			// replan the activity
-
-			// get the duration of the activity
-			Long durationLong = activity.getConstraints().getTime()
-					.getDuration();
-			Duration activityDuration;
-			if (durationLong != null) {
-				activityDuration = new Duration(durationLong);
-			} else {
-				// TODO: give error when duration is not defined?
-				activityDuration = Duration.standardHours(1);
+		// calculate solutions
+		List<Weight> solutions = calculateSolutions();
+		if (solutions.size() > 0) {
+			// there are solutions. yippie!
+			Weight solution = solutions.get(0);
+			if (activityInterval == null || 
+					!solution.getInterval().equals(activityInterval)) {
+				// interval is changed, save new interval 
+				Status status = activity.withStatus();
+				status.setStart(solution.getStart().toString());
+				status.setEnd(solution.getEnd().toString());
+				status.setActivityStatus(Status.ACTIVITY_STATUS.planned);
+				status.setUpdated(DateTime.now().toString());
+				context.put("activity", activity);
+				logger.info("Activity replanned at " + solution.toString()); // TODO: cleanup logging
+				return true;
 			}
-
-			// find the first available interval long enough to contain the
-			// activity
-			Interval theChosenOne = null;
-			DateTime timeMin = getNextHalfHour();
-			DateTime timeMax = timeMin.plusDays(LOOK_AHEAD_DAYS);
-			List<Interval> available = IntervalsUtil.inverse(busy, timeMin,
-					timeMax);
-			for (Interval interval : available) {
-				Duration duration = interval.toDuration();
-				if (duration.isLongerThan(activityDuration)
-						|| duration.isEqual(activityDuration)) {
-					theChosenOne = interval;
-					break;
-				}
+			else {
+				// planning did not change. nothing to do.
 			}
-
-			// if there is an interval found, adjust the activity
-			if (theChosenOne != null) {
-				activityStart = new DateTime(theChosenOne.getStart());
-				activityEnd = activityStart.plus(activityDuration);
-				activity.getStatus().setStart(activityStart.toString());
-				activity.getStatus().setEnd(activityEnd.toString());
-			} else {
-				// TODO: escape: no planning possible
-				String message = "No free interval found for the meeting";
-				activity.getStatus().setError(message);
-
-				// trigger an error event
-				try {
-					String event = "error";
-					ObjectNode params = JOM.createObjectNode();
-					params.put("description", message);
-					trigger(event, params);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			activity.getStatus().setUpdated(DateTime.now().toString());
-
-			logger.info("Activity rescheduled start=" + activityStart
-					+ ", end=" + activityEnd);
-
-			// TODO: if changed, store the activity again
-			context.put("activity", activity);
-			return true;
 		}
-
+		else {
+			if (activityStart != null || activityEnd != null) {
+				// no solution
+				Issue issue = new Issue();
+				issue.setCode(Issue.NO_PLANNING);
+				issue.setType(Issue.TYPE.error);
+				issue.setMessage("No free interval found for the meeting");
+				issue.setTimestamp(DateTime.now().toString());
+				// TODO: generate hints
+				addIssue(issue);
+	
+				Status status = activity.withStatus();
+				status.setStart(null);
+				status.setEnd(null);
+				status.setActivityStatus(Status.ACTIVITY_STATUS.error);
+				status.setUpdated(DateTime.now().toString());
+				context.put("activity", activity);
+				logger.info(issue.getMessage()); // TODO: cleanup logging
+				return true;
+			}
+			else {
+				// planning did not change (no solution was already the case)
+			}
+		}
+		
 		return false;
+	}
+
+	/**
+	 * Calculate all feasible intervals with their preference weight, based on
+	 * the event status, stored infeasible intervals, and preferred intervals.
+	 * If there are no solutions, an empty array is returned.
+	 * @return solutions
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Weight> calculateSolutions() {
+		logger.info("calculateSolutions started"); // TODO: cleanup
+		
+		Context context = getContext();
+		List<Weight> solutions = new ArrayList<Weight>();
+		
+		// get the activity
+		Activity activity = (Activity) context.get("activity");
+		if (activity == null) {
+			return solutions;
+		}
+		
+		// get infeasible intervals
+		List<Interval> infeasible = (List<Interval>) context.get("infeasible");
+		if (infeasible == null) {
+			infeasible = new ArrayList<Interval>();
+		}
+		
+		// get preferred intervals
+		List<Weight> preferred = (List<Weight>) context.get("preferred");
+		if (preferred == null) {
+			preferred = new ArrayList<Weight>();
+		}
+		
+		// get the duration of the activity
+		Long durationLong = activity.withConstraints().withTime().getDuration();
+		Duration duration = null;
+		if (durationLong != null) {
+			duration = new Duration(durationLong);
+		} else {
+			// TODO: give error when duration is not defined?
+			duration = Duration.standardHours(1);
+		}
+		
+		// check interval at next half hour
+		DateTime firstTimeslot = getNextHalfHour();
+		Interval test = new Interval(firstTimeslot, firstTimeslot.plus(duration));
+		testInterval(infeasible, preferred, test, solutions);
+		
+		// loop over all infeasible intervals
+		for (Interval i : infeasible) {
+			// test timeslot left from the infeasible interval
+			test = new Interval(i.getStart().minus(duration), i.getStart());
+			testInterval(infeasible, preferred, test, solutions);
+			
+			// test timeslot right from the infeasible interval
+			test = new Interval(i.getEnd(), i.getEnd().plus(duration));
+			testInterval(infeasible, preferred, test, solutions);
+		}
+
+		// loop over all preferred intervals
+		for (Weight w : preferred) {
+			// test timeslot left from the start of the preferred interval
+			test = new Interval(w.getStart().minus(duration), w.getStart());
+			testInterval(infeasible, preferred, test, solutions);
+
+			// test timeslot right from the start of the preferred interval
+			test = new Interval(w.getStart(), w.getStart().plus(duration));
+			testInterval(infeasible, preferred, test, solutions);
+			
+			// test timeslot left from the end of the preferred interval
+			test = new Interval(w.getEnd().minus(duration), w.getEnd());
+			testInterval(infeasible, preferred, test, solutions);
+			
+			// test timeslot right from the end of the preferred interval
+			test = new Interval(w.getEnd(), w.getEnd().plus(duration));
+			testInterval(infeasible, preferred, test, solutions);
+		}
+		
+		// order the calculated feasible timeslots by weight, from highest to
+		// lowest. In case of equals weights, the timeslots are ordered by 
+		// start date
+		class WeightComparator implements Comparator<Weight> {
+			@Override
+			public int compare(Weight a, Weight b) {
+				if (a.getWeight() != null && b.getWeight() != null) {
+					int cmp = Double.compare(a.getWeight(), b.getWeight());
+					if (cmp == 0) {
+						return a.getStart().compareTo(b.getStart());
+					}
+					else {
+						return -cmp;
+					}
+				}
+				return 0;
+			}
+		}
+		WeightComparator comparator = new WeightComparator();
+		Collections.sort(solutions, comparator);
+
+		// remove duplicates
+		int i = 1;
+		while (i < solutions.size()) {
+			if (solutions.get(i).equals(solutions.get(i - 1))) {
+				solutions.remove(i);
+			}
+			else {
+				i++;
+			}
+		}
+		
+		return solutions;
+	}
+	
+	/**
+	 * Test if given interval is feasible. If so, calculate the preference 
+	 * weight and add it to the provided array with solutions
+	 * @param infeasible
+	 * @param preferred
+	 * @param test
+	 * @param solutions
+	 */
+	private void testInterval(final List<Interval> infeasible, 
+			final List<Weight> preferred, final Interval test, 
+			List<Weight> solutions) {
+		boolean feasible = calculateFeasible(infeasible, test);
+		if (feasible) {
+			double weight = calculatePreference(preferred, test);
+			solutions.add(new Weight(test, weight));
+		}
 	}
 
 	/**
@@ -522,7 +639,7 @@ public class MeetingAgent extends Agent {
 		long ONE_HOUR = 60 * 60 * 1000;
 		long interval = ONE_HOUR; // default is 1 hour
 		if (activity != null) {
-			String updated = activity.getStatus().getUpdated();
+			String updated = activity.withStatus().getUpdated();
 			if (updated != null) {
 				DateTime dateUpdated = new DateTime(updated);
 				DateTime now = DateTime.now();
@@ -564,12 +681,13 @@ public class MeetingAgent extends Agent {
 	}
 
 	/**
-	 * Merge an event into an Activity
-	 * 
-	 * @param activity
+	 * Convert a calendar event into an activity
 	 * @param event
+	 * @return activity
 	 */
-	private void merge(Activity activity, ObjectNode event) {
+	private Activity convertEventToActivity(ObjectNode event) {
+		Activity activity = new Activity();
+		
 		// agent
 		String agent = null;
 		if (event.has("agent")) {
@@ -584,33 +702,40 @@ public class MeetingAgent extends Agent {
 		}
 		activity.setSummary(summary);
 
+		// description
+		String description = null;
+		if (event.has("description")) {
+			description = event.get("description").asText();
+		}
+		activity.setDescription(description);
+		
 		// updated
 		String updated = null;
 		if (event.has("updated")) {
 			updated = event.get("updated").asText();
 		}
-		activity.getStatus().setUpdated(updated);
+		activity.withStatus().setUpdated(updated);
 
 		// start
 		String start = null;
 		if (event.with("start").has("dateTime")) {
 			start = event.with("start").get("dateTime").asText();
 		}
-		activity.getStatus().setStart(start);
+		activity.withStatus().setStart(start);
 
 		// end
 		String end = null;
 		if (event.with("end").has("dateTime")) {
 			end = event.with("end").get("dateTime").asText();
 		}
-		activity.getStatus().setEnd(end);
+		activity.withStatus().setEnd(end);
 
 		// duration
 		if (start != null && end != null) {
 			Interval interval = new Interval(new DateTime(start), new DateTime(
 					end));
 			Long duration = interval.toDurationMillis();
-			activity.getConstraints().getTime().setDuration(duration);
+			activity.withConstraints().withTime().setDuration(duration);
 		}
 
 		// location
@@ -618,26 +743,93 @@ public class MeetingAgent extends Agent {
 		if (event.has("location")) {
 			location = event.get("location").asText();
 		}
-		activity.getConstraints().getLocation().setSummary(location);
+		activity.withConstraints().withLocation().setSummary(location);
+		
+		return activity;
 	}
 
 	/**
 	 * Merge an activity into an event
-	 * 
+	 * All fields that are in the event will be left as they are
 	 * @param event
 	 * @param activity
 	 */
-	private void merge(ObjectNode event, Activity activity) {
+	private void mergeActivityIntoEvent(ObjectNode event, Activity activity) {
+		// merge static information
 		event.put("agent", activity.getAgent());
 		event.put("summary", activity.getSummary());
-		event.put("updated", activity.getStatus().getUpdated());
-		event.put("location", activity.getConstraints().getLocation()
-				.getSummary());
-
-		event.with("start").put("dateTime", activity.getStatus().getStart());
-		event.with("end").put("dateTime", activity.getStatus().getEnd());
+		event.put("description", activity.getDescription());
+		
+		/// merge status information
+		Status status = activity.withStatus();
+		event.put("updated", status.getUpdated());
+		event.with("start").put("dateTime", status.getStart());
+		event.with("end").put("dateTime", status.getEnd());
+		event.put("location", status.withLocation().getSummary());
 	}
 
+	/**
+	 * Retrieve all current issues. If there are no issues, an empty array
+	 * is returned
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Issue> getIssues() {
+		List<Issue> issues = (List<Issue>) getContext().get("issues");
+		if (issues == null) {
+			issues = new ArrayList<Issue>();
+		}
+		return issues;
+	}
+
+	/**
+	 * Remove all issues
+	 */
+	private void clearIssues() {
+		getContext().remove("issues");
+	}
+	
+	/**
+	 * Add an issue to the issue list
+	 * The issue will trigger an event
+	 * @param issue
+	 */
+	private void addIssue(Issue issue) {
+		List<Issue> issues = getIssues();
+		issues.add(issue);
+		getContext().put("issues", issues);
+		
+		// trigger an error event
+		try {
+			String event = issue.getType().toString();
+			ObjectNode data = JOM.createObjectNode();
+			data.put("issue", JOM.getInstance().convertValue(issue, 
+					ObjectNode.class));
+			ObjectNode params = JOM.createObjectNode();
+			params.put("description", issue.getMessage());
+			params.put("data", data);
+			trigger(event, params);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Create an issue with type, code, and message
+	 * timestamp will be set to NOW
+	 * @param type
+	 * @param code
+	 * @param message
+	 */
+	private void addIssue (TYPE type, Integer code, String message) {
+		Issue issue = new Issue();
+		issue.setType(type);
+		issue.setCode(code);
+		issue.setMessage(message);
+		issue.setTimestamp(DateTime.now().toString());
+		addIssue(issue);
+	}
+	
 	/**
 	 * Retrieve the data of a single calendar agent from the context
 	 * 
@@ -645,13 +837,16 @@ public class MeetingAgent extends Agent {
 	 * @return data returns the calendar data. If not available, a new, empty
 	 *         CalendarAgentData is returned.
 	 */
+	// TODO: create some separate AgentData handling class, instead of methods in MeetingAgent
 	@SuppressWarnings("unchecked")
-	private CalendarAgentData getAttendeeData(String agentUrl) {
-		Map<String, CalendarAgentData> calendarAgents = (Map<String, CalendarAgentData>) getContext()
-				.get("calendarAgents");
+	private AgentData getAgentData(String agentUrl) {
+		Map<String, AgentData> calendarAgents = 
+				(Map<String, AgentData>) getContext().get("calendarAgents");
 
-		return calendarAgents != null ? calendarAgents.get(agentUrl)
-				: new CalendarAgentData();
+		if (calendarAgents != null && calendarAgents.containsKey(agentUrl)) {
+			return calendarAgents.get(agentUrl);
+		}
+		return new AgentData();
 	}
 
 	/**
@@ -661,12 +856,12 @@ public class MeetingAgent extends Agent {
 	 * @param data
 	 */
 	@SuppressWarnings("unchecked")
-	private void putAttendeeData(String agentUrl, CalendarAgentData data) {
+	private void putAgentData(String agentUrl, AgentData data) {
 		Context context = getContext();
-		Map<String, CalendarAgentData> calendarAgents = (Map<String, CalendarAgentData>) context
-				.get("calendarAgents");
+		Map<String, AgentData> calendarAgents = 
+				(Map<String, AgentData>) context.get("calendarAgents");
 		if (calendarAgents == null) {
-			calendarAgents = new HashMap<String, CalendarAgentData>();
+			calendarAgents = new HashMap<String, AgentData>();
 		}
 
 		calendarAgents.put(agentUrl, data);
@@ -675,129 +870,137 @@ public class MeetingAgent extends Agent {
 
 	/**
 	 * Remove a calendar agent data from the context
-	 * 
-	 * @param agentUrl
+	 * @param agent
 	 * @param data
 	 */
 	@SuppressWarnings("unchecked")
-	private void removeAttendeeData(String agentUrl) {
+	private void removeAgentData(String agent) {
 		Context context = getContext();
-		Map<String, CalendarAgentData> calendarAgents = (Map<String, CalendarAgentData>) context
+		Map<String, AgentData> calendarAgents = (Map<String, AgentData>) context
 				.get("calendarAgents");
-		if (calendarAgents != null && calendarAgents.containsKey(agentUrl)) {
-			calendarAgents.remove(agentUrl);
+		if (calendarAgents != null && calendarAgents.containsKey(agent)) {
+			calendarAgents.remove(agent);
 			context.put("calendarAgents", calendarAgents);
 		}
 	}
 
 	/**
-	 * Retrieve the stored eventId of a calendar agent from the context
-	 * 
-	 * @param agentUrl
-	 * @return data returns the calendar data, or null if not available
-	 */
-	private String getAttendeeEventId(String agentUrl) {
-		CalendarAgentData data = getAttendeeData(agentUrl);
-		if (data != null) {
-			return data.eventId;
-		}
-		return null;
-	}
-
-	/**
-	 * Put the eventId for a calendar agent into the context
-	 * 
-	 * @param agentUrl
-	 * @param data
-	 */
-	private void putAttendeeEventId(String agentUrl, String eventId) {
-		CalendarAgentData data = getAttendeeData(agentUrl);
-		if (data == null) {
-			data = new CalendarAgentData();
-		}
-		data.eventId = eventId;
-
-		putAttendeeData(agentUrl, data);
-	}
-
-	/**
 	 * Retrieve the busy intervals of a calendar agent from the context
-	 * 
-	 * @param agentUrl
+	 * @param agent
 	 * @return busy returns busy intervals, or null if not available
 	 */
-	private List<Interval> getAttendeeBusy(String agentUrl) {
-		CalendarAgentData data = getAttendeeData(agentUrl);
-		if (data != null) {
-			return data.busy;
-		}
-		return null;
+	private List<Interval> getAgentBusy(String agent) {
+		AgentData data = getAgentData(agent);
+		return data.busy;
 	}
 
 	/**
 	 * Put the busy intervals for a calendar agent into the context
-	 * 
-	 * @param agentUrl
+	 * @param agent
 	 * @param busy
 	 */
-	private void putAttendeeBusy(String agentUrl, List<Interval> busy) {
-		CalendarAgentData data = getAttendeeData(agentUrl);
-		if (data == null) {
-			data = new CalendarAgentData();
-		}
+	private void putAgentBusy(String agent, List<Interval> busy) {
+		AgentData data = getAgentData(agent);
 		data.busy = busy;
-
-		putAttendeeData(agentUrl, data);
+		putAgentData(agent, data);
 	}
 
 	/**
-	 * Synchronize the event with given calendar agent
-	 * 
+	 * Retrieve calendar event from calendaragent
 	 * @param agent
+	 * @return event   Calendar event, or null if not found
 	 */
-	private void syncEvent(@Name("agent") String agent) {
-		logger.info("updateEvent started for agent " + agent);
-		Context context = getContext();
-
-		// TODO: in this method, reckon with the attendee responseStatus
-
-		// retrieve event
+	private ObjectNode getEvent (String agent) {
 		ObjectNode event = null;
-		String eventId = getAttendeeEventId(agent);
+		String eventId = getAgentData(agent).eventId;
 		if (eventId != null) {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("eventId", eventId);
 			try {
 				event = send(agent, "getEvent", params, ObjectNode.class);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				addIssue(TYPE.warning, Issue.IOEXCEPTION, e.getMessage());
+				e.printStackTrace(); // TODO: remove print stacktrace
 			} catch (JSONRPCException e) {
 				if (e.getCode() == 404) {
-					// event was canceled by the user.
-					/*
-					 * TODO: change the status of this attendee
-					 * setAttendeeStatus(activity, agent, "declined");
-					 */
-					e.printStackTrace();
+					// event was deleted by the user.
+
+					//e.printStackTrace();
+					Activity activity = (Activity) getContext().get("activity");
+					Attendee attendee = activity.withConstraints().withAttendee(agent);
+					attendee.setResponseStatus(RESPONSE_STATUS.declined);
+					getContext().put("activity", activity);
+					
+					clearAttendee(agent); // TODO: seems not to work
 				} else {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					e.printStackTrace(); // TODO: remove print stacktrace
 				}
 			}
 		}
+		return event;
+	}
 
+	// TODO: comment
+	private boolean equalsDateTime(String a, String b) {
+		if (a != null && b != null) {
+			return new DateTime(a).equals(	new DateTime(b));
+		}
+		if (a == null && b == null) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Synchronize the event with given calendar agent
+	 * 
+	 * @param agent
+	 */
+	// TODO: the method syncEvent has grown to large. split it up
+	private void syncEvent(@Name("agent") String agent) {
+		logger.info("syncEvent started for agent " + agent);
+		Context context = getContext();
+
+		// retrieve event from calendar agent
+		ObjectNode event = getEvent(agent);
 		if (event == null) {
 			event = JOM.createObjectNode();
 		}
-		Activity eventActivity = new Activity();
-		merge(eventActivity, event);
-
+		Activity eventActivity = convertEventToActivity(event);
+		
+		// verify all kind of stuff
 		Activity activity = (Activity) context.get("activity");
-		if (activity.isAfter(eventActivity)) {
+		if (activity == null) {
+			return; // oops no activity at all
+		}
+		if (activity.withStatus().getStart() == null || 
+				activity.withStatus().getEnd() == null) {
+			return; // activity is not yet planned. cancel synchronization
+		}
+		Attendee attendee = activity.withConstraints().getAttendee(agent); 
+		if (attendee == null) {
+			return; // unknown attendee
+		}
+		if (attendee.getResponseStatus() == Attendee.RESPONSE_STATUS.declined) {
+			// attendee does not want to attend
+			clearAttendee(agent);
+			return; 
+		}
+		
+		// check if the activity or the retrieved event is changed since the
+		// last synchronization
+		AgentData agentData = getAgentData(agent);
+		boolean activityChanged = !equalsDateTime(agentData.activityUpdated, 
+				activity.withStatus().getUpdated());
+		boolean eventChanged = !equalsDateTime(agentData.eventUpdated, 
+				eventActivity.withStatus().getUpdated());
+		boolean changed = activityChanged || eventChanged;
+
+		if (changed && activity.isNewerThan(eventActivity)) {
 			// activity is updated (event is out-dated or not yet existing)
 
-			// TODO: cleanup
+			// TODO: cleanup logging
 			try {
 				logger.info("activity is newer than event. Updating event. Activity="
 						+ JOM.getInstance().writeValueAsString(activity));
@@ -806,49 +1009,96 @@ public class MeetingAgent extends Agent {
 			}
 
 			// merge the activity into the event
-			merge(event, activity);
-
+			mergeActivityIntoEvent(event, activity);
+			
+			// TODO: if attendee cannot attend (=optional or declined), show this somehow in the event
+			
 			// save the event
 			ObjectNode params = JOM.createObjectNode();
 			params.put("event", event);
 			try {
+				// TODO: only update/create the event when the attendee
+				// is not optional or is available at the planned time
 				String method = event.has("id") ? "updateEvent" : "createEvent";
 				ObjectNode updatedEvent = send(agent, method, params,
 						ObjectNode.class);
 
-				// TODO: cleanup logging
-				logger.info("method=" + method + ", params="
-						+ JOM.getInstance().writeValueAsString(params));
-
-				// store new eventId
-				// TODO: only needed in case of creation?
-				if (updatedEvent != null && updatedEvent.has("id")) {
-					eventId = updatedEvent.get("id").asText();
-				} else {
-					eventId = null;
-				}
-				putAttendeeEventId(agent, eventId);
+				// update the agent data
+				agentData.eventId = updatedEvent.get("id").asText();
+				agentData.eventUpdated = updatedEvent.get("updated").asText();
+				agentData.activityUpdated = activity.withStatus().getUpdated();
+				putAgentData(agent, agentData);
+				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				addIssue(TYPE.warning, Issue.IOEXCEPTION, e.getMessage());
+				e.printStackTrace(); // TODO remove printing stacktrace
 			} catch (JSONRPCException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				addIssue(TYPE.warning, Issue.JSONRPCEXCEPTION, e.getMessage());
+				e.printStackTrace(); // TODO remove printing stacktrace
 			}
-		} else {
-			// event is updated
-			Activity syncActivity = activity.clone();
-			merge(syncActivity, event);
-			context.put("activity", syncActivity);
+		} else if (changed) {
+			// event is updated (activity is out-dated or both have the same 
+			// updated timestamp)
+			
+			// if start is changed, add this as preferences to the constraints
+			if (!equalsDateTime(activity.withStatus().getStart(),
+					eventActivity.withStatus().getStart())) {
+				/* TODO: store the old interval as undesired?
+				String oldStart = activity.withStatus().getStart();
+				String oldEnd = activity.withStatus().getEnd();
+				if (oldStart != null && oldEnd != null) {
+					Preference undesired = new Preference ();
+					undesired.setStart(oldStart);
+					undesired.setEnd(oldEnd);
+					undesired.setWeight(WEIGHT_UNDESIRED_INTERVAL);
+					activity.getConstraints().getTime().addPreference(undesired);	
+				}
+				*/
+				
+				// store the new interval as preferred
+				String newStart = eventActivity.withStatus().getStart();
+				String newEnd = eventActivity.withStatus().getEnd();
+				if (newStart != null && newEnd != null) {
+					Preference preferred = new Preference ();
+					preferred.setStart(newStart);
+					preferred.setEnd(newEnd);
+					preferred.setWeight(WEIGHT_PREFERRED_INTERVAL);
+
+					// overwrite other preferences with this new preference
+					// TODO: all preferences are overwritten for now. Behavior should be changed.
+					List<Preference> preferences = new ArrayList<Preference>();
+					preferences.add(preferred);
+					activity.getConstraints().getTime().setPreferences(preferences);				
+					
+					//activity.getConstraints().getTime().addPreference(preferred);
+				}
+			}
+			else {
+				// events are in sync, nothing to do
+			}
+			
+			// update the activity
+			activity.merge(eventActivity);
+			context.put("activity", activity);
+
+			// update the agent data
+			agentData.eventId = event.get("id").asText();
+			agentData.eventUpdated = event.get("updated").asText();
+			agentData.activityUpdated = activity.withStatus().getUpdated();
+			putAgentData(agent, agentData);
 
 			// TODO: cleanup
 			try {
 				logger.info("event is newer than activity. Updating activity. Activity="
-						+ JOM.getInstance().writeValueAsString(syncActivity));
+						+ JOM.getInstance().writeValueAsString(activity));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
+		}
+		else {
+			// activity and eventActivity have the same updated timestamp
+			// nothing to do.
+			logger.info("event and activity are in sync"); // TODO: cleanup
 		}
 	}
 
@@ -858,70 +1108,250 @@ public class MeetingAgent extends Agent {
 	private void updateBusyIntervals() {
 		Activity activity = getActivity();
 		if (activity != null) {
-			Set<String> agents = getAttendeesAgents(activity);
-			if (agents != null) {
-				for (String agent : agents) {
+			List<Attendee> attendees = activity.withConstraints().withAttendees();
+			for (Attendee attendee : attendees) {
+				String agent = attendee.getAgent();
+				if (attendee.getResponseStatus() != RESPONSE_STATUS.declined) {
 					updateBusyInterval(agent);
 				}
 			}
 		}
-		mergeBusyIntervals();
+		
+		mergeTimeConstraints();
 	}
 
 	/**
-	 * Merge the busy intervals of all attendees
+	 * Merge the busy intervals of all attendees, and the preferred intervals
 	 */
-	private void mergeBusyIntervals() {
-		// read the stored busy intervals of all attendees
-		List<Interval> busy = new ArrayList<Interval>();
+	private void mergeTimeConstraints() {
+		List<Interval> infeasibleIntervals = new ArrayList<Interval>();
+		List<Weight> preferredIntervals = new ArrayList<Weight>();
+
 		Activity activity = getActivity();
 		if (activity != null) {
-			Set<String> agents = getAttendeesAgents(activity);
-			if (agents != null) {
-				for (String agent : agents) {
-					List<Interval> attendeeBusy = getAttendeeBusy(agent);
+			// read and merge the stored busy intervals of all attendees
+			for (Attendee attendee : activity.withConstraints().withAttendees()) {
+				String agent = attendee.getAgent();
+				if (attendee.getResponseStatus() == RESPONSE_STATUS.declined) {
+					// This attendee declined. 
+					// Ignore this attendees busy interval
+				}
+				else if (new Boolean(true).equals(attendee.getOptional())) {
+					// This attendee is optional. 
+					// Add its busy intervals to the soft constraints
+					List<Interval> attendeeBusy = getAgentBusy(agent);
 					if (attendeeBusy != null) {
-						busy.addAll(attendeeBusy);
+						for (Interval i : attendeeBusy) {
+							Weight wi = new Weight(
+									i.getStart(), i.getEnd(), 
+									WEIGHT_BUSY_OPTIONAL_ATTENDEE);
+
+							preferredIntervals.add(wi);
+						}
+					}					
+				}
+				else {
+					// this attendee is required.
+					// Add its busy intervals to the hard constraints
+					List<Interval> attendeeBusy = getAgentBusy(agent);
+					if (attendeeBusy != null) {
+						infeasibleIntervals.addAll(attendeeBusy);
 					}
+				}				
+			}
+
+			// read the time preferences and add them to the soft constraints
+			List<Preference> preferences = activity.withConstraints()
+				.withTime().withPreferences();
+			for (Preference p : preferences) {
+				if (p != null) {
+					Weight wi = new Weight(
+							new DateTime(p.getStart()), 
+							new DateTime(p.getEnd()), 
+							p.getWeight());
+
+					preferredIntervals.add(wi);
 				}
 			}
 		}
-
-		// add office hours profile
+		
+		// add office hours profile to the soft constraints
 		// TODO: don't include (hardcoded) office hours here, should be handled
 		// by a PersonalAgent
 		DateTime timeMin = DateTime.now();
 		DateTime timeMax = timeMin.plusDays(LOOK_AHEAD_DAYS);
 		List<Interval> officeHours = IntervalsUtil.getOfficeHours(timeMin,
 				timeMax);
-		List<Interval> outSideOfficeHours = IntervalsUtil.inverse(officeHours,
-				timeMin, timeMax);
-		busy.addAll(outSideOfficeHours);
-
-		// merge the busy intervals of all attendees in one list
-		List<Interval> mergedBusy = IntervalsUtil.merge(busy);
-
-		// store the list
-		getContext().put("busy", mergedBusy);
-	}
-
-	/**
-	 * get the stored busy interval of an agent TODO: remove method getBusy,
-	 * temporary
-	 */
-	@SuppressWarnings("unchecked")
-	public ArrayNode getBusy() {
-		List<Interval> busy = (List<Interval>) getContext().get("busy");
-
-		// convert to JSON array
-		ArrayNode array = JOM.createArrayNode();
-		for (Interval interval : busy) {
-			ObjectNode obj = JOM.createObjectNode();
-			obj.put("start", interval.getStart().toString());
-			obj.put("end", interval.getEnd().toString());
-			array.add(obj);
+		for (Interval i : officeHours) {
+			Weight wi = new Weight(i, WEIGHT_OFFICE_HOURS);
+			preferredIntervals.add(wi);
 		}
-		return array;
+		
+		// add delay penalties to the soft constraints
+		DateTime now = DateTime.now();
+		MutableDateTime d = new MutableDateTime(now.getYear(), 
+				now.getMonthOfYear(), now.getDayOfMonth(), 0, 0, 0, 0);
+		for (int i = 0; i <= LOOK_AHEAD_DAYS; i++) {
+			DateTime start = d.toDateTime();
+			DateTime end = start.plusDays(1);
+			Weight wi = new Weight(start, end, 
+					WEIGHT_DELAY_PER_DAY * i);
+			preferredIntervals.add(wi);
+			d.addDays(1);
+		}
+
+		// order and store the aggregated lists with intervals
+		IntervalsUtil.order(infeasibleIntervals);
+		getContext().put("infeasible", infeasibleIntervals);
+		WeightsUtil.order(preferredIntervals);
+		getContext().put("preferred", preferredIntervals);
+	}
+	
+	/**
+	 * Calculate the average preference for given interval.
+	 * The method aggregates over all stored preferences
+	 * Default preference is 0.
+	 * @param preferredIntervals   list with intervals ordered by start
+	 * @param test                 test interval
+	 * @return preference
+	 */
+	private double calculatePreference(
+			List<Weight> preferredIntervals, Interval test) {
+		double preference = 0;
+
+		for (Weight interval : preferredIntervals) {
+			Interval overlap = test.overlap(interval.getInterval());
+			if (overlap != null) {
+				Double weight = interval.getWeight();
+				if (weight != null) {
+					double durationCheck = test.toDurationMillis();
+					double durationOverlap = overlap.toDurationMillis();
+					double avgWeight = (durationOverlap / durationCheck) * weight;
+					preference += avgWeight;
+				}
+			}
+
+			if (interval.getStart().isAfter(test.getEnd())) {
+				// as the list is ordered, we can exit as soon as we have an
+				// interval which starts after the wanted interval.
+				break;
+			}
+		}
+		
+		return preference;
+	}
+			
+	/**
+	 * Calculate whether given interval is feasible (i.e. does not overlap with
+	 * any of the infeasible intervals, and is not in the past)
+	 * @param infeasibleIntervals   list with intervals ordered by start
+	 * @param timeMin
+	 * @param timeMax
+	 * @return feasible
+	 */
+	private boolean calculateFeasible(List<Interval> infeasibleIntervals,
+			Interval test) {
+		if (test.getStart().isBeforeNow()) {
+			// interval starts in the past
+			return false;
+		}
+		
+		for (Interval interval : infeasibleIntervals) {
+			if (test.overlaps(interval)) {
+				return false;
+			}
+			if (interval.getStart().isAfter(test.getEnd())) {
+				// as the list is ordered, we can exit as soon as we have an
+				// interval which starts after the wanted interval.
+				break;
+			}
+		}
+		
+		return true; 
+	}
+	
+	/**
+	 * Retrieve the feasible and preferred intervals
+	 * @return
+	 */
+	// TODO: remove this temporary method
+	@SuppressWarnings("unchecked")
+	public ObjectNode getIntervals() {
+		ObjectNode intervals = JOM.createObjectNode();
+
+		List<Interval> infeasible = (List<Interval>) getContext().get("infeasible");
+		List<Weight> preferred = (List<Weight>) getContext().get("preferred");
+		List<Weight> solutions = calculateSolutions(); 
+
+		// merge the intervals
+		List<Interval> mergedInfeasible = null;
+		List<Weight> mergedPreferred = null;
+		if (infeasible != null) {
+			mergedInfeasible = IntervalsUtil.merge(infeasible);
+		}
+		if (preferred != null) {
+			mergedPreferred = WeightsUtil.merge(preferred);
+		}
+
+		if (infeasible != null) {
+			ArrayNode arr = JOM.createArrayNode();
+			for (Interval interval : infeasible) {
+				ObjectNode o = JOM.createObjectNode();
+				o.put("start", interval.getStart().toString());
+				o.put("end", interval.getEnd().toString());
+				arr.add(o);
+			}
+			intervals.put("infeasible", arr);
+		}
+
+		if (preferred != null) {
+			ArrayNode arr = JOM.createArrayNode();
+			for (Weight weight : preferred) {
+				ObjectNode o = JOM.createObjectNode();
+				o.put("start", weight.getStart().toString());
+				o.put("end", weight.getEnd().toString());
+				o.put("weight", weight.getWeight());
+				arr.add(o);
+			}
+			intervals.put("preferred", arr);
+		}
+
+		if (solutions != null) {
+			ArrayNode arr = JOM.createArrayNode();
+			for (Weight weight : solutions) {
+				ObjectNode o = JOM.createObjectNode();
+				o.put("start", weight.getStart().toString());
+				o.put("end", weight.getEnd().toString());
+				o.put("weight", weight.getWeight());
+				arr.add(o);
+			}
+			intervals.put("solutions", arr);
+		}
+
+		if (mergedInfeasible != null) {
+			ArrayNode arr = JOM.createArrayNode();
+			for (Interval i : mergedInfeasible) {
+				ObjectNode o = JOM.createObjectNode();
+				o.put("start", i.getStart().toString());
+				o.put("end", i.getEnd().toString());
+				arr.add(o);
+			}
+			intervals.put("mergedInfeasible", arr);
+		}
+
+		if (mergedPreferred != null) {
+			ArrayNode arr = JOM.createArrayNode();
+			for (Weight wi : mergedPreferred) {
+				ObjectNode o = JOM.createObjectNode();
+				o.put("start", wi.getStart().toString());
+				o.put("end", wi.getEnd().toString());
+				o.put("weight", wi.getWeight());
+				arr.add(o);
+			}
+			intervals.put("mergedPreferred", arr);
+		}		
+
+		return intervals;		
 	}
 
 	/**
@@ -940,7 +1370,7 @@ public class MeetingAgent extends Agent {
 			params.put("timeMax", timeMax.toString());
 
 			// exclude the event managed by this agent from the busy intervals
-			String eventId = getAttendeeEventId(agent);
+			String eventId = getAgentData(agent).eventId;
 			if (eventId != null) {
 				ArrayNode excludeEventIds = JOM.createArrayNode();
 				excludeEventIds.add(eventId);
@@ -961,14 +1391,14 @@ public class MeetingAgent extends Agent {
 			}
 
 			// store the interval in the context
-			putAttendeeBusy(agent, busy);
+			putAgentBusy(agent, busy);
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			addIssue(TYPE.warning, Issue.IOEXCEPTION, e.getMessage());
+			e.printStackTrace(); // TODO remove printing stacktrace
 		} catch (JSONRPCException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			addIssue(TYPE.warning, Issue.JSONRPCEXCEPTION, e.getMessage());
+			e.printStackTrace(); // TODO remove printing stacktrace
 		}
 	}
 
@@ -980,7 +1410,7 @@ public class MeetingAgent extends Agent {
 		Activity activity = getActivity();
 
 		if (activity != null) {
-			List<Attendee> attendees = activity.getConstraints().getAttendees();
+			List<Attendee> attendees = activity.withConstraints().withAttendees();
 			for (Attendee attendee : attendees) {
 				String agent = attendee.getAgent();
 				if (agent != null) {
@@ -1002,28 +1432,31 @@ public class MeetingAgent extends Agent {
 	 * @param agent
 	 */
 	private void clearAttendee(@Name("agent") String agent) {
-		Context context = getContext();
-		CalendarAgentData data = getAttendeeData(agent);
+		AgentData data = getAgentData(agent);
 		if (data != null) {
 			try {
 				if (data.eventId != null) {
 					ObjectNode params = JOM.createObjectNode();
 					params.put("eventId", data.eventId);
 					send(agent, "deleteEvent", params);
+					data.eventId = null;
 				}
-
-				removeAttendeeData(agent);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JSONRPCException e) {
 				if (e.getCode() == 404) {
 					// event was already deleted. fine!
-					context.remove(agent);
+					data.eventId = null;
 				}
+				else {
+					e.printStackTrace();
+				}
+			}
 
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (data.eventId == null) {
+				removeAgentData(agent);
+				logger.info("clearAttendee " + agent + " cleared");
 			}
 		}
 	}

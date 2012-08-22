@@ -59,7 +59,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -85,7 +84,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 public class GoogleCalendarAgent extends Agent implements CalendarAgent {
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	// note: config parameters google.client_id and google.client_secret
 	//       are loaded from the eve configuration
@@ -106,8 +105,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			@Name("token_type") String token_type,
 			@Name("expires_in") Integer expires_in,
 			@Name("refresh_token") String refresh_token) throws IOException {
-		logger.info("setAuthorization");
-		
 		Context context = getContext();
 		
 		// retrieve user information
@@ -246,8 +243,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
 		if (expires_at != null && expires_at.isBeforeNow()) {
-			// TODO: remove this logging
-			logger.info("access token is expired. refreshing now...");
 			refreshAuthorization(auth);
 			getContext().put("auth", auth);
 		}
@@ -282,6 +277,8 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			// move agent url from event.agent to extendedProperties
 			String agent = event.get("agent").asText();
 			event.with("extendedProperties").with("shared").put("agent", agent);
+			
+			// TODO: change location into a string
 		}
 	}
 
@@ -307,6 +304,8 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 					}
 				}
 				*/
+				
+				// TODO: replace string location with Location object
 			}
 		}
 	}
@@ -366,9 +365,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			@Required(false) @Name("timeMax") String timeMax, 
 			@Required(false) @Name("calendarId") String calendarId) 
 			throws Exception {
-		logger.info("getEvents timeMin=" + timeMin + ", timeMax=" + timeMax + 
-				", calendarId=" + calendarId);
-		
 		// initialize optional parameters
 		if (calendarId == null) {
 			calendarId = (String) getContext().get("email");
@@ -601,14 +597,11 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// convert from Google to Eve event
 		toEveEvent(event);
 		
-		logger.info("getEvent event=" + (event != null ? 
-				JOM.getInstance().writeValueAsString(event) : null));
-		
 		// check for errors
 		if (event.has("error")) {
 			ObjectNode error = (ObjectNode)event.get("error");
 			Integer code = error.has("code") ? error.get("code").asInt() : null;
-			if (code != null && code.equals(404)) {
+			if (code != null && (code.equals(404) || code.equals(410))) {
 				throw new JSONRPCException(CODE.NOT_FOUND);				
 			}
 			
@@ -663,8 +656,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throw new JSONRPCException(error);
 		}
 		
-		logger.info("createEvent=" + JOM.getInstance().writeValueAsString(createdEvent));
-
 		return createdEvent;
 	}
 
@@ -763,8 +754,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// convert from Google to Eve event
 		toEveEvent(event);
 		
-		logger.info("updateEvent=" + JOM.getInstance().writeValueAsString(updatedEvent)); // TODO: cleanup
-
 		return updatedEvent;
 	}
 	
@@ -783,8 +772,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			calendarId = (String) getContext().get("email");
 		}
 
-		logger.info("deleteEvent eventId=" + eventId + ", calendarId=" + calendarId); // TODO: cleanup
-
 		// built url
 		String url = CALENDAR_URI + calendarId + "/events/" + eventId;
 		
@@ -792,7 +779,21 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		Map<String, String> headers = getAuthorizationHeaders();
 		String resp = HttpUtil.delete(url, headers);
 		if (!resp.isEmpty()) {
-			throw new Exception(resp);
+			ObjectNode node = JOM.getInstance().readValue(resp, ObjectNode.class);
+			
+			// check error code
+			if (node.has("error")) {
+				ObjectNode error = (ObjectNode) node.get("error");
+				Integer code = error.has("code") ? error.get("code").asInt() : null;
+				if (code != null && (code.equals(404) || code.equals(410))) {
+					throw new JSONRPCException(CODE.NOT_FOUND);				
+				}
+				
+				throw new JSONRPCException(error);
+			}
+			else {
+				throw new Exception(resp);
+			}
 		}
 	}
 }

@@ -34,16 +34,17 @@ public class Attendee implements Serializable, Cloneable {
 		this.optional = optional;
 	}
 	
-	public void setResponseStatus(String responseStatus) {
+	public void setResponseStatus(RESPONSE_STATUS responseStatus) {
 		this.responseStatus = responseStatus;
 	}
 
-	public String getResponseStatus() {
+	public RESPONSE_STATUS getResponseStatus() {
 		return responseStatus;
 	}
 	
 	public Attendee clone () {
 		Attendee clone = new Attendee();
+		
 		clone.displayName = displayName;
 		clone.email = email;
 		clone.agent = agent;
@@ -53,9 +54,11 @@ public class Attendee implements Serializable, Cloneable {
 		return clone;
 	}
 
+	public enum RESPONSE_STATUS {needsAction, declined, tentative, accepted};
+	
 	private String displayName = null;
 	private String email = null;
 	private String agent = null;          // eve agent url
 	private Boolean optional = null;      // if false, attendee must attend
-	private String responseStatus = null; // can be "needsAction", "declined", "tentative", "accepted" 
+	private RESPONSE_STATUS responseStatus = null;
 }

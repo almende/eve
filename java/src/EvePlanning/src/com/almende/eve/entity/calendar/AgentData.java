@@ -10,7 +10,9 @@ import org.joda.time.Interval;
  * this structure is used by the MeetingAgent
  */
 @SuppressWarnings("serial")
-public class CalendarAgentData implements Serializable {
+public class AgentData implements Serializable {
 	public String eventId = null;
+	public String activityUpdated = null;
+	public String eventUpdated = null;
 	public List<Interval> busy = null;
 }

@@ -6,28 +6,35 @@ import java.util.List;
 
 @SuppressWarnings("serial")
 public class Status implements Serializable, Cloneable {
-	public Status() {
-		setAttendees(null);
-	}
-	
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
+	public Status() {}
+
 	public List<Attendee> getAttendees() {
 		return attendees;
 	}
-	public void setAttendees(List<Attendee> attendees) {
-		this.attendees = attendees != null ? attendees : new ArrayList<Attendee>();
+
+	public List<Attendee> withAttendees() {
+		if (attendees == null) {
+			attendees = new ArrayList<Attendee>();			
+		}
+		return attendees;
 	}
 	
-	public String getLocation() {
+	public void setAttendees(List<Attendee> attendees) {
+		this.attendees = attendees;
+	}
+	
+	public Location withLocation() {
+		if (location == null) {
+			location = new Location();
+		}
 		return location;
 	}
-	public void setLocation(String location) {
+
+	public Location getLocation() {
+		return location;
+	}
+
+	public void setLocation(Location location) {
 		this.location = location;
 	}
 	
@@ -45,12 +52,12 @@ public class Status implements Serializable, Cloneable {
 		this.end = end;
 	}
 
-	public void setError(String error) {
-		this.error = error;
+	public void setActivityStatus(ACTIVITY_STATUS activityStatus) {
+		this.activityStatus = activityStatus;
 	}
 
-	public String getError() {
-		return error;
+	public ACTIVITY_STATUS getActivityStatus() {
+		return activityStatus;
 	}
 
 	public String getUpdated() {
@@ -61,18 +68,20 @@ public class Status implements Serializable, Cloneable {
 	}
 	
 	public void merge(Status other) {
-		if (other.description != null) {
-			description = other.description;
-		}
-		
-		// replace attendees
-		attendees.clear();
-		for (Attendee attendee : attendees) {
-			attendees.add(attendee.clone());
+		if (other.attendees != null) {
+			attendees = new ArrayList<Attendee>();
+			for (Attendee attendee : other.attendees) {
+				attendees.add(attendee != null ? attendee.clone() : null);
+			}
 		}
 		
 		if (other.location != null) {
-			location = other.location;
+			if (location != null) {
+				location.merge(other.location);
+			}
+			else {
+				location = other.location.clone();
+			}
 		}
 		if (other.start != null) {
 			start = other.start;
@@ -80,8 +89,8 @@ public class Status implements Serializable, Cloneable {
 		if (other.end != null) {
 			end = other.end;
 		}
-		if (other.error != null) {
-			error = other.error;
+		if (other.activityStatus != null) {
+			activityStatus = other.activityStatus;
 		}
 		if (other.updated != null) {
 			updated = other.updated;
@@ -91,25 +100,29 @@ public class Status implements Serializable, Cloneable {
 	public Status clone() {
 		Status clone = new Status();
 		
-		clone.description = description;
-		clone.attendees = new ArrayList<Attendee>();
-		for (Attendee attendee : attendees) {
-			clone.attendees.add(attendee != null ? attendee.clone() : null);
+		if (attendees != null) {
+			clone.attendees = new ArrayList<Attendee>();
+			for (Attendee attendee : attendees) {
+				clone.attendees.add(attendee != null ? attendee.clone() : null);
+			}
 		}
-		clone.location = location;
+		if (location != null) {
+			clone.location = location.clone();
+		}
 		clone.start = start;
 		clone.end = end;
-		clone.error = error;
+		clone.activityStatus = activityStatus;
 		clone.updated = updated;
 		
 		return clone;
 	}
 
-	private String description = null;
+	public static enum ACTIVITY_STATUS {progress, planned, executed, error};
+
 	private List<Attendee> attendees = null;
-	private String location = null;
+	private Location location = null;
 	private String start = null;
 	private String end = null;
-	private String error = null;
+	private ACTIVITY_STATUS activityStatus = null;
 	private String updated = null;
 }

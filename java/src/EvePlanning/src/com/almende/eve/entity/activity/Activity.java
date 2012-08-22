@@ -6,12 +6,7 @@ import org.joda.time.DateTime;
 
 @SuppressWarnings("serial")
 public class Activity implements Serializable, Cloneable {
-	public Activity() {
-		setSummary(null);
-		setAgent(null);
-		setConstraints(null);
-		setStatus(null);
-	}
+	public Activity() {	}
 
 	public void setSummary(String summary) {
 		this.summary = summary;
@@ -19,6 +14,14 @@ public class Activity implements Serializable, Cloneable {
 	
 	public String getSummary() {
 		return summary;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	public String getDescription() {
+		return description;
 	}
 
 	public void setAgent(String agent) {
@@ -37,10 +40,24 @@ public class Activity implements Serializable, Cloneable {
 		return constraints;
 	}
 
+	public Constraints withConstraints() {
+		if (constraints == null) {
+			constraints = new Constraints();
+		}
+		return constraints;
+	}
+
 	public void setStatus(Status status) {
 		this.status = status != null ? status : new Status();
 	}
 
+	public Status withStatus() {
+		if (status == null) {
+			status = new Status();
+		}
+		return status;
+	}
+	
 	public Status getStatus() {
 		return status;
 	}
@@ -49,35 +66,59 @@ public class Activity implements Serializable, Cloneable {
 		if (other.summary != null) {
 			summary = other.summary;
 		}
+		if (other.description != null) {
+			description = other.description;
+		}
 		if (other.agent != null) {
 			agent = other.agent;
 		}
-		constraints.merge(other.constraints);
+		if (other.constraints != null) {
+			if (constraints != null) {
+				constraints.merge(other.constraints);
+			}
+			else {
+				constraints = other.constraints.clone();
+			}
+		}
+		if (other.status != null) {
+			if (status != null) {
+				status.merge(other.status);
+			}
+			else {
+				status = other.status.clone();
+			}
+		}
 		status.merge(other.status);
 	}
 	
 	public Activity clone() {
 		Activity clone = new Activity();
+		
 		clone.summary = summary;
+		clone.description = description;
 		clone.agent = agent;
-		clone.constraints = constraints.clone();
-		clone.status = status.clone();
+		if (constraints != null) {
+			clone.constraints = constraints.clone();
+		}
+		if (status != null) {
+			clone.status = status.clone();
+		}
 		
 		return clone;
 	}
 	
 	/**
-	 * Check if this Activity is after other Activity
+	 * Check if this Activity is updated more recently than an other Activity
 	 * @param other
 	 * @return
 	 */
-	public boolean isAfter(Activity other) {
+	public boolean isNewerThan (Activity other) {
 		DateTime updatedThis = null;
-		if (this.getStatus().getUpdated() != null) {
+		if (this.getStatus() != null && this.getStatus().getUpdated() != null) {
 			updatedThis = new DateTime(this.getStatus().getUpdated());
 		}
 		DateTime updatedOther = null;
-		if (other.getStatus().getUpdated() != null) {
+		if (other.getStatus() != null && other.getStatus().getUpdated() != null) {
 			updatedOther = new DateTime(other.getStatus().getUpdated());
 		}
 
@@ -98,7 +139,7 @@ public class Activity implements Serializable, Cloneable {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Synchronize two activities. 
 	 * The newest activity will be merged into a clone of the oldest activity.
@@ -108,7 +149,7 @@ public class Activity implements Serializable, Cloneable {
 	 */
 	public static Activity sync (Activity a, Activity b) {
 		Activity clone;
-		if (a.isAfter(b)) {
+		if (a.isNewerThan(b)) {
 			clone = b.clone(); 
 			clone.merge(a);
 		}
@@ -120,8 +161,9 @@ public class Activity implements Serializable, Cloneable {
 		return clone;
 	}
 	
-	private String summary = "";
+	private String summary = null;
+	private String description= null;
 	private String agent = null;   // The agent managing the activity
-	private Constraints constraints = new Constraints();
-	private Status status = new Status();
+	private Constraints constraints = null;
+	private Status status = null;
 }
