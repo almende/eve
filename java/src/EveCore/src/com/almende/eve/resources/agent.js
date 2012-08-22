@@ -213,7 +213,7 @@ function Ctrl() {
                         self.result = JSON.stringify(response.result, null, 2) || '';
                     }
                     else {
-                        self.result = response.result || '';
+                        self.result = (response.result != undefined) ? String(response.result) : '';
                     }
                 }
                 self.$root.$eval();

@@ -203,7 +203,6 @@ public class TestAgent extends Agent {
 	public void myTask(@Name("message") String message) {
 		System.out.println("myTask is executed. Message: " + message);
 	}
-	
 
 	public List<String> testSend() throws Exception {
 		ArrayList<String> type = new ArrayList<String>();

@@ -193,7 +193,8 @@ abstract public class Agent {
 	
 	/**
 	 * Asynchronously trigger an event.
-	 * the onTrigger method is called from a scheduled task
+	 * the onTrigger method is called from a scheduled task, initiated in the 
+	 * method trigger
 	 * @param url
 	 * @param method
 	 * @param params
