@@ -1,29 +1,6 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
-2012-08-22, version 0.7
-
-- Extensive changes in the MeetingAgent. The meeting agent does not just find
-  a free timeslot for all attendees. Instead, it collects the busy profiles
-  and preferences, a sets up hard constraints (infeasible timeslots) and 
-  soft constraints (preferred timeslots), and calculates the optimal solution.  
-  Optional attendees can be handled now, as well as other preferences.
-- Changed/extended the Activity class. Changes:
-    - specified status.attendees[] with fields
-          {String} status.attendees[].displayName
-          {String} status.attendees[].email
-          {String} status.attendees[].agent
-          {Boolean} status.attendees[].optional
-          {String} status.attendees[].responseStatus
-    - added field {String} status.activityStatus
-    - removed field status.error (use status.activityStatus instead)
-    - replaced {String} status.location with {Object} :
-          {"summary": null, "lat": null, "lng": null}
-- Renamed method MeetingAgent.setEvent with MeetingAgent.setActivityQuick
-- Fixed a bug in the GoogleCalendarAgent, the method deleteEvent did not 
-  return a 404 error but an internal error when the event was not found.
-
-
 2012-08-03, version 0.6
 
 - GoogleTaskAgent added
