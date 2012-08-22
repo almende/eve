@@ -6,8 +6,9 @@ function Ctrl() {
     var scope = this;
 
     // constants
-    scope.AUTH_SERVLET = 'http://eveagents.appspot.com/auth/google';
-    scope.AGENTS_URI = 'http://eveagents.appspot.com/agents/';
+    scope.ORIGIN = window.location.protocol + '//' + window.location.host + '/';
+    scope.AUTH_SERVLET = scope.ORIGIN + 'auth/google';
+    scope.AGENTS_URI = scope.ORIGIN + 'agents/';    
     scope.CALENDAR_AGENT_URI = scope.AGENTS_URI + 'googlecalendaragent/';
     scope.MEETING_AGENT_URI = scope.AGENTS_URI + 'meetingagent/';
     scope.CALLBACK_URI = window.location.href;
@@ -259,7 +260,7 @@ function Ctrl() {
             var attendees = activity.constraints.attendees;
             $.each(attendees, function (index, attendee) {
                 if (attendee.id) {
-                    attendee.agent = scope.CALENDAR_AGENT_URI + attendee.id;
+                    attendee.agent = scope.CALENDAR_AGENT_URI + attendee.id + '/';
                 }
             });
         }
@@ -288,6 +289,9 @@ function Ctrl() {
                 if (attendee.agent) {
                     var start = scope.CALENDAR_AGENT_URI.length;
                     attendee.id = attendee.agent.substring(start, attendee.agent.length);
+                    if (attendee.id[attendee.id.length-1] == '/') {
+                        attendee.id = attendee.id.substring(0, attendee.id.length - 1);
+                    }
                 }
             });
         }
@@ -352,6 +356,17 @@ function Ctrl() {
     };
 
     /**
+     * Change the parameter optional of an attendee
+     * @param attendee
+     * @param optional
+     */
+    scope.toggleAttendeeOptional = function (agent, attendee) {
+        attendee.optional = attendee.optional ? false : true;
+        scope.setUpdated(agent);
+        scope.save();
+    };
+
+    /**
      * Set a meeting agent as updated
      * @param {Object} agent
      */
@@ -367,13 +382,23 @@ function Ctrl() {
     };
 
     /**
-     * retrieve the emails from all listed calendar agents
+     * retrieve the emails from all listed calendar agents, and the status
+     * of all meetingAgents
      */
-    scope.updateAll = function () {
+    scope.refreshAll = function () {
         $.each(scope.calendarAgents, function(index, agent) {
             scope.getCalendarAgent(agent);
         });
 
+        $.each(scope.meetingAgents, function(index, agent) {
+            scope.getMeetingAgent(agent);
+        });
+    };
+
+    /**
+     * update the status of all MeetingAgents
+     */
+    scope.refreshAllMeetingAgents = function () {
         $.each(scope.meetingAgents, function(index, agent) {
             scope.getMeetingAgent(agent);
         });
@@ -402,7 +427,7 @@ function Ctrl() {
     };
 
     scope.load();
-    scope.updateAll();
+    scope.refreshAll();
 }
 
 /**

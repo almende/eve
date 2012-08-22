@@ -29,6 +29,24 @@
         Eve Planning offers a
         <a href="http://en.wikipedia.org/wiki/Software_agent" target="_blank">software agent</a>
         based solution for dynamically planning and managing calendar events.
+
+        <p ng-show="!showMoreInfo" >
+            What do these software agents actually do? 
+            <a ng-click="showMoreInfo=true">Read more</a>.
+        </p>
+    </p>
+    <p ng-show="showMoreInfo">
+        What do these software agents actually do? 
+        
+        A PersonalAgent manages your time, your calendar, your office hours,
+        and your preferences.
+        
+        A MeetingAgent manages a single event in your calendar. It plans the
+        event on a moment that every attendee is available, and regularly checks
+        and updates the event if it needs to be rescheduled due to changes in 
+        one of the attendees calendars. 
+        When any of the attendees changes the event, 
+        the MeetingAgent will synchronize the changes to the otter attendees.
     </p>
 
     <div ng-show="!authorized">
@@ -116,6 +134,10 @@
                             ></td>
                 </tr>
                 <tr>
+                    <th>Description</th>
+                    <td><textarea ng-model="editor.activity.description"></textarea></td>
+                </tr>
+                <tr>
                     <th>Location</th>
                     <td><input type="text"
                                ng-model="editor.activity.constraints.location.summary"
@@ -144,10 +166,30 @@
                     <th>Attendees</th>
                     <td>
                         <div ng-repeat="attendee in editor.activity.constraints.attendees">
+                            <a href=""
+                               ng:click="attendee.optional=!attendee.optional"
+                               ng:show="!attendee.optional"
+                               class="optional"
+                               title="Presence is required">&#x25C9;</a>
+                            <a href=""
+                               ng:click="attendee.optional=!attendee.optional"
+                               ng:show="attendee.optional"
+                               class="optional"
+                               title="Presence is optional">&#x25CC;</a>
+
                             <select data-placeholder="Select a contact"
+                                    title="username"
                                     class="chzn-select"
                                     ng-model="attendee.agent"
-                                    ng-options="r.agent as (r.username + ' (' + r.email + ')') for r in registrations">
+                                    ng-options="r.agent as (r.username) for r in registrations">
+                            </select>
+
+                            <select ng-model="attendee.responseStatus"
+                                    title="response status">
+                                <option value="accepted">accepted</option>
+                                <option value="tentative">tentative</option>
+                                <option value="declined">declined</option>
+                                <option value="needsAction">needs action</option>
                             </select>
 
                             <a href="" class="remove"

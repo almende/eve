@@ -4,7 +4,7 @@ html, body {
     width: 100%;
 }
 
-html, body, input, button, select, th, td {
+html, body, input, textarea, button, select, th, td {
     font-family: arial, sans-serif;
     font-size: 11pt;
     color: #4D4D4D;
@@ -18,10 +18,15 @@ button:disabled {
     color: gray;
 }
 
-input[type=text] {
+input[type=text], textarea {
     border: 1px solid lightgray;
     background-color: #F5F5F5;
     width: 180px;
+}
+
+textarea {
+    width: 400px;
+    height: 60px;
 }
 
 #container {
@@ -98,7 +103,7 @@ a:hover {
     text-decoration: underline;
 }
 
-a.remove, a.add {
+a.remove, a.add, a.optional  {
     color: gray;
     text-decoration: none;
     font-size: 200%;
@@ -109,7 +114,12 @@ a.remove:hover {
 a.add:hover {
     color: green;
 }
-
+a.optional {
+    font-size: 150%;
+}
+a.optional:hover {
+    color: #2B7CE9;
+}
 
 ul.events {
     list-style-type: none;
@@ -152,7 +162,7 @@ div.dialog-overlay {
 }
 
 div.dialog-bg {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
     width: 100%;
@@ -160,10 +170,10 @@ div.dialog-bg {
 }
 
 div.dialog {
-    width: 400px;
+    width: 500px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 100px;
+    margin-top: 50px;
     background-color: white;
     padding: 20px 60px;
     border: 1px solid gray;

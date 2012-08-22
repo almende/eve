@@ -47,7 +47,7 @@
                        placeholder="id" ng:change="getCalendarAgent(agent)"/>
             </td>
             <td>
-                <a href="{{CALENDAR_AGENT_URI + agent.id}}" target="_blank">{{agent.id}}</a>
+                <a href="{{CALENDAR_AGENT_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
             </td>
             <td>
                 <span ng:hide="agent.usernameUpdating">{{agent.username}}</span>
@@ -79,6 +79,11 @@
         Meeting agents can dynamically plan a meeting for one or multiple attendees.
     </p>
 
+    <p>
+        <button ng:click="refreshAllMeetingAgents()"
+                title="Refresh the state of all MeetingAgents.">Refresh All</button>
+    </p>
+
     <table>
         <tr>
             <th>Id</th>
@@ -98,7 +103,7 @@
                        ng:change="getMeetingAgent(agent)" />
             </td>
             <td>
-                <a href="{{MEETING_AGENT_URI + agent.id}}" target="_blank">{{agent.id}}</a>
+                <a href="{{MEETING_AGENT_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
             </td>
             <td>
                 <input name="agent.activity.summary" type="text"
@@ -132,9 +137,30 @@
                         <td class="noborder">
                             <div ng:repeat="attendee in agent.activity.constraints.attendees">
                                 <!-- TODO: create an angular widget for the attendee.agent url -->
+                                <a href=""
+                                   ng:click="toggleAttendeeOptional(agent, attendee)"
+                                   ng:show="!attendee.optional"
+                                   class="optional"
+                                   title="Presence is required">&#x25C9;</a>
+                                <a href=""
+                                   ng:click="toggleAttendeeOptional(agent, attendee)"
+                                   ng:show="attendee.optional"
+                                   class="optional"
+                                   title="Presence is optional">&#x25CC;</a>
+
                                 <input name="attendee.id" type="text"
                                        title="Enter the id of the Attendees CalendarAgent"
                                        placeholder="id" ng:change="setUpdated(agent)" />
+
+                                <select name="attendee.responseStatus"
+                                        title="response status"
+                                        ng:change="setUpdated(agent)">
+                                    <option value="accepted">accepted</option>
+                                    <option value="tentative">tentative</option>
+                                    <option value="declined">declined</option>
+                                    <option value="needsAction">needs action</option>
+                                </select>
+
                                 <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
                                    title="Remove Attendee">&times;</a>
                             </div>
@@ -156,8 +182,8 @@
                         End: {{ formatDateTime(agent.activity.status.end) }}
                         <br>
                     </span>
-                    <span ng:show="agent.activity.status.error" class="error">
-                        Error: {{ agent.activity.status.error }}
+                    <span ng:show="agent.activity.status.activityStatus">
+                        Status: {{ agent.activity.status.activityStatus }}
                         <br>
                     </span>
                 </span>

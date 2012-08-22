@@ -43,6 +43,10 @@ public class DirectoryAgent extends Agent {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		datastore.store(registration);
 		
+		// load the registration again, to ensure its indexes are updated
+		// TODO: does this actually work?...
+		datastore.refresh(registration);
+		
 		return registration;
 	}
 

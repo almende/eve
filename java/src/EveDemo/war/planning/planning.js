@@ -4,7 +4,6 @@
  */
 function Planning($scope) {
     // constants
-    //var ORIGIN = window.location.origin + '/';
     var ORIGIN = window.location.protocol + '//' + window.location.host + '/';
     var AUTH_SERVLET = ORIGIN + 'auth/google';
     var AGENTS_SERVLET = ORIGIN + 'agents/';
@@ -262,7 +261,7 @@ function Planning($scope) {
 
     $scope.createEvent = function () {
         var uuid = UUID.randomUUID();
-        var agent = MEETING_AGENT_URI + uuid;
+        var agent = MEETING_AGENT_URI + uuid + '/';
         var activity = {
             'agent': agent,
             'summary': 'new event',
@@ -321,6 +320,7 @@ function Planning($scope) {
                 $scope.editor.loading = false;
                 $scope.editor.activity = activity;
                 $scope.$apply();
+                $scope.renderSelectBoxes();
             }
         });
     };
@@ -456,9 +456,7 @@ function Planning($scope) {
 
     // update checkboxes in the editor after the editor is rendered
     $scope.$watch('editor.show', function() {
-        setTimeout(function () {
-            $scope.renderSelectBoxes();
-        }, 1);
+        $scope.renderSelectBoxes();
     });
 
     /**
