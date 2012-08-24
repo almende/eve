@@ -153,9 +153,10 @@ Behind the scenes, AgentX will make an JSON-RPC call to the `onSubscribe` or
 An agent can subscribe to a single event using the event name,
 or subscribe to all events by specifying a star `*` as event name.
 
-
 In the example below, AgentX subscribes to the event `dataChanged`, and wants
 to receive a callback on its method `onEvent` when the event happens.
+The callback method `onEvent` can have any name, and must have three parameters:
+`agent`, `event`, and `params`.
 
     public void subscribeToAgentY() throws Exception {
         String url = "http://server/agents/agenttype/agenty";
@@ -183,7 +184,7 @@ to receive a callback on its method `onEvent` when the event happens.
                 "params=" + ((params != null) ? params.toString() : null));
     }
 
-To let AgentY trigger the event `dataChanged`, the method `trigger` can be used.
+To let AgentY trigger the event "dataChanged", the method `trigger` can be used.
 Behind the scenes, a JSON-RPC call will be sent to all agents that have
 subscribed to that particular event.
 
@@ -197,6 +198,13 @@ subscribed to that particular event.
         trigger(event, params);
     }
 
+When the trigger above is executed, the callback method `onEvent` of AgentX will
+be called with the following parameters:
+
+- `agent` containing the url of AgentY, from which the trigger comes,
+- `event` containing the triggered event "dataChanged",
+- `params` containing optional parameters, in this case an object containing
+  a field "message" with value "Hi, I changed the data.".
 
 
 ## Scheduler {#scheduler}
