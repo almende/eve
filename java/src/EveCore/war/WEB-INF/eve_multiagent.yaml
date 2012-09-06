@@ -4,8 +4,12 @@
 environment:
   Development:
     servlet_url: http://localhost:8080/EveCore/agents
+    # request_logger:
+    #   class: com.almende.eve.context.google.DatastoreRequestLogger
   Production:
     servlet_url: http://localhost:8080/EveCore/agents
+    # request_logger:
+    #   class: com.almende.eve.context.google.DatastoreRequestLogger
 
 # agent settings
 agent:

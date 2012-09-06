@@ -92,13 +92,28 @@ public class SingleAgentServlet extends HttpServlet {
 			// retrieve the request data
 			String request = streamToString(req.getInputStream());
 
-			// instantiate an agent and set its context
-			Agent agent = loadAgent(req);
-			
-			// TODO: instantiate session?
-			
-			// invoke the method onto the agent
-			response = JSONRPC.invoke(agent, request);
+			// instantiate an agent
+			Agent agent = (Agent) agentClass.getConstructor().newInstance();
+
+			// instantiate and initialize context
+			// FIXME: setting class and id results in a wrong getUrl() of the agent
+			// FIXME: getUrl() of the agent does not work
+			String agentClassName = agent.getClass().getSimpleName().toLowerCase();
+			String id = "1"; // TODO: what to do with id?
+			Context context = contextFactory.getContext(agentClassName, id);
+			try {
+				context.init();
+				agent.setContext(context);			
+				
+				// TODO: instantiate session?
+				
+				// invoke the method onto the agent
+				response = JSONRPC.invoke(agent, request);
+			}
+			finally {
+				// destroy context (this will typically persist the context)
+				context.destroy();
+			}
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = new JSONRPCException(
@@ -138,23 +153,6 @@ public class SingleAgentServlet extends HttpServlet {
 		config = new Config(getServletContext().getResourceAsStream(fullname));
 	}
 	
-	/**
-	 * instantiate an agent and set its context
-	 * @return
-	 * @throws Exception 
-	 */
-	Agent loadAgent(HttpServletRequest req) throws Exception {
-		Agent agent = (Agent) agentClass.getConstructor().newInstance();
-		// FIXME: setting class and id results in a wrong getUrl() of the agent
-		String agentClassName = agent.getClass().getSimpleName().toLowerCase();
-		String id = "1"; // TODO: what to do with id?
-		Context context = contextFactory.getContext(agentClassName, id);
-		agent.setContext(context);
-		
-		// FIXME: getUrl() of the agent does not work
-		
-		return agent;		
-	}
 		
 	/**
 	 * Initialize the correct Agent class for the SingleAgentServlet.

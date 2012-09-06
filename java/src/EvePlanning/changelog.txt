@@ -1,6 +1,12 @@
 EVE PLANNING
 http://almende.github.com/eve/
 
+
+<not yet released>, version 0.8
+
+- Moved dependency on joda-time-2.1.jar from eve-planning.jar to eve-core.jar.
+
+
 2012-08-22, version 0.7
 
 - Extensive changes in the MeetingAgent. The meeting agent does not just find

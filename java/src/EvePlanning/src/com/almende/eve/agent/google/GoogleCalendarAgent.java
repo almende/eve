@@ -124,7 +124,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		// store the tokens in the context
 		context.put("auth", auth);
 		context.put("email", email);
-		context.put("name", name);		
+		context.put("name", name);
 	}
 	
 	/**
@@ -184,11 +184,14 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	/**
 	 * Remove all stored data from this agent
 	 */
-	public void clear() {
+	@Override
+	public void clear() throws Exception {
 		Context context = getContext();
 		context.remove("auth");
 		context.remove("email");
-		context.remove("name");			
+		context.remove("name");
+
+		super.clear();
 	}
 	
 	/**

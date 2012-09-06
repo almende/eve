@@ -3,7 +3,7 @@
 <project name="eve-core-builder" default="makejar" basedir=".">
 	<!-- the version number of must be updated here (according to changelog.txt) -->
 	<property name="package" value="eve-core"/>
-	<property name="version" value="0.8"/>
+	<property name="version" value="0.9"/>
 	
   <target name="makejar" description="Create a jar library">
     <property name="localbin" location="bin" />
@@ -29,7 +29,7 @@
       <fileset dir="${globalbin}" includes="${package}-${version}.jar" /> 
       <fileset dir="${globalbin}" includes="${package}-changelog.txt" /> 
       <fileset dir="war/WEB-INF/lib/" 
-      	includes="jackson-*, snakeyaml-*" />
+      	includes="jackson-*, joda-time-*, snakeyaml-*" />
     </zip>
 
   </target>

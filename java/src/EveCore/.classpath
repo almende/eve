@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/jackson-core-2.0.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/jackson-databind-2.0.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/snakeyaml-1.10.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/joda-time-2.1.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

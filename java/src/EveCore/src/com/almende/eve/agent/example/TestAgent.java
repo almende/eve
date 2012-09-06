@@ -146,9 +146,9 @@ public class TestAgent extends Agent {
 	}
 	
 	public Double increment() {
-		Double value = new Double(0);
-		if (getContext().containsKey("count")) {
-			value = (Double) getContext().get("count");
+		Double value = (Double) getContext().get("count");
+		if (value == null) {
+			value = new Double(0);
 		}
 		value++;
 		getContext().put("count", value);

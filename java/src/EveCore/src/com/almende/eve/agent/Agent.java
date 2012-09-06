@@ -206,6 +206,7 @@ abstract public class Agent {
 			@Name("method") String method, 
 			@Name("params") ObjectNode params) throws JSONRPCException, IOException {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
+		// TODO: catch exceptions and log them here?
 		send(url, method, params);
 	}
 	

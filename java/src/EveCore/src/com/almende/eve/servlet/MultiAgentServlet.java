@@ -21,6 +21,7 @@ import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
+import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.session.Session;
 import com.almende.util.StreamingUtil;
@@ -33,6 +34,7 @@ public class MultiAgentServlet extends HttpServlet {
 	private Map<String, Class<?>> agentClasses = null;
 	private ContextFactory contextFactory = null;
 	private Config config = null;
+	//private RequestLogger requestLogger = null; // TODO: use or remove request logger stuff?
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
 	@Override
@@ -41,7 +43,8 @@ public class MultiAgentServlet extends HttpServlet {
 			// initialize configuration file, context, and agents
 			initConfig();
 			initContext();
-			initAgents();
+			//initRequestLogger(); 	// TODO: use or remove request logger stuff?
+			initAgents();			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -151,11 +154,14 @@ public class MultiAgentServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		String request = "";
-		String response = "";
+		// long start = System.currentTimeMillis(); // TODO: use or remove request logger stuff?
+		JSONRequest jsonRequest = null;
+		JSONResponse jsonResponse = null;
+		Agent agent = null;
 		try {
+			
 			// retrieve the request data
-			request = streamToString(req.getInputStream());
+			String body = streamToString(req.getInputStream());
 
 			// a servlet path is built up in three parts: first the agents servlet
 			// agents, then the name of the agent class, then the id of the 
@@ -171,35 +177,84 @@ public class MultiAgentServlet extends HttpServlet {
 			
 			// instantiate the agent
 			Class<?> agentClass = agentClasses.get(classLowerCase);
-			Agent agent = (Agent) agentClass.getConstructor().newInstance();
+			agent = (Agent) agentClass.getConstructor().newInstance();
 			
-			// instantiate context of the agent
+			// instantiate and initialize the context of the agent
 			String agentClassName = agentClass.getSimpleName().toLowerCase();
 			Context context = contextFactory.getContext(agentClassName, address.agentId);
-			agent.setContext(context);
-			
-			// instantiate session for the agent
-			Session session = new Session(req, resp);
-			agent.setSession(session);
-			
-			// execute the init method of the agent
-			agent.init();
-			
-			// invoke the method onto the agent
-			response = JSONRPC.invoke(agent, request);
+			try {
+				context.init();
+				agent.setContext(context);
+				
+				// instantiate session for the agent
+				Session session = new Session(req, resp);
+				agent.setSession(session);
+				
+				// execute the init method of the agent
+				agent.init();
+				
+				// invoke the method onto the agent
+				jsonRequest = new JSONRequest(body);
+				jsonResponse = JSONRPC.invoke(agent, jsonRequest);
+			} 
+			finally {
+				// destroy context (this will typically persist the context)
+				context.destroy();
+			}
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
-			JSONResponse jsonResponse = new JSONResponse(jsonError);
-			response = jsonResponse.toString();
-
+			jsonResponse = new JSONResponse(jsonError);
+			
 			err.printStackTrace(); // TODO: remove printing stacktrace?
 		}
 
+		// long end = System.currentTimeMillis(); 	// TODO: use or remove request logger stuff?
+
+
 		// return response
 		resp.addHeader("Content-Type", "application/json");
-		resp.getWriter().println(response);
+		resp.getWriter().println(jsonResponse.toString());
+		resp.getWriter().close();
+
+		/* TODO: use or remove request logger stuff?
+		// log this call when there is a request logger available
+		if (requestLogger != null) {
+			AgentDetailRecord record = new AgentDetailRecord();
+			
+			// url
+			record.setAgent(req.getRequestURL().toString());
+			
+			// class
+			if (agent != null) {
+				record.setType(agent.getType());
+			}
+			
+			// method
+			if (jsonRequest != null) {
+				record.setMethod(jsonRequest.getMethod());
+			}
+
+			// timestamp (ISO datetime string)
+			record.setTimestamp(DateTime.now().toString());
+			
+			// duration
+			long duration = (end - start);
+			record.setDuration(duration);
+			
+			// success
+			boolean success = false;
+			if (jsonResponse != null) {
+				try {
+					success = (jsonResponse.getError() == null);
+				} catch (JSONRPCException e) {}
+			}
+			record.setSuccess(success);
+			
+			// store the record
+			requestLogger.log(record);
+		}*/
 	}
 	
 	/**
@@ -321,6 +376,44 @@ public class MultiAgentServlet extends HttpServlet {
 		
 		logger.info("Context class " + contextClass.getName() + " loaded");
 	}
+
+	/**
+	 * Initialize the correct Context class for the SingleAgentServlet.
+	 * The class is read from the servlet init parameters in web.xml.
+	 * @throws Exception
+	 */
+	/* TODO: use or remove request logger stuff?
+	private void initRequestLogger() throws Exception {
+		if (config == null || contextFactory == null) {
+			return;
+		}
+
+
+		String environment = contextFactory.getEnvironment();
+		String className = config.get("environment", environment, "request_logger", "class");
+		if (className == null) {
+			// no classname found. do not load logger
+			return;
+		}
+		
+		Class<?> loggerClass = null;
+		try {
+			loggerClass = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			throw new ServletException("Cannot find class " + className + "");
+		}
+		
+		if (!hasInterface(loggerClass, RequestLogger.class)) {
+			throw new ServletException(
+					"RequestLogger class " + loggerClass.getName() + 
+					" must implement interface " + RequestLogger.class.getName());
+		}
+
+		requestLogger = (RequestLogger) loggerClass.getConstructor().newInstance();
+		
+		logger.info("RequestLogger class " + loggerClass.getName() + " loaded");
+	}
+	*/
 
 	/**
 	 * Check if checkClass has implemented interfaceClass

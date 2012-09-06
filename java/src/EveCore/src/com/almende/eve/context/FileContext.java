@@ -38,6 +38,7 @@ import com.almende.eve.scheduler.Scheduler;
  * 
  * @author jos
  */
+// TODO: create an in memory cache and reduce the number of reads/writes
 public class FileContext implements Context {
 	FileContextFactory factory = null;
 	private String agentUrl = null;
@@ -162,6 +163,21 @@ public class FileContext implements Context {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	/**
+	 * init is executed once before the agent method is invoked
+	 */
+	@Override
+	public void init() {
+	}
+	
+	/**
+	 * destroy is executed once after the agent method is invoked
+	 * if the properties are changed, they will be saved
+	 */
+	@Override
+	public void destroy() {
 	}
 	
 	/**

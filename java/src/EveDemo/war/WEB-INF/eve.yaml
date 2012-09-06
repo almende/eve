@@ -5,6 +5,9 @@ environment:
   Development:
     servlet_url: http://localhost:8888/agents
     auth_google_servlet_url: http://localhost:8888/auth/google
+    # request_logger:
+    #   class: com.almende.eve.context.google.DatastoreRequestLogger
+
   Production:
     servlet_url: http://eveagents.appspot.com/agents
     auth_google_servlet_url: https://eveagents.appspot.com/auth/google

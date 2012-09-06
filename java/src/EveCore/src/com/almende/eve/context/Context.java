@@ -36,5 +36,9 @@ public interface Context extends Map<String, Object> {
 	public String getAgentUrl();
 
 	// scheduler
-	public Scheduler getScheduler();	
+	public Scheduler getScheduler();
+	
+	// init and destroy methods
+	public void init();     // executed once before the agent invocation
+	public void destroy();  // executed once after the agent invocation
 }

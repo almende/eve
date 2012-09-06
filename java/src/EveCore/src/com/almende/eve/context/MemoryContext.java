@@ -161,4 +161,16 @@ public class MemoryContext implements Context {
 	public synchronized Collection<Object> values() {
 		return properties.values();
 	}
+
+	/**
+	 * init is executed once before the agent method is invoked
+	 */
+	@Override
+	public void init() {}
+
+	/**
+	 * destroy is executed once after the agent method is invoked
+	 */
+	@Override
+	public void destroy() {}
 }
