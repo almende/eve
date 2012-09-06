@@ -10,6 +10,10 @@ import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.google.AppEngineScheduler;
 import com.almende.eve.config.Config;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
+import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
@@ -24,6 +28,9 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * the environment, and the system configuration), and the agent can store its 
  * state in the context. 
  * The context extends a standard Java Map.
+ * 
+ * During the lifetime of a DatastoreContext, the context synchronized over all
+ * running instances of the same DatastoreContext using MemCache.
  * 
  * Usage:<br>
  *     ContextFactory factory = new DatastoreContextFactory();<br>
@@ -40,8 +47,11 @@ public class DatastoreContext implements Context {
 	private String agentClass = null;
 	private String agentId = null;
 	private String agentUrl = null;
-	private KeyValue entity = null;
-	private Map<String, Object> properties = null;
+	private Map<String, Object> properties = new HashMap<String, Object>();
+	
+	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+	private IdentifiableValue cacheValue = null;
+	private boolean isChanged = false;
 	
 	public DatastoreContext() {}
 
@@ -143,84 +153,181 @@ public class DatastoreContext implements Context {
 	}
 
 	/**
-	 * Load/refresh the entity, retrieve it from the Datastore
-	 * @return success    True if successfully refreshed
-	 * @throws IOException 
-	 * @throws ClassNotFoundException 
+	 * Load the context from cache. If the context is not available in cache,
+	 * it will be loaded from the Datastore and the cache will be created.
+	 * If there is no context stored in both cache and Datastore, an empty
+	 * map with properties is initialized.
+	 */
+	private void refresh() {
+		// load from cache
+		boolean success = loadFromCache();
+		if (!success) {
+			// if not in cache, load from datastore
+			success = loadFromDatastore();
+			if (success) {
+				// create memcache entry
+				saveToCache();
+			}
+		}
+	}
+	
+	/**
+	 * Store changes in the context into memcache, and mark the context as
+	 * changed. The context will be stored in the datastore when the method 
+	 * .destroy() is executed.
+	 * @return success    returns true if the change is saved in memcache.
+	 */
+	private boolean update() {
+		isChanged = true;
+		boolean success = saveToCache();
+		return success;
+	}
+	
+	/**
+	 * Create the key name for storing a lock for the context in memcache
+	 * @return
+	 */
+	private String getCacheKey() {
+		return getAgentUrl() + "/locked";
+	}
+	
+	/**
+	 * Get a unique key for storing the context. The key is a composed key,
+	 * namely "agentclass.agentid".
+	 * @return
+	 */
+	private String getPropertiesKey () {
+		return agentClass + "." + agentId;
+	}
+
+	/**
+	 * Load the context from cache
+	 * @return success
 	 */
 	@SuppressWarnings("unchecked")
-	private boolean refresh() {
-		boolean success = false;
-		try {
-			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			String propertiesKey = agentClass + "." + agentId;
-			if (entity == null) {
-				entity = datastore.load(KeyValue.class, propertiesKey);
-				if (entity == null) {
-					entity = new KeyValue(propertiesKey, properties);
-					datastore.store(entity);
-				}
-			}
-			else {
-				datastore.associate(entity);
-				datastore.refresh(entity);
-			}
-			
-			@SuppressWarnings("rawtypes")
-			Class<? extends HashMap> MAP_OBJECT_CLASS = 
-				(new HashMap<String, Object>()).getClass();
-			
-			properties = entity.getValue(MAP_OBJECT_CLASS);
-			
-			success = true;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+	private boolean loadFromCache() {
+		cacheValue = cache.getIdentifiable(getCacheKey());
+		if (cacheValue != null && cacheValue.getValue() != null) {
+			properties = (Map<String, Object>) cacheValue.getValue();
+			return true;
 		}
 		
-		// ensure there is always a properties initialized!
-		if (properties == null) {
-			properties = new HashMap<String, Object>();
+		return false;
+	}
+	
+	/**
+	 * Save the context to cache
+	 * If the cache is changed since the last retrieval of the cache, saving
+	 * will fail and false will be returned.
+	 * @return success
+	 */
+	private boolean saveToCache() {
+		boolean success = false;
+		if (cacheValue != null) {
+			success = cache.putIfUntouched(getCacheKey(), cacheValue, properties);
+		}
+		else {
+			success = cache.put(getCacheKey(), properties, null, 
+					SetPolicy.ADD_ONLY_IF_NOT_PRESENT);
+			if (success) {
+				// reload from cache to get the IdentifiableValue from cache,
+				// for later reference
+				success = loadFromCache();
+			}
 		}
 		
 		return success;
 	}
 	
 	/**
-	 * Update the entity, store changes to the Datastore
-	 * @param entity
-	 * @return success    True if successfully updated
+	 * load the properties from the datastore
+	 * @return success    True if successfully loaded
 	 * @throws IOException 
+	 * @throws ClassNotFoundException 
+	 * @return
 	 */
-	private boolean update() {
+	@SuppressWarnings("unchecked")
+	private boolean loadFromDatastore () {
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			// TODO: check if entity != null
-			entity.setValue(properties);
-			datastore.associate(entity);
-			datastore.update(entity);
+			KeyValue entity = datastore.load(KeyValue.class, getPropertiesKey());
+			
+			@SuppressWarnings("rawtypes")
+			Class<? extends HashMap> MAP_OBJECT_CLASS = 
+				(new HashMap<String, Object>()).getClass();
+			
+			if (entity != null) {
+				Map<String, Object> newProperties = entity.getValue(MAP_OBJECT_CLASS);
+				if (newProperties != null) {
+					properties = newProperties;
+				}
+			}
+			
+			return true;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Write the properties to the datastore when they are changed
+	 * @param entity
+	 * @return success    True if successfully saved
+	 * @throws IOException 
+	 */
+	private boolean saveToDatastore () {
+		try {
+			ObjectDatastore datastore = new AnnotationObjectDatastore();
+			KeyValue entity = new KeyValue(getPropertiesKey(), properties);
+			datastore.store(entity);
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
-	
-	
+
 	/**
 	 * Delete the entity from the Datastore
 	 * @param entity
-	 * @return success    True if successfully deleted
-	 * @throws IOException 
 	 */
-	private boolean delete() {
+	private void deleteFromDatastore () {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
-		datastore.associate(entity);
-		datastore.delete(entity);
-		return true;
+		KeyValue entity = datastore.load(KeyValue.class, getPropertiesKey());
+		if (entity != null) {
+			datastore.delete(entity);
+		}
 	}
 	
+	/**
+	 * Delete the entity from the Cache
+	 * @param entity
+	 */
+	private void deleteFromCache () {
+		cache.delete(getPropertiesKey());
+	}
+	
+	/**
+	 * init is executed once before the agent method is invoked
+	 */
+	@Override
+	public synchronized void init() {}
+
+	/**
+	 * If the context is changed, it will be stored in the datastore on destroy. 
+	 */
+	@Override
+	public synchronized void destroy() {
+		if (isChanged) {
+			saveToDatastore();
+			isChanged = false;
+		}
+	}
+		
 	@Override
 	public Object get(Object key) {
 		refresh();
@@ -231,7 +338,10 @@ public class DatastoreContext implements Context {
 	public Object put(String key, Object value) {
 		refresh();
 		Object ret = properties.put(key, value);
-		update();
+		boolean success = update();
+		if (!success) {
+			ret = null;
+		}
 		return ret;
 	}
 
@@ -252,8 +362,11 @@ public class DatastoreContext implements Context {
 	@Override
 	public void clear() {
 		refresh();
+
+		isChanged = false;
 		properties.clear();
-		delete();
+		deleteFromCache();
+		deleteFromDatastore();
 	}
 
 	@Override

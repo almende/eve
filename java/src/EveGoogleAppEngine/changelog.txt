@@ -1,6 +1,17 @@
 EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
+<not yet released>, version 0.6
+
+- Created a record logger to log requests to agents (DatastoreRequestLogger).
+  Not yet in use though.
+- Changed the behavior of the DatastoreContext: The DatastoreContext now
+  uses MemCache during a request for read/writing properties, and only writes
+  to the Datastore once at the end when the context is changed.
+  Because the context is synchronized to the MemCache, multiple instances of
+  the same agent can execute requests simultaneously with only little change of
+  conflicts.
+
 2012-07-03, version 0.5
 
 - Updated the context to reflect changes in EveCore
