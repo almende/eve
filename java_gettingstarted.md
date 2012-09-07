@@ -4,8 +4,8 @@ title: Getting Started
 ---
 
 
-{% assign eve_core_version = '0.8' %}
-{% assign eve_google_appengine_version = '0.5' %}
+{% assign eve_core_version = '0.9' %}
+{% assign eve_google_appengine_version = '0.6' %}
 
 
 # Getting Started
@@ -76,6 +76,7 @@ web servlet.
     - [jackson-databind-2.0.0.jar](http://jackson.codehaus.org)
     - [jackson-core-2.0.0.jar](http://jackson.codehaus.org)
     - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org)
+    - [joda-time-2.1.jar](http://joda-time.sourceforge.net/)
     - [snakeyaml-1.10.jar](http://snakeyaml.org)
 
   - [eve-google-appengine-{{eve_google_appengine_version}}.jar](files/java/eve-google-appengine-{{eve_google_appengine_version}}.jar)

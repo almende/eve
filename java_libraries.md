@@ -60,6 +60,7 @@ They can be downloaded at the
     jackson-databind-2.0.0.jar,
     jackson-core-2.0.0.jar, 
     jackson-annotations-2.0.0.jar,
+    joda-time-2.1.jar,
     snakeyaml-1.10.jar.
     Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
@@ -94,6 +95,5 @@ They can be downloaded at the
   Will contain agents planning activities in a dynamic way.
 
   *Dependencies: 
-    eve-core.jar,
-    jodatime-2.1.jar
+    eve-core.jar
   *
