@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.google.AppEngineScheduler;
 import com.almende.eve.config.Config;
+import com.almende.eve.json.JSONRequest;
+import com.almende.eve.json.JSONResponse;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
@@ -410,5 +413,16 @@ public class DatastoreContext implements Context {
 	public Collection<Object> values() {
 		refresh();
 		return properties.values();
+	}
+
+	@Override
+	public JSONResponse invoke(String url, JSONRequest request)
+			throws Exception {
+		return getAgentFactory().invoke(url, request);
+	}
+
+	@Override
+	public AgentFactory getAgentFactory() {
+		return factory.getAgentFactory();
 	}
 }

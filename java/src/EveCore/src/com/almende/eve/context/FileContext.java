@@ -14,7 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
+import com.almende.eve.json.JSONRequest;
+import com.almende.eve.json.JSONResponse;
 import com.almende.eve.scheduler.RunnableScheduler;
 import com.almende.eve.scheduler.Scheduler;
 
@@ -40,7 +43,7 @@ import com.almende.eve.scheduler.Scheduler;
  */
 // TODO: create an in memory cache and reduce the number of reads/writes
 public class FileContext implements Context {
-	FileContextFactory factory = null;
+	private FileContextFactory factory = null;
 	private String agentUrl = null;
 	private String agentClass = null;
 	private String agentId = null;
@@ -101,6 +104,11 @@ public class FileContext implements Context {
 	@Override
 	public synchronized String getServletUrl() {
 		return factory.getServletUrl();
+	}
+
+	@Override
+	public synchronized AgentFactory getAgentFactory() {
+		return factory.getAgentFactory();
 	}
 
 	@Override
@@ -165,6 +173,15 @@ public class FileContext implements Context {
 		return false;
 	}
 	
+	/**
+	 * invoke other agents (internal or external) via the context
+	 * @throws Exception 
+	 */
+	@Override
+	public JSONResponse invoke(String url, JSONRequest request) throws Exception  {
+		return getAgentFactory().invoke(url, request);
+	}	
+
 	/**
 	 * init is executed once before the agent method is invoked
 	 */

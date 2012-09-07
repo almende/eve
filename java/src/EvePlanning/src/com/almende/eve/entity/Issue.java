@@ -55,7 +55,7 @@ public class Issue implements Serializable {
 	// error codes
 	// TODO: better implement error codes
 	public static Integer NO_PLANNING = 1000;
-	public static Integer IOEXCEPTION = 2000;
+	public static Integer EXCEPTION = 2000;
 	public static Integer JSONRPCEXCEPTION = 2001;
 	
 	

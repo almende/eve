@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 
 /**
@@ -30,6 +31,7 @@ public class FileContextFactory implements ContextFactory {
 
 	private String servletUrl = null;
 	private Config config = null;
+	private AgentFactory agentFactory = null;
 	private String path = null;
 	
 	public FileContextFactory() {}
@@ -37,6 +39,16 @@ public class FileContextFactory implements ContextFactory {
 	@Override
 	public void setConfig(Config config) {
 		this.config = config;
+	}
+
+	@Override
+	public AgentFactory getAgentFactory() {
+		return agentFactory;
+	}
+
+	@Override
+	public void setAgentFactory(AgentFactory agentFactory) {
+		this.agentFactory = agentFactory;
 	}
 
 	@Override

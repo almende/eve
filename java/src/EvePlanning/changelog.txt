@@ -2,7 +2,7 @@ EVE PLANNING
 http://almende.github.com/eve/
 
 
-<not yet released>, version 0.8
+2012-09-07, version 0.8
 
 - Moved dependency on joda-time-2.1.jar from eve-planning.jar to eve-core.jar.
 

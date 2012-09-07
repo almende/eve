@@ -135,39 +135,54 @@
                     <tr>
                         <td class="noborder">Attendees</td>
                         <td class="noborder">
-                            <div ng:repeat="attendee in agent.activity.constraints.attendees">
-                                <!-- TODO: create an angular widget for the attendee.agent url -->
-                                <a href=""
-                                   ng:click="toggleAttendeeOptional(agent, attendee)"
-                                   ng:show="!attendee.optional"
-                                   class="optional"
-                                   title="Presence is required">&#x25C9;</a>
-                                <a href=""
-                                   ng:click="toggleAttendeeOptional(agent, attendee)"
-                                   ng:show="attendee.optional"
-                                   class="optional"
-                                   title="Presence is optional">&#x25CC;</a>
+                            <table>
+                                <tr ng:repeat="attendee in agent.activity.constraints.attendees">
+                                    <!-- TODO: create an angular widget for the attendee.agent url -->
+                                    <td class="noborder middle">
+                                        <a href=""
+                                           ng:click="toggleAttendeeOptional(agent, attendee)"
+                                           ng:show="!attendee.optional"
+                                           class="optional"
+                                           title="Presence is required">&#x25C9;</a>
+                                        <a href=""
+                                           ng:click="toggleAttendeeOptional(agent, attendee)"
+                                           ng:show="attendee.optional"
+                                           class="optional"
+                                           title="Presence is optional">&#x25CC;</a>
+                                    </td>
 
-                                <input name="attendee.id" type="text"
-                                       title="Enter the id of the Attendees CalendarAgent"
-                                       placeholder="id" ng:change="setUpdated(agent)" />
+                                    <td class="noborder middle">
+                                        <input name="attendee.id" type="text"
+                                               title="Enter the id of the Attendees CalendarAgent"
+                                               placeholder="id" ng:change="setUpdated(agent)" />
+                                    </td>
 
-                                <select name="attendee.responseStatus"
-                                        title="response status"
-                                        ng:change="setUpdated(agent)">
-                                    <option value="accepted">accepted</option>
-                                    <option value="tentative">tentative</option>
-                                    <option value="declined">declined</option>
-                                    <option value="needsAction">needs action</option>
-                                </select>
+                                    <td class="noborder middle">
+                                        <select name="attendee.responseStatus"
+                                                title="response status"
+                                                ng:change="setUpdated(agent)">
+                                            <option value="accepted">accepted</option>
+                                            <option value="tentative">tentative</option>
+                                            <option value="declined">declined</option>
+                                            <option value="needsAction">needs action</option>
+                                        </select>
+                                    </td>
 
-                                <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
-                                   title="Remove Attendee">&times;</a>
-                            </div>
-                            <div>
-                                <a href="" class="add" ng:click="addAttendee(agent)"
-                                   title="Add an attendee">&plus;</a>
-                            </div>
+                                    <td class="noborder middle">
+                                        <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
+                                           title="Remove Attendee">&times;</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="noborder middle"></td>
+                                    <td class="noborder middle"></td>
+                                    <td class="noborder middle"></td>
+                                    <td class="noborder middle">
+                                        <a href="" class="add" ng:click="addAttendee(agent)"
+                                           title="Add an attendee">&plus;</a>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                 </table>

@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
+import com.almende.eve.json.JSONRequest;
+import com.almende.eve.json.JSONResponse;
 import com.almende.eve.scheduler.RunnableScheduler;
 import com.almende.eve.scheduler.Scheduler;
 
@@ -173,4 +176,15 @@ public class MemoryContext implements Context {
 	 */
 	@Override
 	public void destroy() {}
+
+	@Override
+	public JSONResponse invoke(String url, JSONRequest request)
+			throws Exception {
+		return getAgentFactory().invoke(url, request);
+	}
+
+	@Override
+	public AgentFactory getAgentFactory() {
+		return factory.getAgentFactory();
+	}
 }

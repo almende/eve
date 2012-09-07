@@ -918,9 +918,6 @@ public class MeetingAgent extends Agent {
 			params.put("eventId", eventId);
 			try {
 				event = send(agent, "getEvent", params, ObjectNode.class);
-			} catch (IOException e) {
-				addIssue(TYPE.warning, Issue.IOEXCEPTION, e.getMessage());
-				e.printStackTrace(); // TODO: remove print stacktrace
 			} catch (JSONRPCException e) {
 				if (e.getCode() == 404) {
 					// event was deleted by the user.
@@ -935,6 +932,9 @@ public class MeetingAgent extends Agent {
 				} else {
 					e.printStackTrace(); // TODO: remove print stacktrace
 				}
+			} catch (Exception e) {
+				addIssue(TYPE.warning, Issue.EXCEPTION, e.getMessage());
+				e.printStackTrace(); // TODO: remove print stacktrace
 			}
 		}
 		return event;
@@ -1028,12 +1028,11 @@ public class MeetingAgent extends Agent {
 				agentData.eventUpdated = updatedEvent.get("updated").asText();
 				agentData.activityUpdated = activity.withStatus().getUpdated();
 				putAgentData(agent, agentData);
-				
-			} catch (IOException e) {
-				addIssue(TYPE.warning, Issue.IOEXCEPTION, e.getMessage());
-				e.printStackTrace(); // TODO remove printing stacktrace
 			} catch (JSONRPCException e) {
 				addIssue(TYPE.warning, Issue.JSONRPCEXCEPTION, e.getMessage());
+				e.printStackTrace(); // TODO remove printing stacktrace
+			} catch (Exception e) {
+				addIssue(TYPE.warning, Issue.EXCEPTION, e.getMessage());
 				e.printStackTrace(); // TODO remove printing stacktrace
 			}
 		} else if (changed) {
@@ -1393,11 +1392,11 @@ public class MeetingAgent extends Agent {
 			// store the interval in the context
 			putAgentBusy(agent, busy);
 
-		} catch (IOException e) {
-			addIssue(TYPE.warning, Issue.IOEXCEPTION, e.getMessage());
-			e.printStackTrace(); // TODO remove printing stacktrace
 		} catch (JSONRPCException e) {
 			addIssue(TYPE.warning, Issue.JSONRPCEXCEPTION, e.getMessage());
+			e.printStackTrace(); // TODO remove printing stacktrace
+		} catch (Exception e) {
+			addIssue(TYPE.warning, Issue.EXCEPTION, e.getMessage());
 			e.printStackTrace(); // TODO remove printing stacktrace
 		}
 	}
@@ -1441,9 +1440,6 @@ public class MeetingAgent extends Agent {
 					send(agent, "deleteEvent", params);
 					data.eventId = null;
 				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (JSONRPCException e) {
 				if (e.getCode() == 404) {
 					// event was already deleted. fine!
@@ -1452,6 +1448,9 @@ public class MeetingAgent extends Agent {
 				else {
 					e.printStackTrace();
 				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			if (data.eventId == null) {

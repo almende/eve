@@ -3,7 +3,10 @@ package com.almende.eve.context;
 import java.util.Map;
 
 import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
+import com.almende.eve.json.JSONRequest;
+import com.almende.eve.json.JSONResponse;
 
 
 /**
@@ -38,6 +41,11 @@ public interface Context extends Map<String, Object> {
 	// scheduler
 	public Scheduler getScheduler();
 	
+	// access to the AgentFactory, invoke or instantiate other agents 
+	// (internal or external) via the context
+	public JSONResponse invoke(String url, JSONRequest request) throws Exception;
+	public AgentFactory getAgentFactory();
+
 	// init and destroy methods
 	public void init();     // executed once before the agent invocation
 	public void destroy();  // executed once after the agent invocation

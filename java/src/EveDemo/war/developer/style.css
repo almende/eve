@@ -46,7 +46,10 @@ td {
 }
 td.noborder {
     border: none;
-    padding-bottom: 0;
+    padding: 2px;
+}
+td.middle {
+    vertical-align: middle;
 }
 
 input[type=text] {

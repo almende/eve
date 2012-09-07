@@ -27,7 +27,6 @@
 
 package com.almende.eve.agent;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +63,23 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void init() {}
+
+	/**
+	 * This method can be called to destory and finalize the context of the 
+	 * agent. 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void destroy() {
+		getContext().destroy();
+	}
+	
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	protected void finalize () {
+		// ensure the context is cleanup when the agent's method destroy is not
+		// called.
+		destroy();
+	}
 	
 	@Access(AccessType.UNAVAILABLE)
 	final public void setContext(Context context) {
@@ -198,13 +214,12 @@ abstract public class Agent {
 	 * @param url
 	 * @param method
 	 * @param params
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 * @throws Exception 
 	 */
 	final public void onTrigger (
 			@Name("url") String url, 
 			@Name("method") String method, 
-			@Name("params") ObjectNode params) throws JSONRPCException, IOException {
+			@Name("params") ObjectNode params) throws Exception {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
 		// TODO: catch exceptions and log them here?
 		send(url, method, params);
@@ -305,13 +320,15 @@ abstract public class Agent {
 	 * @param params A ObjectNode containing the parameter values of the method
 	 * @param type   The return type of the method
 	 * @return       
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, ObjectNode params, Class<T> type) 
-			throws IOException, JSONRPCException {
-		JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
+	final public <T> T send(String url, String method, ObjectNode params, 
+			Class<T> type) throws Exception {
+		// invoke the other agent via the context, allowing the context
+		// to route the request internally or externally
+		JSONRequest request = new JSONRequest(method, params);
+		JSONResponse response = getContext().invoke(url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -319,6 +336,7 @@ abstract public class Agent {
 		if (type != null && type != void.class) {
 			return response.getResult(type);
 		}
+		
 		return null;
 	}
 	
@@ -327,12 +345,11 @@ abstract public class Agent {
 	 * @param url    The url of the agent
 	 * @param method The name of the method
 	 * @return       
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Class<T> type) 
-			throws JSONRPCException, IOException {
+			throws Exception {
 		return send(url, method, null, type);
 	}
 	
@@ -342,12 +359,11 @@ abstract public class Agent {
 	 * @param method The name of the method
 	 * @param params A ObjectNode containing the parameter values of the method
 	 * @return 
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method, ObjectNode params) 
-			throws JSONRPCException, IOException {
+			throws Exception {
 		send(url, method, params, void.class);
 	}
 
@@ -356,18 +372,17 @@ abstract public class Agent {
 	 * @param url    The url of the agent
 	 * @param method The name of the method
 	 * @return 
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method) 
-			throws JSONRPCException, IOException {
+			throws Exception {
 		send(url, method, null, void.class);
 	}
 
 
 	/**
-	 * Send a request to an agent in JSON-RPC 1.0 format (array with parameters)
+	 * Send an asynchronous JSON-RPC request to an agent
 	 * @param callbackMethod  The method to be executed on callback
 	 * @param url             The url of the agent to be called
 	 * @param method          The name of the method
@@ -384,7 +399,7 @@ abstract public class Agent {
 		JSONRequest req = new JSONRequest(method, params);
 		String callbackUrl = getUrl();
 		req.setCallback(callbackUrl, callbackMethod);
-		JSONRPC.send(url, req);
+		getContext().invoke(url, req);
 	}
 
 	/**

@@ -204,11 +204,15 @@ public class TestAgent extends Agent {
 		System.out.println("myTask is executed. Message: " + message);
 	}
 
-	public List<String> testSend() throws Exception {
-		ArrayList<String> type = new ArrayList<String>();
-		@SuppressWarnings("unchecked")
-		List<String> res = send("http://localhost:8080/EveCore/agents/chatagent/1/", 
-				"getConnections", type.getClass());
+	public Object testSend(@Name("url") @Required(false) String url,
+			@Name("method") @Required(false) String method) throws Exception {
+		if (url == null) {
+			url = "http://localhost:8080/EveCore/agents/chatagent/1/";
+		}
+		if (method == null) {
+			method = "getDescription";
+		}
+		Object res = send(url, method, Object.class);
 		System.out.println(res);
 		return res;
 	}

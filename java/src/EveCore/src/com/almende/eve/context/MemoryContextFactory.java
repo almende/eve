@@ -3,6 +3,7 @@ package com.almende.eve.context;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 
 /**
@@ -29,6 +30,7 @@ import com.almende.eve.config.Config;
  */
 public class MemoryContextFactory implements ContextFactory {
 	private String servletUrl = null;
+	private AgentFactory agentFactory = null;
 	private Config config = null;
 	// Singleton containing all contexts, stored in a Map[agentClass][id]
 	private Map<String, Map<String, MemoryContext>> contexts = 
@@ -93,5 +95,15 @@ public class MemoryContextFactory implements ContextFactory {
 			return servletUrl;
 		}
 		return servletUrl;
+	}
+
+	@Override
+	public void setAgentFactory(AgentFactory agentFactory) throws Exception {
+		this.agentFactory = agentFactory;
+	}
+
+	@Override
+	public AgentFactory getAgentFactory() {
+		return agentFactory;
 	}
 }

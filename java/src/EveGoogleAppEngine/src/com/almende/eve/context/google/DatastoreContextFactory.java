@@ -1,5 +1,6 @@
 package com.almende.eve.context.google;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
@@ -26,6 +27,7 @@ import com.google.appengine.api.utils.SystemProperty;
  */
 public class DatastoreContextFactory implements ContextFactory {
 	private Config config = null;
+	private AgentFactory agentFactory = null;
 	private String servletUrl = null;
 	private String environment = null;
 
@@ -68,6 +70,16 @@ public class DatastoreContextFactory implements ContextFactory {
 			}
 		}
 		return servletUrl;
+	}
+
+	@Override
+	public void setAgentFactory(AgentFactory agentFactory) throws Exception {
+		this.agentFactory = agentFactory;
+	}
+
+	@Override
+	public AgentFactory getAgentFactory() {
+		return agentFactory;
 	}
 
 }

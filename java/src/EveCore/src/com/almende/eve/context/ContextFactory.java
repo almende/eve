@@ -1,5 +1,6 @@
 package com.almende.eve.context;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 
 /**
@@ -23,6 +24,7 @@ import com.almende.eve.config.Config;
  *
  */
 public interface ContextFactory {
+	public void setAgentFactory(AgentFactory agentFactory) throws Exception;
 	public void setConfig(Config config) throws Exception;
 	public Config getConfig() throws Exception;
 
@@ -30,4 +32,5 @@ public interface ContextFactory {
 	public String getServletUrl() throws Exception;	
 	
 	public Context getContext(String agentClass, String id) throws Exception;
+	public AgentFactory getAgentFactory();
 }
