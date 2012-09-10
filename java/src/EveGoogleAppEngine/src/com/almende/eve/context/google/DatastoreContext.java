@@ -61,7 +61,7 @@ public class DatastoreContext implements Context {
 	protected DatastoreContext(DatastoreContextFactory factory, 
 			String agentClass, String agentId) {
 		this.factory = factory;
-		this.agentClass = agentClass;
+		this.agentClass = agentClass.toLowerCase();
 		this.agentId = agentId;
 		// Note: agentUrl will be initialized when needed
 	}
