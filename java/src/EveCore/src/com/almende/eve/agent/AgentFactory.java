@@ -1,14 +1,11 @@
 package com.almende.eve.agent;
 
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.servlet.ServletException;
 
 import com.almende.eve.agent.log.LogAgent;
 import com.almende.eve.config.Config;
@@ -28,11 +25,20 @@ import com.almende.eve.json.JSONResponse;
  * instantiate a context for each agent.
  * 
  * Example usage:
- *     AgentFactory factory = new AgentFactory("eve.yaml");
+ *     // generic constructor
+ *     Config config = new Config("eve.yaml");
+ *     AgentFactory factory = new AgentFactory(config);
  *     
+ *     // construct in servlet
+ *     InputStream is = getServletContext().getResourceAsStream("/WEB-INF/eve.yaml");
+ *     Config config = new Config(is);
+ *     AgentFactory factory = new AgentFactory(config);
+ *     
+ *     // invoke agents
  *     response = factory.invoke(url, request); // invoke a local or remote agent
  *     response = factory.invoke(agentClass, agentId, request); // invoke a local agent
  *     
+ *     // instantiate an agent
  *     Agent agent = factory.getAgent(agentClass, agentId); // load local agent
  *     String desc = agent.getDescription(); // use the agent
  *     agent.destroy(); // neatly shutdown context
@@ -48,29 +54,9 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	public AgentFactory(Config config) throws Exception {
-		initConfig(config);
-		initContext();
-		initAgents();			
+		setConfig(config);
 	}
 	
-	/**
-	 * Construct an AgentFactory and initialize the configuration
-	 * @param configFile      A stream containing the configuration
-	 * @throws Exception
-	 */
-	public AgentFactory(InputStream configFile) throws Exception {
-		this(new Config(configFile));		
-	}
-	
-	/**
-	 * Construct an AgentFactory and initialize the configuration
-	 * @param configFilename    filename of the configuration file
-	 * @throws Exception
-	 */
-	public AgentFactory(String configFilename) throws Exception {
-		this(new Config(configFilename));
-	}
-
 	/**
 	 * Initialize an agent by its url.
 	 * The agent must be located in the configured servlet, i.e. it may not 
@@ -130,7 +116,7 @@ public class AgentFactory {
 	public Class<?> getAgentClass(String className) {
 		return agentClasses.get(className.toLowerCase());
 	}
-	
+
 	/**
 	 * Invoke a local agent
 	 * @param agentClass
@@ -316,12 +302,24 @@ public class AgentFactory {
 	/**
 	 * Set configuration file
 	 * @param config   A loaded configuration file
+	 * @throws Exception 
 	 */
-	private void initConfig(Config config) throws IllegalArgumentException {
+	public void setConfig(Config config) throws Exception {
 		if (config == null) {
 			throw new IllegalArgumentException("Config not initialized");
 		}
 		this.config = config;
+
+		initContext();
+		initAgents();
+	}
+
+	/**
+	 * Get the loaded config file
+	 * @return config   A configuration file
+	 */
+	public Config getConfig() {
+		return config;
 	}
 	
 	/**
@@ -338,7 +336,7 @@ public class AgentFactory {
 		
 		List<String> classes = config.get("agent", "classes");
 		if (classes == null) {
-			throw new ServletException(
+			throw new IllegalArgumentException(
 				"Config parameter 'agent.classes' missing in Eve configuration.");
 		}
 
@@ -349,7 +347,7 @@ public class AgentFactory {
 					Class<?> agentClass = Class.forName(className);
 
 					if (!agentClass.getSuperclass().equals(Agent.class)) {
-						throw new ServletException("Class " + agentClass.getName() + 
+						throw new IllegalArgumentException("Class " + agentClass.getName() + 
 								" must extend " + Agent.class.getName());
 					}
 					
@@ -393,7 +391,7 @@ public class AgentFactory {
 		
 		String className = config.get("context", "class");
 		if (className == null) {
-			throw new ServletException(
+			throw new IllegalArgumentException(
 				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
@@ -401,11 +399,11 @@ public class AgentFactory {
 		try {
 			contextClass = Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			throw new ServletException("Cannot find class " + className + "");
+			throw new IllegalArgumentException("Cannot find class " + className + "");
 		}
 		
 		if (!hasInterface(contextClass, ContextFactory.class)) {
-			throw new ServletException(
+			throw new IllegalArgumentException(
 					"Context class " + contextClass.getName() + 
 					" must implement interface " + ContextFactory.class.getName());
 		}
