@@ -48,7 +48,7 @@ public class MemoryContext implements Context {
 			String agentClass, String agentId) {
 		this.factory = factory;
 		this.agentId = agentId;
-		this.agentClass = agentClass;
+		this.agentClass = agentClass.toLowerCase();
 		// Note: agentUrl will be initialized when needed
 		
 		this.scheduler = new RunnableScheduler();

@@ -59,7 +59,7 @@ public class FileContext implements Context {
 			String agentClass, String agentId) {
 		this.factory = factory;
 		this.agentId = agentId;
-		this.agentClass = agentClass;
+		this.agentClass = agentClass.toLowerCase();
 		// Note: agentUrl and filename will be initialized when needed
 		
 		this.scheduler = new RunnableScheduler();
@@ -124,7 +124,7 @@ public class FileContext implements Context {
 	private String getFilename() {
 		if (filename == null) {
 			String path = factory.getPath();
-			filename = path + agentClass.toLowerCase() + "." + agentId;
+			filename = path + agentClass + "." + agentId;
 		}
 		return filename;		
 	}

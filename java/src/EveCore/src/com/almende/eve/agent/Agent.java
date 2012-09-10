@@ -424,6 +424,6 @@ abstract public class Agent {
 	 * @return classname
 	 */
 	final public String getType() {
-		return this.getClass().getSimpleName();
+		return context.getAgentClass();
 	}
 }
