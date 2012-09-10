@@ -334,11 +334,13 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 		if (json.has("items")){
 			items = (ArrayNode) json.get("items");
 			
+			/* TODO: cleanup?
 			// convert from Google to Eve event
 			for (int i = 0; i < items.size(); i++) {
 				ObjectNode item = (ObjectNode) items.get(i);
-				//toEveEvent(item);
+				toEveEvent(item);
 			}
+			*/
 		}
 		else {
 			items = JOM.createArrayNode();
