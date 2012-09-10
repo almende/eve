@@ -13,7 +13,7 @@ public class Config {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	Map<String, Object> config = null;
 	
-	protected Config() {}
+	public Config() {}
 
 	/**
 	 * Load the configuration file by filename (absolute path)
