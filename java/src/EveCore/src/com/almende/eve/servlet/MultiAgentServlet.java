@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.AgentFactory.AgentAddress;
+import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
@@ -113,7 +114,7 @@ public class MultiAgentServlet extends HttpServlet {
 		String fullname = "/WEB-INF/" + filename;
 		logger.info("loading configuration file '" + 
 				getServletContext().getRealPath(fullname) + "'...");
-		InputStream config = getServletContext().getResourceAsStream(fullname);
+		Config config = new Config(getServletContext().getResourceAsStream(fullname));
 		agentFactory = new AgentFactory(config);	
 	}
 	

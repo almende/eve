@@ -11,32 +11,29 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
-import com.almende.eve.context.Context;
-import com.almende.eve.context.ContextFactory;
-import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
+import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.util.StreamingUtil;
 
-
+// FIXME: the agents getUrl does not work well in SingleAgentServlet, and
+//         also LogAgent does not work
 @SuppressWarnings("serial")
 public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
-	private Class<?> agentClass = null;
-	private ContextFactory contextFactory = null;
-	private Config config = null; // servlet configuration 
+	private AgentFactory agentFactory = null;
+	private String agentClass = null;
+	private String agentId = "1"; // TODO: what to do with id?
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
 	@Override
 	public void init() {
 		try {
-			// initialize configuration file, context, and agents
-			initConfig();
-			initContext();
-			initAgent();
+			initAgentFactory();	
+			initAgentClass();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -50,7 +47,7 @@ public class SingleAgentServlet extends HttpServlet {
 		// retrieve the servlet url from the context
 		String servletUrl = null;
 		try {
-			servletUrl = contextFactory.getServletUrl();
+			servletUrl = agentFactory.getServletUrl();
 			if (!servletUrl.endsWith("/")) {
 				servletUrl += "/";
 			}
@@ -87,59 +84,34 @@ public class SingleAgentServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		String response = "";
+		JSONRequest jsonRequest = null;
+		JSONResponse jsonResponse = null;		
 		try {
-			// retrieve the request data
-			String request = streamToString(req.getInputStream());
-
-			// instantiate an agent
-			Agent agent = (Agent) agentClass.getConstructor().newInstance();
-
-			// instantiate and initialize context
-			// FIXME: setting class and id results in a wrong getUrl() of the agent
-			// FIXME: getUrl() of the agent does not work
-			String agentClassName = agent.getClass().getSimpleName().toLowerCase();
-			String id = "1"; // TODO: what to do with id?
-			Context context = contextFactory.getContext(agentClassName, id);
-			try {
-				context.init();
-				agent.setContext(context);			
-				
-				// TODO: instantiate session?
-				
-				// invoke the method onto the agent
-				response = JSONRPC.invoke(agent, request);
-			}
-			finally {
-				// destroy context (this will typically persist the context)
-				context.destroy();
-			}
+			// retrieve the request body
+			String body = streamToString(req.getInputStream());
+			jsonRequest = new JSONRequest(body);
+			
+			// invoke the agent
+			jsonResponse = agentFactory.invoke(agentClass, agentId, jsonRequest);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = new JSONRPCException(
 					JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
-			JSONResponse jsonResponse = new JSONResponse(jsonError);
-			response = jsonResponse.toString();
-			
+			jsonResponse = new JSONResponse(jsonError);
+
 			err.printStackTrace(); // TODO: remove printing stacktrace?
 		}
 
 		// return response
 		resp.addHeader("Content-Type", "application/json");
-		resp.getWriter().println(response);
+		resp.getWriter().println(jsonResponse.toString());
 	}
 
 	/**
-	 * Load configuration file
-	 * @throws IOException 
-	 * @throws ServletException 
+	 * initialize the agent factory
 	 * @throws Exception 
 	 */
-	private void initConfig() throws ServletException, IOException {
-		if (config != null) {
-			return;
-		}
-
+	private void initAgentFactory() throws Exception {
 		String filename = getInitParameter("config");
 		if (filename == null) {
 			filename = "eve.yaml";
@@ -150,110 +122,34 @@ public class SingleAgentServlet extends HttpServlet {
 		String fullname = "/WEB-INF/" + filename;
 		logger.info("loading configuration file '" + 
 				getServletContext().getRealPath(fullname) + "'...");
-		config = new Config(getServletContext().getResourceAsStream(fullname));
+		Config config = new Config(getServletContext().getResourceAsStream(fullname));
+		agentFactory = new AgentFactory(config);	
 	}
 	
-		
-	/**
-	 * Initialize the correct Agent class for the SingleAgentServlet.
-	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws ServletException
-	 */
-	private void initAgent() throws Exception {
-		if (agentClass != null) {
-			return;
-		}
-
-		List<String> classNames = config.get("agent", "classes");		
-		if (classNames == null || classNames.size() == 0) {
-			throw new ServletException(
+	private void initAgentClass() throws IllegalArgumentException {
+		Config config = agentFactory.getConfig();
+		List<String> classes = config.get("agent", "classes");
+		if (classes == null) {
+			throw new IllegalArgumentException(
 				"Config parameter 'agent.classes' missing in Eve configuration.");
 		}
-		if (classNames.size() > 1) {
-			throw new ServletException(
+		
+		if (classes == null || classes.size() == 0) {
+			throw new IllegalArgumentException(
+				"Config parameter 'agent.classes' missing in Eve configuration.");
+		}
+		if (classes.size() > 1) {
+			throw new IllegalArgumentException(
 					"Config parameter 'agent.classes' may only contain one class");
 		}
-		String className = classNames.get(0);
 		
-		Class<?> newAgentClass;
+		Class<?> clazz = null;
 		try {
-			newAgentClass = Class.forName(className);
+			clazz = Class.forName(classes.get(0));
+			agentClass = clazz.getSimpleName().toLowerCase();
 		} catch (ClassNotFoundException e) {
-			throw new ServletException("Cannot find class " + className + "");
+			logger.warning("Agent class '" + classes.get(0) + "' not found");
 		}
-		
-		if (!newAgentClass.getSuperclass().equals(Agent.class)) {
-			throw new ServletException("Class " + newAgentClass.getName() + 
-					" must extend " + Agent.class.getName());
-		}
-
-		// test if the class contains valid JSON-RPC messages
-		List<String> errors = JSONRPC.validate(agentClass);
-		for (String e : errors) {
-			logger.warning(e);
-		}
-		
-		// copy to the final agentClass once loaded
-		agentClass = newAgentClass;
-		
-		logger.info("Agent class " + agentClass.getName() + " loaded");
-	}
-
-	/**
-	 * Initialize the correct Context class for the SingleAgentServlet.
-	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws ServletException
-	 */
-	private void initContext() throws Exception {
-		if (contextFactory != null) {
-			return;
-		}
-
-		String className = config.get("context", "class");
-		if (className == null) {
-			throw new ServletException(
-				"Config parameter 'context.class' missing in Eve configuration.");
-		}
-		
-		Class<?> contextClass = null;
-		try {
-			contextClass = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			throw new ServletException("Cannot find class " + className + "");
-		}
-		
-		if (!hasInterface(contextClass, ContextFactory.class)) {
-			throw new ServletException(
-					"Context class " + contextClass.getName() + 
-					" must implement interface " + ContextFactory.class.getName());
-		}
-
-		ContextFactory newContextFactory = 
-			(ContextFactory) contextClass.getConstructor().newInstance();
-		newContextFactory.setConfig(config);
-		
-		// copy to the final contextFactory once loaded
-		contextFactory = newContextFactory;
-		
-		// FIXME: it is not safe retrieving the servlet url from the request!
-		logger.info("Context class " + contextClass.getName() + " loaded");
-	}
-	
-	/**
-	 * Check if checkClass has implemented interfaceClass
-	 * @param checkClass
-	 * @param interfaceClass
-	 */
-	private boolean hasInterface(Class<?> checkClass, Class<?> interfaceClass) {
-		Class<?>[] interfaces = checkClass.getInterfaces();
-		
-		for (Class<?> i : interfaces) {
-			if (i.equals(interfaceClass)) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 	
 	/**
