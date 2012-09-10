@@ -54,10 +54,10 @@ public class MemoryContextFactory implements ContextFactory {
 
 		if (agentClass != null) {
 			// get map with the current agentClass
-			Map<String, MemoryContext> classContexts = contexts.get(agentClass);
+			Map<String, MemoryContext> classContexts = contexts.get(agentClass.toLowerCase());
 			if (classContexts == null) {
 				classContexts = new HashMap<String, MemoryContext>();
-				contexts.put(agentClass, classContexts);
+				contexts.put(agentClass.toLowerCase(), classContexts);
 			}
 	
 			// get map with the current id
