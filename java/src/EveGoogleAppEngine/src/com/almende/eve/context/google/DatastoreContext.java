@@ -185,15 +185,7 @@ public class DatastoreContext implements Context {
 		boolean success = saveToCache();
 		return success;
 	}
-	
-	/**
-	 * Create the key name for storing a lock for the context in memcache
-	 * @return
-	 */
-	private String getCacheKey() {
-		return getAgentUrl() + "/locked";
-	}
-	
+
 	/**
 	 * Get a unique key for storing the context. The key is a composed key,
 	 * namely "agentclass.agentid".
@@ -209,7 +201,7 @@ public class DatastoreContext implements Context {
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean loadFromCache() {
-		cacheValue = cache.getIdentifiable(getCacheKey());
+		cacheValue = cache.getIdentifiable(getPropertiesKey());
 		if (cacheValue != null && cacheValue.getValue() != null) {
 			properties = (Map<String, Object>) cacheValue.getValue();
 			return true;
@@ -227,10 +219,10 @@ public class DatastoreContext implements Context {
 	private boolean saveToCache() {
 		boolean success = false;
 		if (cacheValue != null) {
-			success = cache.putIfUntouched(getCacheKey(), cacheValue, properties);
+			success = cache.putIfUntouched(getPropertiesKey(), cacheValue, properties);
 		}
 		else {
-			success = cache.put(getCacheKey(), properties, null, 
+			success = cache.put(getPropertiesKey(), properties, null, 
 					SetPolicy.ADD_ONLY_IF_NOT_PRESENT);
 			if (success) {
 				// reload from cache to get the IdentifiableValue from cache,
@@ -312,6 +304,7 @@ public class DatastoreContext implements Context {
 	 */
 	private void deleteFromCache () {
 		cache.delete(getPropertiesKey());
+		// TODO: check if deletion was successful?
 	}
 	
 	/**
