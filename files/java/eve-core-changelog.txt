@@ -1,6 +1,11 @@
 EVE CORE
 http://almende.github.com/eve/
 
+<not yet released>, version 0.9.1
+
+- Fixed: Context did not load an agents context with a case insensitive 
+  className.
+
 
 2012-09-07, version 0.9
 
