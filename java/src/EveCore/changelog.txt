@@ -3,8 +3,9 @@ http://almende.github.com/eve/
 
 2012-09-17, version 0.10.0
 
-- The web interface of the agents now allows to enable/disable logging events
-  using a LogAgent.
+- The web interface of the agents now has an option to enable/disable logging
+  events using a LogAgent.
+- Fixed some minor bugs in error reporting in the agents web interface.
 
 
 2012-09-10, version 0.9.1

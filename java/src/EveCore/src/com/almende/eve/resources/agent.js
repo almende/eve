@@ -112,6 +112,7 @@ function Ctrl() {
      * and the field result in the response is filled in in the field #result
      */
     this.sendForm = function () {
+        var self = this;
         try {
             var request = {};
             request.id = 1;
@@ -131,7 +132,6 @@ function Ctrl() {
 
             var start = +new Date();
             this.formStatus = 'sending...';
-            var self = this;
             this.send(self.url, request, function (response) {
                 var end = +new Date();
                 var diff = (end - start);
@@ -156,7 +156,7 @@ function Ctrl() {
             });
         }
         catch (err) {
-            this.formStatus = 'Error: ' + err;
+            self.formStatus = 'Error: ' + err;
         }
     };
 
@@ -166,6 +166,7 @@ function Ctrl() {
      * and the field result in the response is filled in in the field #result
      */
     this.sendForm = function () {
+        var self = this;
         try {
             var request = {};
             request.id = 1;
@@ -185,7 +186,6 @@ function Ctrl() {
 
             var start = +new Date();
             this.formStatus = 'sending...';
-            var self = this;
             this.send(self.url, request, function (response) {
                 var end = +new Date();
                 var diff = (end - start);
@@ -210,7 +210,7 @@ function Ctrl() {
             });
         }
         catch (err) {
-            this.formStatus = 'Error: ' + err;
+            self.formStatus = 'Error: ' + err;
         }
     };
 
@@ -220,8 +220,8 @@ function Ctrl() {
      * filled in in the field #response
      */
     this.sendJsonRpc = function() {
+        var self = this;
         try {
-            var self = this;
             var request = JSON.parse(this.request);
             this.request = JSON.stringify(request, null, 2);
             self.$root.$eval();
@@ -242,7 +242,7 @@ function Ctrl() {
             });
         }
         catch (err) {
-            this.rpcStatus = 'Error: ' + err;
+            self.rpcStatus = 'Error: ' + err;
         }
     };
 
