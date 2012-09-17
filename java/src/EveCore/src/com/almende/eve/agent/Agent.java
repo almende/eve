@@ -288,9 +288,6 @@ abstract public class Agent {
 		callbackParams.put("params", params);
 		
 		for (Callback s : subscriptions) {
-			// TODO: send asynchronous, plan a task!!!!
-			//send(s.url, s.method, params); // TODO: cleanup
-			
 			// create a task to send this trigger. 
 			// This way, it is sent asynchronously and cannot block this
 			// trigger method

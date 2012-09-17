@@ -223,18 +223,30 @@ public class TestAgent extends Agent {
 		System.out.println(res);
 		return res;
 	}
-	public void subscribeToAgent() throws Exception {
-		String url = "http://localhost:8080/EveCore/agents/testagent/2/";
+	public void subscribeToAgent(@Required(false) @Name("url") String url) throws Exception {
+		if (url == null) {
+				url = "http://localhost:8080/EveCore/agents/testagent/2/";
+		}
 		String event = "dataChanged";
 		String callback = "onEvent";
 		subscribe(url, event, callback);
 	}
 
-	public void unsubscribeFromAgent() throws Exception {
-		String url = "http://localhost:8080/EveCore/agents/testagent/2/";
+	public void unsubscribeFromAgent(@Required(false) @Name("url") String url) throws Exception {
+		if (url == null) {
+			url = "http://localhost:8080/EveCore/agents/testagent/2/";
+		}
 		String event = "dataChanged";
 		String callback = "onEvent";
-		subscribe(url, event, callback);
+		unsubscribe(url, event, callback);
+	}
+	
+	public void triggerDataChanged() throws Exception {
+		trigger("dataChanged", null);
+	}
+	
+	public Object getAllSubscriptions() {
+		return getContext().get("subscriptions");
 	}
 	
 	public void onEvent(

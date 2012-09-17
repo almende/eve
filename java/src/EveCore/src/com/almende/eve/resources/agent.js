@@ -11,27 +11,13 @@ function resize (elem) {
     elem.style.height = (elem.scrollHeight + 20) + 'px';
 }
 
-// TODO: implement a real UUID solution
-// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-var UUID = {
-    'randomUUID': function (withSeparators) {
-        var S4 = function() {
-            return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-        };
-        if (withSeparators) {
-            return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-        }
-        else {
-            return (S4()+S4()+S4()+S4()+S4()+S4()+S4()+S4());
-        }
-    }
-};
-
 /**
  * @constructor Ctrl
  * Angular JS controller to control the page
  */
 function Ctrl() {
+    var scope = this;
+
     var loadingText = '...';
     this.url         = document.location.href;
     this.title       = loadingText;
@@ -56,7 +42,7 @@ function Ctrl() {
     this.pollingInterval = 10000;  // polling interval in milliseconds
     this.timeToLive = 60*1000;       // time to live for the logagent
     this.logs = [];
-    this.logAgentId = UUID.randomUUID();
+    this.enableEvents = true;
 
     /**
      * Change the currently selected method
@@ -165,7 +151,7 @@ function Ctrl() {
                 self.$root.$eval();
                 resize($('#result').get(0));
             }, function (err) {
-                self.self.formStatus = 'failed. Error: ' + JSON.stringify(err);
+                self.formStatus = 'failed. Error: ' + JSON.stringify(err);
                 self.$root.$eval();
             });
         }
@@ -219,7 +205,7 @@ function Ctrl() {
                 self.$root.$eval();
                 resize($('#result').get(0));
             }, function (err) {
-                self.self.formStatus = 'failed. Error: ' + JSON.stringify(err);
+                self.formStatus = 'failed. Error: ' + JSON.stringify(err);
                 self.$root.$eval();
             });
         }
@@ -261,65 +247,43 @@ function Ctrl() {
     };
 
     /**
-     * Get and validate the polling interval
-     * @return {Number} interval in milliseconds
+     * Store the setting enableEvents,
+     * and create/delete the logagent depending on the setting enableEvents
      */
-    this.getPollingInterval = function () {
-        var interval = Number(this.pollingInterval);
-        if (interval <= 0) {
-            interval = 1;
-            this.pollingInterval = interval;
+    this.updateEnableEvents = function () {
+        if (this.enableEvents == true) {
+            // enableEvents==true is the default setting, do not store it
+            delete localStorage['enableEvents'];
+            this.logAgentDelete();
+            this.logAgentCreate();
         }
-        if (interval > 10000) {
-            interval = 10000;
-            this.pollingInterval = interval;
+        else {
+            localStorage['enableEvents'] = false;
+            this.logAgentDelete();
         }
-        return interval;
     };
 
     /**
      * Create a log agent and start polling it for events
      */
-    this.createLogAgent = function () {
+    this.logAgentCreate = function () {
         var self = this;
+
+        // clear any old logs
+        this.logs = [];
 
         // built url for logAgent
         // TODO: this url splitting is kind of dangerous...
         var urlParts = this.url.split('/');
         urlParts.pop();
-        urlParts.pop();
-        urlParts.pop();
+        var id = urlParts.pop();
+        var clazz = urlParts.pop();
         urlParts.push('logagent');
-        urlParts.push(String(this.logAgentId));
+        var logAgentId = clazz + '.' + id;
+        //urlParts.push(String(this.logAgentId));
+        urlParts.push(logAgentId);
         this.logAgentUrl = urlParts.join('/');
         this.$root.$eval();
-
-        // method for retrieving the logs
-        var getLogs = function () {
-            var request = {
-                'id': 1,
-                'method': 'getLogs',
-                'params': {
-                    'since': self.lastTimestamp,
-                    'url': self.url
-                }
-            };
-            self.send(self.logAgentUrl, request, function (response) {
-                var newLogs = response.result;
-                while (newLogs && newLogs.length) {
-                    var newLog = newLogs.shift();
-                    self.lastTimestamp = newLog.timestamp;
-                    self.logs.push(newLog);
-                }
-                self.$root.$eval();
-
-                // set a new timeout
-                self.logAgentTimer = setTimeout(getLogs, self.getPollingInterval());
-            }, function (err) {
-                // set a new timeout
-                self.logAgentTimer = setTimeout(getLogs, self.getPollingInterval());
-            });
-        };
 
         // register this agent to the logagent
         var request = {
@@ -330,7 +294,7 @@ function Ctrl() {
             }
         };
         self.send(this.logAgentUrl, request, function (response) {
-            getLogs();
+            self.logAgentUpdate();
         });
 
         // method for keeping the logagent alive during the session
@@ -344,13 +308,65 @@ function Ctrl() {
                 }
             };
             self.send(self.logAgentUrl, request, function (response) {
-                setTimeout(setTimeToLive, timeToLive - 10*1000); // set a new timeout
+                self.logAgentTTLTimer =
+                    setTimeout(setTimeToLive, timeToLive - 10*1000); // set a new timeout
             }, function (err) {
-                setTimeout(setTimeToLive, timeToLive - 10*1000); // set a new timeout
+                self.logAgentTTLTimer =
+                    setTimeout(setTimeToLive, timeToLive - 10*1000); // set a new timeout
             });
         };
         setTimeToLive();
     };
+
+    /**
+     * Stop the log agent
+     */
+    this.logAgentDelete = function () {
+        if (this.logAgentTimer) {
+            clearTimeout(this.logAgentTimer);
+            delete this.logAgentTimer;
+        }
+        if (this.logAgentTTLTimer) {
+            clearTimeout(this.logAgentTTLTimer);
+            delete this.logAgentTTLTimer;
+        }
+    };
+
+    /**
+     * Retrieve the latest logs from the logagent
+     */
+    this.logAgentUpdate = function () {
+        if (this.logAgentTimer) {
+            clearTimeout(this.logAgentTimer);
+            delete this.logAgentTimer;
+        }
+
+        var request = {
+            'id': 1,
+            'method': 'getLogs',
+            'params': {
+                'since': scope.lastTimestamp,
+                'url': scope.url
+            }
+        };
+        scope.send(scope.logAgentUrl, request, function (response) {
+            var newLogs = response.result;
+            while (newLogs && newLogs.length) {
+                var newLog = newLogs.shift();
+                scope.lastTimestamp = newLog.timestamp;
+                scope.logs.push(newLog);
+            }
+            scope.lastUpdate = (new Date()).toISOString();
+            scope.$root.$eval();
+
+            // set a new timeout
+            scope.logAgentTimer = setTimeout(scope.logAgentUpdate, scope.pollingInterval);
+        }, function (err) {
+            // set a new timeout
+            scope.logAgentTimer = setTimeout(scope.logAgentUpdate, scope.pollingInterval);
+        });
+    };
+
 
     /**
      * Load information and data from the agent via JSON-RPC calls.
@@ -358,12 +374,18 @@ function Ctrl() {
      */
     this.load = function () {
         var self = this;
+
+        // read settings from local storage
+        if (localStorage['enableEvents'] != undefined) {
+            this.enableEvents = localStorage['enableEvents'];
+        }
+
         var reqs = [
             {
                 'method': 'getUrl',
                 'field': 'url',
                 'callback': function () {
-                    self.createLogAgent();
+                    self.updateEnableEvents();
                 }
             },
             {

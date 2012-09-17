@@ -118,28 +118,40 @@
 
     <h2>Events</h2>
 
-    <table>
-        <tr>
-            <th>timestamp</th>
-            <th>event</th>
-            <th>params</th>
-        </tr>
-        <tr ng:repeat="log in logs">
-            <td style="white-space:nowrap;">{{formatDate(log.timestamp)}}</td>
-            <td>{{log.event}}</td>
-            <td>
-                <table>
-                    <tr ng:repeat="(key, value) in log.params">
-                        <td>{{key}}</td><td>{{value}}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+    <div ng:show="enableEvents">
+        <table>
+            <tr>
+                <th>timestamp</th>
+                <th>event</th>
+                <th>params</th>
+            </tr>
+            <tr ng:repeat="log in logs">
+                <td style="white-space:nowrap;">{{formatDate(log.timestamp)}}</td>
+                <td>{{log.event}}</td>
+                <td>
+                    <table>
+                        <tr ng:repeat="(key, value) in log.params">
+                            <td>{{key}}</td><td>{{value}}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
-    <p>Events are logged by {{logAgentUrl}}</p>
-    <p>Polling interval:
-        <input type="text" name="pollingInterval" style="width:50px;" /> milliseconds
+        <p>
+            During this session, events are logged by
+            <a href="{{logAgentUrl}}" target="_blank">this</a> LogAgent,
+            which is polled every {{pollingInterval / 1000}} seconds for updates.
+        </p>
+        <p>
+            Last update: {{lastUpdate}}
+            <a ng:click="logAgentUpdate()">refresh now</a>
+        </p>
+    </div>
+
+    <p>
+        <input type="checkbox" name="enableEvents" ng:change="updateEnableEvents()">
+        Enable monitoring of events
     </p>
 
 </div>
