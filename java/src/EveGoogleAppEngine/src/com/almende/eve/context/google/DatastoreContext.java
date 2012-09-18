@@ -319,6 +319,7 @@ public class DatastoreContext implements Context {
 	@Override
 	public synchronized void destroy() {
 		if (isChanged) {
+			refresh();
 			saveToDatastore();
 			isChanged = false;
 		}
