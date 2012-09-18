@@ -1,7 +1,14 @@
 EVE CORE
 http://almende.github.com/eve/
 
-<not yet released>, version 0.9.1
+2012-09-18, version 0.10.0
+
+- The web interface of the agents now has an option to enable/disable logging
+  events using a LogAgent.
+- Fixed some minor bugs in error reporting in the agents web interface.
+
+
+2012-09-10, version 0.9.1
 
 - Fixed: Context did not load an agents context with a case insensitive 
   className.

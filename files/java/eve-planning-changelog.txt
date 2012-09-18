@@ -2,6 +2,13 @@ EVE PLANNING
 http://almende.github.com/eve/
 
 
+2012-09-18, version 0.8.1
+
+- Fixed a bug in the MeetingAgent, which always kept moving its activity
+  forward, as it found the past not a feasible solution (instead of marking the
+  event as executed).
+
+
 2012-09-07, version 0.8
 
 - Moved dependency on joda-time-2.1.jar from eve-planning.jar to eve-core.jar.

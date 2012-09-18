@@ -1,7 +1,7 @@
 EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
-<not yet released>, version 0.6.1
+2012-09-18, version 0.6.1
 
 - Fixed: a bug in the new cache mechanism for the context. The cache was not 
   deleted when an agent's context was cleared.
