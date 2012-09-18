@@ -349,32 +349,42 @@ public class MeetingAgent extends Agent {
 		
 		clearIssues();
 		
+		// synchronize the events
 		boolean changedEvent = syncEvents();
 		if (changedEvent) {
 			syncEvents();
 		}
 
-		updateBusyIntervals();
-
-		boolean changedConstraints = applyConstraints();
-		boolean rescheduled = scheduleActivity();
-		if (changedConstraints || rescheduled) {
-			changedEvent = syncEvents();
-			if (changedEvent) {
-				syncEvents();
-			}
-		}
-		
 		// Check if the activity is finished
 		// If not, schedule a new update task. Else we are done
 		Activity activity = getActivity();
 		String start = 
 				(activity != null) ? activity.withStatus().getStart() : null;
+		String updated = 
+				(activity != null) ? activity.withStatus().getUpdated() : null;
 		boolean isFinished = false;
 		if (start != null && (new DateTime(start)).isBefore(DateTime.now())) {
+			// start of the event is in the past
 			isFinished = true;
+			if (updated != null && (new DateTime(updated)).isAfter(new DateTime(start))) {
+				// if changed after the last planned start time, then it is 
+				// updated afterwards, so do not mark as finished
+				isFinished = false;
+			}
 		}
 		if (activity != null && !isFinished) {
+			// not yet finished. Reschedule the activity
+			updateBusyIntervals();
+
+			boolean changedConstraints = applyConstraints();
+			boolean rescheduled = scheduleActivity();
+			if (changedConstraints || rescheduled) {
+				changedEvent = syncEvents();
+				if (changedEvent) {
+					syncEvents();
+				}
+			}
+			
 			// TODO: not so nice adjusting the activityStatus here this way
 			if (activity.withStatus().getActivityStatus() != Status.ACTIVITY_STATUS.error) {
 				// store status of a activity as "planned"

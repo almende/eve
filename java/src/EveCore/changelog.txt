@@ -1,7 +1,7 @@
 EVE CORE
 http://almende.github.com/eve/
 
-2012-09-17, version 0.10.0
+2012-09-18, version 0.10.0
 
 - The web interface of the agents now has an option to enable/disable logging
   events using a LogAgent.
