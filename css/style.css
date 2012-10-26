@@ -1,70 +1,83 @@
 
 html, body {
-  font-family: arial, sans serif;
-  font-size: 11pt;
-  color: #4D4D4D;
-  line-height: 1.7em;
-  
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  height: 100%;
+    font-family: arial, sans serif;
+    font-size: 11pt;
+    color: #4D4D4D;
+    line-height: 1.7em;
+
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
 }
 
 body {
-  overflow-y: scroll;
+    overflow-y: scroll;
 }
 
 #container {
-  margin: 0 auto;
-  width: 900px;
+    margin: 0 auto;
+    width: 900px;
 
-  /* TODO: cleanup
-  height: 100%;
-  */
+    /* TODO: cleanup
+    height: 100%;
+    */
 }
 
 #menu {
-  width: 150px;
-  float: left;
-  text-align: right;
+    width: 150px;
+    float: left;
+    text-align: right;
 
-  /* TODO: cleanup
-  height: 100%;
-  position: fixed;
-  overflow-x: hidden;
-  overflow-y: auto;
-  */
+    /* TODO: cleanup
+    height: 100%;
+    position: fixed;
+    overflow-x: hidden;
+    overflow-y: auto;
+    */
 }
 
 #menu-inner {
-  padding: 70px 20px 0 0;
+    padding: 70px 20px 0 0;
 }
 
 #contents {
-  /* TODO: cleanup
-  margin-left: 150px;
-  */
-  padding: 50px 25px;
-  
-  width: 700px;
-  float: left;
+    /* TODO: cleanup
+    margin-left: 150px;
+    */
+    padding: 50px 25px;
+
+    width: 700px;
+    float: left;
 }
 
 h2 {
-  padding-top: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #FACAE6;
-  color: #F0209B;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #FACAE6;
+    color: #F0209B;
 }
 
 a {
-  color: #F0209B;
-  text-decoration: none;
+    color: #F0209B;
+    text-decoration: none;
 }
 a:hover {
-  color: #BE1F85;
-  text-decoration: underline;
+    color: #BE1F85;
+    text-decoration: underline;
+}
+
+table {
+    border-collapse: collapse;
+}
+th {
+    background-color: #E5E5E5;
+}
+th, td {
+    border: 1px solid lightgray;
+    padding: 5px 10px;
+    text-align: left;
+    vertical-align: top;
 }
 
 /*
@@ -86,7 +99,7 @@ ul li.nav {
   font-size: 11pt;
   color: #F0209B;
 
-  margin-top: 5px;  
+  margin-top: 5px;
 }
 
 ul li ul li.nav {
@@ -99,86 +112,86 @@ ul li ul li.nav {
 */
 
 div.nav ul {
-  text-decoration: none;
-  text-transform: uppercase;
+    text-decoration: none;
+    text-transform: uppercase;
 
-  margin-bottom: 30px;
-  padding-left: 0;
+    margin-bottom: 30px;
+    padding-left: 0;
 }
 li.nav {
 
 }
 
 div.nav ul li {
-  text-decoration: none;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-size: 11pt;
-  color: #F0209B;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 11pt;
+    color: #F0209B;
 
-  list-style: none;
-  margin-top: 5px;  
+    list-style: none;
+    margin-top: 5px;
 }
 
 div.nav ul li ul li {
-  text-decoration: none;
-  text-transform: none;
-  font-weight: normal;
-  font-size: 11pt;
-  color: #4D4D4D;
+    text-decoration: none;
+    text-transform: none;
+    font-weight: normal;
+    font-size: 11pt;
+    color: #4D4D4D;
 
-  list-style: none;
+    list-style: none;
 }
 
 a.nav {
-  color: #4D4D4D;
+    color: #4D4D4D;
 }
 
 a.nav:hover {
-  color: #BE1F85;
+    color: #BE1F85;
 }
 
 
 table.example {
-  border-collapse: collapse;
+    border-collapse: collapse;
 }
 
 th.example {
-  font-weight: normal;
-  border: 1px solid lightgray;
-  background-color: #E5E5E5;
-  text-align: left;
-  vertical-align: top;
-  padding: 5px;
+    font-weight: normal;
+    border: 1px solid lightgray;
+    background-color: #E5E5E5;
+    text-align: left;
+    vertical-align: top;
+    padding: 5px;
 }
 td.example {
-  border: 1px solid lightgray;
-  padding: 5px;
+    border: 1px solid lightgray;
+    padding: 5px;
 }
 
 pre, code {
-  font-size: 10pt;
+    font-size: 10pt;
 }
 
 pre {
-  line-height: 1.5em;
-  overflow-x: auto; 
-  background-color: #F5F5F5;
-  border: 1px solid lightgray;
-  padding: 5px;
+    line-height: 1.5em;
+    overflow-x: auto;
+    background-color: #F5F5F5;
+    border: 1px solid lightgray;
+    padding: 5px;
 }
 
 pre.example {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
 }
 
 div.lastupdate {
-  font-size: 75%;
-  margin-top: 40px;
-  
-  border-top: 1px solid #FACAE6;
-  color: #F0209B;  
+    font-size: 75%;
+    margin-top: 40px;
+
+    border-top: 1px solid #FACAE6;
+    color: #F0209B;
 }

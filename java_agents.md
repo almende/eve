@@ -129,12 +129,15 @@ The context offers agent specific information via the methods `getAgentUrl`,
 The context offers system information via the methods `getEnvironment`,
 `getServletUrl` and `getConfig`. 
 
-For example if an agent requires some specific settings, 
-these settings can be stored in the configuration file (typically eve.yaml),
+For example if an agent requires some specific configuration properties,
+these properties can be stored in the configuration file (typically eve.yaml),
 and read by the agent:
 
     Config config = getContext().getConfig();
     String database_url = config.get('database_url');
+
+See also the page
+[Configuration](java_configuration.html#accessing_configuration_properties).
 
 
 ## Events {#events}
