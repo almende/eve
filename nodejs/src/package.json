@@ -9,7 +9,8 @@
   "dependencies": {
     "isodate": "~0.0.0",
     "request": "~2.1.1",
-    "couch-client": "~0.0.4"
+    "couch-client": "~0.0.4",
+    "express": "~3.0.0"
   },
   "devDependencies": {},
   "scripts": {
