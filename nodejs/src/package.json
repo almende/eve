@@ -1,0 +1,30 @@
+{
+  "name": "Eve",
+  "version": "0.1.0",
+  "description": "Eve is a multipurpose, web based agent platform.",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "isodate": "~0.0.0",
+    "request": "~2.1.1",
+    "couch-client": "~0.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/almende/eve"
+  },
+  "keywords": [
+    "eve",
+    "agentplatform",
+    "json-rpc"
+  ],
+  "author": "Jos de Jong",
+  "license": "BSD"
+}
