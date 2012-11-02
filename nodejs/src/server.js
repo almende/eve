@@ -19,5 +19,8 @@ eve.add(GoogleCalendarAgent);
 
 // start the eve server
 server.use('/agents', eve.handleRequest);
+server.use(function(req, res, next) {
+	res.sendfile(__dirname + '/public' +req.url);
+});
 server.listen(PORT, HOST);
 console.log('Eve running at http://' + HOST + ':' + PORT + '/');

@@ -118,7 +118,11 @@ eve.handleRequest = function(req, res, next) {
 			});
 		});
 		return;
-	}	
+	} else if(req.method === 'GET') {
+		
+		res.sendfile(__dirname + '/public/index.html');
+		return;
+	}
 	
 	next();
 }
