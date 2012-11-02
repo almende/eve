@@ -96,17 +96,24 @@ Agent.prototype._receive = function(request_, callback) {
     }
 };
 
-Agent.prototype.getId = function () {
+Agent.prototype.getId = function (params, callback, errback) {
     if (this._id === undefined) {
         throw {"message": "No id available, Agent is uninstantiated"};
     }
-    return this._id;
+    callback(this._id);
 };
 
-Agent.prototype.getUrl = function () {
+Agent.prototype.getType = function (params, callback, errback) {
+    if (this.type === undefined) {
+        throw {"message": "No type available, Agent is uninstantiated"};
+    }
+    callback(this.type);
+};
+
+Agent.prototype.getUrl = function (params, callback, errback) {
     var location = this.config.location.href;
-    return (location ? location : "") +
-        "/" + this.type + "/" + this._id || "";
+    callback( (location ? location : "") +
+        "/" + this.type + "/" + (this._id ? this._id : "") || "");
 }
 
 Agent.prototype._send = function () {

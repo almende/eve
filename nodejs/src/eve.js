@@ -35,7 +35,7 @@ eve.add = function (agent) {
 eve.add(ManagerAgent);
 
 
-eve.handleRequest = function (agentType, agentId, request, callback) {
+eve.processRequest = function (agentType, agentId, request, callback) {
     var id = -1;
     try {
         if (agentId) {
@@ -94,42 +94,41 @@ eve.handleRequest = function (agentType, agentId, request, callback) {
     }
 };
 
-/**
- * Start a server handling the HTTP requests
- * @param {Number} port
- * @param {String} host
- */
-eve.listen = function (port, host) {
-    eve.location.href = "http://" + host + ":" + port;
+eve.handleRequest = function(req, res, next) {
+	var data = "";
+	if(req.method === 'POST') {
+		// instantiate the correct type of agent, extract this type from the url
+		var pathname = url.parse(req.url).pathname,
+			parts = pathname.split('/'),
+			type = parts[1],
+			id = parts[2];
 
-    http.createServer(function (req, res) {
-        var data = "";
+		req.on("data", function(chunk) {
+			data += chunk;
+		});
 
-        // instantiate the correct type of agent, extract this type from the url
-        var pathname = url.parse(req.url).pathname,
-            parts = pathname.split('/'),
-            type = parts[1],
-            id = parts[2];
+		req.on("end", function() {
+			console.log(req.url);
+			console.log(data);
 
-        req.on("data", function(chunk) {
-            data += chunk;
-        });
-
-        req.on("end", function() {
-            console.log(req.url);
-            console.log(data);
-
-            eve.handleRequest(type, id, data, function(response) {
-                console.log(response);
-                res.writeHead(200, {'Content-Type': 'application/json'});
-                res.end(response);
-            });
-        });
-    }).listen(port, host);
-};
+			eve.processRequest(type, id, data, function(response) {
+				console.log(response);
+				res.writeHead(200, {'Content-Type': 'application/json'});
+				res.end(response);
+			});
+		});
+		return;
+	} else if(req.method === 'GET') {
+		
+		res.sendfile(__dirname + '/public/index.html');
+		return;
+	}
+	
+	next();
+}
 
 /**
  * nodejs exports
  */
-exports.listen = eve.listen;
+exports.handleRequest = eve.handleRequest;
 exports.add = eve.add;

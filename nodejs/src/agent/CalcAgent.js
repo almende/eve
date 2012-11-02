@@ -14,6 +14,10 @@ CalcAgent.prototype.getDescription = function(params, callback, errback) {
     callback("CalcAgent is an agent which can do some amazing calculations.");
 };
 
+CalcAgent.prototype.getVersion = function(params, callback, errback) {
+    callback("1.0");
+};
+
 CalcAgent.prototype.add = function (params, callback, errback) {
     callback(params.a + params.b);
 };
