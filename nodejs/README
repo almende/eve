@@ -33,6 +33,6 @@ response: {"id":1, "result": "52 mins", "error": null}
 
 ## Documentation
 
-    post data:      http://stackoverflow.com/questions/5528081/how-to-do-a-simple-read-post-data-in-node-js
-    get page:       http://seanp2k.com/2011/02/node-js-fetch-url-and-display-page-body/
-    post request:   http://stackoverflow.com/questions/6158933/http-post-request-in-node-js
+post data:      http://stackoverflow.com/questions/5528081/how-to-do-a-simple-read-post-data-in-node-js
+get page:       http://seanp2k.com/2011/02/node-js-fetch-url-and-display-page-body/
+post request:   http://stackoverflow.com/questions/6158933/http-post-request-in-node-js
