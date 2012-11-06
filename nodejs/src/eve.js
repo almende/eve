@@ -47,7 +47,7 @@ eve.processRequest = function (agentType, agentId, request, callback) {
 
                 // instantiate the agent
                 var agent = new eve.agents[doc.type]();
-                for (prop in doc) {
+                for (var prop in doc) {
                     if (doc.hasOwnProperty(prop)) {
                         agent[prop] = doc[prop];
                     }
@@ -102,7 +102,6 @@ eve.handleRequest = function(req, res, next) {
             parts = pathname.split('/'),
             type = parts[1],
             id = parts[2];
-
         req.on("data", function(chunk) {
             data += chunk;
         });
