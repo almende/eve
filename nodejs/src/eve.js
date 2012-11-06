@@ -95,37 +95,37 @@ eve.processRequest = function (agentType, agentId, request, callback) {
 };
 
 eve.handleRequest = function(req, res, next) {
-	var data = "";
-	if(req.method === 'POST') {
-		// instantiate the correct type of agent, extract this type from the url
-		var pathname = url.parse(req.url).pathname,
-			parts = pathname.split('/'),
-			type = parts[1],
-			id = parts[2];
+    var data = "";
+    if(req.method === 'POST') {
+        // instantiate the correct type of agent, extract this type from the url
+        var pathname = url.parse(req.url).pathname,
+            parts = pathname.split('/'),
+            type = parts[1],
+            id = parts[2];
 
-		req.on("data", function(chunk) {
-			data += chunk;
-		});
+        req.on("data", function(chunk) {
+            data += chunk;
+        });
 
-		req.on("end", function() {
-			console.log(req.url);
-			console.log(data);
+        req.on("end", function() {
+            console.log(req.url);
+            console.log(data);
 
-			eve.processRequest(type, id, data, function(response) {
-				console.log(response);
-				res.writeHead(200, {'Content-Type': 'application/json'});
-				res.end(response);
-			});
-		});
-		return;
-	} else if(req.method === 'GET') {
-		
-		res.sendfile(__dirname + '/public/index.html');
-		return;
-	}
-	
-	next();
-}
+            eve.processRequest(type, id, data, function(response) {
+                console.log(response);
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(response);
+            });
+        });
+        return;
+    } else if(req.method === 'GET') {
+
+        res.sendfile(__dirname + '/public/index.html');
+        return;
+    }
+
+    next();
+};
 
 /**
  * nodejs exports

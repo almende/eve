@@ -27,8 +27,3 @@ context:
 google:
   client_id: 231599786845-p4r6ka1emoj8enivejds6vma41ni2s26.apps.googleusercontent.com
   client_secret: tUtHesFJEAfiyVjbJd4q0Hvq
-
-# auth servlet
-auth:
-  google:
-    servlet_url: http://localhost:8080/EvePlanning/auth/google

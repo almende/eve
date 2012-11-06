@@ -322,6 +322,8 @@ abstract public class Agent {
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, ObjectNode params, 
 			Class<T> type) throws Exception {
+		// TODO: implement support for adding custom http headers (for authorization for example)
+		
 		// invoke the other agent via the context, allowing the context
 		// to route the request internally or externally
 		JSONRequest request = new JSONRequest(method, params);

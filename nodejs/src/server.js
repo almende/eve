@@ -9,7 +9,7 @@ var eve                   = require('./eve.js'),
     GoogleDirectionsAgent = require('./agent/GoogleDirectionsAgent.js'),
     GoogleCalendarAgent   = require('./agent/GoogleCalendarAgent.js'),
     UserAgent             = require('./agent/UserAgent.js'),
-    server				  = require('express')();
+    server                = require('express')();
 
 // register some agent types
 eve.add(CalcAgent);
@@ -20,7 +20,7 @@ eve.add(GoogleCalendarAgent);
 // start the eve server
 server.use('/agents', eve.handleRequest);
 server.use(function(req, res, next) {
-	res.sendfile(__dirname + '/public' +req.url);
+    res.sendfile(__dirname + '/public' + req.url);
 });
 server.listen(PORT, HOST);
 console.log('Eve running at http://' + HOST + ':' + PORT + '/');

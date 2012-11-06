@@ -18,7 +18,8 @@ var Agent = require('./Agent.js'),
  * Post a form via https
  * @param {String} url
  * @param {Object} fields key/values with the form fields
- * @param {function} callback A callback function
+ * @param {function} callback   callback function
+ * @param {function} errback    callback function on error
  */
 function postForm(url, fields, callback, errback) {
     // built up multi part form data
