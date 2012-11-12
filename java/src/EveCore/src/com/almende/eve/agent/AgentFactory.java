@@ -2,9 +2,9 @@ package com.almende.eve.agent;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.log.LogAgent;
@@ -14,6 +14,7 @@ import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
+import com.almende.util.ClassUtil;
 
 /**
  * The AgentFactory is a factory to instantiate and invoke Eve Agents within the 
@@ -74,6 +75,45 @@ public class AgentFactory {
 	}
 	
 	/**
+	 * Get an agent by its class and id. 
+	 * If the agent class is marked thread-safe, the agent will be instantiated
+	 * only once, and will be kept in memory.
+	 * 
+	 * Before deleting the agent, the method agent.destroy() must be executed
+	 * to neatly shutdown the instantiated context.
+	 * 
+	 * @param agentClass  simple class name
+	 * @param agentId
+	 * @return
+	 * @throws Exception
+	 */
+	public Agent getAgent(String agentClass, String agentId) throws Exception {
+		AgentClass ac = getAgentClass(agentClass);
+		if (ac.threadSafe) {
+			// use existing instance (load if not yet instantiated)
+			String key = agentClass + "/" + agentId;
+			if (agents.containsKey(key)) {
+				// agent is already instantiated, return this instance
+				return agents.get(key);
+			}
+			else {
+				// agent is not yet instantiated, create a new instance
+				Agent agent = createAgent(agentClass, agentId);
+
+				// store the agent in map with the currently running agents
+				agents.put(key, agent);
+				
+				// return new instance
+				return agent;
+			}
+		}
+		else {
+			// create and return a new instance
+			return createAgent(agentClass, agentId);
+		}
+	}
+
+	/**
 	 * Instantiate an agent by its class and id.
 	 * 
 	 * Before deleting the agent, the method agent.destroy() must be executed
@@ -84,9 +124,10 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public Agent getAgent(String agentClass, String agentId) throws Exception {
+	private Agent createAgent(String agentClass, String agentId) throws Exception {
 		// get the agent class
-		Class<?> clazz = getAgentClass(agentClass);
+		AgentClass ac = getAgentClass(agentClass);
+		Class<?> clazz = (ac != null) ? ac.classInstance : null;
 		if (clazz == null) {
 			throw new IllegalArgumentException(
 					"Unknown agent class '" + agentClass + "'");
@@ -102,22 +143,45 @@ public class AgentFactory {
 		
 		// execute the init method of the agent
 		agent.init();
-
+		
 		return agent;
 	}
 	
 	/**
-	 * Get the class of an agent by its classname.
-	 * If the classname is not found in the initialized classes, null is 
+	 * Get the class of an agent by its simple class name.
+	 * If the class name is not found in the initialized classes, null is 
 	 * returned.
-	 * @param className   case insensitive class name
-	 * @return class
+	 * @param simpleName   case insensitive simple class name
+	 * @return agentClass
 	 */
-	public Class<?> getAgentClass(String className) {
-		return agentClasses.get(className.toLowerCase());
+	public AgentClass getAgentClass(String simpleName) {
+		return agentClasses.get(simpleName.toLowerCase());
 	}
-
+	
 	/**
+	 * Test whether an agents class is stateful
+	 * @param simpleName
+	 * @return
+	 */
+	public boolean isStateful(String simpleName) {
+		AgentClass ac = getAgentClass(simpleName);
+		return (ac != null) ? ac.stateful : false;
+	}
+	
+	/**
+	 * Append an agent class to the list with loaded agents
+	 * @param agentClasses
+	 * @param agentClass
+	 */
+	public void putAgentClass(Map<String, AgentClass> agentClasses, 
+			AgentClass agentClass) {
+		agentClasses.put(agentClass.simpleName, agentClass);
+		logger.info("Agent class " + agentClass.className + " loaded " +
+				"(stateful=" + agentClass.stateful + 
+				", thread_safe=" + agentClass.threadSafe + ")");
+	}
+	
+	/**a
 	 * Invoke a local agent
 	 * @param agentClass
 	 * @param agentId
@@ -127,17 +191,25 @@ public class AgentFactory {
 	 */
 	public JSONResponse invoke(String agentClass, String agentId, 
 			JSONRequest request) throws Exception {
-		JSONResponse response = null;
-		Agent agent = getAgent(agentClass, agentId);
-		
-		try {
-			response = JSONRPC.invoke(agent, request);
+		AgentClass ac = getAgentClass(agentClass);
+		if (ac.threadSafe) {
+			// keep the agent instance alive
+			Agent agent = getAgent(agentClass, agentId);
+			return JSONRPC.invoke(agent, request);
 		}
-		finally {
-			agent.destroy();
+		else {
+			// destroy the agent after the method is executed. 
+			// This forces the agent to persist and synchronize its context.
+			JSONResponse response = null;
+			Agent agent = createAgent(agentClass, agentId);
+			try {
+				response = JSONRPC.invoke(agent, request);
+			}
+			finally {
+				agent.destroy();
+			}
+			return response;
 		}
-		
-		return response;
 	}
 	
 	/**
@@ -204,7 +276,7 @@ public class AgentFactory {
 		JSONResponse jsonResponse = invoke(agentUrl, jsonRequest);
 		return jsonResponse.toString();
 	}
-	
+
 	/**
 	 * Get the configured servlet url, or null when not configured
 	 * @return servletUrl
@@ -245,7 +317,7 @@ public class AgentFactory {
 		String servletPath = new URL(servletUrl).getPath();
 		return url.startsWith(servletUrl) || url.startsWith(servletPath);
 	}
-
+	
 	/**
 	 * Split the agentClass, agentId, and resource from an agents url
 	 * An agent url looks like:
@@ -332,50 +404,50 @@ public class AgentFactory {
 			return;
 		}
 
-		Map<String, Class<?>> newAgentClasses = new HashMap<String, Class<?>>();
+		Map<String, AgentClass> newAgentClasses = 
+				new ConcurrentHashMap<String, AgentClass> ();
 		
-		List<String> classes = config.get("agent", "classes");
-		if (classes == null) {
-			throw new IllegalArgumentException(
-				"Config parameter 'agent.classes' missing in Eve configuration.");
-		}
-
-		for (int i = 0; i < classes.size(); i++) {
-			String className = classes.get(i);
-			try {
-				if (className != null && !className.isEmpty()) {
-					Class<?> agentClass = Class.forName(className);
-
-					if (!agentClass.getSuperclass().equals(Agent.class)) {
-						throw new IllegalArgumentException("Class " + agentClass.getName() + 
-								" must extend " + Agent.class.getName());
-					}
-					
-					// test if the class contains valid JSON-RPC messages
-					List<String> errors = JSONRPC.validate(agentClass);
-					for (String e : errors) {
-						logger.warning(e);
-					}
-					
-					String simpleName = agentClass.getSimpleName().toLowerCase();
-					newAgentClasses.put(simpleName, agentClass);
-					
-					logger.info("Agent class " + agentClass.getName() + " loaded");
+		List<Map<String, Object>> agents = config.get("agents");
+		if (agents != null) {
+			// load the agents one by one
+			for (int i = 0; i < agents.size(); i++) {
+				Map<String, Object> properties = agents.get(i);
+				try {
+					AgentClass agentClass = new AgentClass(properties);
+					putAgentClass(newAgentClasses, agentClass);
 				}
-			} 
-			catch (ClassNotFoundException e) {
-				logger.warning("Agent class '" + className + "' not found");
+				catch (Exception e) {
+					logger.warning(e.getMessage());
+				}
 			}
-			catch (Exception e) {
-				logger.warning(e.getMessage());
+		}
+		else {
+			// test for deprecated array agent.classes
+			List<String> classes = config.get("agent", "classes");
+			if (classes != null) {
+				logger.warning("Property agent.classes[] is deprecated. Use agents[].class instead");
+				
+				for (int i = 0; i < classes.size(); i++) {
+					try {
+						String className = classes.get(i);
+						AgentClass agentClass = new AgentClass(className);
+						putAgentClass(newAgentClasses, agentClass);
+					}
+					catch (Exception e) {
+						logger.warning(e.getMessage());
+					}
+				}
+			}
+			else {
+				throw new IllegalArgumentException(
+					"Config parameter 'agents[]' missing in Eve configuration.");
 			}
 		}
 		
-		String simpleName = LogAgent.class.getSimpleName().toLowerCase();
-		newAgentClasses.put(simpleName, LogAgent.class);
-		logger.info("Agent class " + LogAgent.class.getName() + " loaded");
+		// always load the log agent
+		putAgentClass(newAgentClasses, new AgentClass(LogAgent.class));
 		
-		// copy to agentClasses once the map is loaded
+		// put the newly loaded map with agent classes into the map of the AgentFactory
 		agentClasses = newAgentClasses;
 	}
 	
@@ -402,7 +474,7 @@ public class AgentFactory {
 			throw new IllegalArgumentException("Cannot find class " + className + "");
 		}
 		
-		if (!hasInterface(contextClass, ContextFactory.class)) {
+		if (!ClassUtil.hasInterface(contextClass, ContextFactory.class)) {
 			throw new IllegalArgumentException(
 					"Context class " + contextClass.getName() + 
 					" must implement interface " + ContextFactory.class.getName());
@@ -417,23 +489,6 @@ public class AgentFactory {
 		contextFactory = newContextFactory;
 		
 		logger.info("Context class " + contextClass.getName() + " loaded");
-	}
-
-	/**
-	 * Check if checkClass has implemented interfaceClass
-	 * @param checkClass
-	 * @param interfaceClass
-	 */
-	private boolean hasInterface(Class<?> checkClass, Class<?> interfaceClass) {
-		Class<?>[] interfaces = checkClass.getInterfaces();
-		
-		for (Class<?> i : interfaces) {
-			if (i.equals(interfaceClass)) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 
 	public class AgentAddress {
@@ -451,9 +506,85 @@ public class AgentFactory {
 		public String agentResource = null;
 	}
 	
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	private class AgentClass {
+		public AgentClass(Map<String, Object> properties) throws ClassNotFoundException {
+			// read the properties
+			if (properties.containsKey("thread_safe")) {
+				threadSafe = (Boolean) properties.get("thread_safe");
+			}
+			if (properties.containsKey("stateful")) {
+				stateful = (Boolean) properties.get("stateful");
+			}
+			
+			if (stateful) {
+				if (!threadSafe) {
+					throw new IllegalArgumentException(
+						"Stateful agent only supported when marked thread_safe");
+				}
+				// TODO: throw an Exception when on Google App Engine and stateful==true 
+			}
+			
+			String className = (String) properties.get("class");
+			setClass(className);
+		}
+		
+		public AgentClass(String className) throws ClassNotFoundException {
+			setClass(className);
+		}
+		
+		public AgentClass(Class<?> classInstance) 
+				throws NullPointerException, IllegalArgumentException {
+			setClass(classInstance);
+		}
+		
+		private void setClass(String name) 
+				throws ClassNotFoundException, IllegalArgumentException {
+			if (name != null && !name.isEmpty()) {
+				// load class instance
+				Class<?> classInstance = Class.forName(name);
+				setClass(classInstance);
+			}
+			else {
+				throw new IllegalArgumentException("Agent property 'class' undefined");
+			}
+		}
+		
+		private void setClass(Class<?> classInstance) 
+				throws IllegalArgumentException, NullPointerException {
+			if (classInstance == null) {
+				throw new NullPointerException();				
+			}
+			
+			if (!classInstance.getSuperclass().equals(Agent.class)) {
+				throw new IllegalArgumentException("Class " + classInstance.getName() + 
+						" must extend " + Agent.class.getName());
+			}
+			this.classInstance = classInstance;
+			
+			// test if the class contains valid JSON-RPC messages
+			List<String> errors = JSONRPC.validate(classInstance);
+			for (String e : errors) {
+				logger.warning(e);
+			}
+			
+			// extract class name and simple name
+			className = classInstance.getName();
+			simpleName = classInstance.getSimpleName().toLowerCase();			
+		}
+		
+		public Class<?> classInstance = null;
+		public String className = null;
+		public String simpleName = null;
+		public boolean threadSafe = false;
+		public boolean stateful = false;
+	}
 	
-	private Map<String, Class<?>> agentClasses = null;
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+
+	private Map<String, AgentClass> agentClasses = null;
 	private ContextFactory contextFactory = null;
 	private Config config = null;
+	
+	// map with all instantiated agents (only applicable for stateful agents)
+	private Map<String, Agent> agents = new ConcurrentHashMap<String, Agent>();
 }

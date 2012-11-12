@@ -9,9 +9,8 @@ environment:
 
 # agent settings
 # the SingleAgentServlet can only host one agent class.
-agent:
-  classes:
-  - com.almende.eve.agent.example.TestAgent
+agents:
+  - class: com.almende.eve.agent.example.TestAgent
 
 # The context for reading and writing persistent data
 context:

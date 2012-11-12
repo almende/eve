@@ -37,12 +37,16 @@ import com.almende.eve.json.JSONRPCException.CODE;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.messenger.AsyncCallback;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 // TODO: put TestAgent in a separate unit test project
 public class TestAgent extends Agent {
-	public String ping(@Name("message") String message) {
+	public String ping(@Name("message") String message) throws Exception {
+		ObjectNode params = JOM.createObjectNode();
+		params.put("message", message);
+		trigger("message", params);
 		return message;
 	}
 	
@@ -276,6 +280,67 @@ public class TestAgent extends Agent {
 		return "This method is no valid JSON-RPC method: misses an @Name annotation.";
 	}
 	
+	public void testAsyncXMPP (@Name("url") @Required(false) String url) throws Exception {
+		System.out.println("testAsyncSend, url=" + url);
+		if (url == null) {
+			url = "jos@jos-virtualbox";
+		}
+		String method = "multiply";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("a", new Double(3));
+		params.put("b", new Double(4.5));
+		System.out.println("testAsyncSend, request=" + new JSONRequest(method, params));
+		sendAsync(url, method, params, new AsyncCallback<Double>() {
+			@Override
+			public void onSuccess(Double result) {
+				System.out.println("testAsyncSend result=" + result);
+				ObjectNode params = JOM.createObjectNode();
+				params.put("result", result);
+				try {
+					trigger("message", params);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onFailure(Throwable caught) {
+				caught.printStackTrace();
+			}
+		}, Double.class);
+	}
+	
+	public void testAsyncHTTP () throws Exception {
+		System.out.println("testAsyncHTTP start...");
+		String url = "http://eveagents.appspot.com/agents/googledirectionsagent/1/";
+		String method = "getDurationHuman";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("origin", "rotterdam");
+		params.put("destination", "utrecht");
+		sendAsync(url, method, params, new AsyncCallback<String>() {
+			@Override
+			public void onSuccess(String result) {
+				System.out.println("testAsyncHTTP result=" + result);
+			}
+
+			@Override
+			public void onFailure(Throwable caught) {
+				caught.printStackTrace();
+			}
+		}, String.class);
+		
+		System.out.println("testAsyncHTTP end...");
+	}
+	
+	public void connect(@Name("username") String username, 
+			@Name("password") String password) throws Exception {
+		messengerConnect(username, password);
+	}
+	
+	public void disconnect() throws Exception {
+		messengerDisconnect();
+	}
 	
 	@Override
 	public String getVersion() {

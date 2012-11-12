@@ -22,18 +22,21 @@
  * Copyright © 2010-2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2012-04-04
+ * @date	  2012-11-09
  */
 
 package com.almende.eve.agent;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
+import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.session.Session;
@@ -44,12 +47,16 @@ import com.almende.eve.json.JSONResponse;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.messenger.AsyncCallback;
+import com.almende.eve.messenger.Messenger;
+import com.almende.util.ClassUtil;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 abstract public class Agent {
 	private Context context = null;
 	private Session session = null;
+	private Messenger messenger = null;  // TODO: make messenger thread-safe
 	
 	public abstract String getDescription();
 	public abstract String getVersion();
@@ -70,6 +77,8 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void destroy() {
+		messengerDisconnect();
+		
 		getContext().destroy();
 	}
 	
@@ -323,7 +332,7 @@ abstract public class Agent {
 	final public <T> T send(String url, String method, ObjectNode params, 
 			Class<T> type) throws Exception {
 		// TODO: implement support for adding custom http headers (for authorization for example)
-		
+	
 		// invoke the other agent via the context, allowing the context
 		// to route the request internally or externally
 		JSONRequest request = new JSONRequest(method, params);
@@ -337,6 +346,20 @@ abstract public class Agent {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Check whether a url contains a messenger id (like "jos@myxmppserver/android")
+	 * @param url
+	 * @return
+	 */
+	private boolean isMessengerId(String url) {
+		if (url.contains("@") && 
+				!url.startsWith("http://") && 
+				!url.startsWith("https://")) {
+			return true;
+		}
+		return false;
 	}
 	
 	/**
@@ -379,7 +402,6 @@ abstract public class Agent {
 		send(url, method, null, void.class);
 	}
 
-
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent
 	 * @param callbackMethod  The method to be executed on callback
@@ -400,7 +422,170 @@ abstract public class Agent {
 		req.setCallback(callbackUrl, callbackMethod);
 		getContext().invoke(url, req);
 	}
+	
+	/**
+	 * Send an asynchronous JSON-RPC request to an agent
+	 * sendAsync is not supported on Google App Engine
+	 * @param url             The url of the agent to be called
+	 * @param method          The name of the method
+	 * @param params          A JSONObject containing the parameter 
+	 *                         values of the method
+	 * @param callback        An AsyncCallback of which the onSuccess or
+	 *                         onFailure method will be executed on callback.
+	 * @param type            The type of result coming from the callback.                        
+	 * @throws Exception 
+	 * @throws JSONException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> void sendAsync(String url, String method, ObjectNode params,
+			final AsyncCallback<T> callback, final Class<T> type) {
+		String id = UUID.randomUUID().toString();
+		JSONRequest request = new JSONRequest(id, method, params);
+		sendAsync(url, request, callback, type);
+	}
+	
+	/**
+	 * Send an asynchronous JSON-RPC request to an agent
+	 * sendAsync is not supported on Google App Engine
+	 * @param url             The url of the agent to be called
+	 * @param request         JSON-RPC request containing method and params
+	 * @param callback        An AsyncCallback of which the onSuccess or
+	 *                         onFailure method will be executed on callback.
+	 * @param type            The type of result coming from the callback.                        
+	 * @throws Exception 
+	 * @throws JSONException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> void sendAsync(final String url, final JSONRequest request,
+			final AsyncCallback<T> callback, final Class<T> type) {
 
+		// Create a callback to retrieve a JSONResponse and extract the result
+		// or error from this.
+		final AsyncCallback<JSONResponse> responseCallback = 
+				new AsyncCallback<JSONResponse>() {
+			@Override
+			public void onSuccess(JSONResponse response) {
+				Exception err;
+				try {
+					err = response.getError();
+				} catch (JSONRPCException e) {
+					err = e;
+				}
+				if (err != null) {
+					callback.onFailure(err);
+				}
+				if (type != null && type != void.class) {
+					callback.onSuccess(response.getResult(type));
+				}
+				else {
+					callback.onSuccess(null);
+				}
+			}
+
+			@Override
+			public void onFailure(Throwable caught) {
+				callback.onFailure(caught);
+			}
+		};
+		
+		try {
+			if (isMessengerId(url)) {
+				// messenger request
+				if (messenger != null) {
+					messenger.send(url, request, responseCallback);
+				}
+				else {
+					throw new Exception("Cannot send a request to a messenger id, " + 
+							"not connected to a messenger service.");
+				}
+			}
+			else {
+				// asynchronous http request
+				new Thread(new Runnable () {
+					@Override
+					public void run() {
+						JSONResponse response;
+						try {
+							response = getContext().invoke(url, request);
+							responseCallback.onSuccess(response);
+						} catch (Exception e) {
+							responseCallback.onFailure(e);
+						}
+					}
+				}).start();
+			}
+		} catch (Exception err) {
+			callback.onFailure(err);
+		}
+	}
+
+	/**
+	 * Connect to the configured messaging service (such as XMPP). The service
+	 * must be configured in the Eve configuration
+	 * @param username
+	 * @param password
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws SecurityException 
+	 * @throws IllegalArgumentException 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public void messengerConnect (String username, String password) 
+			throws Exception {
+		Context context = getContext();
+
+		// Test for correct configuration (agent must be stateful)
+		if (!context.getAgentFactory().isStateful(this.getClass().getSimpleName())) {
+			throw new IllegalArgumentException(
+					"Connecting to a a messenger service " +
+					"is only supported for stateful agents");
+		}
+		
+		// get the messenger class name from the config
+		Config config = context.getConfig();
+		String env = context.getEnvironment();
+		String className = config.get("environment", env, "messenger", "class");
+		if (className == null) {
+			String param = "environment." + env + ".messenger.class";
+			throw new IllegalArgumentException(
+					"Config parameter '" + param + "' missing in Eve configuration.");			
+		}
+		
+		// get the class from the class name
+		Class<?> messengerClass = null;
+		try {
+			messengerClass = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			throw new IllegalArgumentException("Cannot find class " + className + "");
+		}
+		if (!ClassUtil.hasInterface(messengerClass, Messenger.class)) {
+			throw new IllegalArgumentException(
+					"Context class " + messengerClass.getName() + 
+					" must implement interface " + Messenger.class.getName());
+		}
+
+		// disconnect any current connection
+		messengerDisconnect();
+		
+		// instantiate and connect a new messenger
+		messenger = (Messenger) messengerClass.getConstructor().newInstance();
+		messenger.setAgent(this);
+		messenger.connect(username, password);
+	}
+	
+	/**
+	 * Disconnect the agent from the connected messaging service (if any)
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public void messengerDisconnect () {
+		if (messenger != null) {
+			messenger.disconnect();
+			messenger = null;
+		}
+	}
+	
 	/**
 	 * Get the full url of this agent, for example "http://mysite.com/agents/key"
 	 * @return

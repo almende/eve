@@ -17,6 +17,7 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.util.StreamingUtil;
+import com.almende.util.StringUtil;
 
 // FIXME: the agents getUrl does not work well in SingleAgentServlet, and
 //         also LogAgent does not work
@@ -88,7 +89,7 @@ public class SingleAgentServlet extends HttpServlet {
 		JSONResponse jsonResponse = null;		
 		try {
 			// retrieve the request body
-			String body = streamToString(req.getInputStream());
+			String body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
 			
 			// invoke the agent
@@ -150,20 +151,5 @@ public class SingleAgentServlet extends HttpServlet {
 		} catch (ClassNotFoundException e) {
 			logger.warning("Agent class '" + classes.get(0) + "' not found");
 		}
-	}
-	
-	/**
-	 * Convert a stream to a string
-	 * @param in
-	 * @return
-	 * @throws IOException
-	 */
-	private static String streamToString(InputStream in) throws IOException {
-		StringBuffer out = new StringBuffer();
-		byte[] b = new byte[4096];
-		for (int n; (n = in.read(b)) != -1;) {
-			out.append(new String(b, 0, n));
-		}
-		return out.toString();
 	}
 }

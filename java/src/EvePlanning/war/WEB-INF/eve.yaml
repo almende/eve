@@ -10,10 +10,9 @@ environment:
     auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
 
 # agent settings
-agent:
-  classes:
-  - com.almende.eve.agent.google.GoogleCalendarAgent
-  - com.almende.eve.agent.MeetingAgent
+agents:
+  - class: com.almende.eve.agent.google.GoogleCalendarAgent
+  - class: com.almende.eve.agent.MeetingAgent
 
 # context settings
 # the context is used by agents for storing their state.

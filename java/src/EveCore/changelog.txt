@@ -1,6 +1,16 @@
 EVE CORE
 http://almende.github.com/eve/
 
+
+<not yet released>, version 0.11.0
+
+- Implemented support for messaging systems. First implemented messaging 
+  protocol is XMPP.
+- Configuration of agent classes changed from an array agent.classes[] to
+  an array agents[], where each agent can have properties class (required), 
+  thread_safe, and stateful.
+
+
 2012-09-18, version 0.10.0
 
 - The web interface of the agents now has an option to enable/disable logging

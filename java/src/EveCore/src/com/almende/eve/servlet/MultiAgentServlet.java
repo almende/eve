@@ -16,6 +16,7 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.util.StreamingUtil;
+import com.almende.util.StringUtil;
 
 
 @SuppressWarnings("serial")
@@ -78,7 +79,7 @@ public class MultiAgentServlet extends HttpServlet {
 		JSONResponse jsonResponse = null;
 		try {
 			// retrieve the agent url and the request body
-			String body = streamToString(req.getInputStream());
+			String body = StringUtil.streamToString(req.getInputStream());
 			String agentUrl = req.getRequestURI();
 			jsonRequest = new JSONRequest(body);
 			
@@ -116,20 +117,5 @@ public class MultiAgentServlet extends HttpServlet {
 				getServletContext().getRealPath(fullname) + "'...");
 		Config config = new Config(getServletContext().getResourceAsStream(fullname));
 		agentFactory = new AgentFactory(config);	
-	}
-	
-	/**
-	 * Convert a stream to a string
-	 * @param in
-	 * @return
-	 * @throws IOException
-	 */
-	private static String streamToString(InputStream in) throws IOException {
-		StringBuffer out = new StringBuffer();
-		byte[] b = new byte[4096];
-		for (int n; (n = in.read(b)) != -1;) {
-			out.append(new String(b, 0, n));
-		}
-		return out.toString();
 	}
 }
