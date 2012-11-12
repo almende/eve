@@ -9,7 +9,7 @@ Eve is a multipurpose, web based agent platform.
 The project aims to develop an open protocol for communication between software agents. 
 Eve is designed as a decentral, scalable system for autonomously acting agents.
 Eve uses the existing world wide web as platform, 
-and uses existing protocols for data exchange (HTTP) and for messaging (JSON-RPC).
+and uses existing protocols for communication (HTTP, XMPP, JSON-RPC).
 
 Eve is being developed by [Almende](http://www.almende.com),
 a Dutch research company specialized in information and communication technologies.
@@ -40,7 +40,7 @@ an unlimited number of agents in the system.
 Thus, when scaling the system up, there is no complex installation or 
 configuration required to add an extra server to the system. It is enough
 to make the new server with agents available on the web, and get agents to know
-the existens of these new agents. More about this in the next section.
+the existence of these new agents. More about this in the next section.
 
 Agents have a persisted state. In that case the url of the agent will not
 only include the server where the agent resides, but also contain a 

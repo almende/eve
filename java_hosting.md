@@ -69,9 +69,8 @@ Create a file named **eve.yaml** and put it in the folder war/WEB-INF
 
     # agent settings
     # the SingleAgentServlet can only host one agent class.
-    agent:
-      classes:
-      - com.almende.eve.agent.example.TestAgent
+    agents:
+      - class: com.almende.eve.agent.example.TestAgent
 
     # The context for reading and writing persistent data
     context:
@@ -87,7 +86,7 @@ The configuration contains:
   This url needs to be specified, as it is not possible for an agent to know 
   via what servlet it is being called.
 
-- A parameter *agent.classes* containing a list with the agent classes which 
+- A parameter *agents* containing a list with the agent classes which
   will be hosted by the servlet.
   Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
   these agents can be used to test if the application runs correctly.
@@ -162,11 +161,10 @@ Create a file eve.yaml and insert the following text:
         servlet_url: http://MyServer/MyProject/agents
 
     # agent settings
-    agent:
-      classes:
-      - com.almende.eve.agent.example.EchoAgent
-      - com.almende.eve.agent.example.CalcAgent
-      - com.almende.eve.agent.example.ChatAgent
+    agents:
+      - class: com.almende.eve.agent.example.EchoAgent
+      - class: com.almende.eve.agent.example.CalcAgent
+      - class: com.almende.eve.agent.example.ChatAgent
 
     # context settings
     # the context is used by agents for storing their state.
@@ -182,7 +180,7 @@ The configuration contains:
   This url needs to be specified, as it is not possible for an agent to know 
   via what servlet it is being called.
 
-- A parameter *agent.classes* containing a list with the agent classes which 
+- A parameter *agents* containing a list with the agent classes which
   will be hosted by the servlet.
   Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
   these agents can be used to test if the application runs correctly.

@@ -69,7 +69,6 @@ web servlet.
 
 - Download the following jar files, and put them in your Eclipse project
   in the folder war/WEB-INF/lib. 
-  
 
   - [eve-core-{{eve_core_version}}.jar](files/java/eve-core-{{eve_core_version}}.jar)
   
@@ -127,11 +126,10 @@ web servlet.
           servlet_url: http://myeveproject.appspot.com/agents
 
       # agent settings
-      agent:
-        classes:
-        - com.almende.eve.agent.example.EchoAgent
-        - com.almende.eve.agent.example.CalcAgent
-        - com.almende.eve.agent.example.ChatAgent
+      agents:
+        - class: com.almende.eve.agent.example.EchoAgent
+        - class: com.almende.eve.agent.example.CalcAgent
+        - class: com.almende.eve.agent.example.ChatAgent
 
       # context settings
       # the context is used by agents for storing their state.
@@ -148,10 +146,12 @@ web servlet.
     This url needs to be specified, as it is not possible for an agent to know 
     via what servlet it is being called.
   
-  - The parameter *agent.classes* contains a list with the agent classes which 
+  - The parameter *agents* contains a list with the agent classes which
     will be hosted by the servlet.
     Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
     these agents can be used to test if the application runs correctly.
+    Optionally, the parameters *stateful* and *thread_safe* can be defined for
+    each agent.
 
   - The parameter *context.class* specifies the type of context that will be 
     available for the agents to read and write persistent data.
@@ -161,6 +161,9 @@ web servlet.
   [context](java_agents.html#context).
   If your agent needs specific settings (for example for database access), 
   you can add these settings to the configuration file.
+
+  More detailed information on the Eve configuration can be found on the page
+  [Configuration](java_configuration.html).
 
 
 ## Usage {#usage}
@@ -190,19 +193,19 @@ Now the project can be started and you can see one of the example agents in acti
   With request body:
 
       {
-        "id": 1, 
-        "method": "eval",
-        "params": {
-          "expr": "2.5 + 3 / sqrt(16)"
-        }
+          "id": 1,
+          "method": "eval",
+          "params": {
+              "expr": "2.5 + 3 / sqrt(16)"
+          }
       }
   
   This request will return the following response:
   
       {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "result": "3.25"
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": "3.25"
       }
 
 
@@ -251,16 +254,15 @@ your agent class in the eve.properties file.
   the Eve configuration in the file eve.yaml, earlier created and stored in 
   war/WEB-INF. 
   Add the full classname com.mycompany.myproject.MyFirstAgent to the list with 
-  classes under *agent*, *classes*:
+  classes under *agents*:
   
       ...
       # agent settings
-      agent:
-        classes:
-        - com.almende.eve.agent.example.EchoAgent
-        - com.almende.eve.agent.example.CalcAgent
-        - com.almende.eve.agent.example.ChatAgent
-        - com.mycompany.myproject.MyFirstAgent
+      agents:
+        - class: com.almende.eve.agent.example.EchoAgent
+        - class: com.almende.eve.agent.example.CalcAgent
+        - class: com.almende.eve.agent.example.ChatAgent
+        - class: com.mycompany.myproject.MyFirstAgent
       ...
 
 - Now you can (re)start the server, and perform an HTTP POST request to the url
@@ -270,38 +272,38 @@ your agent class in the eve.properties file.
   With as request:
   
       {
-        "id": 1, 
-        "method": "echo", 
-        "params": {
-          "message": "Hello World"
-        }
+          "id": 1,
+          "method": "echo",
+          "params": {
+              "message": "Hello World"
+          }
       }
   
   which returns:
 
       {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "result": "Hello World"
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": "Hello World"
       }
 
   or send the following request:
   
       {
-        "id": 1, 
-        "method": "add", 
-        "params": {
-          "a": 2.1, 
-          "b": 3.5
-        }
+          "id": 1,
+          "method": "add",
+           "params": {
+                "a": 2.1,
+                "b": 3.5
+           }
       }
 
   which returns:
 
       {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "result": 5.6
+           "jsonrpc": "2.0",
+           "id": 1,
+           "result": 5.6
       }
 
 <!-- TODO: explain ids -->
@@ -309,7 +311,7 @@ your agent class in the eve.properties file.
 
 ## Deployment {#deployment}
 
-Now you can deploy your applictation in the cloud, to Google App Engine.
+Now you can deploy your application in the cloud, to Google App Engine.
 
 - Register an application in appengine.
   In your browser, go to [https://appengine.google.com](https://appengine.google.com).

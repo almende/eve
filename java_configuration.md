@@ -30,11 +30,16 @@ file: **war/WEB-INF/eve.yaml**
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
     # agent settings
-    agent:
-      classes:
-      - com.almende.eve.agent.example.EchoAgent
-      - com.almende.eve.agent.example.CalcAgent
-      - com.almende.eve.agent.example.ChatAgent
+    agents:
+      - class: com.almende.eve.agent.example.EchoAgent
+        stateful: false
+        thread-safe: true
+      - class: com.almende.eve.agent.example.CalcAgent
+        stateful: false
+        thread-safe: true
+      - class: com.almende.eve.agent.example.ChatAgent
+        stateful: false
+        thread-safe: true
 
     # context settings
     # the context is used by agents for storing their state.
@@ -81,8 +86,43 @@ Description of the available properties:
     (<code>eve-planning.jar</code>).</td>
   </tr>
   <tr>
-    <td>agent.classes[]</td>
-    <td>A list with the full class paths of the agents to be hosted.</td>
+    <td>agents[]</td>
+    <td>A list with properties of the agent classes to be hosted.</td>
+  </tr>
+  <tr>
+    <td>agents[].class</td>
+    <td>The full class path of the agent. Required.</td>
+  </tr>
+  <tr>
+    <td>agents[].stateful</td>
+    <td>A boolean specifying whether the agent is stateful or stateless.
+      This property is optional, and is false by default.
+      When stateful is true, the agent must be marked thread_safe as well.
+      <br><br>
+      When an agent is marked stateful, it will be loaded once and kept running,
+      as opposed to stateless agents which can be loaded and unloaded any time.
+      Making an agent stateful allows for keeping connections to services such
+      as messaging open.
+      <br><br>
+      Stateful agents are not supported on Google App Engine.
+      </td>
+  </tr>
+  <tr>
+    <td>agents[].thread_safe</td>
+    <td>A boolean specifying whether the agent is thread-safe.
+      This property is optional, and is false by default.
+      When thread-safe, the agent is instantiated once will be kept in memory
+      until it has been inactive for some time, or until the system needs to
+      free memory.
+      When not thread-safe, a new instance of the agent created for every
+      request, and is destroyed after the request has been handled.
+      <br><br>
+      The <i>thread_safe</i> property allows Eve to optimize the application
+      by keeping agents in memory as much as possible, instead of having to
+      create and destroy the agents with every request. The property does not
+      guarantee a one-off instantiated, continuously running agent though,
+      use the property <i>stateful</i> for that purpose instead.
+      </td>
   </tr>
   <tr>
     <td>context.class</td>

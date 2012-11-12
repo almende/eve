@@ -61,7 +61,7 @@ They can be downloaded at the
     jackson-core-2.0.0.jar, 
     jackson-annotations-2.0.0.jar,
     joda-time-2.1.jar,
-    snakeyaml-1.10.jar.
+    snakeyaml-1.10.jar. Optional (needed for XMPP support): smack.jar, smackx.jar.
     Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
   *
