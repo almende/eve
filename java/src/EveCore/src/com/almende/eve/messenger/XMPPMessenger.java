@@ -1,8 +1,5 @@
 package com.almende.eve.messenger;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -25,7 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class XMPPMessenger implements Messenger {
 	private Agent agent = null;
 	private XMPPConnection conn = null;
-	private AsyncCallbackQueue callbacks = new AsyncCallbackQueue();
+	private AsyncCallbackQueue<JSONResponse> callbacks = 
+			new AsyncCallbackQueue<JSONResponse>();
 	
 	public XMPPMessenger () {
 	}
@@ -91,6 +89,7 @@ public class XMPPMessenger implements Messenger {
 			conn.disconnect();
 			conn = null;
 		}
+		callbacks.clear();
 	}
 
 	/**
@@ -113,12 +112,10 @@ public class XMPPMessenger implements Messenger {
 			AsyncCallback<JSONResponse> callback) throws Exception {
 		if (isConnected()) {
 			// create a unique id
-			String id = (String) request.getId();
+			final String id = (String) request.getId();
 			
 			// queue the response callback
-			callbacks.put(id, callback);
-			
-			// TODO: add a timeout
+			callbacks.push(id, callback);
 			
 			// send the message
 			Message reply = new Message();
@@ -139,10 +136,10 @@ public class XMPPMessenger implements Messenger {
 	private static class JSONRPCListener implements PacketListener {
 		private XMPPConnection conn;
 		private Agent agent;
-		private AsyncCallbackQueue callbacks;
+		private AsyncCallbackQueue<JSONResponse> callbacks;
 
 		public JSONRPCListener (XMPPConnection conn, Agent agent, 
-				AsyncCallbackQueue callbacks) {
+				AsyncCallbackQueue<JSONResponse> callbacks) {
 			this.conn = conn;
 			this.agent = agent;
 			this.callbacks = callbacks;
@@ -187,14 +184,14 @@ public class XMPPMessenger implements Messenger {
 						// this is a response
 						// Find and execute the corresponding callback
 						String id = json.has("id") ? json.get("id").asText() : null;
-						if (id != null && callbacks.has(id)) {
-							response = new JSONResponse(body);
-							AsyncCallback<JSONResponse> callback = callbacks.get(id);
-							callbacks.remove(id);
-							callback.onSuccess(response);
+						AsyncCallback<JSONResponse> callback = 
+								(id != null) ? callbacks.pull(id) : null;
+						if (callback != null) {
+							callback.onSuccess(new JSONResponse(body));
 						}
 						else {
-							throw new Exception("Callback with id \"" + id + "\" not found");
+							// TODO: is it needed to send this error back?
+							throw new Exception("Callback with id '" + id + "' not found");
 						}
 					}
 					else if (isRequest(json)) {
@@ -224,37 +221,5 @@ public class XMPPMessenger implements Messenger {
 			}
 		}
 	}
-
-	/**
-	 * Queue to hold a list with callbacks in progress
-	 */
-	private class AsyncCallbackQueue {
-		// TODO: comment the class AsyncCallbackQueue
-		// TODO: move the class AsyncCallbackQueue outside XMPPMessenger?
-		
-		// queue with response callbacks
-		private Map<String, AsyncCallback<JSONResponse> > callbacks = 
-				new ConcurrentHashMap<String, AsyncCallback<JSONResponse> >();
-		
-		public void put(String id, AsyncCallback<JSONResponse> callback) 
-				throws Exception {
-			if (callbacks.containsKey(id)) {
-				throw new Exception("Callback with id '" + id+ "' already in queue");
-			}
-			callbacks.put(id, callback);
-		}
-		
-		public boolean has(String id) {
-			return callbacks.containsKey(id);
-		}
-
-		public AsyncCallback<JSONResponse> get(String id) {
-			return callbacks.get(id);
-		}
-		
-		public void remove(String id) {
-			callbacks.remove(id);
-		}
-	}	
 }
 

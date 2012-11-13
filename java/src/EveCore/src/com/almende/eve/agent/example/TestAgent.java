@@ -49,7 +49,12 @@ public class TestAgent extends Agent {
 		trigger("message", params);
 		return message;
 	}
-	
+
+	public void destroy() {
+		System.out.println("destroying TestAgent/" + getId());
+		super.destroy();
+	}
+
 	public String getName(@Name("person") Person person) {
 		return person.getName();
 	}
@@ -283,7 +288,7 @@ public class TestAgent extends Agent {
 	public void testAsyncXMPP (@Name("url") @Required(false) String url) throws Exception {
 		System.out.println("testAsyncSend, url=" + url);
 		if (url == null) {
-			url = "jos@jos-virtualbox";
+			url = "jos@ec2-54-246-24-74.eu-west-1.compute.amazonaws.com";
 		}
 		String method = "multiply";
 		ObjectNode params = JOM.createObjectNode();

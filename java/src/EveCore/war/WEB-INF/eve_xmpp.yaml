@@ -6,17 +6,17 @@ environment:
     servlet_url: http://localhost:8080/EveCore/agents  # TODO: be able to leave servlet_url undefined
     messenger:
       class: com.almende.eve.messenger.XMPPMessenger
-      host: 10.10.1.148
+      host: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
       port: 5222
-      service: jos-virtualbox
+      # service: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
 
   Production:
     servlet_url: http://localhost:8080/EveCore/agents  # TODO: be able to leave servlet_url undefined
     messenger:
       class: com.almende.eve.messenger.XMPPMessenger
-      host: 10.10.1.148
+      host: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
       port: 5222
-      service: jos-virtualbox
+      #service: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
 
 agents:
   - class: com.almende.eve.agent.example.TestAgent

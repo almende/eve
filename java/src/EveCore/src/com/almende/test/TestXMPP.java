@@ -15,19 +15,19 @@ public class TestXMPP {
 		
 		// instantiate an agent and connect it to a messenger service
 		String agentClass = "TestAgent";
-		String agentId = "andries";
-		String agentPassword = "andries";
+		String agentId = "alex";
+		String agentPassword = "alex";
 		TestAgent agent = (TestAgent)factory.getAgent(agentClass, agentId);
 		agent.messengerConnect(agentId, agentPassword);
 
 		// instantiate an agent
 		agentClass = "TestAgent";
-		agentId = "ludo";
-		agentPassword = "ludo";
+		agentId = "gloria";
+		agentPassword = "gloria";
 		Agent agent2 = factory.getAgent(agentClass, agentId);
 		agent2.messengerConnect(agentId, agentPassword);
 		
-        agent.testAsyncXMPP("jos@jos-virtualbox");
+        agent.testAsyncXMPP("jos@ec2-54-246-24-74.eu-west-1.compute.amazonaws.com");
 
         //agent.testAsyncHTTP();
 		
@@ -38,6 +38,7 @@ public class TestXMPP {
         // in the end, neatly destroy the agent (this may be necessary to 
         // persist the agents state)
         agent.destroy();
+        agent2.destroy();
         
         System.out.println("bye!");
 	}
