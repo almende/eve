@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.log.LogAgent;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
-import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
@@ -137,7 +136,9 @@ public class AgentFactory {
 		Agent agent = (Agent) clazz.getConstructor().newInstance();
 		
 		// instantiate the context
-		Context context = contextFactory.getContext(agentClass, agentId);
+		Context context = (Context) contextClass
+				.getConstructor(AgentFactory.class, String.class, String.class)
+				.newInstance(this, agentClass, agentId);
 		context.init();
 		agent.setContext(context);
 		
@@ -181,7 +182,7 @@ public class AgentFactory {
 				", thread_safe=" + agentClass.threadSafe + ")");
 	}
 	
-	/**a
+	/**
 	 * Invoke a local agent
 	 * @param agentClass
 	 * @param agentId
@@ -282,18 +283,51 @@ public class AgentFactory {
 	 * @return servletUrl
 	 */
 	public String getServletUrl() {
-		String servletUrl = null;
-		try {
-			servletUrl = contextFactory.getServletUrl();
-			if (!servletUrl.endsWith("/")) {
-				servletUrl += "/";
+		if (servletUrl == null) {
+			// read the servlet url from the config
+			Config config = getConfig();
+			if (config != null) {
+				servletUrl = config.get("environment", getEnvironment(), "servlet_url");
+				if (servletUrl != null) {
+					 if (!servletUrl.endsWith("/")) {
+						 servletUrl += "/";					 
+					 }
+				}
+				else {
+					String path = "environment." + getEnvironment() + ".servlet_url";
+					Exception e = new Exception("Config parameter '" + path + "' is missing");
+					e.printStackTrace();
+				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			else {
+				Exception e = new Exception("Configuration uninitialized");
+				e.printStackTrace();
+			}
 		}
-		return servletUrl;
+		return servletUrl;	
 	}
 	
+	/**
+	 * Retrieve the current environment, using the configured Context.
+	 * Available values: "Production", "Development"
+	 * @return environent
+	 */
+	public String getEnvironment() {
+		if (environment == null) {
+			try {
+				Context context = 
+						(Context) contextClass.getConstructor().newInstance();
+				if (context != null) {
+					environment = context.getEnvironment();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return environment;
+	}
+
 	/**
 	 * Get the servlet path from the configured servlet url.
 	 * @return servletPath
@@ -457,40 +491,46 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	private void initContext() throws Exception {
-		if (contextFactory != null) {
+		if (contextClass != null) {
 			return;
 		}
 		
+		// get the class name from the config file
 		String className = config.get("context", "class");
 		if (className == null) {
 			throw new IllegalArgumentException(
 				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
-		Class<?> contextClass = null;
+		// test for deprecated ContextFactory (deprecated since version 0.11, 2012-11-20)
+		if (className.endsWith("ContextFactory")) {
+			logger.warning("ContextFactory classes are deprecated. Please specify the Context itself. " + 
+					"(Hint: change the configuration parameter context.class to " + 
+					className.substring(0, className.length() - "Factory".length())+ ")");
+		}
+		
+		// load the class
+		Class<?> newContextClass = null;
 		try {
-			contextClass = Class.forName(className);
+			newContextClass = Class.forName(className);
 		} catch (ClassNotFoundException e) {
 			throw new IllegalArgumentException("Cannot find class " + className + "");
 		}
-		
-		if (!ClassUtil.hasInterface(contextClass, ContextFactory.class)) {
+
+		if (!ClassUtil.hasSuperClass(newContextClass, Context.class)) {
 			throw new IllegalArgumentException(
-					"Context class " + contextClass.getName() + 
-					" must implement interface " + ContextFactory.class.getName());
+					"Context class " + newContextClass.getName() + 
+					" must implement interface " + Context.class.getName());
 		}
 
-		ContextFactory newContextFactory = 
-			(ContextFactory) contextClass.getConstructor().newInstance();
-		newContextFactory.setAgentFactory(this);
-		newContextFactory.setConfig(config);
-		
-		// copy the context as soon as it is done
-		contextFactory = newContextFactory;
-		
+		// copy the context if no errors
+		this.contextClass = newContextClass;		
 		logger.info("Context class " + contextClass.getName() + " loaded");
 	}
 
+	/**
+	 * Helper class to hold the parts of an agent url: url, class, id, resource. 
+	 */
 	public class AgentAddress {
 		public AgentAddress(String agentUrl, String agentClass, 
 				String agentId, String agentResource) {
@@ -506,7 +546,10 @@ public class AgentFactory {
 		public String agentResource = null;
 	}
 	
-	private class AgentClass {
+	/**
+	 * Helper class to cast an agent object from a config file
+	 */
+	public class AgentClass {
 		public AgentClass(Map<String, Object> properties) throws ClassNotFoundException {
 			// read the properties
 			if (properties.containsKey("thread_safe")) {
@@ -582,8 +625,10 @@ public class AgentFactory {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 
 	private Map<String, AgentClass> agentClasses = null;
-	private ContextFactory contextFactory = null;
+	private Class<?> contextClass = null;
 	private Config config = null;
+	private String servletUrl = null;
+	private String environment = null;
 	
 	// map with all instantiated agents (only applicable for stateful agents)
 	private Map<String, Agent> agents = new ConcurrentHashMap<String, Agent>();

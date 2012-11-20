@@ -6,6 +6,9 @@ http://almende.github.com/eve/
 
 - Implemented support for messaging systems. First implemented messaging 
   protocol is XMPP.
+- Simplified the Context: removed the ContextFactory classes, leaving just the
+  Context classes and the AgentFactory. In the configuration file,
+  a Context class must be specified and not a ContextFactory.
 - Configuration of agent classes changed from an array agent.classes[] to
   an array agents[], where each agent can have properties class (required), 
   thread_safe, and stateful.

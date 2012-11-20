@@ -3,7 +3,7 @@
 <project name="eve-google-appengine-builder" default="makejar" basedir=".">
   <!-- the version number of must be updated here (according to changelog.txt) -->
   <property name="package" value="eve-google-appengine" />
-  <property name="version" value="0.6.2" />
+  <property name="version" value="0.7" />
 	
   <target name="makejar" description="Create a jar library">
     <property name="localbin" location="bin" />

@@ -2,6 +2,13 @@ EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
 
+<not yet released>, version 0.7.0
+
+- Simplified the Context classes: removed the ContextFactory, and moved the
+  functionality to Context and AgentFactory. In the configuration file,
+  a Context class must be specified and not a ContextFactory.
+
+
 2012-09-18, version 0.6.2
 
 - Fixed: An agents context was not persisted to Datastore when, during a 

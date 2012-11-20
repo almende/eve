@@ -13,11 +13,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
 import com.almende.eve.scheduler.RunnableScheduler;
 import com.almende.eve.scheduler.Scheduler;
 
@@ -25,7 +23,7 @@ import com.almende.eve.scheduler.Scheduler;
  * @class FileContext
  * 
  * A context for an Eve Agent, which stores the data on disk.
- * Data is stored in the path provided by the FileContextFactory.
+ * Data is stored in the path provided by the configuration file.
  * 
  * The context provides general information for the agent (about itself,
  * the environment, and the system configuration), and the agent can store its 
@@ -33,98 +31,40 @@ import com.almende.eve.scheduler.Scheduler;
  * The context extends a standard Java Map.
  * 
  * Usage:<br>
- *     ContextFactory factory = new FileContextFactory();<br>
- *     factory.setConfig(config);<br>
- *     Context context = factory.getContext("MyAgentClass", "agentId");<br>
+ *     AgentFactory factory = AgentFactory(config);<br>
+ *     Context context = new Context(factory, "agentClass", "agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  */
 // TODO: create an in memory cache and reduce the number of reads/writes
-public class FileContext implements Context {
-	private FileContextFactory factory = null;
-	private String agentUrl = null;
-	private String agentClass = null;
-	private String agentId = null;
-	private String filename = null;
-
-	private Map<String, Object> properties = new HashMap<String, Object>();
-	
-	private Scheduler scheduler = null;
-	
+public class FileContext extends Context {
 	public FileContext() {}
 
-	public FileContext(FileContextFactory factory, 
-			String agentClass, String agentId) {
-		this.factory = factory;
-		this.agentId = agentId;
-		this.agentClass = agentClass.toLowerCase();
-		// Note: agentUrl and filename will be initialized when needed
-		
-		this.scheduler = new RunnableScheduler();
-		this.scheduler.setContext(this);
+	public FileContext(AgentFactory agentFactory, String agentClass, 
+			String agentId) {
+		super(agentFactory, agentClass, agentId);
 	}
 	
 	@Override
-	public synchronized String getAgentId() {
-		return agentId;
-	}
-	
-	@Override
-	public synchronized String getAgentClass() {
-		return agentClass;
+	public String getEnvironment() {
+		return "Production";
 	}
 
 	@Override
-	public String getAgentUrl() {
-		if (agentUrl == null) {
-			String servletUrl = getServletUrl();
-			if (servletUrl != null) {
-				agentUrl = servletUrl;
-				if (!agentUrl.endsWith("/")) {
-					agentUrl += "/";
-				}
-				if (agentClass != null) {
-					agentUrl += agentClass + "/";
-					if (agentId != null) {
-						agentUrl += agentId + "/";
-					}
-				}
-			}			
+	public Scheduler getScheduler() {
+		if (scheduler == null) {
+			scheduler = new RunnableScheduler();
+			scheduler.setContext(this);
 		}
-		return agentUrl;
-	}
-	
-	@Override
-	public synchronized Scheduler getScheduler() {
 		return scheduler;
 	}
 
-	@Override
-	public synchronized String getServletUrl() {
-		return factory.getServletUrl();
-	}
-
-	@Override
-	public synchronized AgentFactory getAgentFactory() {
-		return factory.getAgentFactory();
-	}
-
-	@Override
-	public synchronized Config getConfig() {
-		return factory.getConfig();
-	}
-	
-	@Override
-	public synchronized String getEnvironment() {
-		return factory.getEnvironment();
-	}
-	
 	private String getFilename() {
 		if (filename == null) {
-			String path = factory.getPath();
-			filename = path + agentClass + "." + agentId;
+			String path = getPath();
+			filename = (path != null ? path : "") + agentClass + "." + agentId;
 		}
 		return filename;		
 	}
@@ -172,15 +112,6 @@ public class FileContext implements Context {
 		}
 		return false;
 	}
-	
-	/**
-	 * invoke other agents (internal or external) via the context
-	 * @throws Exception 
-	 */
-	@Override
-	public JSONResponse invoke(String url, JSONRequest request) throws Exception  {
-		return getAgentFactory().invoke(url, request);
-	}
 
 	/**
 	 * init is executed once before the agent method is invoked
@@ -195,6 +126,38 @@ public class FileContext implements Context {
 	 */
 	@Override
 	public void destroy() {
+	}
+	
+	/**
+	 * Get the path where the data of the agents will be stored
+	 * @return
+	 */
+	private String getPath() {
+		if (path == null) {
+			// retrieve the path from config file
+			path = getConfig().get("context", "path");
+			if (path == null) {
+				path = ".eveagents";
+				logger.warning(
+					"Config parameter 'context.path' missing in Eve " +
+					"configuration. Using the default path '" + path + "'");
+			}
+			if (!path.endsWith("/")) path += "/";
+			
+			// make the directory
+			File f = new File(path);
+            f.mkdir();
+            
+            // log info
+            String info = "Agents data will be stored in ";
+            try {
+				info += f.getCanonicalPath();
+			} catch (IOException e) {
+				info += path;
+			}
+            logger.info(info);
+		}
+		return path;
 	}
 	
 	/**
@@ -283,4 +246,11 @@ public class FileContext implements Context {
 		read();
 		return properties.values();
 	}
+	
+	private String filename = null;
+	private Map<String, Object> properties = new HashMap<String, Object>();
+	private Scheduler scheduler = null;
+	
+	private String path = null;
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

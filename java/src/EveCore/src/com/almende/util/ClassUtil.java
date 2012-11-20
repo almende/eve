@@ -17,4 +17,20 @@ public class ClassUtil {
 		
 		return false;
 	}
+	
+	/**
+	 * Check if checkClass extends superClass
+	 * @param checkClass
+	 * @param superClass
+	 */
+	public static boolean hasSuperClass(Class<?> checkClass, Class<?> superClass) {
+		Class<?> s = null;
+		while ((s = checkClass.getSuperclass()) != null) {
+			if (s.equals(superClass)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

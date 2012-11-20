@@ -14,5 +14,5 @@ agents:
 
 # The context for reading and writing persistent data
 context:
-  class: com.almende.eve.context.FileContextFactory
-  # class: com.almende.eve.context.MemoryContextFactory
+  class: com.almende.eve.context.FileContext
+  # class: com.almende.eve.context.MemoryContext

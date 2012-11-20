@@ -2,18 +2,15 @@ package com.almende.eve.servlet;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 
@@ -21,31 +18,28 @@ import com.almende.eve.json.JSONResponse;
 @SuppressWarnings("serial")
 public class RESTServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	private Map<String, Object> classes = null;
-	private Config config = null; // servlet configuration 
-
+	private AgentFactory factory = null;
+	
+	@Override
+	public void init() {
+		try {
+			initAgentFactory();	
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		try {
-			initConfig();
-			initClasses();
-
 			// get method from url
 			String uri = req.getRequestURI();
 			String[] path = uri.split("\\/");
-			String className = (path.length > 2) ? path[path.length - 2] : null;
+			String agentClass = (path.length > 3) ? path[path.length - 3] : null;
+			String agentId = (path.length > 2) ? path[path.length - 2] : null;
 			String method = (path.length > 1) ? path[path.length - 1] : null;
 
-			// get the correct class
-			if (className != null) {
-				className = className.toLowerCase();
-			}
-			if (className == null || !classes.containsKey(className)) {
-				throw new ServletException("Class '" + className + "' not found");
-			}
-			Object instance = classes.get(className);
-			
 			// get query parameters
 			JSONRequest request = new JSONRequest();
 			request.setMethod(method);
@@ -54,9 +48,11 @@ public class RESTServlet extends HttpServlet {
 				String param = params.nextElement();
 				request.putParam(param, req.getParameter(param));
 			}
-			
-			// invoke the request
-			JSONResponse response = JSONRPC.invoke(instance, request);
+
+			// instantiate and invoke the agent
+			Agent agent = factory.getAgent(agentClass, agentId);
+			JSONResponse response = factory.invoke(agent, request);
+			agent.destroy();
 			
 			// return response
 			resp.addHeader("Content-Type", "application/json");
@@ -73,56 +69,10 @@ public class RESTServlet extends HttpServlet {
 	}
 
 	/**
-	 * Initialize an instance of the configured class
-	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws Exception
-	 */
-	private void initClasses() throws Exception {
-		if (classes != null) {
-			return;
-		}
-		
-		classes = new HashMap<String, Object>();
-		
-		List<String> classNames = config.get("classes");
-		if (classNames == null || classNames.isEmpty()) {
-			throw new ServletException(
-				"Config parameter 'classes' missing in servlet configuration." +
-				"This parameter must be specified in web.xml.");
-		}
-		
-		for (int i = 0; i < classNames.size(); i++) {
-			String className = classNames.get(i).trim();
-			try {
-				if (className != null && !className.isEmpty()) {
-					Class<?> c = Class.forName(className);
-					String simpleName = c.getSimpleName().toLowerCase();
-					Object instance = c.getConstructor().newInstance();
-					classes.put(simpleName, instance);
-					
-					logger.info("class " + c.getName() + " loaded");
-				}
-			} 
-			catch (ClassNotFoundException e) {
-				logger.warning("class " + className + " not found");
-			}
-			catch (Exception e) {
-				logger.warning(e.getMessage()); 		
-			}
-		}		
-	}
-	
-	/**
-	 * Load configuration file
-	 * @throws IOException 
-	 * @throws ServletException 
+	 * initialize the agent factory
 	 * @throws Exception 
 	 */
-	private void initConfig() throws ServletException, IOException {
-		if (config != null) {
-			return;
-		}
-
+	private void initAgentFactory() throws Exception {
 		String filename = getInitParameter("config");
 		if (filename == null) {
 			filename = "eve.yaml";
@@ -133,6 +83,7 @@ public class RESTServlet extends HttpServlet {
 		String fullname = "/WEB-INF/" + filename;
 		logger.info("loading configuration file '" + 
 				getServletContext().getRealPath(fullname) + "'...");
-		config = new Config(getServletContext().getResourceAsStream(fullname));		
+		Config config = new Config(getServletContext().getResourceAsStream(fullname));
+		factory = new AgentFactory(config);	
 	}
 }

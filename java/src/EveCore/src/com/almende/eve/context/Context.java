@@ -8,7 +8,6 @@ import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 
-
 /**
  * @class Context
  * 
@@ -19,34 +18,127 @@ import com.almende.eve.json.JSONResponse;
  * The context extends a standard Java Map.
  * 
  * Usage:<br>
- *     ContextFactory factory = new FileContextFactory();<br>
- *     factory.setConfig(config);<br>
- *     Context context = factory.getContext("agentClass", "agentId");<br>
+ *     AgentFactory factory = AgentFactory(config);<br>
+ *     Context context = new Context(factory, "agentClass", "agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  */
-public interface Context extends Map<String, Object> {
-	// servlet info
-	public String getEnvironment();
-	public String getServletUrl();	
-	public Config getConfig();  // TODO: config should be read only
-	
-	// info about the agent
-	public String getAgentId();
-	public String getAgentClass();
-	public String getAgentUrl();
+public abstract class Context implements Map<String, Object> {
+	/**
+	 * The implemented classes must have a public constructor
+	 */
+	public Context () {}
 
-	// scheduler
-	public Scheduler getScheduler();
+	/**
+	 * The implemented classes must have this public constructor with
+	 * parameters agentFactory, agentClass, and agentId
+	 */
+	public Context (AgentFactory agentFactory, String agentClass, 
+			String agentId) {
+		this.agentFactory = agentFactory;
+		this.agentId = agentId;
+		this.agentClass = agentClass;
+	}
+	
+	/**
+	 * Get the current environment: "Production" or "Development"
+	 * @return environment
+	 */
+	public abstract String getEnvironment();
+	
+	/**
+	 * Get the Servlet url. Returns null if not configured
+	 * @return servletUrl
+	 */
+	public synchronized String getServletUrl() {
+		return (agentFactory != null) ? agentFactory.getServletUrl() : null;
+	}
+	
+	/**
+	 * Get the loaded configuration file. Can be used to read additional
+	 * configuration parameters.
+	 * @return config
+	 */
+	public synchronized Config getConfig() {
+		// TODO: config should be read only
+		return (agentFactory != null) ? agentFactory.getConfig() : null;
+	}
+	
+	/**
+	 * Get the agents id
+	 * @return agentId
+	 */	
+	public synchronized String getAgentId() {
+		return agentId;
+	}
+	
+	/**
+	 * Get the agents class. This is the classes simplename, not the full
+	 * class path
+	 * @return agentClass
+	 */
+	public synchronized String getAgentClass() {
+		return agentClass;
+	}
+	
+	/**
+	 * Returns the agents url. Only applicable when a servletUrl is configured
+	 * in the configuration file.
+	 * @return
+	 */
+	public synchronized String getAgentUrl() {
+		if (agentUrl == null) {
+			String servletUrl = getServletUrl();
+			if (servletUrl != null) {
+				String url = servletUrl;
+				if (!url.endsWith("/")) {
+					url += "/";
+				}
+				if (agentClass != null) {
+					url += agentClass + "/";
+					if (agentId != null) {
+						url += agentId + "/";
+					}
+				}
+				agentUrl = url;
+			}			
+		}
+		return agentUrl;
+	}
+
+	/**
+	 * Get the scheduler, which can be used to schedule tasks.
+	 * @return scheduler
+	 */
+	public abstract Scheduler getScheduler();
 	
 	// access to the AgentFactory, invoke or instantiate other agents 
 	// (internal or external) via the context
-	public JSONResponse invoke(String url, JSONRequest request) throws Exception;
-	public AgentFactory getAgentFactory();
-
+	
+	/**
+	 * invoke an agent (internal or external) via the agent factory
+	 * @throws Exception 
+	 */
+	public JSONResponse invoke(String url, JSONRequest request) throws Exception  {
+		return agentFactory.invoke(url, request);
+	}
+	
+	/**
+	 * Get the agent factory. Can be used to instantiate new agents. 
+	 * @return
+	 */
+	public AgentFactory getAgentFactory() {
+		return agentFactory;
+	}
+	
 	// init and destroy methods
-	public void init();     // executed once before the agent invocation
-	public void destroy();  // executed once after the agent invocation
+	public abstract void init();     // executed once after the agent is instantiated
+	public abstract void destroy();  // executed once before the agent is destroyed
+	
+	protected String agentUrl = null;
+	protected String agentClass = null;
+	protected String agentId = null;
+	protected AgentFactory agentFactory = null;
 }

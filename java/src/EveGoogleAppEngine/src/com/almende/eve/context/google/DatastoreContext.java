@@ -10,13 +10,11 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.Context;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.google.AppEngineScheduler;
-import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
@@ -36,34 +34,20 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * running instances of the same DatastoreContext using MemCache.
  * 
  * Usage:<br>
- *     ContextFactory factory = new DatastoreContextFactory();<br>
- *     factory.setConfig(config);<br>
- *     Context context = factory.getContext("agentClass", "agentId");<br>
+ *     AgentFactory factory = AgentFactory(config);<br>
+ *     DatastoreContext context = 
+ *     	   new DatastoreContext(factory, "agentClass", "agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  */
-public class DatastoreContext implements Context {
-	private DatastoreContextFactory factory = null;
-	private Scheduler scheduler = null;
-	private String agentClass = null;
-	private String agentId = null;
-	private String agentUrl = null;
-	private Map<String, Object> properties = new HashMap<String, Object>();
-	
-	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-	private IdentifiableValue cacheValue = null;
-	private boolean isChanged = false;
-	
+public class DatastoreContext extends Context {
 	public DatastoreContext() {}
 
-	protected DatastoreContext(DatastoreContextFactory factory, 
-			String agentClass, String agentId) {
-		this.factory = factory;
-		this.agentClass = agentClass.toLowerCase();
-		this.agentId = agentId;
-		// Note: agentUrl will be initialized when needed
+	public DatastoreContext(AgentFactory agentFactory, String agentClass, 
+			String agentId) {
+		super(agentFactory, agentClass, agentId);
 	}
 
 	/**
@@ -100,52 +84,12 @@ public class DatastoreContext implements Context {
 		return appUrl;
 	}
 	*/
-	
-	@Override
-	public String getAgentId() {
-		return agentId;
-	}
 
-	@Override
-	public String getAgentClass() {
-		return agentClass;
-	}
-
-	@Override
-	public String getAgentUrl() {
-		if (agentUrl == null) {
-			String servletUrl = getServletUrl();
-			if (servletUrl != null) {
-				agentUrl = servletUrl;
-				if (!agentUrl.endsWith("/")) {
-					agentUrl += "/";
-				}
-				if (agentClass != null) {
-					agentUrl += agentClass + "/";
-					if (agentId != null) {
-						agentUrl += agentId + "/";
-					}
-				}
-			}			
-		}
-		return agentUrl;
-	}
-	
-	@Override
-	public String getServletUrl() {
-		return factory.getServletUrl();
-	}	
-	
 	@Override 
 	public String getEnvironment() {
-		return factory.getEnvironment();
+		return SystemProperty.environment.get(); // "Development" or "Production"
 	}
 	
-	@Override
-	public Config getConfig() {
-		return factory.getConfig();
-	}
-
 	@Override
 	public Scheduler getScheduler() {
 		if (scheduler == null) {
@@ -409,14 +353,10 @@ public class DatastoreContext implements Context {
 		return properties.values();
 	}
 
-	@Override
-	public JSONResponse invoke(String url, JSONRequest request)
-			throws Exception {
-		return getAgentFactory().invoke(url, request);
-	}
-
-	@Override
-	public AgentFactory getAgentFactory() {
-		return factory.getAgentFactory();
-	}
+	private Map<String, Object> properties = new HashMap<String, Object>();
+	private Scheduler scheduler = null;
+	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+	private IdentifiableValue cacheValue = null;
+	private boolean isChanged = false;
 }
+

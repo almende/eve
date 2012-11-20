@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -30,6 +31,10 @@ public class SingleAgentServlet extends HttpServlet {
 	private String agentId = "1"; // TODO: what to do with id?
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
+	/**
+	 * Initialize the agent factory and instantiate the agent on initialization
+	 * of the servlet
+	 */
 	@Override
 	public void init() {
 		try {
@@ -127,29 +132,61 @@ public class SingleAgentServlet extends HttpServlet {
 		agentFactory = new AgentFactory(config);	
 	}
 	
+	/**
+	 * Initialize the agent class
+	 * @throws IllegalArgumentException
+	 */
 	private void initAgentClass() throws IllegalArgumentException {
 		Config config = agentFactory.getConfig();
-		List<String> classes = config.get("agent", "classes");
-		if (classes == null) {
-			throw new IllegalArgumentException(
-				"Config parameter 'agent.classes' missing in Eve configuration.");
-		}
+		//List<String> classes = config.get("agents");
 		
-		if (classes == null || classes.size() == 0) {
-			throw new IllegalArgumentException(
-				"Config parameter 'agent.classes' missing in Eve configuration.");
+		String className = null;
+		List<Map<String, Object>> agents = config.get("agents");
+		if (agents != null) {
+			if (agents.size() == 0) {
+				throw new IllegalArgumentException(
+					"Config parameter 'agents[]' is empty in Eve configuration.");
+			}
+			if (agents.size() > 1) {
+				throw new IllegalArgumentException(
+						"Config parameter 'agents[]' may only contain one class");
+			}
+			
+			Map<String, Object> properties = agents.get(0);
+			if (!properties.containsKey("class")) {
+				throw new IllegalArgumentException(
+						"Config parameter 'agents[0].class' missing in Eve configuration");
+			}
+			className = (String) properties.get("class");
 		}
-		if (classes.size() > 1) {
-			throw new IllegalArgumentException(
-					"Config parameter 'agent.classes' may only contain one class");
+		else {
+			List<String> classes = config.get("agent", "classes");
+			if (classes != null) {
+				logger.warning("Property agent.classes[] is deprecated. Use agents[].class instead");
+				
+				if (classes.size() == 0) {
+					throw new IllegalArgumentException(
+							"Config parameter 'agent.classes' is empty in Eve configuration.");
+				}
+				else if (classes.size() > 1) {
+					throw new IllegalArgumentException(
+							"Config parameter 'agent.classes' may only contain one class");
+				}
+				
+				className = classes.get(0);
+			}
+			else {
+				throw new IllegalArgumentException(
+					"Config parameter 'agents[]' missing in Eve configuration.");
+			}
 		}
 		
 		Class<?> clazz = null;
 		try {
-			clazz = Class.forName(classes.get(0));
+			clazz = Class.forName(className);
 			agentClass = clazz.getSimpleName().toLowerCase();
 		} catch (ClassNotFoundException e) {
-			logger.warning("Agent class '" + classes.get(0) + "' not found");
+			logger.warning("Agent class '" + className + "' not found");
 		}
 	}
 }
