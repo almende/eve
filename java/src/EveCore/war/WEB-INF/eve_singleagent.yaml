@@ -3,9 +3,9 @@
 # environment settings
 environment:
   Development:
-    servlet_url: http://localhost:8080/EveCore/testagent
+    agent_url: http://localhost:8080/EveCore/testagent/:resource
   Production:
-    servlet_url: http://localhost:8080/EveCore/testagent
+    agent_url: http://localhost:8080/EveCore/testagent/:resource
 
 # agent settings
 # the SingleAgentServlet can only host one agent class.

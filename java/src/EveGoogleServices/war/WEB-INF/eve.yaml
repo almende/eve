@@ -3,9 +3,9 @@
 # environment settings
 environment:
   Development:
-    servlet_url: http://localhost:8080/EveGoogleServices/agents
+    agent_url: http://localhost:8080/EveGoogleServices/agents/:class/:id/:resource
   Production:
-    servlet_url: http://localhost:8080/EveGoogleServices/agents
+    agent_url: http://localhost:8080/EveGoogleServices/agents/:class/:id/:resource
 
 # agent settings
 agent:

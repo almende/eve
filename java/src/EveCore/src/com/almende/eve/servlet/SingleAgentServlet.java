@@ -2,12 +2,10 @@ package com.almende.eve.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,7 +45,8 @@ public class SingleAgentServlet extends HttpServlet {
 	
 	@Override
 	public void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+			HttpServletResponse response) throws IOException {
+		/* TODO: cleanup
 		String url = request.getRequestURI();
 		
 		// retrieve the servlet url from the context
@@ -79,10 +78,26 @@ public class SingleAgentServlet extends HttpServlet {
 			name = "index.html";
 			extension = name.substring(name.lastIndexOf(".") + 1);
 		}
+		*/
+		String uri = request.getRequestURI();
+		Map<String, String> params = agentFactory.getAgentParams(uri);
+		String resource = params.get("resource");
+		
+		if (resource == null || resource.isEmpty()) {
+			if (!uri.endsWith("/")) {
+				String redirect = uri + "/";
+				response.sendRedirect(redirect);
+				return;
+			}
+			else {
+				resource = "index.html";
+			}
+		}
+		String extension = resource.substring(resource.lastIndexOf(".") + 1);
 		
 		// retrieve and stream the resource
 		String mimetype = StreamingUtil.getMimeType(extension);
-		String filename = RESOURCES + name;
+		String filename = RESOURCES + resource;
 		InputStream is = this.getClass().getResourceAsStream(filename);
 		StreamingUtil.streamBinaryData(is, mimetype, response);
 	}	

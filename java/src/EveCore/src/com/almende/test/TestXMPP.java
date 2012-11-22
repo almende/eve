@@ -27,7 +27,7 @@ public class TestXMPP {
 		Agent agent2 = factory.getAgent(agentClass, agentId);
 		agent2.messengerConnect(agentId, agentPassword);
 		
-        agent.testAsyncXMPP("jos@ec2-54-246-24-74.eu-west-1.compute.amazonaws.com");
+        agent.testAsyncXMPP("jos@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
 
         //agent.testAsyncHTTP();
 		

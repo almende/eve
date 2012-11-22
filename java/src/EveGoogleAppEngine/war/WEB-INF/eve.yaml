@@ -3,9 +3,9 @@
 # environment settings
 environment:
   Development:
-    servlet_url: http://localhost:8888/agents
+    agent_url: http://localhost:8888/agents/:class/:id/:resource
   Production:
-    servlet_url: http://eveagents.appspot.com/agents
+    agent_url: http://eveagents.appspot.com/agents/:class/:id/:resource
 
 # agent settings
 agents:

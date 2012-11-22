@@ -2,6 +2,7 @@ package com.almende.eve.agent;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,7 @@ import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.util.ClassUtil;
+import com.almende.util.HttpUtil;
 
 /**
  * The AgentFactory is a factory to instantiate and invoke Eve Agents within the 
@@ -41,7 +43,7 @@ import com.almende.util.ClassUtil;
  *     // instantiate an agent
  *     Agent agent = factory.getAgent(agentClass, agentId); // load local agent
  *     String desc = agent.getDescription(); // use the agent
- *     agent.destroy(); // neatly shutdown context
+ *     agent.destroy(); // neatly shutdown the agents context
  * 
  * @author jos
  */
@@ -69,8 +71,17 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	public Agent getAgent(String agentUrl) throws Exception {
-		AgentAddress addr= splitAgentUrl(agentUrl);
-		return getAgent(addr.agentClass, addr.agentId);
+		Map<String, String> params = getAgentParams(agentUrl);
+		
+		// Error when id or class is null
+		if (!params.containsKey("id")) {
+			throw new Exception("No agent id found in url");
+		}
+		if (!params.containsKey("id")) {
+			throw new Exception("No agent class found in url");
+		}
+		
+		return getAgent(params.get("class"), params.get("id"));
 	}
 	
 	/**
@@ -88,7 +99,7 @@ public class AgentFactory {
 	 */
 	public Agent getAgent(String agentClass, String agentId) throws Exception {
 		AgentClass ac = getAgentClass(agentClass);
-		if (ac.threadSafe) {
+		if (ac != null && ac.threadSafe) {
 			// use existing instance (load if not yet instantiated)
 			String key = agentClass + "/" + agentId;
 			if (agents.containsKey(key)) {
@@ -193,7 +204,7 @@ public class AgentFactory {
 	public JSONResponse invoke(String agentClass, String agentId, 
 			JSONRequest request) throws Exception {
 		AgentClass ac = getAgentClass(agentClass);
-		if (ac.threadSafe) {
+		if (ac != null && ac.threadSafe) {
 			// keep the agent instance alive
 			Agent agent = getAgent(agentClass, agentId);
 			return JSONRPC.invoke(agent, request);
@@ -238,8 +249,17 @@ public class AgentFactory {
 			throws Exception {
 		if (isLocalUrl(agentUrl)) {
 			// invoke locally
-			AgentAddress addr = splitAgentUrl(agentUrl);
-			return invoke(addr.agentClass, addr.agentId, request);
+			Map<String, String> params = getAgentParams(agentUrl);
+			
+			// Error when id or class is null?
+			if (!params.containsKey("id")) {
+				throw new Exception("No agent id found in url");
+			}
+			if (!params.containsKey("id")) {
+				throw new Exception("No agent class found in url");
+			}
+
+			return invoke(params.get("class"), params.get("id"), request);
 		}
 		else {
 			// send request to remote agent.
@@ -281,6 +301,7 @@ public class AgentFactory {
 	/**
 	 * Get the configured servlet url, or null when not configured
 	 * @return servletUrl
+	 * @deprecated Use getAgentUrlTemplate instaead
 	 */
 	public String getServletUrl() {
 		if (servletUrl == null) {
@@ -295,8 +316,7 @@ public class AgentFactory {
 				}
 				else {
 					String path = "environment." + getEnvironment() + ".servlet_url";
-					Exception e = new Exception("Config parameter '" + path + "' is missing");
-					e.printStackTrace();
+					logger.severe("Config parameter '" + path + "' is missing");
 				}
 			}
 			else {
@@ -305,6 +325,31 @@ public class AgentFactory {
 			}
 		}
 		return servletUrl;	
+	}
+
+	/**
+	 * Get the configured agent url template,
+	 * for example "http://localhost:8080/EveCore/agents/:class/:id/:resource".
+	 * the template is read from the configuration file, parameter agent_url.
+	 * @return agentUrlTemplate
+	 */
+	public String getUrlTemplate() {
+		if (agentUrlTemplate == null) {
+			// read the url template from the config
+			Config config = getConfig();
+			if (config != null) {
+				agentUrlTemplate = config.get("environment", getEnvironment(), "agent_url");
+				if (agentUrlTemplate == null) {
+					String path = "environment." + getEnvironment() + ".agent_url";
+					logger.severe("Config parameter '" + path + "' is missing");
+				}
+			}
+			else {
+				Exception e = new Exception("Configuration uninitialized");
+				e.printStackTrace();
+			}
+		}
+		return agentUrlTemplate;	
 	}
 	
 	/**
@@ -332,6 +377,7 @@ public class AgentFactory {
 	 * Get the servlet path from the configured servlet url.
 	 * @return servletPath
 	 * @throws MalformedURLException
+	 * @deprecated
 	 */
 	private String getServletPath() throws MalformedURLException {
 		String servletUrl = getServletUrl();
@@ -347,9 +393,37 @@ public class AgentFactory {
 	 * @throws MalformedURLException
 	 */
 	public boolean isLocalUrl(String url) throws MalformedURLException {
-		String servletUrl = getServletUrl();
-		String servletPath = new URL(servletUrl).getPath();
-		return url.startsWith(servletUrl) || url.startsWith(servletPath);
+		String urlTemplate = getUrlTemplate();
+		if (urlTemplate != null) {
+			String domain = getDomain(url);
+			String domainTemplate = getDomain(urlTemplate);
+			return domain.isEmpty() || domain.equals(domainTemplate);
+		}
+		else {
+			// TODO: servletUrl is deprecated. Cleanup this part of the code
+			String servletUrl = getServletUrl();
+			if (servletUrl != null) {
+				String path = new URL(servletUrl).getPath();
+				return url.startsWith(servletUrl) || url.startsWith(path);
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Get the domain part of given url.
+	 * For example "http://localhost:8080/EveCore/agents/testagent/1/" will
+	 * return "http://localhost:8080", 
+	 * and "/EveCore/agents/testagent/1/" will return "".
+	 * @param url
+	 * @return domain
+	 */
+	private String getDomain(String url)  {
+		int protocolSeparator = url.indexOf("://");
+		int fromIndex = (protocolSeparator != -1) ? protocolSeparator + 3 : 0;
+		int pathSeparator = url.indexOf("/", fromIndex);
+		return url.substring(0, pathSeparator);
 	}
 	
 	/**
@@ -361,8 +435,9 @@ public class AgentFactory {
 	 * @return agentAddress
 	 * @throws ServletException
 	 * @throws MalformedURLException
+	 * @deprecated use getAgentParams instead.
 	 */
-	public AgentAddress splitAgentUrl (String url) 
+	private AgentAddress splitAgentUrl (String url) 
 			throws IllegalArgumentException, MalformedURLException {
 		String path = null;
 		String servletUrl = getServletUrl();
@@ -405,6 +480,87 @@ public class AgentFactory {
 		return new AgentAddress(url, agentClass, agentId, agentResource);
 	}
 
+	/**
+	 * Retrieve agent parameters (id, class, resource) from given agentUrl.
+	 * To extract the parameters from the url, the configured agent_url is used.
+	 * For example url "http://localhost:8888/agents/echoagent/1234/"
+	 * will return the map {"class": "echoagent", "id": "1234"}  
+	 * @param url
+	 * @return params
+	 * @throws MalformedURLException 
+	 */
+	public Map<String, String> getAgentParams(String url) {
+		Map<String, String> params = null;
+		String urlTemplate = getUrlTemplate();
+		
+		if (urlTemplate != null) {
+			String domain = getDomain(url);
+			if (domain.isEmpty()) {
+				// provided url is only containing the path (not the domain)
+				url = getDomain(urlTemplate) + url;
+			}
+			else {
+				if (!domain.equals(getDomain(urlTemplate))) {
+					// mismatching domain
+					logger.severe("Mismatching domain(url=" + url + 
+							", template=" + urlTemplate + ")");
+				}
+			}
+			params = HttpUtil.getTemplateParams(urlTemplate, url);
+		}
+		else {
+			// use deprecated splitAgentUrl
+			// TODO: cleanup deprecated stuff (deprecated since 2012-11-21)
+			try {
+				AgentAddress address = splitAgentUrl(url);
+				params = new HashMap<String, String> ();
+				params.put("class", address.agentClass);
+				params.put("id", address.agentId);
+				params.put("resource", address.agentResource);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return params;
+	}
+	
+	/**
+	 * Build the url for an agent with given parameters  
+	 * @param agentClass   The class name of the agent (simplename)
+	 * @param agentId      The id of the agent
+	 * @return agentUrl
+	 */
+	public String getAgentUrl(String agentClass, String agentId) {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("class", agentClass);
+		params.put("id", agentId);
+		String urlTemplate = getUrlTemplate();
+		if (urlTemplate != null) {
+			return HttpUtil.setTemplateParams(urlTemplate, params);
+		}
+		else {
+			// TODO: this method is deprecated since 2012-11-21
+			String servletUrl = getServletUrl();
+			if (servletUrl != null) {
+				String url = servletUrl;
+				if (!url.endsWith("/")) {
+					url += "/";
+				}
+				if (agentClass != null) {
+					url += agentClass + "/";
+					if (agentId != null) {
+						url += agentId + "/";
+					}
+				}
+				return url;
+			}
+			else {
+				return null;
+			}
+		}
+	}
+	
 	/**
 	 * Set configuration file
 	 * @param config   A loaded configuration file
@@ -529,18 +685,19 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Helper class to hold the parts of an agent url: url, class, id, resource. 
+	 * Helper class to hold the parts of an agent url: url, class, id, resource.
+	 * @deprecated 
 	 */
-	public class AgentAddress {
+	private class AgentAddress {
 		public AgentAddress(String agentUrl, String agentClass, 
 				String agentId, String agentResource) {
-			this.agentUrl = agentUrl;
+			//this.agentUrl = agentUrl;
 			this.agentClass = agentClass;
 			this.agentId = agentId;
 			this.agentResource = agentResource;
 		}
 		
-		public String agentUrl = null;
+		//public String agentUrl = null;
 		public String agentClass = null;
 		public String agentId = null;
 		public String agentResource = null;
@@ -628,6 +785,7 @@ public class AgentFactory {
 	private Class<?> contextClass = null;
 	private Config config = null;
 	private String servletUrl = null;
+	private String agentUrlTemplate = null;
 	private String environment = null;
 	
 	// map with all instantiated agents (only applicable for stateful agents)

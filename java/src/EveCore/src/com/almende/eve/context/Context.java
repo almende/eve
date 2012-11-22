@@ -51,6 +51,7 @@ public abstract class Context implements Map<String, Object> {
 	/**
 	 * Get the Servlet url. Returns null if not configured
 	 * @return servletUrl
+	 * @deprecated This method will be removed and not replaced. 
 	 */
 	public synchronized String getServletUrl() {
 		return (agentFactory != null) ? agentFactory.getServletUrl() : null;
@@ -90,20 +91,9 @@ public abstract class Context implements Map<String, Object> {
 	 */
 	public synchronized String getAgentUrl() {
 		if (agentUrl == null) {
-			String servletUrl = getServletUrl();
-			if (servletUrl != null) {
-				String url = servletUrl;
-				if (!url.endsWith("/")) {
-					url += "/";
-				}
-				if (agentClass != null) {
-					url += agentClass + "/";
-					if (agentId != null) {
-						url += agentId + "/";
-					}
-				}
-				agentUrl = url;
-			}			
+			if (agentFactory != null) {
+				agentUrl = agentFactory.getAgentUrl(agentClass, agentId);
+			}
 		}
 		return agentUrl;
 	}
@@ -113,9 +103,6 @@ public abstract class Context implements Map<String, Object> {
 	 * @return scheduler
 	 */
 	public abstract Scheduler getScheduler();
-	
-	// access to the AgentFactory, invoke or instantiate other agents 
-	// (internal or external) via the context
 	
 	/**
 	 * invoke an agent (internal or external) via the agent factory

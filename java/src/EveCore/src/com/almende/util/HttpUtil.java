@@ -274,6 +274,106 @@ public class HttpUtil {
 	}
 
 	/**
+	 * Retrieve the template parameters from an url.
+	 * For example if
+	 *     template = "http://server.com/:db/:id",
+	 *     url      = "http://server.com/maindb/1234"
+	 * The method will return a map:
+	 *     params   = {"db": "maindb", "id": "1234"}
+	 *  
+	 * @param template   A template url
+	 * @param url        A url with parameters
+	 * @return params    A map with all parameters defined in the template,
+	 *                    with the value found in the url as value (or an empty 
+	 *                    string when not found) 
+	 */
+	static public Map<String, String> getTemplateParams(String template, 
+			String url) {
+		Map<String, String> params = new HashMap<String, String>();
+		String[] pTemplate = template.split("/");
+		String pLast = pTemplate[pTemplate.length - 1];
+		int limit = isTemplateParam(pLast) ? pTemplate.length : 0;
+		String[] pUrl = url.split("/", limit);
+		
+		for (int p = 0; p < pTemplate.length; p++) {
+			String t = pTemplate[p];
+			if (isTemplateParam(t)) {
+				String param = t.substring(1);
+				String value = null;
+				if (!params.containsKey(param)) {
+					value = (p < pUrl.length) ? pUrl[p] : "";
+					params.put(param, value);
+				}
+			}
+		}
+		
+		return params;
+	}
+	
+	/**
+	 * Create an url from a template and a map with parameter values.
+	 * For example if
+	 *     template = "http://server.com/:db/:id",
+	 *     params   = {"db": "maindb", "id": "1234"}
+	 * The method will return a map:
+	 *     url      = "http://server.com/maindb/1234"
+	 * 
+	 * @param template   A template url
+	 * @param url        A url with parameters
+	 * @return params    A map with all parameters defined in the template,
+	 *                    with the value found in the url as value (can be null) 
+	 */
+	static public String setTemplateParams(String template, 
+			Map<String, String> params) {
+		String[] pTemplate = template.split("/");
+		String[] pUrl = new String[pTemplate.length];
+		for (int p = 0; p < pTemplate.length; p++) {
+			String t = pTemplate[p];
+			if (isTemplateParam(t)) {
+				String param = t.substring(1);
+				String value = params.get(param);
+				pUrl[p] = (value != null) ? value : "";
+			}
+			else {
+				pUrl[p] = pTemplate[p];
+			}
+		}
+
+		String url = join(pUrl, "/");
+		return url;
+	}
+	
+	/**
+	 * Test if given string is a template parameter, like ":id" or ":db"
+	 * @param str
+	 * @return
+	 */
+	static private boolean isTemplateParam(String str) {
+		return (str.length() > 0 && str.startsWith(":"));
+	}
+
+	/**
+	 * Join the elements of a string array into a string.
+	 * @param array      String array
+	 * @param delimeter  Optional delimiter
+	 * @return
+	 */
+	private static String join (String[] array, String delimiter) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for(String s : array) {
+			if (first) {
+				first = false;
+			}
+			else if (delimiter != null){
+				sb.append(delimiter);
+			}
+			sb.append(s);
+		}
+		return sb.toString();
+	}
+
+	/**
 	 * Returns the url without query parameters
 	 * @param url         Url containing query parameters
 	 * @return url        Url without query parameters

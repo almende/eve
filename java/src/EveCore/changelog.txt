@@ -12,6 +12,8 @@ http://almende.github.com/eve/
 - Configuration of agent classes changed from an array agent.classes[] to
   an array agents[], where each agent can have properties class (required), 
   thread_safe, and stateful.
+- Configuration of parameter servlet_url replaced with agent_url, where
+  agent_url contains an url template for the served agents.
 
 
 2012-09-18, version 0.10.0

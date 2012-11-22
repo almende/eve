@@ -3,11 +3,11 @@
 # environment settings
 environment:
   Development:
-    servlet_url: http://localhost:8888/agents
+    agent_url: http://localhost:8888/agents/:class/:id/:resource
     auth_google_servlet_url: http://localhost:8888/auth/google
 
   Production:
-    servlet_url: http://eveagents.appspot.com/agents
+    agent_url: http://eveagents.appspot.com/agents/:class/:id/:resource
     auth_google_servlet_url: https://eveagents.appspot.com/auth/google
 
 # agent settings

@@ -30,6 +30,23 @@ public class HttpUtilTest {
 			System.out.println(HttpUtil.removeQueryParams(fullUrl));
 			
 			
+			// Test template parameters
+			String template = "http://server.com:80/servlet/:db/:id";
+			Map<String, String> params3 = new HashMap<String, String>();
+			params3.put("db", "mydatabase");
+			params3.put("id", "12345");
+			String url2 = HttpUtil.setTemplateParams(template, params3);
+			System.out.println("template=" + template);
+			System.out.println("url2=" + url2);
+			String url3 = "http://server.com:80/servlet/otherdb/33333";
+			Map<String, String> params4 = HttpUtil.getTemplateParams(template, url3);
+			System.out.println("params4=" + params4);
+			
+			String template2 = "http://server.com:80/servlet/:db/:therest";
+			String url4 = "http://server.com:80/servlet/otherdb/11/22/33";
+			Map<String, String> params5 = HttpUtil.getTemplateParams(template2, url4);
+			System.out.println("params5=" + params5);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

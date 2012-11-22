@@ -285,11 +285,8 @@ public class TestAgent extends Agent {
 		return "This method is no valid JSON-RPC method: misses an @Name annotation.";
 	}
 	
-	public void testAsyncXMPP (@Name("url") @Required(false) String url) throws Exception {
+	public void testAsyncXMPP (@Name("url") String url) throws Exception {
 		System.out.println("testAsyncSend, url=" + url);
-		if (url == null) {
-			url = "jos@ec2-54-246-24-74.eu-west-1.compute.amazonaws.com";
-		}
 		String method = "multiply";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("a", new Double(3));

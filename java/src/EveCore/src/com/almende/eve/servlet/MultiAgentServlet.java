@@ -2,6 +2,7 @@ package com.almende.eve.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -10,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.AgentFactory.AgentAddress;
 import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
@@ -39,17 +39,17 @@ public class MultiAgentServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException {
 		String uri = req.getRequestURI();
-		
-		AgentAddress address = agentFactory.splitAgentUrl(uri);
-		String resource = address.agentResource;
+		Map<String, String> params = agentFactory.getAgentParams(uri);
+		String agentClass = params.get("class");
+		String resource = params.get("resource");
 		
 		// check if the agent class is known
-		if (agentFactory.getAgentClass(address.agentClass) == null) {
+		if (agentFactory.getAgentClass(agentClass) == null) {
 			throw new ServletException(
-					"Unknown agent class '" + address.agentClass + "'");
+					"Unknown agent class '" + agentClass + "'");
 		}
 		
-		if (resource.isEmpty()) {
+		if (resource == null || resource.isEmpty()) {
 			if (!uri.endsWith("/")) {
 				String redirect = uri + "/";
 				resp.sendRedirect(redirect);

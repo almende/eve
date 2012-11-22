@@ -3,19 +3,17 @@
 # environment settings
 environment:
   Development:
-    servlet_url: http://localhost:8080/EveCore/agents
+    agent_url: http://localhost:8080/EveCore/agents/:class/:id/:resource
     messenger:
       class: com.almende.eve.messenger.XMPPMessenger
-      host: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
+      host: ec2-54-246-112-19.eu-west-1.compute.amazonaws.com
       port: 5222
-      #service: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
   Production:
-    servlet_url: http://localhost:8080/EveCore/agents
+    agent_url: http://localhost:8080/EveCore/agents/:class/:id/:resource
     messenger:
       class: com.almende.eve.messenger.XMPPMessenger
-      host: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
+      host: ec2-54-246-112-19.eu-west-1.compute.amazonaws.com
       port: 5222
-      #service: ec2-54-246-24-74.eu-west-1.compute.amazonaws.com
 
 # agent settings
 agents:

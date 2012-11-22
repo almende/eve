@@ -70,7 +70,6 @@ function Ctrl() {
      *                            an error
      */
     this.send = function (url, request, callback, errback) {
-        var self = this;
         $.ajax({
             'type': 'POST',
             'url': url,
@@ -293,9 +292,11 @@ function Ctrl() {
                 'url': self.url
             }
         };
+        self.logAgentError = undefined;
         self.send(this.logAgentUrl, request, function (response) {
             self.logAgentUpdate();
         });
+        // TODO: error when failed to create logagent
 
         // method for keeping the logagent alive during the session
         var timeToLive = (self.timeToLive > 60*1000) ? self.timeToLive : 60*1000;

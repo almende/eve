@@ -413,10 +413,13 @@ abstract public class Agent {
 	 *                        format
 	 * @throws Exception 
 	 * @throws JSONException 
+	 * @deprecated Use the sendAsync methods with an AsyncCallback parameter
+	 * instead.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void sendAsync(String url, String method, ObjectNode params,
 			String callbackMethod) throws Exception {
+		// TODO: cleanup this method after a while (deprecated on 2012-11-20, v0.11)
 		JSONRequest req = new JSONRequest(method, params);
 		String callbackUrl = getUrl();
 		req.setCallback(callbackUrl, callbackMethod);
