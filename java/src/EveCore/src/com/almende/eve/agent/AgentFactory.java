@@ -533,7 +533,7 @@ public class AgentFactory {
 	 */
 	public String getAgentUrl(String agentClass, String agentId) {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("class", agentClass);
+		params.put("class", agentClass.toLowerCase());
 		params.put("id", agentId);
 		String urlTemplate = getUrlTemplate();
 		if (urlTemplate != null) {
