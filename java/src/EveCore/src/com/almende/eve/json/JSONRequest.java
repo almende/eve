@@ -47,11 +47,13 @@ public class JSONRequest {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Member 'method' is no String");
 		}
+		/* TODO: cleanup
 		if (!request.has("params")) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Member 'params' missing in request");
 		}
-		if (!(request.get("params").isObject())) {
+		*/
+		if (request.has("params") && !(request.get("params").isObject())) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Member 'params' is no ObjectNode");
 		}

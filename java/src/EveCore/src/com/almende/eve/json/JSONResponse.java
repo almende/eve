@@ -54,25 +54,28 @@ public class JSONResponse {
 						"Value of member 'jsonrpc' must be '2.0'");
 			}
 		}
-		if (response.has("result") && response.has("error")) {
+		boolean hasError = response.has("error") && !response.get("error").isNull();
+		/* TODO: cleanup
+		if (hasResult && hasError) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Response contains both members 'result' and 'error' but may not contain both.");
 		}
-		if (!response.has("result") && !response.has("error")) {
+		if (!hasResult && !hasError) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Response is missing member 'result' or 'error'");
 		}
-		if (response.has("error")) {
+		*/
+		if (hasError) {
 			if (!(response.get("error").isObject())) {
 				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-					"Member 'error' is no JSONObject");					
+					"Member 'error' is no ObjectNode");					
 			}
 		}
 		
 		Object id = response.get("id"); 
 		Object result = response.get("result");
 		JSONRPCException error = null;
-		if (response.has("error")) {
+		if (hasError) {
 			error = new JSONRPCException((ObjectNode)response.get("error"));
 		}
 		
@@ -82,8 +85,8 @@ public class JSONResponse {
 	private void init(Object id, Object result, JSONRPCException error) {
 		setVersion();
 		setId(id);
-		setError(error);
 		setResult(result);
+		setError(error);
 	}
 	
 	public void setId(Object id) {

@@ -77,18 +77,26 @@ public class MultiAgentServlet extends HttpServlet {
 			throws IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
+		String body = null;
+		String agentUrl = null;
 		try {
 			// retrieve the agent url and the request body
-			String body = StringUtil.streamToString(req.getInputStream());
-			String agentUrl = req.getRequestURI();
+			body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
 			
 			// invoke the agent
+			agentUrl = req.getRequestURI();
 			jsonResponse = agentFactory.invoke(agentUrl, jsonRequest);
 		} catch (Exception err) {
 			// generate JSON error response
-			JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
+			JSONRPCException jsonError = null;
+			if (err instanceof JSONRPCException) {
+				jsonError = (JSONRPCException) err;
+			}
+			else {
+				jsonError = new JSONRPCException(
+						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());				
+			}
 			jsonResponse = new JSONResponse(jsonError);
 			
 			err.printStackTrace(); // TODO: remove printing stacktrace?

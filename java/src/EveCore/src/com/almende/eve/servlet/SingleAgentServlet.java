@@ -116,8 +116,14 @@ public class SingleAgentServlet extends HttpServlet {
 			jsonResponse = agentFactory.invoke(agentClass, agentId, jsonRequest);
 		} catch (Exception err) {
 			// generate JSON error response
-			JSONRPCException jsonError = new JSONRPCException(
-					JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
+			JSONRPCException jsonError = null;
+			if (err instanceof JSONRPCException) {
+				jsonError = (JSONRPCException) err;
+			}
+			else {
+				jsonError = new JSONRPCException(
+						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());				
+			}
 			jsonResponse = new JSONResponse(jsonError);
 
 			err.printStackTrace(); // TODO: remove printing stacktrace?
