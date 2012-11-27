@@ -18,7 +18,6 @@ import com.almende.eve.json.JSONResponse;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
 
-
 @SuppressWarnings("serial")
 public class MultiAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());

@@ -44,7 +44,8 @@ public class JSONRPCException extends Exception {
 		}
 	}
 
-	public JSONRPCException (ObjectNode exception) throws JSONRPCException {
+	public JSONRPCException (ObjectNode exception) {
+		/* TODO: cleanup
 		if (exception == null || exception.isNull()) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Exception is null");
@@ -66,12 +67,19 @@ public class JSONRPCException extends Exception {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
 				"Member 'message' is no String");
 		}
+		*/
 		
-		// set code, message, and optional data
-		setCode(exception.get("code").asInt());
-		setMessage(exception.get("message").asText());
-		if (exception.has("data")) {
-			setData(exception.get("data"));
+		if (exception != null && !exception.isNull()) {
+			// set code, message, and optional data
+			if (exception.has("code")) {
+				setCode(exception.get("code").asInt());
+			}
+			if (exception.has("message")) {
+				setMessage(exception.get("message").asText());
+			}
+			if (exception.has("data")) {
+				setData(exception.get("data"));
+			}
 		}
 	}	
 
