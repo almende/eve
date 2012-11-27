@@ -23,10 +23,10 @@ file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Development:
-        servlet_url: http://localhost:8888/agents
+        agent_url: http://localhost:8888/agents/:class/:id/:resource
         auth_google_servlet_url: http://localhost:8888/auth/google
       Production:
-        servlet_url: http://myproject.appspot.com/agents
+        agent_url: http://myproject.appspot.com/agents/:class/:id/:resource
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
     # agent settings
@@ -44,7 +44,7 @@ file: **war/WEB-INF/eve.yaml**
     # context settings
     # the context is used by agents for storing their state.
     context:
-      class: com.almende.eve.context.MemoryContextFactory
+      class: com.almende.eve.context.MemoryContext
 
     # Google API access
     google:
@@ -61,10 +61,40 @@ Description of the available properties:
   </tr>
   <tr>
     <td>environment.Development<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.agent_url<br>
+      environment.Production<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.agent_url</td>
+    <td>The url template for the hosted agents. This url needs to be specified,
+      as it is not possible for an agent to know via what servlet it is being
+      called. The url of an agent is built up from this template url, where the
+      agents class and id are filled in.<br><br>
+
+      The url template can contain the following parameters:
+      <ul>
+        <li><code>:class</code> The class name of the agent
+            (lowercase, simple name, not full class path).</li>
+        <li><code>:id</code> The id of the agent.</li>
+        <li><code>:resource</code> A resource of the agents web application.</li>
+      </ul>
+
+      For example, when the configured agent_url is
+      <code>http://myproject.appspot.com/agents/:class/:id/:resource</code>,
+      the agents class is <code>EchoAgent</code>,
+      and the agent has id <code>100</code>, the
+      agents url will be
+      <code>http://myproject.appspot.com/agents/echoagent/1/</code>.
+      </td>
+  </tr>
+  <tr>
+    <td>environment.Development<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.servlet_url<br>
       environment.Production<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.servlet_url</td>
-    <td>The servlet url of the agents. This url needs to be specified,
+    <td>
+      <span style="font-style:italic;">Deprecated. Use agent_url instead.</span>
+      <br><br>
+
+      The servlet url of the agents. This url needs to be specified,
       as it is not possible for an agent to know via what servlet it is being
       called. The url of an agent is built up by the servlet url, its class,
       and its id.<br><br>
@@ -127,15 +157,15 @@ Description of the available properties:
   <tr>
     <td>context.class</td>
     <td>
-      A context factory class. The context is used to store the agents state.
+      A Context class. The context is used to store the agents state.
       Available contexts:
       <ul>
-        <li><code>com.almende.eve.context.FileContextFactory</code>.
+        <li><code>com.almende.eve.context.FileContext</code>.
             Located in eve-core.jar.
             Not applicable when deployed on Google App Engine.</li>
-        <li><code>com.almende.eve.context.MemoryContextFactory</code>.
+        <li><code>com.almende.eve.context.MemoryContext</code>.
             Located in eve-core.jar.</li>
-        <li><code>com.almende.eve.context.google.DatastoreContextFactory</code>.
+        <li><code>com.almende.eve.context.google.DatastoreContext</code>.
             Located in eve-google-appengine.jar.
             Only applicable when the application is deployed on Google App Engine.
         </li>
@@ -147,7 +177,7 @@ Description of the available properties:
     <td>
       The path on disk where the agents state will be stored.
       Only applicable when context.class is
-      <code>com.almende.eve.context.FileContextFactory</code>.
+      <code>com.almende.eve.context.FileContext</code>.
     </td>
   </tr>
   <tr>
@@ -226,7 +256,7 @@ There are two environments available:
   development mode.
 - `Production`, which is used when the project is deployed on App Engine.
 
-There is one context available on Google App Engine: `DatastoreContextFactory`,
+There is one context available on Google App Engine: `DatastoreContext`,
 which uses Google Datastore to persist the state of the agents. The Datastore
 context does not need any additional configuration.
 
@@ -237,9 +267,9 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Development:
-        servlet_url: http://localhost:8888/agents
+        agent_url: http://localhost:8888/agents/:class/:id/:resource
       Production:
-        servlet_url: http://myproject.appspot.com/agents
+        agent_url: http://myproject.appspot.com/agents/:class/:id/:resource
 
     # agent settings
     agent:
@@ -251,7 +281,7 @@ Example file: **war/WEB-INF/eve.yaml**
     # context settings
     # the context is used by agents for storing their state.
     context:
-      class: com.almende.eve.context.google.DatastoreContextFactory
+      class: com.almende.eve.context.google.DatastoreContext
 
 
 
@@ -261,9 +291,9 @@ An Eve setup running on [Tomcat](http://tomcat.apache.org/) requires only the
 library `eve-core.jar`.
 On Tomcat, there is currently only a `Production` environment available (no
 `Development` as available on Google App Engine). There are two types of
-context available for storing the agents state: `FileContextFactory` and
-`MemoryContextFactory`.
-In case of `FileContextFactory`, each agent stores its state in a single file
+context available for storing the agents state: `FileContext` and
+`MemoryContext`.
+In case of `FileContext`, each agent stores its state in a single file
 in the configured path.
 
 Example file: **war/WEB-INF/eve.yaml**
@@ -273,7 +303,7 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Production:
-        servlet_url: http://localhost:8080/MyProject/agents
+        agent_url: http://localhost:8080/MyProject/agents/:class/:id/:resource
 
     # agent settings
     agent:
@@ -285,7 +315,7 @@ Example file: **war/WEB-INF/eve.yaml**
     # context settings
     # the context is used by agents for storing their state.
     context:
-      class: com.almende.eve.context.FileContextFactory
+      class: com.almende.eve.context.FileContext
       path: .eveagents
 
 
@@ -312,10 +342,10 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Development:
-        servlet_url: http://localhost:8888/agents
+        agent_url: http://localhost:8888/agents/:class/:id/:resource
         auth_google_servlet_url: http://localhost:8888/auth/google
       Production:
-        servlet_url: http://myproject.appspot.com/agents
+        agent_url: http://myproject.appspot.com/agents/:class/:id/:resource
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
     # agent settings
