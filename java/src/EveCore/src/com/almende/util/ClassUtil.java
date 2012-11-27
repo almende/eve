@@ -24,8 +24,8 @@ public class ClassUtil {
 	 * @param superClass
 	 */
 	public static boolean hasSuperClass(Class<?> checkClass, Class<?> superClass) {
-		Class<?> s = null;
-		while ((s = checkClass.getSuperclass()) != null) {
+		Class<?> s = checkClass;
+		while ((s = s.getSuperclass()) != null) {
 			if (s.equals(superClass)) {
 				return true;
 			}
