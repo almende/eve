@@ -116,6 +116,7 @@ Description of the available properties:
     Only required when using the GoogleAuth servlet provided by Eve Planning
     (<code>eve-planning.jar</code>).</td>
   </tr>
+  <!-- TODO: cleanup
   <tr>
     <td>agents[]</td>
     <td>A list with properties of the agent classes to be hosted.</td>
@@ -154,6 +155,11 @@ Description of the available properties:
       guarantee a one-off instantiated, continuously running agent though,
       use the property <i>stateful</i> for that purpose instead.
       </td>
+  </tr>
+  -->
+  <tr>
+    <td>agent.classes[]</td>
+    <td>A list with the full class paths of the agents to be hosted.</td>
   </tr>
   <tr>
     <td>context.class</td>
