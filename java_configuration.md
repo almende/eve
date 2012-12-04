@@ -23,10 +23,10 @@ file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Development:
-        agent_url: http://localhost:8888/agents/:class/:id/:resource
+        servlet_url: http://localhost:8888/agents/
         auth_google_servlet_url: http://localhost:8888/auth/google
       Production:
-        agent_url: http://myproject.appspot.com/agents/:class/:id/:resource
+        servlet_url: http://myproject.appspot.com/agents/
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
     # agent settings
@@ -59,6 +59,8 @@ Description of the available properties:
     <th>Name</th>
     <th>Description</th>
   </tr>
+
+  <!-- TODO: cleanup
   <tr>
     <td>environment.Development<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.agent_url<br>
@@ -85,15 +87,14 @@ Description of the available properties:
       <code>http://myproject.appspot.com/agents/echoagent/1/</code>.
       </td>
   </tr>
+  -->
+
   <tr>
     <td>environment.Development<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.servlet_url<br>
       environment.Production<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.servlet_url</td>
     <td>
-      <span style="font-style:italic;">Deprecated. Use agent_url instead.</span>
-      <br><br>
-
       The servlet url of the agents. This url needs to be specified,
       as it is not possible for an agent to know via what servlet it is being
       called. The url of an agent is built up by the servlet url, its class,
@@ -267,9 +268,9 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Development:
-        agent_url: http://localhost:8888/agents/:class/:id/:resource
+        servlet_url: http://localhost:8888/agents/
       Production:
-        agent_url: http://myproject.appspot.com/agents/:class/:id/:resource
+        servlet_url: http://myproject.appspot.com/agents/
 
     # agent settings
     agent:
@@ -303,7 +304,7 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Production:
-        agent_url: http://localhost:8080/MyProject/agents/:class/:id/:resource
+        servlet_url: http://localhost:8080/MyProject/agents/
 
     # agent settings
     agent:
@@ -342,10 +343,10 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment settings
     environment:
       Development:
-        agent_url: http://localhost:8888/agents/:class/:id/:resource
+        servlet_url: http://localhost:8888/agents/
         auth_google_servlet_url: http://localhost:8888/auth/google
       Production:
-        agent_url: http://myproject.appspot.com/agents/:class/:id/:resource
+        servlet_url: http://myproject.appspot.com/agents/
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
     # agent settings
