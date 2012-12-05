@@ -3,7 +3,17 @@ package com.almende.eve.context;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.almende.eve.agent.AgentFactory;
+
 public class MemoryContextFactory extends ContextFactory {
+	public MemoryContextFactory (AgentFactory agentFactory, Map<String, Object> params) {
+		super(agentFactory, params);
+	}
+
+	public MemoryContextFactory (AgentFactory agentFactory) {
+		super(agentFactory, null);
+	}
+
 	/**
 	 * Get context with given id. Will return null if not found
 	 * @param agentId
