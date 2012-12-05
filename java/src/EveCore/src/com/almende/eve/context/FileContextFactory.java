@@ -12,7 +12,20 @@ public class FileContextFactory extends ContextFactory {
 		super(agentFactory, params);
 		
 		// built the path where the agents will be stored
-		path = (params != null) ? (String) params.get("path") : null;
+		String newPath = (params != null) ? (String) params.get("path") : null;
+		setPath(newPath);
+	}
+	
+	public FileContextFactory (AgentFactory agentFactory, String path) {
+		super(agentFactory, null);
+		setPath(path);
+	}
+	
+	/**
+	 * Set the path where the agents data will be stored
+	 * @param path
+	 */
+	private void setPath(String path) {
 		if (path == null) {
 			path = ".eveagents";
 			logger.warning(
@@ -20,6 +33,7 @@ public class FileContextFactory extends ContextFactory {
 				"configuration. Using the default path '" + path + "'");
 		}
 		if (!path.endsWith("/")) path += "/";
+		this.path = path;
 		
 		// make the directory
 		File file = new File(path);
@@ -32,7 +46,7 @@ public class FileContextFactory extends ContextFactory {
 		} catch (IOException e) {
 			info += path;
 		}
-        logger.info(info);		
+        logger.info(info);
 	}
 	
 	/**

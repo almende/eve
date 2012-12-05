@@ -5,15 +5,27 @@ import java.util.Scanner;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.example.TestAgent;
-import com.almende.eve.config.Config;
+import com.almende.eve.context.FileContextFactory;
 import com.almende.eve.service.xmpp.XmppService;
 
 public class TestXmpp {
 	public static void main (String[] args) throws Exception {
-		// instantiate an agent factory
+		/*
+		// instantiate an agent factory from config file
 		Config config = new Config("war/WEB-INF/eve_xmpp.yaml");
 		AgentFactory factory = new AgentFactory(config);
 		XmppService xmppService = (XmppService) factory.getService("xmpp");
+		*/
+		
+		// instantiate an agent factory (without config file)
+		AgentFactory factory = new AgentFactory();
+		FileContextFactory contextFactory = new FileContextFactory(factory, ".eveagents");
+		factory.setContextFactory(contextFactory);
+		String host = "ec2-54-246-112-19.eu-west-1.compute.amazonaws.com";
+		int port = 5222;
+		XmppService xmppService = new XmppService(factory);
+		xmppService.init(host, port, null);
+		factory.addService(xmppService);
 		
 		// instantiate an agent and connect it to a messenger service
 		String agentId = "alex";
@@ -35,7 +47,7 @@ public class TestXmpp {
 		}
 		xmppService.connect(agentId, agentId, agentPassword);
 		
-        agent.testAsyncXMPP("xmpp://jos@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
+        agent.testAsyncXMPP("xmpp:jos@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
 
         //agent.testAsyncHTTP();
 		

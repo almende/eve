@@ -60,7 +60,7 @@ import com.almende.util.ClassUtil;
  * @author jos
  */
 public class AgentFactory {
-	protected AgentFactory () {}
+	public AgentFactory () {}
 	
 	/**
 	 * Construct an AgentFactory and initialize the configuration
@@ -357,10 +357,7 @@ public class AgentFactory {
 	 * @param config   A loaded configuration file
 	 * @throws Exception 
 	 */
-	private void setConfig(Config config) throws Exception {
-		if (config == null) {
-			throw new IllegalArgumentException("Config not initialized");
-		}
+	private void setConfig(Config config) {
 		this.config = config;
 
 		initContextFactory(config);
@@ -381,7 +378,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initContextFactory(Config config) throws Exception {
+	private void initContextFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -394,21 +391,28 @@ public class AgentFactory {
 				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
-		// get the class
-		Class<?> contextClass = Class.forName(className);
-		if (!ClassUtil.hasSuperClass(contextClass, ContextFactory.class)) {
-			throw new IllegalArgumentException(
-					"Context factory class " + contextClass.getName() + 
-					" must extend " + Context.class.getName());
-		}
+		try {
+			// get the class
+			Class<?> contextClass = Class.forName(className);
+			if (!ClassUtil.hasSuperClass(contextClass, ContextFactory.class)) {
+				throw new IllegalArgumentException(
+						"Context factory class " + contextClass.getName() + 
+						" must extend " + Context.class.getName());
+			}
+	
+			// instantiate the context factory
+			Map<String, Object> params = config.get("context");
+			ContextFactory contextFactory = (ContextFactory) contextClass
+					.getConstructor(AgentFactory.class, Map.class )
+					.newInstance(this, params);
 
-		// instantiate the context factory
-		Map<String, Object> params = config.get("context");
-		ContextFactory contextFactory = (ContextFactory) contextClass
-				.getConstructor(AgentFactory.class, Map.class )
-				.newInstance(this, params);
-		setContextFactory(contextFactory);
-		logger.info("Initialized context factory " + className);
+			setContextFactory(contextFactory);
+			logger.info("Initialized context factory " + className);
+		}
+		catch (Exception e) {
+			
+		}
+		
 	}
 
 	/**
