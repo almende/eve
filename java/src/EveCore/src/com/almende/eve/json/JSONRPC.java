@@ -61,7 +61,8 @@ public class JSONRPC {
 	 * @return jsonResponse       
 	 * @throws IOException 
 	 */
-	static public JSONResponse send (String url, JSONRequest jsonRequest) 
+	// TODO: remove the send methods from JSONRPC
+	static public JSONResponse send___ (String url, JSONRequest jsonRequest) 
 			throws IOException {
 		String req = jsonRequest.toString();
 		String resp = HttpUtil.post(url, req);
@@ -86,9 +87,9 @@ public class JSONRPC {
 	 * @throws JSONRPCException 
 	 * @throws IOException 
 	 */
-	static public <T> T send(String url, String method, ObjectNode params, 
+	static public <T> T send___(String url, String method, ObjectNode params, 
 			Class<T> type) throws IOException, JSONRPCException {
-		JSONResponse response = JSONRPC.send(url, new JSONRequest(method, params));
+		JSONResponse response = JSONRPC.send___(url, new JSONRequest(method, params));
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -109,9 +110,9 @@ public class JSONRPC {
 	 * @throws IOException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	static public void send(String url, String method, ObjectNode params) 
+	static public void send___(String url, String method, ObjectNode params) 
 			throws JSONRPCException, IOException {
-		send(url, method, params, void.class);
+		send___(url, method, params, void.class);
 	}
 
 	/**
@@ -262,8 +263,8 @@ public class JSONRPC {
 					// The method name may only occur once
 					String name = method.getName();
 					if (methodNames.contains(name)) {
-						errors.add("Public method \"" + name + 
-							"\" is defined more than once, which is not" + 
+						errors.add("Public method '" + name + 
+							"' is defined more than once, which is not" + 
 							" allowed for JSON-RPC (Class " + c.getName() + ")");
 					}
 					methodNames.add(name);
@@ -279,8 +280,8 @@ public class JSONRPC {
 							}
 						}
 						if (!hasNameAnnotation) {
-							errors.add("Parameter " + i + " in public method \"" + name + 
-								"\" is missing the @Name annotation, which is" + 
+							errors.add("Parameter " + i + " in public method '" + name + 
+								"' is missing the @Name annotation, which is" + 
 								" required for JSON-RPC (Class " + c.getName() + ")");
 						}
 					}					

@@ -1,8 +1,7 @@
-package com.almende.eve.servlet;
+package com.almende.eve.service.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -24,6 +23,7 @@ public class MultiAgentServlet extends HttpServlet {
 	
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	AgentFactory agentFactory = null;
+	HttpService httpService = null;
 	
 	@Override
 	public void init() {
@@ -38,16 +38,20 @@ public class MultiAgentServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException {
 		String uri = req.getRequestURI();
-		Map<String, String> params = agentFactory.getAgentParams(uri);
-		String agentClass = params.get("class");
-		String resource = params.get("resource");
+		String agentId = httpService.getAgentId(uri);
+		String resource = httpService.getAgentResource(uri);
 		
-		// check if the agent class is known
-		if (agentFactory.getAgentClass(agentClass) == null) {
-			throw new ServletException(
-					"Unknown agent class '" + agentClass + "'");
+		// check if the agent exists
+		try {
+			if (agentId == null || agentId.isEmpty() || !agentFactory.hasAgent(agentId)) {
+				resp.sendError(404, "Agent with id '" + agentId + "' not found.");
+				return;
+			}
+		} catch (Exception e) {
+			throw new ServletException(e);
 		}
 		
+		// get the resource name from the end of the url
 		if (resource == null || resource.isEmpty()) {
 			if (!uri.endsWith("/")) {
 				String redirect = uri + "/";
@@ -60,6 +64,7 @@ public class MultiAgentServlet extends HttpServlet {
 		}
 		String extension = resource.substring(resource.lastIndexOf(".") + 1);
 		
+		// load the resource
 		String mimetype = StreamingUtil.getMimeType(extension);
 		String filename = RESOURCES + resource;
 		InputStream is = this.getClass().getResourceAsStream(filename);
@@ -78,6 +83,7 @@ public class MultiAgentServlet extends HttpServlet {
 		JSONResponse jsonResponse = null;
 		String body = null;
 		String agentUrl = null;
+		String agentId = null;
 		try {
 			// retrieve the agent url and the request body
 			body = StringUtil.streamToString(req.getInputStream());
@@ -85,7 +91,11 @@ public class MultiAgentServlet extends HttpServlet {
 			
 			// invoke the agent
 			agentUrl = req.getRequestURI();
-			jsonResponse = agentFactory.invoke(agentUrl, jsonRequest);
+			agentId = httpService.getAgentId(agentUrl);
+			if (agentId == null) {
+				throw new Exception("Agent with id '" + agentId + "' not found.");
+			}
+			jsonResponse = agentFactory.invoke(agentId, jsonRequest);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;
@@ -95,10 +105,9 @@ public class MultiAgentServlet extends HttpServlet {
 			else {
 				jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());				
+				err.printStackTrace(); // TODO: remove printing stacktrace?
 			}
 			jsonResponse = new JSONResponse(jsonError);
-			
-			err.printStackTrace(); // TODO: remove printing stacktrace?
 		}
 
 		// return response
@@ -112,17 +121,27 @@ public class MultiAgentServlet extends HttpServlet {
 	 * @throws Exception 
 	 */
 	private void initAgentFactory() throws Exception {
-		String filename = getInitParameter("config");
-		if (filename == null) {
-			filename = "eve.yaml";
-			logger.warning(
-				"Init parameter 'config' missing in servlet configuration web.xml. " +
-				"Trying default filename '" + filename + "'.");
+		// TODO: be able to choose a different namespace 
+		agentFactory = AgentFactory.getInstance();
+		
+		if (agentFactory == null) {
+			// if the agent factory is not yet loaded, load it from config
+			String filename = getInitParameter("config");
+			if (filename == null) {
+				filename = "eve.yaml";
+				logger.warning(
+					"Init parameter 'config' missing in servlet configuration web.xml. " +
+					"Trying default filename '" + filename + "'.");
+			}
+			String fullname = "/WEB-INF/" + filename;
+			logger.info("loading configuration file '" + 
+					getServletContext().getRealPath(fullname) + "'...");
+			Config config = new Config(getServletContext().getResourceAsStream(fullname));
+			
+			agentFactory = AgentFactory.createInstance(config);
 		}
-		String fullname = "/WEB-INF/" + filename;
-		logger.info("loading configuration file '" + 
-				getServletContext().getRealPath(fullname) + "'...");
-		Config config = new Config(getServletContext().getResourceAsStream(fullname));
-		agentFactory = new AgentFactory(config);	
+		
+		// TODO: this will not work with multiple http servlets
+		httpService = (HttpService) agentFactory.getService("http");
 	}
 }

@@ -21,7 +21,7 @@ import com.almende.eve.scheduler.Scheduler;
  * The context extends a standard Java Map.
  * 
  * Usage:<br>
- *     AgentFactory factory = AgentFactory(config);<br>
+ *     AgentFactory factory = new AgentFactory(config);<br>
  *     FileContext context = new Context(factory, "agentClass", "agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
@@ -31,14 +31,10 @@ import com.almende.eve.scheduler.Scheduler;
 public class MemoryContext extends Context {
 	public MemoryContext() {}
 	
-	public MemoryContext(AgentFactory agentFactory, String agentClass, 
-			String agentId) {
-		super(agentFactory, agentClass, agentId);
-	}
-
-	@Override
-	public String getEnvironment() {
-		return "Production";
+	public MemoryContext(AgentFactory agentFactory, String agentId) {
+		super(agentFactory, agentId);
+		
+		// TODO: register this context in a singleton map
 	}
 
 	@Override

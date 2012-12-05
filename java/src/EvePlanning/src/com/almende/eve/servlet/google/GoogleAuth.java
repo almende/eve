@@ -24,7 +24,6 @@ import javax.servlet.http.*;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.util.HttpUtil;
@@ -207,7 +206,7 @@ public class GoogleAuth extends HttpServlet {
 	private void sendAuthorizationToAgent(String agentUrl, String agentMethod, 
 			ObjectNode auth) throws IOException {
 		JSONRequest rpcRequest = new JSONRequest(agentMethod, auth);
-		JSONRPC.send(agentUrl, rpcRequest);
+		HttpUtil.post(agentUrl, rpcRequest.toString());
 	}
 	
 	private void printPageStart(PrintWriter out) {

@@ -8,7 +8,7 @@
 
   <servlet>
     <servlet-name>SingleAgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.servlet.SingleAgentServlet</servlet-class>
+    <servlet-class>com.almende.eve.service.http.SingleAgentServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
@@ -22,7 +22,7 @@
 
   <servlet>
     <servlet-name>MultiAgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
+    <servlet-class>com.almende.eve.service.http.MultiAgentServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
@@ -36,16 +36,31 @@
 
   <servlet>
     <servlet-name>RESTServlet</servlet-name>
-    <servlet-class>com.almende.eve.servlet.RESTServlet</servlet-class>
+    <servlet-class>com.almende.eve.service.http.RestServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>eve_rest.yaml</param-value>
+      <param-value>eve_multiagent.yaml</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
     <servlet-name>RESTServlet</servlet-name>
     <url-pattern>/rest/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ManagementServlet</servlet-name>
+    <servlet-class>com.almende.eve.management.ManagementServlet</servlet-class>
+    <init-param>
+      <description>servlet configuration (yaml file)</description> 
+      <param-name>config</param-name>
+      <param-value>eve_multiagent.yaml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ManagementServlet</servlet-name>
+    <url-pattern>/management/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

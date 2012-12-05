@@ -27,7 +27,6 @@
 
 package com.almende.eve.agent;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,9 +35,9 @@ import java.util.UUID;
 
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
+import com.almende.eve.service.AsyncCallback;
 import com.almende.eve.session.Session;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
@@ -47,16 +46,12 @@ import com.almende.eve.json.JSONResponse;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
-import com.almende.eve.messenger.AsyncCallback;
-import com.almende.eve.messenger.Messenger;
-import com.almende.util.ClassUtil;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 abstract public class Agent {
 	private Context context = null;
 	private Session session = null;
-	private Messenger messenger = null;  // TODO: make messenger thread-safe
 	
 	public abstract String getDescription();
 	public abstract String getVersion();
@@ -77,8 +72,6 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void destroy() {
-		messengerDisconnect();
-		
 		getContext().destroy();
 	}
 	
@@ -125,6 +118,9 @@ abstract public class Agent {
 		
 		// remove all keys from the context
 		context.clear();
+		
+		// save the agents class again in the context
+		context.put("class", getClass().getName());
 	}
 
 	/**
@@ -336,7 +332,7 @@ abstract public class Agent {
 		// invoke the other agent via the context, allowing the context
 		// to route the request internally or externally
 		JSONRequest request = new JSONRequest(method, params);
-		JSONResponse response = getContext().invoke(url, request);
+		JSONResponse response = getContext().getAgentFactory().send(this, url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -347,21 +343,7 @@ abstract public class Agent {
 		
 		return null;
 	}
-	
-	/**
-	 * Check whether a url contains a messenger id (like "jos@myxmppserver/android")
-	 * @param url
-	 * @return
-	 */
-	private boolean isMessengerId(String url) {
-		if (url.contains("@") && 
-				!url.startsWith("http://") && 
-				!url.startsWith("https://")) {
-			return true;
-		}
-		return false;
-	}
-	
+
 	/**
 	 * Send a request to an agent in JSON-RPC format
 	 * @param url    The url of the agent
@@ -416,6 +398,7 @@ abstract public class Agent {
 	 * @deprecated Use the sendAsync methods with an AsyncCallback parameter
 	 * instead.
 	 */
+	@Deprecated
 	@Access(AccessType.UNAVAILABLE)
 	final public void sendAsync(String url, String method, ObjectNode params,
 			String callbackMethod) throws Exception {
@@ -423,7 +406,7 @@ abstract public class Agent {
 		JSONRequest req = new JSONRequest(method, params);
 		String callbackUrl = getUrl();
 		req.setCallback(callbackUrl, callbackMethod);
-		getContext().invoke(url, req);
+		getContext().getAgentFactory().send(this, url, req);
 	}
 	
 	/**
@@ -441,7 +424,7 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(String url, String method, ObjectNode params,
-			final AsyncCallback<T> callback, final Class<T> type) {
+			final AsyncCallback<T> callback, final Class<T> type) throws Exception {
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, type);
@@ -460,7 +443,7 @@ abstract public class Agent {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(final String url, final JSONRequest request,
-			final AsyncCallback<T> callback, final Class<T> type) {
+			final AsyncCallback<T> callback, final Class<T> type) throws Exception {
 
 		// Create a callback to retrieve a JSONResponse and extract the result
 		// or error from this.
@@ -491,113 +474,34 @@ abstract public class Agent {
 			}
 		};
 		
-		try {
-			if (isMessengerId(url)) {
-				// messenger request
-				if (messenger != null) {
-					messenger.send(url, request, responseCallback);
-				}
-				else {
-					throw new Exception("Cannot send a request to a messenger id, " + 
-							"not connected to a messenger service.");
-				}
-			}
-			else {
-				// asynchronous http request
-				new Thread(new Runnable () {
-					@Override
-					public void run() {
-						JSONResponse response;
-						try {
-							response = getContext().invoke(url, request);
-							responseCallback.onSuccess(response);
-						} catch (Exception e) {
-							responseCallback.onFailure(e);
-						}
-					}
-				}).start();
-			}
-		} catch (Exception err) {
-			callback.onFailure(err);
-		}
+		getContext().getAgentFactory().sendAsync(this, url, request, responseCallback);
 	}
 
-	/**
-	 * Connect to the configured messaging service (such as XMPP). The service
-	 * must be configured in the Eve configuration
-	 * @param username
-	 * @param password
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws SecurityException 
-	 * @throws IllegalArgumentException 
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	final public void messengerConnect (String username, String password) 
-			throws Exception {
-		Context context = getContext();
-
-		// Test for correct configuration (agent must be stateful)
-		if (!context.getAgentFactory().isStateful(this.getClass().getSimpleName())) {
-			throw new IllegalArgumentException(
-					"Connecting to a a messenger service " +
-					"is only supported for stateful agents");
-		}
-		
-		// get the messenger class name from the config
-		Config config = context.getConfig();
-		String env = context.getEnvironment();
-		String className = config.get("environment", env, "messenger", "class");
-		if (className == null) {
-			String param = "environment." + env + ".messenger.class";
-			throw new IllegalArgumentException(
-					"Config parameter '" + param + "' missing in Eve configuration.");			
-		}
-		
-		// get the class from the class name
-		Class<?> messengerClass = null;
-		try {
-			messengerClass = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException("Cannot find class " + className + "");
-		}
-		if (!ClassUtil.hasInterface(messengerClass, Messenger.class)) {
-			throw new IllegalArgumentException(
-					"Context class " + messengerClass.getName() + 
-					" must implement interface " + Messenger.class.getName());
-		}
-
-		// disconnect any current connection
-		messengerDisconnect();
-		
-		// instantiate and connect a new messenger
-		messenger = (Messenger) messengerClass.getConstructor().newInstance();
-		messenger.setAgent(this);
-		messenger.connect(username, password);
-	}
-	
-	/**
-	 * Disconnect the agent from the connected messaging service (if any)
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	final public void messengerDisconnect () {
-		if (messenger != null) {
-			messenger.disconnect();
-			messenger = null;
-		}
-	}
-	
 	/**
 	 * Get the full url of this agent, for example "http://mysite.com/agents/key"
-	 * @return
-	 * @throws Exception 
+	 * @return url
+	 * @deprecated Since version 0.11. Replaced by {@link #getUrls()}
 	 */
-	final public String getUrl() throws Exception {
-		return context.getAgentUrl();
+	@Deprecated
+	final public String getUrl() {
+		for (String url : context.getAgentUrls()) {
+			if (url.startsWith("http")) {
+				return url;
+			}
+		}
+		return null;
 	}
 
+	/**
+	 * Get the urls of this agent, for example "http://mysite.com/agents/key".
+	 * An agent can have multiple urls for different configured communication
+	 * services, such as HTTP and XMPP.
+	 * @return urls
+	 */
+	final public List<String> getUrls() {
+		return context.getAgentUrls();
+	}
+	
 	/**
 	 * Get the Id of this agent
 	 * @return
@@ -611,6 +515,6 @@ abstract public class Agent {
 	 * @return classname
 	 */
 	final public String getType() {
-		return context.getAgentClass();
+		return getClass().getSimpleName();
 	}
 }

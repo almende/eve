@@ -1,4 +1,4 @@
-package com.almende.eve.messenger;
+package com.almende.eve.service;
 
 import java.util.Map;
 import java.util.Timer;

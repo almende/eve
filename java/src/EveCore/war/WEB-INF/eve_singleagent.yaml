@@ -3,16 +3,16 @@
 # environment settings
 environment:
   Development:
-    agent_url: http://localhost:8080/EveCore/testagent/:resource
+    services:
+    services:
+    - class: com.almende.eve.service.http.HttpService
+      servlet_url: http://localhost:8080/EveCore/testagent/
   Production:
-    agent_url: http://localhost:8080/EveCore/testagent/:resource
-
-# agent settings
-# the SingleAgentServlet can only host one agent class.
-agents:
-  - class: com.almende.eve.agent.example.TestAgent
+    services:
+    - class: com.almende.eve.service.http.HttpService
+      servlet_url: http://localhost:8080/EveCore/testagent/
 
 # The context for reading and writing persistent data
 context:
-  class: com.almende.eve.context.FileContext
-  # class: com.almende.eve.context.MemoryContext
+  class: com.almende.eve.context.FileContextFactory
+  path: .eveagents

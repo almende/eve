@@ -14,7 +14,6 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
-import com.google.appengine.api.utils.SystemProperty;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
@@ -34,7 +33,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * running instances of the same DatastoreContext using MemCache.
  * 
  * Usage:<br>
- *     AgentFactory factory = AgentFactory(config);<br>
+ *     AgentFactory factory = new AgentFactory(config);<br>
  *     DatastoreContext context = 
  *     	   new DatastoreContext(factory, "agentClass", "agentId");<br>
  *     context.put("key", "value");<br>
@@ -45,9 +44,8 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 public class DatastoreContext extends Context {
 	public DatastoreContext() {}
 
-	public DatastoreContext(AgentFactory agentFactory, String agentClass, 
-			String agentId) {
-		super(agentFactory, agentClass, agentId);
+	public DatastoreContext(AgentFactory agentFactory, String agentId) {
+		super(agentFactory, agentId);
 	}
 
 	/**
@@ -85,11 +83,6 @@ public class DatastoreContext extends Context {
 	}
 	*/
 
-	@Override 
-	public String getEnvironment() {
-		return SystemProperty.environment.get(); // "Development" or "Production"
-	}
-	
 	@Override
 	public Scheduler getScheduler() {
 		if (scheduler == null) {
@@ -131,21 +124,12 @@ public class DatastoreContext extends Context {
 	}
 
 	/**
-	 * Get a unique key for storing the context. The key is a composed key,
-	 * namely "agentclass.agentid".
-	 * @return
-	 */
-	private String getPropertiesKey () {
-		return agentClass + "." + agentId;
-	}
-
-	/**
 	 * Load the context from cache
 	 * @return success
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean loadFromCache() {
-		cacheValue = cache.getIdentifiable(getPropertiesKey());
+		cacheValue = cache.getIdentifiable(agentId);
 		if (cacheValue != null && cacheValue.getValue() != null) {
 			properties = (Map<String, Object>) cacheValue.getValue();
 			return true;
@@ -163,10 +147,10 @@ public class DatastoreContext extends Context {
 	private boolean saveToCache() {
 		boolean success = false;
 		if (cacheValue != null) {
-			success = cache.putIfUntouched(getPropertiesKey(), cacheValue, properties);
+			success = cache.putIfUntouched(agentId, cacheValue, properties);
 		}
 		else {
-			success = cache.put(getPropertiesKey(), properties, null, 
+			success = cache.put(agentId, properties, null, 
 					SetPolicy.ADD_ONLY_IF_NOT_PRESENT);
 			if (success) {
 				// reload from cache to get the IdentifiableValue from cache,
@@ -189,13 +173,15 @@ public class DatastoreContext extends Context {
 	private boolean loadFromDatastore () {
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			KeyValue entity = datastore.load(KeyValue.class, getPropertiesKey());
+			KeyValue entity = datastore.load(KeyValue.class, agentId);
 			
 			@SuppressWarnings("rawtypes")
 			Class<? extends HashMap> MAP_OBJECT_CLASS = 
 				(new HashMap<String, Object>()).getClass();
 			
 			if (entity != null) {
+				// TODO: can this be simplified with the following?:
+				//       Map<String, Object> newProperties = entity.getValue(Map.class);
 				Map<String, Object> newProperties = entity.getValue(MAP_OBJECT_CLASS);
 				if (newProperties != null) {
 					properties = newProperties;
@@ -221,7 +207,7 @@ public class DatastoreContext extends Context {
 	private boolean saveToDatastore () {
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			KeyValue entity = new KeyValue(getPropertiesKey(), properties);
+			KeyValue entity = new KeyValue(agentId, properties);
 			datastore.store(entity);
 			return true;
 		} catch (IOException e) {
@@ -236,7 +222,7 @@ public class DatastoreContext extends Context {
 	 */
 	private void deleteFromDatastore () {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
-		KeyValue entity = datastore.load(KeyValue.class, getPropertiesKey());
+		KeyValue entity = datastore.load(KeyValue.class, agentId);
 		if (entity != null) {
 			datastore.delete(entity);
 		}
@@ -247,7 +233,7 @@ public class DatastoreContext extends Context {
 	 * @param entity
 	 */
 	private void deleteFromCache () {
-		cache.delete(getPropertiesKey());
+		cache.delete(agentId);
 		// TODO: check if deletion was successful?
 	}
 	
@@ -267,6 +253,15 @@ public class DatastoreContext extends Context {
 			saveToDatastore();
 			isChanged = false;
 		}
+	}
+
+	/**
+	 * Permanently delete this context
+	 */
+	protected void delete() {
+		clear();
+		deleteFromCache();
+		deleteFromDatastore();
 	}
 
 	@Override
@@ -306,10 +301,11 @@ public class DatastoreContext extends Context {
 
 		isChanged = false;
 		properties.clear();
+		
 		deleteFromCache();
 		deleteFromDatastore();
 	}
-
+	
 	@Override
 	public boolean containsValue(Object value) {
 		refresh();

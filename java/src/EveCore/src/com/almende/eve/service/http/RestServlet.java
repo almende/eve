@@ -1,4 +1,4 @@
-package com.almende.eve.servlet;
+package com.almende.eve.service.http;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRequest;
@@ -16,7 +15,7 @@ import com.almende.eve.json.JSONResponse;
 
 
 @SuppressWarnings("serial")
-public class RESTServlet extends HttpServlet {
+public class RestServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	private AgentFactory factory = null;
 	
@@ -36,7 +35,6 @@ public class RESTServlet extends HttpServlet {
 			// get method from url
 			String uri = req.getRequestURI();
 			String[] path = uri.split("\\/");
-			String agentClass = (path.length > 3) ? path[path.length - 3] : null;
 			String agentId = (path.length > 2) ? path[path.length - 2] : null;
 			String method = (path.length > 1) ? path[path.length - 1] : null;
 
@@ -49,10 +47,8 @@ public class RESTServlet extends HttpServlet {
 				request.putParam(param, req.getParameter(param));
 			}
 
-			// instantiate and invoke the agent
-			Agent agent = factory.getAgent(agentClass, agentId);
-			JSONResponse response = factory.invoke(agent, request);
-			agent.destroy();
+			// invoke the agent
+			JSONResponse response = factory.invoke(agentId, request);
 			
 			// return response
 			resp.addHeader("Content-Type", "application/json");
@@ -73,17 +69,22 @@ public class RESTServlet extends HttpServlet {
 	 * @throws Exception 
 	 */
 	private void initAgentFactory() throws Exception {
-		String filename = getInitParameter("config");
-		if (filename == null) {
-			filename = "eve.yaml";
-			logger.warning(
-				"Init parameter 'config' missing in servlet configuration web.xml. " +
-				"Trying default filename '" + filename + "'.");
+		factory = AgentFactory.getInstance();
+		if (factory == null) {
+			// instance not yet loaded. initiate a new instance
+			String filename = getInitParameter("config");
+			if (filename == null) {
+				filename = "eve.yaml";
+				logger.warning(
+					"Init parameter 'config' missing in servlet configuration web.xml. " +
+					"Trying default filename '" + filename + "'.");
+			}
+			String fullname = "/WEB-INF/" + filename;
+			logger.info("loading configuration file '" + 
+					getServletContext().getRealPath(fullname) + "'...");
+			Config config = new Config(getServletContext().getResourceAsStream(fullname));
+
+			factory = AgentFactory.createInstance(config);
 		}
-		String fullname = "/WEB-INF/" + filename;
-		logger.info("loading configuration file '" + 
-				getServletContext().getRealPath(fullname) + "'...");
-		Config config = new Config(getServletContext().getResourceAsStream(fullname));
-		factory = new AgentFactory(config);	
 	}
 }

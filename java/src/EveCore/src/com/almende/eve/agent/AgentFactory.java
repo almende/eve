@@ -1,21 +1,22 @@
 package com.almende.eve.agent;
 
-import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.log.LogAgent;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
+import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
+import com.almende.eve.service.AsyncCallback;
+import com.almende.eve.service.Service;
 import com.almende.util.ClassUtil;
-import com.almende.util.HttpUtil;
 
 /**
  * The AgentFactory is a factory to instantiate and invoke Eve Agents within the 
@@ -36,12 +37,23 @@ import com.almende.util.HttpUtil;
  *     Config config = new Config(is);
  *     AgentFactory factory = new AgentFactory(config);
  *     
- *     // invoke agents
- *     response = factory.invoke(url, request); // invoke a local or remote agent
- *     response = factory.invoke(agentClass, agentId, request); // invoke a local agent
+ *     // create or get a shared instance of the AgentFactory
+ *     AgentFactory factory = AgentFactory.createInstance(namespace, config);
+ *     AgentFactory factory = AgentFactory.getInstance(namespace);
  *     
- *     // instantiate an agent
- *     Agent agent = factory.getAgent(agentClass, agentId); // load local agent
+ *     // invoke a local agent by its id
+ *     response = factory.invoke(agentId, request); 
+ *
+ *     // invoke a local or remote agent by its url
+ *     response = factory.send(senderId, receiverUrl, request);
+ *     
+ *     // create a new agent
+ *     Agent agent = factory.createAgent(agentClass, agentId);
+ *     String desc = agent.getDescription(); // use the agent
+ *     agent.destroy(); // neatly shutdown the agents context
+ *     
+ *     // instantiate an existing agent
+ *     Agent agent = factory.getAgent(agentId);
  *     String desc = agent.getDescription(); // use the agent
  *     agent.destroy(); // neatly shutdown the agents context
  * 
@@ -49,7 +61,7 @@ import com.almende.util.HttpUtil;
  */
 public class AgentFactory {
 	protected AgentFactory () {}
-
+	
 	/**
 	 * Construct an AgentFactory and initialize the configuration
 	 * @param config
@@ -60,71 +72,113 @@ public class AgentFactory {
 	}
 	
 	/**
-	 * Initialize an agent by its url.
-	 * The agent must be located in the configured servlet, i.e. it may not 
-	 * be a remote agent.
-	 * 
-	 * Before deleting the agent, the method agent.destroy() must be executed
-	 * to neatly shutdown the instantiated context.
-	 * @param agentUrl
-	 * @return agent
-	 * @throws Exception
+	 * Get a shared AgentFactory instance with the default namespace "default"
+	 * @return factory     Returns the factory instance, or null when not 
+	 *                     existing 
 	 */
-	public Agent getAgent(String agentUrl) throws Exception {
-		Map<String, String> params = getAgentParams(agentUrl);
-		
-		// Error when id or class is null
-		if (!params.containsKey("id")) {
-			throw new Exception("No agent id found in url");
+	public static AgentFactory getInstance() {
+		return getInstance(null);
+	}
+
+	/**
+	 * Get a shared AgentFactory instance with a specific namespace
+	 * @param namespace    If null, "default" namespace will be loaded.
+	 * @return factory     Returns the factory instance, or null when not 
+	 *                     existing 
+	 */
+	public static AgentFactory getInstance(String namespace) {
+		if (namespace == null) {
+			namespace = "default";
 		}
-		if (!params.containsKey("id")) {
-			throw new Exception("No agent class found in url");
-		}
-		
-		return getAgent(params.get("class"), params.get("id"));
+		return factories.get(namespace);
 	}
 	
 	/**
-	 * Get an agent by its class and id. 
-	 * If the agent class is marked thread-safe, the agent will be instantiated
-	 * only once, and will be kept in memory.
+	 * Create a shared AgentFactory instance with the default namespace "default"
+	 * @param config
+	 * @return factory
+	 */
+	public static AgentFactory createInstance(Config config) throws Exception{
+		return createInstance(null, config);
+	}
+
+	/**
+	 * Create a shared AgentFactory instance with a specific namespace
+	 * @param namespace    If null, "default" namespace will be loaded.
+	 * @param config
+	 * @return factory
+	 * @throws Exception 
+	 */
+	public static AgentFactory createInstance(String namespace, Config config) 
+			throws Exception {
+		if (namespace == null) {
+			namespace = "default";
+		}
+		
+		if (factories.containsKey(namespace)) {
+			throw new Exception("AgentFactory with namespace '" + namespace +
+					"' already exists");
+		}
+		
+		AgentFactory factory = new AgentFactory(config);
+		factories.put(namespace, factory);
+		
+		return factory;
+	}
+
+	/**
+	 * Get an agent by its id. Returns null if the agent does not exist
 	 * 
 	 * Before deleting the agent, the method agent.destroy() must be executed
 	 * to neatly shutdown the instantiated context.
 	 * 
-	 * @param agentClass  simple class name
+	 * @param agentId
+	 * @return agent
+	 * @throws Exception
+	 */
+	public Agent getAgent(String agentId) throws Exception {
+		// load the context
+		Context context = null; 
+		context = getContextFactory().get(agentId);
+		if (context == null) {
+			// agent does not exist
+			return null;
+		}
+		context.init();
+		
+		// read the agents class name from context
+		Class<?> agentClass = context.getAgentClass();
+		if (agentClass == null) {
+			throw new Exception("Cannot instantiate agent. " +
+					"Class information missing in the agents context " +
+					"(agentId='" + agentId + "')");
+		}
+
+		// instantiate the agent
+		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		agent.setContext(context);
+		agent.init();
+		
+		return agent;
+	}
+
+	/**
+	 * Create an agent.
+	 * 
+	 * Before deleting the agent, the method agent.destroy() must be executed
+	 * to neatly shutdown the instantiated context.
+	 * 
+	 * @param agentClass  full class path
 	 * @param agentId
 	 * @return
 	 * @throws Exception
 	 */
-	public Agent getAgent(String agentClass, String agentId) throws Exception {
-		AgentClass ac = getAgentClass(agentClass);
-		if (ac != null && ac.threadSafe) {
-			// use existing instance (load if not yet instantiated)
-			String key = agentClass + "/" + agentId;
-			if (agents.containsKey(key)) {
-				// agent is already instantiated, return this instance
-				return agents.get(key);
-			}
-			else {
-				// agent is not yet instantiated, create a new instance
-				Agent agent = createAgent(agentClass, agentId);
-
-				// store the agent in map with the currently running agents
-				agents.put(key, agent);
-				
-				// return new instance
-				return agent;
-			}
-		}
-		else {
-			// create and return a new instance
-			return createAgent(agentClass, agentId);
-		}
+	public Agent createAgent(String agentClass, String agentId) throws Exception {
+		return (Agent) createAgent(Class.forName(agentClass), agentId);
 	}
-
+	
 	/**
-	 * Instantiate an agent by its class and id.
+	 * Create an agent.
 	 * 
 	 * Before deleting the agent, the method agent.destroy() must be executed
 	 * to neatly shutdown the instantiated context.
@@ -134,105 +188,62 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	private Agent createAgent(String agentClass, String agentId) throws Exception {
-		// get the agent class
-		AgentClass ac = getAgentClass(agentClass);
-		Class<?> clazz = (ac != null) ? ac.classInstance : null;
-		if (clazz == null) {
-			throw new IllegalArgumentException(
-					"Unknown agent class '" + agentClass + "'");
+	public Agent createAgent(Class<?> agentClass, String agentId) throws Exception {
+		if (!ClassUtil.hasSuperClass(agentClass, Agent.class)) {
+			throw new Exception(
+					"Class " + agentClass + " does not extend class " + Agent.class);
 		}
 		
 		// instantiate the agent
-		Agent agent = (Agent) clazz.getConstructor().newInstance();
+		Agent agent = (Agent) agentClass.getConstructor().newInstance();
 		
 		// instantiate the context
-		Context context = (Context) contextClass
-				.getConstructor(AgentFactory.class, String.class, String.class)
-				.newInstance(this, agentClass, agentId);
-		context.init();
+		Context context = getContextFactory().create(agentId);
+		context.setAgentClass(agentClass);
 		agent.setContext(context);
-		
-		// execute the init method of the agent
+		context.init();
 		agent.init();
 		
 		return agent;
 	}
 	
 	/**
-	 * Get the class of an agent by its simple class name.
-	 * If the class name is not found in the initialized classes, null is 
-	 * returned.
-	 * @param simpleName   case insensitive simple class name
-	 * @return agentClass
+	 * Delete an agent
+	 * @param agentId
+	 * @throws Exception 
 	 */
-	public AgentClass getAgentClass(String simpleName) {
-		return agentClasses.get(simpleName.toLowerCase());
+	public void deleteAgent(String agentId) throws Exception {
+		getContextFactory().delete(agentId);
 	}
 	
 	/**
-	 * Test whether an agents class is stateful
-	 * @param simpleName
-	 * @return
+	 * Test if an agent exists
+	 * @param agentId
+	 * @return true if the agent exists
+	 * @throws Exception 
 	 */
-	public boolean isStateful(String simpleName) {
-		AgentClass ac = getAgentClass(simpleName);
-		return (ac != null) ? ac.stateful : false;
+	public boolean hasAgent(String agentId) throws Exception {
+		return getContextFactory().exists(agentId);
 	}
-	
-	/**
-	 * Append an agent class to the list with loaded agents
-	 * @param agentClasses
-	 * @param agentClass
-	 */
-	public void putAgentClass(Map<String, AgentClass> agentClasses, 
-			AgentClass agentClass) {
-		agentClasses.put(agentClass.simpleName, agentClass);
-		logger.info("Agent class " + agentClass.className + " loaded " +
-				"(stateful=" + agentClass.stateful + 
-				", thread_safe=" + agentClass.threadSafe + ")");
-	}
-	
+
 	/**
 	 * Invoke a local agent
-	 * @param agentClass
 	 * @param agentId
 	 * @param request
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONResponse invoke(String agentClass, String agentId, 
-			JSONRequest request) throws Exception {
-		AgentClass ac = getAgentClass(agentClass);
-		if (ac != null && ac.threadSafe) {
-			// keep the agent instance alive
-			Agent agent = getAgent(agentClass, agentId);
-			return JSONRPC.invoke(agent, request);
-		}
-		else {
-			// destroy the agent after the method is executed. 
-			// This forces the agent to persist and synchronize its context.
-			JSONResponse response = null;
-			Agent agent = createAgent(agentClass, agentId);
-			try {
-				response = JSONRPC.invoke(agent, request);
-			}
-			finally {
-				agent.destroy();
-			}
+	// TOOD: cleanup this method?
+	public JSONResponse invoke(String agentId, JSONRequest request) throws Exception {
+		Agent agent = getAgent(agentId);
+		if (agent != null) {
+			JSONResponse response = JSONRPC.invoke(agent, request);
+			agent.destroy();
 			return response;
 		}
-	}
-	
-	/**
-	 * Invoke a local agent.
-	 * @param agent
-	 * @param request
-	 * @return
-	 * @throws Exception
-	 */
-	public JSONResponse invoke(Agent agent, JSONRequest request) throws Exception {
-		return JSONRPC.invoke(agent, request);
+		else {
+			throw new Exception("Agent with id '" + agentId + "' not found");
+		}
 	}
 
 	/**
@@ -240,340 +251,120 @@ public class AgentFactory {
 	 * In case of an local agent, the agent is invoked immediately.
 	 * In case of an remote agent, an HTTP Request is sent to the concerning
 	 * agent.
-	 * @param agentUrl
+	 * @param sender
+	 * @param receiverUrl
 	 * @param request
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONResponse invoke(String agentUrl, JSONRequest request) 
+	public JSONResponse send(Agent sender, String receiverUrl, JSONRequest request) 
 			throws Exception {
-		if (isLocalUrl(agentUrl)) {
-			// invoke locally
-			Map<String, String> params = getAgentParams(agentUrl);
-			
-			// Error when id or class is null?
-			if (!params.containsKey("id")) {
-				throw new Exception("No agent id found in url");
-			}
-			if (!params.containsKey("id")) {
-				throw new Exception("No agent class found in url");
-			}
-
-			return invoke(params.get("class"), params.get("id"), request);
+		String agentId = getAgentId(receiverUrl);
+		if (agentId != null) {
+			System.out.println("local call url=" + receiverUrl); // TODO: cleanup
+			return invoke(agentId, request);
 		}
 		else {
-			// send request to remote agent.
-			return JSONRPC.send(agentUrl, request);
+			String protocol = new URL(receiverUrl).getProtocol();
+			Service service = getService(protocol);
+			if (service != null) {
+				return service.send(sender.getId(), receiverUrl, request);
+			}
+			else {
+				throw new ProtocolException(
+					"No service configured for protocol '" + protocol + "'.");
+			}
 		}
 	}
 	
 	/**
-	 * Invoke a local agent.
-	 * @param agentClass
-	 * @param agentId
+	 * Asynchronously invoke a request on an agent.
+	 * @param sender
+	 * @param receiverUrl
 	 * @param request
-	 * @return
-	 * @throws Exception
+	 * @param callback
+	 * @throws Exception 
 	 */
-	public String invoke(String agentClass, String agentId, String request) 
-			throws Exception {
-		JSONRequest jsonRequest = new JSONRequest(request);
-		JSONResponse jsonResponse = invoke(agentClass, agentId, jsonRequest);
-		return jsonResponse.toString();
-	}
-
-	/**
-	 * Invoke a local or remote agent. 
-	 * In case of an local agent, the agent is invoked immediately.
-	 * In case of an remote agent, an HTTP Request is sent to the concerning
-	 * agent.
-     * @param agentUrl
-	 * @param request
-	 * @return
-	 * @throws Exception
-	 */
-	public String invoke(String agentUrl, String request) throws Exception {
-		JSONRequest jsonRequest = new JSONRequest(request);
-		JSONResponse jsonResponse = invoke(agentUrl, jsonRequest);
-		return jsonResponse.toString();
-	}
-
-	/**
-	 * Get the configured servlet url, or null when not configured
-	 * @return servletUrl
-	 * @deprecated Use getAgentUrlTemplate instaead
-	 */
-	public String getServletUrl() {
-		if (servletUrl == null) {
-			// read the servlet url from the config
-			Config config = getConfig();
-			if (config != null) {
-				servletUrl = config.get("environment", getEnvironment(), "servlet_url");
-				if (servletUrl != null) {
-					 if (!servletUrl.endsWith("/")) {
-						 servletUrl += "/";					 
-					 }
+	public void sendAsync(final Agent sender, final String receiverUrl, 
+			final JSONRequest request, 
+			final AsyncCallback<JSONResponse> callback) throws Exception {
+		final String agentId = getAgentId(receiverUrl);
+		if (agentId != null) {
+			System.out.println("local call url=" + receiverUrl); // TODO: cleanup
+			
+			new Thread(new Runnable () {
+				@Override
+				public void run() {
+					JSONResponse response;
+					try {
+						response = invoke(agentId, request);
+						callback.onSuccess(response);
+					} catch (Exception e) {
+						callback.onFailure(e);
+					}
 				}
-				else {
-					String path = "environment." + getEnvironment() + ".servlet_url";
-					logger.severe("Config parameter '" + path + "' is missing");
-				}
+			}).start();
+		}
+		else {
+			//String protocol = new URL(receiver).getProtocol();
+			Service service = null;
+			String protocol = null;
+			int separator = receiverUrl.indexOf(":");
+			if (separator != -1) {
+				protocol = receiverUrl.substring(0, separator);
+				service = getService(protocol);
+			}
+			if (service != null) {
+				service.sendAsync(sender.getId(), receiverUrl, request, callback);
 			}
 			else {
-				Exception e = new Exception("Configuration uninitialized");
-				e.printStackTrace();
+				throw new ProtocolException(
+					"No service configured for protocol '" + protocol + "'.");
 			}
 		}
-		return servletUrl;	
 	}
 
 	/**
-	 * Get the configured agent url template,
-	 * for example "http://localhost:8080/EveCore/agents/:class/:id/:resource".
-	 * the template is read from the configuration file, parameter agent_url.
-	 * @return agentUrlTemplate
+	 * Get the agentId from given agentUrl. The url can be any protocol.
+	 * If the url matches any of the registered services, an agentId is
+	 * returned.
+	 * This means that the url represents a local agent. It is possible
+	 * that no agent with this id exists.
+	 * @param agentUrl
+	 * @return agentId
 	 */
-	public String getUrlTemplate() {
-		if (agentUrlTemplate == null) {
-			// read the url template from the config
-			Config config = getConfig();
-			if (config != null) {
-				agentUrlTemplate = config.get("environment", getEnvironment(), "agent_url");
-				if (agentUrlTemplate == null) {
-					String path = "environment." + getEnvironment() + ".agent_url";
-					logger.severe("Config parameter '" + path + "' is missing");
-				}
+	private String getAgentId(String agentUrl) {
+		for (Service service : services) {
+			String agentId = service.getAgentId(agentUrl);
+			if (agentId != null) {
+				return agentId;
 			}
-			else {
-				Exception e = new Exception("Configuration uninitialized");
-				e.printStackTrace();
-			}
-		}
-		return agentUrlTemplate;	
+		}		
+		return null;
 	}
 	
 	/**
 	 * Retrieve the current environment, using the configured Context.
 	 * Available values: "Production", "Development"
-	 * @return environent
+	 * @return environment
 	 */
 	public String getEnvironment() {
-		if (environment == null) {
-			try {
-				Context context = 
-						(Context) contextClass.getConstructor().newInstance();
-				if (context != null) {
-					environment = context.getEnvironment();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return environment;
+		return (contextFactory != null) ? contextFactory.getEnvironment() : null;
 	}
 
-	/**
-	 * Get the servlet path from the configured servlet url.
-	 * @return servletPath
-	 * @throws MalformedURLException
-	 * @deprecated
-	 */
-	private String getServletPath() throws MalformedURLException {
-		String servletUrl = getServletUrl();
-		String servletPath = new URL(servletUrl).getPath();
-		return servletPath;	
-	}
-	
-	/**
-	 * Test whether given url corresponds with the configured servlet url.
-	 * If so, the url is local, and the method will return true
-	 * @param url
-	 * @return isLocal
-	 * @throws MalformedURLException
-	 */
-	public boolean isLocalUrl(String url) throws MalformedURLException {
-		String urlTemplate = getUrlTemplate();
-		if (urlTemplate != null) {
-			String domain = getDomain(url);
-			String domainTemplate = getDomain(urlTemplate);
-			return domain.isEmpty() || domain.equals(domainTemplate);
-		}
-		else {
-			// TODO: servletUrl is deprecated. Cleanup this part of the code
-			String servletUrl = getServletUrl();
-			if (servletUrl != null) {
-				String path = new URL(servletUrl).getPath();
-				return url.startsWith(servletUrl) || url.startsWith(path);
-			}
-		}
-		
-		return false;
-	}
-	
-	/**
-	 * Get the domain part of given url.
-	 * For example "http://localhost:8080/EveCore/agents/testagent/1/" will
-	 * return "http://localhost:8080", 
-	 * and "/EveCore/agents/testagent/1/" will return "".
-	 * @param url
-	 * @return domain
-	 */
-	private String getDomain(String url)  {
-		int protocolSeparator = url.indexOf("://");
-		int fromIndex = (protocolSeparator != -1) ? protocolSeparator + 3 : 0;
-		int pathSeparator = url.indexOf("/", fromIndex);
-		return url.substring(0, pathSeparator);
-	}
-	
-	/**
-	 * Split the agentClass, agentId, and resource from an agents url
-	 * An agent url looks like:
-	 *   http://server/servlet/agentClass/agentId/
-	 *   http://server/servlet/agentClass/agentId/agentResource
-	 * @param url
-	 * @return agentAddress
-	 * @throws ServletException
-	 * @throws MalformedURLException
-	 * @deprecated use getAgentParams instead.
-	 */
-	private AgentAddress splitAgentUrl (String url) 
-			throws IllegalArgumentException, MalformedURLException {
-		String path = null;
-		String servletUrl = getServletUrl();
-		if (url.startsWith(servletUrl)) {
-			path = url.substring(servletUrl.length()); 
-		}
-		else {
-			String servletPath = getServletPath();
-			if (url.startsWith(servletPath)) {
-				path = url.substring(servletPath.length()); 
-			}
-			else {
-				throw new IllegalArgumentException(
-						"I don't get it. The request url '"  +
-						url + "' does not match the configured servlet url '" + 
-						servletUrl + "' or servlet path '" + servletPath + "'");
-			}
-		}
-
-		String agentClass = null;
-		String agentId = null;
-		String agentResource = null;
-		int slash1 = path.indexOf('/');
-		if (slash1 != -1) {
-			agentClass = path.substring(0, slash1);
-			int slash2 = path.indexOf('/', slash1 + 1);
-			if (slash2 != -1) {
-				agentId = path.substring(slash1 + 1, slash2);
-				agentResource = path.substring(slash2 + 1);
-			}
-			else {
-				agentId = path.substring(slash1 + 1);
-				agentResource = "";
-			}
-		}
-		else {
-			agentClass = "";
-		}
-		
-		return new AgentAddress(url, agentClass, agentId, agentResource);
-	}
-
-	/**
-	 * Retrieve agent parameters (id, class, resource) from given agentUrl.
-	 * To extract the parameters from the url, the configured agent_url is used.
-	 * For example url "http://localhost:8888/agents/echoagent/1234/"
-	 * will return the map {"class": "echoagent", "id": "1234"}  
-	 * @param url
-	 * @return params
-	 * @throws MalformedURLException 
-	 */
-	public Map<String, String> getAgentParams(String url) {
-		Map<String, String> params = null;
-		String urlTemplate = getUrlTemplate();
-		
-		if (urlTemplate != null) {
-			String domain = getDomain(url);
-			if (domain.isEmpty()) {
-				// provided url is only containing the path (not the domain)
-				url = getDomain(urlTemplate) + url;
-			}
-			else {
-				if (!domain.equals(getDomain(urlTemplate))) {
-					// mismatching domain
-					logger.severe("Mismatching domain(url=" + url + 
-							", template=" + urlTemplate + ")");
-				}
-			}
-			params = HttpUtil.getTemplateParams(urlTemplate, url);
-		}
-		else {
-			// use deprecated splitAgentUrl
-			// TODO: cleanup deprecated stuff (deprecated since 2012-11-21)
-			try {
-				AgentAddress address = splitAgentUrl(url);
-				params = new HashMap<String, String> ();
-				params.put("class", address.agentClass);
-				params.put("id", address.agentId);
-				params.put("resource", address.agentResource);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return params;
-	}
-	
-	/**
-	 * Build the url for an agent with given parameters  
-	 * @param agentClass   The class name of the agent (simplename)
-	 * @param agentId      The id of the agent
-	 * @return agentUrl
-	 */
-	public String getAgentUrl(String agentClass, String agentId) {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("class", agentClass.toLowerCase());
-		params.put("id", agentId);
-		String urlTemplate = getUrlTemplate();
-		if (urlTemplate != null) {
-			return HttpUtil.setTemplateParams(urlTemplate, params);
-		}
-		else {
-			// TODO: this method is deprecated since 2012-11-21
-			String servletUrl = getServletUrl();
-			if (servletUrl != null) {
-				String url = servletUrl;
-				if (!url.endsWith("/")) {
-					url += "/";
-				}
-				if (agentClass != null) {
-					url += agentClass + "/";
-					if (agentId != null) {
-						url += agentId + "/";
-					}
-				}
-				return url;
-			}
-			else {
-				return null;
-			}
-		}
-	}
-	
 	/**
 	 * Set configuration file
 	 * @param config   A loaded configuration file
 	 * @throws Exception 
 	 */
-	public void setConfig(Config config) throws Exception {
+	private void setConfig(Config config) throws Exception {
 		if (config == null) {
 			throw new IllegalArgumentException("Config not initialized");
 		}
 		this.config = config;
 
-		initContext();
-		initAgents();
+		initContextFactory(config);
+		initServices(config);
 	}
 
 	/**
@@ -585,209 +376,180 @@ public class AgentFactory {
 	}
 	
 	/**
-	 * Initialize the correct Agent class for the SingleAgentServlet.
-	 * The class is read from the servlet init parameters in web.xml.
-	 * @throws Exception 
-	 */
-	private void initAgents() throws Exception {
-		if (agentClasses != null) {
-			return;
-		}
-
-		Map<String, AgentClass> newAgentClasses = 
-				new ConcurrentHashMap<String, AgentClass> ();
-		
-		List<Map<String, Object>> agents = config.get("agents");
-		if (agents != null) {
-			// load the agents one by one
-			for (int i = 0; i < agents.size(); i++) {
-				Map<String, Object> properties = agents.get(i);
-				try {
-					AgentClass agentClass = new AgentClass(properties);
-					putAgentClass(newAgentClasses, agentClass);
-				}
-				catch (Exception e) {
-					logger.warning(e.getMessage());
-				}
-			}
-		}
-		else {
-			// test for deprecated array agent.classes
-			List<String> classes = config.get("agent", "classes");
-			if (classes != null) {
-				logger.warning("Property agent.classes[] is deprecated. Use agents[].class instead");
-				
-				for (int i = 0; i < classes.size(); i++) {
-					try {
-						String className = classes.get(i);
-						AgentClass agentClass = new AgentClass(className);
-						putAgentClass(newAgentClasses, agentClass);
-					}
-					catch (Exception e) {
-						logger.warning(e.getMessage());
-					}
-				}
-			}
-			else {
-				throw new IllegalArgumentException(
-					"Config parameter 'agents[]' missing in Eve configuration.");
-			}
-		}
-		
-		// always load the log agent
-		putAgentClass(newAgentClasses, new AgentClass(LogAgent.class));
-		
-		// put the newly loaded map with agent classes into the map of the AgentFactory
-		agentClasses = newAgentClasses;
-	}
-	
-	/**
-	 * Initialize the correct Context class for the SingleAgentServlet.
-	 * The class is read from the servlet init parameters in web.xml.
+	 * Initialize the context factory. The class is read from the provided 
+	 * configuration file.
+	 * @param config
 	 * @throws Exception
 	 */
-	private void initContext() throws Exception {
-		if (contextClass != null) {
-			return;
-		}
-		
+	private void initContextFactory(Config config) throws Exception {
 		// get the class name from the config file
-		String className = config.get("context", "class");
+		// first read from the environment specific configuration,
+		// if not found read from the global configuration
+		String className = config.get("environment", getEnvironment(), "context", "class");
+		if (className == null) {
+			className = config.get("context", "class");
+		}
 		if (className == null) {
 			throw new IllegalArgumentException(
 				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
-		// test for deprecated ContextFactory (deprecated since version 0.11, 2012-11-20)
-		if (className.endsWith("ContextFactory")) {
-			logger.warning("ContextFactory classes are deprecated. Please specify the Context itself. " + 
-					"(Hint: change the configuration parameter context.class to " + 
-					className.substring(0, className.length() - "Factory".length())+ ")");
-		}
-		
-		// load the class
-		Class<?> newContextClass = null;
-		try {
-			newContextClass = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException("Cannot find class " + className + "");
-		}
-
-		if (!ClassUtil.hasSuperClass(newContextClass, Context.class)) {
+		// get the class
+		Class<?> contextClass = Class.forName(className);
+		if (!ClassUtil.hasSuperClass(contextClass, ContextFactory.class)) {
 			throw new IllegalArgumentException(
-					"Context class " + newContextClass.getName() + 
-					" must implement interface " + Context.class.getName());
+					"Context factory class " + contextClass.getName() + 
+					" must extend " + Context.class.getName());
 		}
 
-		// copy the context if no errors
-		this.contextClass = newContextClass;		
-		logger.info("Context class " + contextClass.getName() + " loaded");
+		// instantiate the context factory
+		Map<String, Object> params = config.get("context");
+		ContextFactory contextFactory = (ContextFactory) contextClass
+				.getConstructor(AgentFactory.class, Map.class )
+				.newInstance(this, params);
+		setContextFactory(contextFactory);
+		logger.info("Initialized context factory " + className);
 	}
 
 	/**
-	 * Helper class to hold the parts of an agent url: url, class, id, resource.
-	 * @deprecated 
+	 * Set a context factory. The context factory is used to get/create/delete
+	 * an agents context.
+	 * @param contextFactory
 	 */
-	private class AgentAddress {
-		public AgentAddress(String agentUrl, String agentClass, 
-				String agentId, String agentResource) {
-			//this.agentUrl = agentUrl;
-			this.agentClass = agentClass;
-			this.agentId = agentId;
-			this.agentResource = agentResource;
+	public void setContextFactory(ContextFactory contextFactory) {
+		this.contextFactory = contextFactory;
+	}
+
+	/**
+	 * Get the configured context factory.
+	 * @return contextFactory
+	 */
+	public ContextFactory  getContextFactory() throws Exception {
+		if (contextFactory == null) {
+			throw new Exception("No context factory initialized.");
 		}
-		
-		//public String agentUrl = null;
-		public String agentClass = null;
-		public String agentId = null;
-		public String agentResource = null;
+		return contextFactory;
 	}
 	
 	/**
-	 * Helper class to cast an agent object from a config file
+	 * Initialize services for incoming and outgoing messages
+	 * (for example http and xmpp services).
+	 * @param config
 	 */
-	public class AgentClass {
-		public AgentClass(Map<String, Object> properties) throws ClassNotFoundException {
-			// read the properties
-			if (properties.containsKey("thread_safe")) {
-				threadSafe = (Boolean) properties.get("thread_safe");
-			}
-			if (properties.containsKey("stateful")) {
-				stateful = (Boolean) properties.get("stateful");
-			}
-			
-			if (stateful) {
-				if (!threadSafe) {
-					throw new IllegalArgumentException(
-						"Stateful agent only supported when marked thread_safe");
+	private void initServices(Config config) {
+		if (config == null) {
+			Exception e = new Exception("Configuration uninitialized");
+			e.printStackTrace();
+			return;
+		}
+		
+		// create a list to hold both global and environment specific services
+		List<Map<String, Object>> allServiceParams = 
+				new ArrayList<Map<String, Object>>();
+		
+		// read global service params
+		List<Map<String, Object>> globalServiceParams = 
+				config.get("services");
+		if (globalServiceParams != null) {
+			allServiceParams.addAll(globalServiceParams);
+		}
+
+		// read service params for the current environment
+		List<Map<String, Object>> environmentServiceParams = 
+				config.get("environment", getEnvironment(), "services");
+		if (environmentServiceParams != null) {
+			allServiceParams.addAll(environmentServiceParams);
+		}
+		
+		int index = 0;
+		for (Map<String, Object> serviceParams : allServiceParams) {
+			String className = (String) serviceParams.get("class");
+			try {
+				if (className != null) {
+					Class<?> serviceClass = Class.forName(className);
+					Service service = (Service) serviceClass
+							.getConstructor(AgentFactory.class)
+							.newInstance(this);
+					service.init(serviceParams);
+					addService(service);
+					logger.info("Initialized service " + className);
 				}
-				// TODO: throw an Exception when on Google App Engine and stateful==true 
+				else {
+					logger.warning("Cannot load service at index " + index + 
+							": no class defined.");
+				}
 			}
-			
-			String className = (String) properties.get("class");
-			setClass(className);
+			catch (Exception e) {
+				logger.warning("Cannot load service at index " + index + 
+						": " + e.getMessage());
+			}
+			index++;
 		}
-		
-		public AgentClass(String className) throws ClassNotFoundException {
-			setClass(className);
-		}
-		
-		public AgentClass(Class<?> classInstance) 
-				throws NullPointerException, IllegalArgumentException {
-			setClass(classInstance);
-		}
-		
-		private void setClass(String name) 
-				throws ClassNotFoundException, IllegalArgumentException {
-			if (name != null && !name.isEmpty()) {
-				// load class instance
-				Class<?> classInstance = Class.forName(name);
-				setClass(classInstance);
-			}
-			else {
-				throw new IllegalArgumentException("Agent property 'class' undefined");
-			}
-		}
-		
-		private void setClass(Class<?> classInstance) 
-				throws IllegalArgumentException, NullPointerException {
-			if (classInstance == null) {
-				throw new NullPointerException();				
-			}
-			
-			if (!classInstance.getSuperclass().equals(Agent.class)) {
-				throw new IllegalArgumentException("Class " + classInstance.getName() + 
-						" must extend " + Agent.class.getName());
-			}
-			this.classInstance = classInstance;
-			
-			// test if the class contains valid JSON-RPC messages
-			List<String> errors = JSONRPC.validate(classInstance);
-			for (String e : errors) {
-				logger.warning(e);
-			}
-			
-			// extract class name and simple name
-			className = classInstance.getName();
-			simpleName = classInstance.getSimpleName().toLowerCase();			
-		}
-		
-		public Class<?> classInstance = null;
-		public String className = null;
-		public String simpleName = null;
-		public boolean threadSafe = false;
-		public boolean stateful = false;
 	}
+
+	/**
+	 * Add a new communication service
+	 * @param service
+	 */
+	public void addService(Service service) {
+		services.add(service);
+	}
+
+	/**
+	 * Remove a registered a communication service
+	 * @param service
+	 */
+	public void removeService(Service service) {
+		services.remove(service);
+	}
+
+	/**
+	 * Get all registered communication services
+	 * @return services
+	 */
+	public List<Service> getServices() {
+		return services;
+	}
+	
+	/**
+	 * Get all registered communication services which can handle given protocol
+	 * @param protocol   A protocol, for example "http" or "xmpp"
+	 * @return services
+	 */
+	public List<Service> getServices(String protocol) {
+		List<Service> filteredServices = new ArrayList<Service> ();
+		
+		for (Service service : services) {
+			List<String> protocols = service.getProtocols();
+			if (protocols.contains(protocol)) {
+				filteredServices.add(service);
+			}
+		}
+		
+		return filteredServices;
+	}
+	
+	/**
+	 * Get the first registered service which supports given protocol. 
+	 * Returns null when none of the registered services can handle
+	 * the protocol.
+	 * @param protocol   A protocol, for example "http" or "xmpp"
+	 * @return service
+	 */
+	public Service getService(String protocol) {
+		List<Service> services = getServices(protocol);
+		if (services.size() > 0) {
+			return services.get(0);
+		}
+		return null;
+	}
+
+	private List<Service> services = new ArrayList<Service>();
+	private ContextFactory contextFactory = null;
+	private Config config = null;
+
+	private static Map<String, AgentFactory> factories = 
+			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
 	
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-
-	private Map<String, AgentClass> agentClasses = null;
-	private Class<?> contextClass = null;
-	private Config config = null;
-	private String servletUrl = null;
-	private String agentUrlTemplate = null;
-	private String environment = null;
-	
-	// map with all instantiated agents (only applicable for stateful agents)
-	private Map<String, Agent> agents = new ConcurrentHashMap<String, Agent>();
 }

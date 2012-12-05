@@ -3,24 +3,28 @@
 # environment settings
 environment:
   Development:
-    agent_url: http://localhost:8080/EvePlanning/agents/:class/:id/:resource
-    auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
-  Production:
-    agent_url: http://localhost:8080/EvePlanning/agents/:class/:id/:resource
+    # environment specific communication services
+    services:
+    - class: com.almende.eve.service.http.HttpService
+      servlet_url: http://localhost:8080/EvePlanning/agents
+
+    # authentication servlet url
     auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
 
-# agent settings
-agents:
-  - class: com.almende.eve.agent.google.GoogleCalendarAgent
-  - class: com.almende.eve.agent.MeetingAgent
+  Production:
+    # environment specific communication services
+    services:
+    - class: com.almende.eve.service.http.HttpService
+      servlet_url: http://localhost:8080/EvePlanning/agents
+
+    # authentication servlet url
+    auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
 
 # context settings
 # the context is used by agents for storing their state.
 context:
-  class: com.almende.eve.context.FileContext
-  # class: com.almende.eve.context.MemoryContext
+  class: com.almende.eve.context.FileContextFactory
   path: .eveagents
-
 
 # Google API access
 google:

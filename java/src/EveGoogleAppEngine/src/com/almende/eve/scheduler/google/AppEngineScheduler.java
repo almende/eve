@@ -6,6 +6,7 @@ import java.net.URL;
 import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.service.Service;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -33,7 +34,14 @@ public class AppEngineScheduler implements Scheduler {
 		try {
 			String url = null;
 			if (context != null) {
-				url = context.getAgentUrl();
+				// url = context.getAgentUrl(); // TODO: cleanup
+				// TODO: getting the first http service is not safe, should also check for https?
+				//       -> Scheduler should be configured with the servlet_url 
+				//          that it should use specified
+				Service service = context.getAgentFactory().getService("http");
+				if (service != null) {
+					url = service.getAgentUrl(context.getAgentId());
+				}
 			}
 			if (url == null) {
 				return null;

@@ -1,4 +1,4 @@
-package com.almende.eve.messenger;
+package com.almende.eve.service.xmpp;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.PacketListener;
@@ -9,53 +9,50 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.util.StringUtils;
 
-import com.almende.eve.agent.Agent;
-import com.almende.eve.config.Config;
-import com.almende.eve.context.Context;
-import com.almende.eve.json.JSONRPC;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.service.AsyncCallback;
+import com.almende.eve.service.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class XMPPMessenger implements Messenger {
-	private Agent agent = null;
-	private XMPPConnection conn = null;
-	private AsyncCallbackQueue<JSONResponse> callbacks = 
-			new AsyncCallbackQueue<JSONResponse>();
-	
-	public XMPPMessenger () {
+public class XmppAgentConnection {
+	public XmppAgentConnection (AgentFactory agentFactory) {
+		this.agentFactory = agentFactory;
 	}
-
-	public XMPPMessenger (Agent agent) {
-		setAgent(agent);
-	}
-	
-	@Override
-	public void setAgent(Agent agent) {
-		this.agent = agent;
-	};
 	
 	/**
+	 * Get the id of the agent linked to this connection
+	 * @return agentId
+	 */
+	public String getAgentId() {
+		return agentId;
+	}
+	
+	/**
+	 * Get the username of the connection (without host)
+	 * @return username 
+	 */
+	public String getUsername() {
+		return username;
+	}
+
+	/**
 	 * Login and connect the agent to the messaging service
+	 * @param agentId
+	 * @param host
+	 * @param port
+	 * @param serviceName
 	 * @param username
 	 * @param password
 	 * @throws Exception 
 	 */
-	@Override
-	public void connect(String username, String password) throws Exception {
-		if (agent == null) {
-			throw new IllegalArgumentException("No agent instantiated to connect to messenger");
-		}
-		
-		// get configuration
-		Context context = agent.getContext();
-		Config config = context.getConfig();
-		String env = context.getEnvironment();
-		String host        = config.get("environment", env, "messenger", "host");
-		Integer port       = config.get("environment", env, "messenger", "port");
-		String serviceName = config.get("environment", env, "messenger", "serviceName");
+	public void connect(String agentId, String host, Integer port, 
+			String serviceName, String username, String password) throws Exception {
+		this.agentId = agentId;
+		this.username = username;
 
 		try {
 			// configure and connect
@@ -72,8 +69,8 @@ public class XMPPMessenger implements Messenger {
 			conn.sendPacket(presence);
 
 			// instantiate a packet listener
-			conn.addPacketListener(new JSONRPCListener(conn, agent, callbacks), null);            
-			
+			conn.addPacketListener(new JSONRPCListener(conn, agentFactory, 
+					agentId, callbacks), null);            
 		} catch (XMPPException err) {
 			err.printStackTrace();
 			throw new Exception("Failed to connect to messenger");
@@ -83,7 +80,6 @@ public class XMPPMessenger implements Messenger {
 	/**
 	 * Disconnect the agent from the messaging service
 	 */
-	@Override
 	public void disconnect() {
 		if (conn != null) {
 			conn.disconnect();
@@ -96,7 +92,6 @@ public class XMPPMessenger implements Messenger {
 	 * Check whether the agent is connected to the messaging service
 	 * @return connected
 	 */
-	@Override
 	public boolean isConnected() {
 		return (conn != null) ? conn.isConnected() : false;
 	}
@@ -107,7 +102,6 @@ public class XMPPMessenger implements Messenger {
 	 * @param message
 	 * @throws Exception 
 	 */
-	@Override
 	public void send (String username, JSONRequest request, 
 			AsyncCallback<JSONResponse> callback) throws Exception {
 		if (isConnected()) {
@@ -134,14 +128,16 @@ public class XMPPMessenger implements Messenger {
 	 * reply the result.
 	 */
 	private static class JSONRPCListener implements PacketListener {
-		private XMPPConnection conn;
-		private Agent agent;
-		private AsyncCallbackQueue<JSONResponse> callbacks;
+		private XMPPConnection conn = null;
+		private AgentFactory agentFactory = null; 
+		private String agentId = null;
+		private AsyncCallbackQueue<JSONResponse> callbacks = null;
 
-		public JSONRPCListener (XMPPConnection conn, Agent agent, 
-				AsyncCallbackQueue<JSONResponse> callbacks) {
+		public JSONRPCListener (XMPPConnection conn, AgentFactory agentFactory,
+				String agentId, AsyncCallbackQueue<JSONResponse> callbacks) {
 			this.conn = conn;
-			this.agent = agent;
+			this.agentFactory = agentFactory;
+			this.agentId = agentId;
 			this.callbacks = callbacks;
 		}
 
@@ -152,7 +148,7 @@ public class XMPPMessenger implements Messenger {
 		 * @return
 		 */
 		private boolean isRequest(ObjectNode json) {
-			return json.has("id") && json.has("method") && json.has("params");
+			return json.has("method");
 		}
 
 		/**
@@ -162,7 +158,7 @@ public class XMPPMessenger implements Messenger {
 		 * @return
 		 */
 		private boolean isResponse(ObjectNode json) {
-			return json.has("id") && (json.has("result") || json.has("error"));
+			return (json.has("result") || json.has("error"));
 		}
 		
 		/**
@@ -197,7 +193,8 @@ public class XMPPMessenger implements Messenger {
 					else if (isRequest(json)) {
 						// this is a request
 						JSONRequest request = new JSONRequest(json);
-						response = JSONRPC.invoke(agent, request);
+						response = agentFactory.invoke(agentId, request);
+						// TODO: replace JSONRPC.invoke with agentFactory.invoke(class, id)
 					}
 					else {
 						throw new Exception("Request does not contain a valid JSON-RPC request or response");
@@ -221,5 +218,13 @@ public class XMPPMessenger implements Messenger {
 			}
 		}
 	}
+
+	private AgentFactory agentFactory = null;
+	private String agentId = null;
+	private String username = null;
+	private XMPPConnection conn = null;
+	private AsyncCallbackQueue<JSONResponse> callbacks = 
+			new AsyncCallbackQueue<JSONResponse>();
+	
 }
 

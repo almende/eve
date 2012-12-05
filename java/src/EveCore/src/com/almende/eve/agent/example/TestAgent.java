@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.entity.Person;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
@@ -37,7 +38,8 @@ import com.almende.eve.json.JSONRPCException.CODE;
 import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
-import com.almende.eve.messenger.AsyncCallback;
+import com.almende.eve.service.AsyncCallback;
+import com.almende.eve.service.xmpp.XmppService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
@@ -50,6 +52,11 @@ public class TestAgent extends Agent {
 		return message;
 	}
 
+	public void init() {
+		System.out.println("initializing TestAgent/" + getId());
+		super.init();
+	}
+	
 	public void destroy() {
 		System.out.println("destroying TestAgent/" + getId());
 		super.destroy();
@@ -70,10 +77,15 @@ public class TestAgent extends Agent {
 		return sum;
 	}
 
+	private String getMyUrl() {
+		List<String> urls = getUrls();
+		return urls.size() > 0 ? urls.get(0): null;
+	}
+	
 	public String callMyself(@Name("method") String method, 
 			@Name("params") ObjectNode params) 
 			throws IOException, JSONRPCException, Exception {
-		String resp = send(getUrl(), method, params, String.class);
+		String resp = send(getMyUrl(), method, params, String.class);
 		System.out.println("callMyself method=" + method  + ", params=" + params.toString() + ", resp=" +  resp);
 		return resp;
 	}
@@ -83,7 +95,7 @@ public class TestAgent extends Agent {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("key", "name");
 		params.put("value", Math.round(Math.random() * 1000));
-		send(getUrl(), "put" , params);
+		send(getMyUrl(), "put" , params);
 
 		String name2 = (String)get("name");
 
@@ -175,11 +187,11 @@ public class TestAgent extends Agent {
 	}
 	
 	public void registerPingEvent() throws Exception {
-		subscribe(getUrl(), "ping", "pingCallback");
+		subscribe(getMyUrl(), "ping", "pingCallback");
 	}
 	
 	public void unregisterPingEvent() throws Exception {
-		subscribe(getUrl(), "ping", "pingCallback");
+		subscribe(getMyUrl(), "ping", "pingCallback");
 	}
 	
 	public void pingCallback(@Name("params") ObjectNode params) {
@@ -291,11 +303,11 @@ public class TestAgent extends Agent {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("a", new Double(3));
 		params.put("b", new Double(4.5));
-		System.out.println("testAsyncSend, request=" + new JSONRequest(method, params));
+		System.out.println("testAsyncXMPP, request=" + new JSONRequest(method, params));
 		sendAsync(url, method, params, new AsyncCallback<Double>() {
 			@Override
 			public void onSuccess(Double result) {
-				System.out.println("testAsyncSend result=" + result);
+				System.out.println("testAsyncXMPP result=" + result);
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result", result);
 				try {
@@ -335,13 +347,28 @@ public class TestAgent extends Agent {
 		System.out.println("testAsyncHTTP end...");
 	}
 	
-	public void connect(@Name("username") String username, 
+	public void xmppConnect(@Name("username") String username, 
 			@Name("password") String password) throws Exception {
-		messengerConnect(username, password);
+		AgentFactory factory = getContext().getAgentFactory();
+		
+		XmppService service = (XmppService) factory.getService("xmpp");
+		if (service != null) {
+			service.connect(getId(), username, password);
+		}
+		else {
+			throw new Exception("No XMPP service registered");
+		}
 	}
 	
-	public void disconnect() throws Exception {
-		messengerDisconnect();
+	public void xmppDisconnect() throws Exception {
+		AgentFactory factory = getContext().getAgentFactory();
+		XmppService service = (XmppService) factory.getService("xmpp");
+		if (service != null) {
+			service.disconnect(getId());
+		}
+		else {
+			throw new Exception("No XMPP service registered");
+		}
 	}
 	
 	@Override

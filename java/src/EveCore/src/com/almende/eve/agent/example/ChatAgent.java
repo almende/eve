@@ -80,9 +80,14 @@ public class ChatAgent extends Agent {
 	 */
 	public String getUsername() throws Exception {
 		String username = (String) getContext().get("username");
-		return (username != null) ? username : getUrl();
+		return (username != null) ? username : getMyUrl();
 	}
 
+	private String getMyUrl() {
+		List<String> urls = getUrls();
+		return urls.size() > 0 ? urls.get(0): null;
+	}
+	
 	/**
 	 * Set the username, used for displaying messages
 	 * @param username
@@ -104,12 +109,12 @@ public class ChatAgent extends Agent {
 
 		// trigger a "post message"
 		ObjectNode params = JOM.createObjectNode();
-		params.put("url", getUrl());
+		params.put("url", getMyUrl());
 		params.put("username", getUsername());
 		params.put("message", message);
 		trigger("post", params);
 		
-		log(getUsername() + " posts message \"" + message + "\"" + 
+		log(getUsername() + " posts message '" + message + "'" + 
 				" to " + connections.size() + " agent(s)"); 
 
 		for (int i = 0; i < connections.size(); i++) {
@@ -155,7 +160,7 @@ public class ChatAgent extends Agent {
 		List<String> otherConnections = send(url, "getConnections", type.getClass());
 
 		// get my own connections from the context
-		String urlSelf = getUrl();
+		String urlSelf = getMyUrl();
 		List<String> connections = (List<String>) getContext().get("connections"); 
 		if (connections == null) {	
 			connections = new ArrayList<String>();
@@ -226,7 +231,7 @@ public class ChatAgent extends Agent {
 			
 			for (int i = 0; i < connections.size(); i++) {
 				String url = connections.get(i);
-				String urlSelf = getUrl();
+				String urlSelf = getMyUrl();
 				String method = "removeConnection";
 				ObjectNode params = JOM.createObjectNode();
 				params.put("url", urlSelf);
