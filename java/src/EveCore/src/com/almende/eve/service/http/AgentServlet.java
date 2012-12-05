@@ -19,7 +19,7 @@ import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
 
 @SuppressWarnings("serial")
-public class MultiAgentServlet extends HttpServlet {
+public class AgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private static String RESOURCES = "/com/almende/eve/resources/";

@@ -21,8 +21,8 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>MultiAgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.service.http.MultiAgentServlet</servlet-class>
+    <servlet-name>AgentServlet</servlet-name>
+    <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
@@ -30,7 +30,7 @@
     </init-param>
   </servlet>
   <servlet-mapping>
-    <servlet-name>MultiAgentServlet</servlet-name>
+    <servlet-name>AgentServlet</servlet-name>
     <url-pattern>/agents/*</url-pattern>
   </servlet-mapping>
 
