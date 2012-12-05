@@ -72,8 +72,13 @@ public class GoogleAuth extends HttpServlet {
 				throw new Exception("Parameter 'google.client_secret' missing in config");
 			}
 
+			// first read the servlet url from the current environment settings,
+			// if not available, read it from the global settings.
 			String environment = getEnvironment(config); 
 			REDIRECT_URI = config.get("environment", environment, "auth_google_servlet_url");
+			if (REDIRECT_URI == null) {
+				REDIRECT_URI = config.get("auth_google_servlet_url");
+			}
 			if (REDIRECT_URI == null) {
 				String path = "environment." + environment + ".auth_google_servlet_url";
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
