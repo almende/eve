@@ -48,19 +48,4 @@
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <servlet-name>ManagementServlet</servlet-name>
-    <servlet-class>com.almende.eve.management.ManagementServlet</servlet-class>
-    <init-param>
-      <description>servlet configuration (yaml file)</description> 
-      <param-name>config</param-name>
-      <param-value>eve_multiagent.yaml</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManagementServlet</servlet-name>
-    <url-pattern>/management/*</url-pattern>
-  </servlet-mapping>
-
 </web-app>

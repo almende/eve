@@ -23,19 +23,4 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <url-pattern>/agents/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <servlet-name>ManagementServlet</servlet-name>
-    <servlet-class>com.almende.eve.management.ManagementServlet</servlet-class>
-    <init-param>
-      <description>servlet configuration (yaml file)</description> 
-      <param-name>config</param-name>
-      <param-value>eve.yaml</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManagementServlet</servlet-name>
-    <url-pattern>/management/*</url-pattern>
-  </servlet-mapping>
-  
 </web-app>
