@@ -26,7 +26,7 @@
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>eve_multiagent.yaml</param-value>
+      <param-value>eve.yaml</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
@@ -40,7 +40,7 @@
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
-      <param-value>eve_multiagent.yaml</param-value>
+      <param-value>eve.yaml</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

@@ -23,19 +23,19 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		    <url-pattern>/agents/*</url-pattern>
 	  </servlet-mapping>
 
-    <servlet>
-      <servlet-name>RestServlet</servlet-name>
-      <servlet-class>com.almende.eve.service.http.RestServlet</servlet-class>
-      <init-param>
-        <description>servlet configuration (yaml file)</description> 
-        <param-name>config</param-name>
-        <param-value>eve_multiagent.yaml</param-value>
-      </init-param>
-    </servlet>
-    <servlet-mapping>
-      <servlet-name>RestServlet</servlet-name>
-      <url-pattern>/rest/*</url-pattern>
-    </servlet-mapping>
+      <servlet>
+          <servlet-name>RestServlet</servlet-name>
+          <servlet-class>com.almende.eve.service.http.RestServlet</servlet-class>
+          <init-param>
+              <description>servlet configuration (yaml file)</description>
+              <param-name>config</param-name>
+              <param-value>eve.yaml</param-value>
+          </init-param>
+      </servlet>
+      <servlet-mapping>
+          <servlet-name>RestServlet</servlet-name>
+          <url-pattern>/rest/*</url-pattern>
+      </servlet-mapping>
   
 	  <servlet>
 		    <servlet-name>GoogleAuth</servlet-name>
