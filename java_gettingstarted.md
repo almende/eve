@@ -4,8 +4,8 @@ title: Getting Started
 ---
 
 
-{% assign eve_core_version = '0.10.0' %}
-{% assign eve_google_appengine_version = '0.6.2' %}
+{% assign eve_core_version = '0.11' %}
+{% assign eve_google_appengine_version = '0.7' %}
 
 
 # Getting Started
@@ -90,7 +90,7 @@ web servlet.
   containing all dependent libraries. 
   
 - Right-click the added jars in Eclipse, and click Build Path, "Add to Build Path". 
-    
+
 - Now, you need to configure a web-servlet which will host your agents. 
   Open the file web.xml under war/WEB-INF. Insert the following lines
   inside the &lt;web-app&gt; tag:
