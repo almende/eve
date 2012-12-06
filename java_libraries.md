@@ -80,15 +80,6 @@ They can be downloaded at the
     included when the project is set up as a GAE project.
   *
 
-- **eve-google-services.jar**  
-  Contains wrapper agents to make all kind of Google services accessible 
-  in the Eve world. The library contains agents such as GoogleCalculatorAgent
-  and GoogleDirectionsAgent.
-
-  *Dependencies: 
-    eve-core.jar
-  *
-
 - **eve-planning.jar**  
   Contains agents acting on the domain of calendaring and planning.
   Contains a set of agents using various Google API's such as calendar,

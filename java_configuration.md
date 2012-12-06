@@ -9,7 +9,7 @@ title: Configuration
 Eve needs a configuration file containing settings for persistency of the agents
 context, settings for communication services such as HTTP and XMPP, and other
 environment settings. The servlet used to host the Eve agents points to an Eve
-configuration file, as explained on the page [Hosting](java_hosting.html).
+configuration file, as explained on the page [Services](java_services.html).
 
 The configuration file is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
 The file can have any name and is normally located in the same folder as

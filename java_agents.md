@@ -9,9 +9,8 @@ An Eve agent is created as a regular Java class.
 The class must inherit from the base class Agent. 
 Public methods will be made available via [JSON-RPC](protocol.html).
 The methods must have named parameters.
-An agent is [hosted](java_hosting.html) via a servlet. 
-To make a new agent class available via the servlet, 
-the class must be added to the servlet configuration.
+An agent can be accessed via a servlet or via an xmpp server
+(see [Services](java_services.html)), depending on the Eve configuration.
 
 The Java code of a basic Eve agent looks as follows:
 

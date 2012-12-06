@@ -76,6 +76,10 @@ web servlet.
     - [jackson-core-2.0.0.jar](http://jackson.codehaus.org)
     - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org)
     - [joda-time-2.1.jar](http://joda-time.sourceforge.net/)
+    - [smack.jar](http://www.igniterealtime.org/projects/smack/)
+      (optional, only needed for XMPP support)
+    - [smackx.jar](http://www.igniterealtime.org/projects/smack/)
+      (optional, only needed for XMPP support)
     - [snakeyaml-1.10.jar](http://snakeyaml.org)
 
   - [eve-google-appengine-{{eve_google_appengine_version}}.jar](files/java/eve-google-appengine-{{eve_google_appengine_version}}.jar)
@@ -96,8 +100,8 @@ web servlet.
   inside the &lt;web-app&gt; tag:
 
       <servlet>
-        <servlet-name>MultiAgentServlet</servlet-name>
-        <servlet-class>com.almende.eve.servlet.MultiAgentServlet</servlet-class>
+        <servlet-name>AgentServlet</servlet-name>
+        <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
         <init-param>
           <description>servlet configuration (yaml file)</description> 
           <param-name>config</param-name>
@@ -105,7 +109,7 @@ web servlet.
         </init-param>
       </servlet>
       <servlet-mapping>
-        <servlet-name>MultiAgentServlet</servlet-name>
+        <servlet-name>AgentServlet</servlet-name>
         <url-pattern>/agents/*</url-pattern>
       </servlet-mapping>
       
@@ -116,44 +120,39 @@ web servlet.
 - Create an Eve configuration file named eve.yaml in the folder war/WEB-INF 
   (where web.xml is located too). Insert the following text in this file:
   
-      # Eve settings
+      # Eve configuration
 
-      # environment settings
+      # environment specific settings
       environment:
         Development:
-          servlet_url: http://localhost:8888/agents
+          services:
+          - class: HttpService
+            servlet_url: http://localhost:8888/agents/
         Production:
-          servlet_url: http://myeveproject.appspot.com/agents
-
-      # agent settings
-      agents:
-        - class: com.almende.eve.agent.example.EchoAgent
-        - class: com.almende.eve.agent.example.CalcAgent
-        - class: com.almende.eve.agent.example.ChatAgent
+          services:
+          - class: HttpService
+            servlet_url: http://myeveproject.appspot.com/agents/
 
       # context settings
       # the context is used by agents for storing their state.
       context:
-        class: com.almende.eve.context.google.DatastoreContextFactory
-  
+        class: DatastoreContextFactory
+
   The configuration is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
   It contains:
   
   - A parameter *environment*. 
     A project typically has two different environments: 
     *Development* and *Production*.
-    The parameter *servlet_url* defines the url of the agents. 
-    This url needs to be specified, as it is not possible for an agent to know 
-    via what servlet it is being called.
-  
-  - The parameter *agents* contains a list with the agent classes which
-    will be hosted by the servlet.
-    Eve comes with a number of example agents, such as the CalcAgent and the EchoAgent,
-    these agents can be used to test if the application runs correctly.
-    Optionally, the parameters *stateful* and *thread_safe* can be defined for
-    each agent.
 
-  - The parameter *context.class* specifies the type of context that will be 
+  - Parameters *services*. To communicate with Eve agents, they have to be
+    exposed via one or multiple communication services (HTTP, XMPP).
+    In this case a HTTP Servlet is configured, so the agents can be accessed
+    via this servlet. The parameter *servlet_url* defines the url of the servlet,
+    neccessary to let an agent know how via what urls it is connected to the
+    outside world.
+
+  - The parameter *context* specifies the type of context that will be
     available for the agents to read and write persistent data.
     Agents themselves are stateless. They can use a context to store data.
 
@@ -172,23 +171,37 @@ Now the project can be started and you can see one of the example agents in acti
 
 - Start the project via menu Run, Run As, Web Application.
   
-- To verify if the AgentsServlet of Eve is running, open your browser and
+- To verify if the AgentServlet of Eve is running, open your browser and
   go to http://localhost:8888/agents/.
-  This should give a response *"Error: POST request containing a JSON-RPC 
-  message expected"*.
-  
-- Agents can be accessed via an HTTP POST request. The url defines 
-  the location of the agent and looks like 
-  http://server/servlet/agentclass/agentid.
-  The body of the post request must contain a JSON-RPC message.
-  To execute HTTP requests you can use a REST client like 
+  This will return generic information explaining the usage of the servlet.
+  Agents can be created by sending a HTTP PUT request to the servlet, deleted
+  using a HTTP DELETE request, and invoked via an HTTP POST request.
+  To execute HTTP requests you can use a REST client like
   [Postman](https://chrome.google.com/webstore/detail/fdmmgilgnpjigdojojpjoooidkmcomcm) in Chrome,
   [RESTClient](https://addons.mozilla.org/en-US/firefox/addon/restclient/?src=search) in Firefox,
   or with a tool like [cURL](http://curl.haxx.se/).
 
+- Create a CalcAgent by sending an HTTP PUT request to the servlet. We will
+  create an agent with id `calcagent1` and class `com.almende.eve.agent.example.CalcAgent`.
+
+      http://localhost:8888/agents/calcagent1/?class=com.almende.eve.agent.example.CalcAgent
+
+  If the agent is successfully created, the agents urls will be returned
+  (in this case only one url):
+
+      http://localhost:8888/agents/calcagent1/
+
+  Note that when an agent with this id already exists, the request will return
+  a server error.
+
+- Agents can be invoked via an HTTP POST request. The url defines
+  the location of the agent and looks like 
+  http://server/servlet/{agentId}.
+  The body of the POST request must contain a JSON-RPC message.
+
   Perform an HTTP POST request to the CalcAgent on the url
 
-      http://localhost:8888/agents/calcagent/1
+      http://localhost:8888/agents/calcagent1/
 
   With request body:
 
@@ -250,24 +263,18 @@ your agent class in the eve.properties file.
   and getVersion. Next, you can add your own methods, in this example the 
   methods echo and add. 
 
-- In order to make this agent available, you have to add its class name to
-  the Eve configuration in the file eve.yaml, earlier created and stored in 
-  war/WEB-INF. 
-  Add the full classname com.mycompany.myproject.MyFirstAgent to the list with 
-  classes under *agents*:
-  
-      ...
-      # agent settings
-      agents:
-        - class: com.almende.eve.agent.example.EchoAgent
-        - class: com.almende.eve.agent.example.CalcAgent
-        - class: com.almende.eve.agent.example.ChatAgent
-        - class: com.mycompany.myproject.MyFirstAgent
-      ...
+- Create an instance of your new agent. Send an HTTP PUT request to the servlet.
+  We will create an agent with id `myfirstagent1` and class `com.mycompany.myproject.MyFirstAgent`.
 
-- Now you can (re)start the server, and perform an HTTP POST request to the url
+      http://localhost:8888/agents/myfirstagent1/?class=com.mycompany.myproject.MyFirstAgent
+
+  If the agent is successfully created, its urls will be returned:
+
+      http://localhost:8888/agents/myfirstagent1/
+
+- Now you can perform an HTTP POST request to the new agent
   
-      http://localhost:8888/agents/myfirstagent/1234
+      http://localhost:8888/agents/myfirstagent1/
   
   With as request:
   
@@ -306,8 +313,6 @@ your agent class in the eve.properties file.
            "result": 5.6
       }
 
-<!-- TODO: explain ids -->
-
 
 ## Deployment {#deployment}
 
@@ -328,12 +333,16 @@ Now you can deploy your application in the cloud, to Google App Engine.
   identifier: http://myeveproject.appspot.com/agents/
   
       ...
-      # environment settings
+      # environment specific settings
       environment:
         Development:
-          servlet_url: http://localhost:8888/agents
+          services:
+          - class: HttpService
+            servlet_url: http://localhost:8888/agents/
         Production:
-          servlet_url: http://myeveproject.appspot.com/agents
+          services:
+          - class: HttpService
+            servlet_url: http://myeveproject.appspot.com/agents/
       ...
 
 - In Eclipse, right-click your project in the Package Explorer. In the context
@@ -342,5 +351,6 @@ Now you can deploy your application in the cloud, to Google App Engine.
   
 - Your application is now up and running and can be found at 
   http://myeveproject.appspot.com (where you have to replace the identifier with 
-  your own). The agent you have created yourself is accessable at
-  http://myeveproject.appspot.com/agents/myfirstagent/1234.
+  your own). The servlet to create, delete, and invoke agents is available at
+  http://myeveproject.appspot.com/agents/.
+

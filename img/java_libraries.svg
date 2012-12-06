@@ -13,9 +13,9 @@
    height="361"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.2 r9819"
+   inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="java_libraries.svg"
-   inkscape:export-filename="/home/jos/projects/evepages/img/java_libraries.png"
+   inkscape:export-filename="/home/jos/projects/eve-pages/img/java_libraries.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -34,9 +34,9 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="1600"
-     inkscape:window-height="820"
+     inkscape:window-height="850"
      inkscape:window-x="0"
-     inkscape:window-y="25"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -212,30 +212,6 @@
          id="tspan3861">services</tspan></text>
     <rect
        style="fill:#ffe88a;fill-opacity:1;stroke:#7f7f7f;stroke-width:1.03279554999999990;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-       id="rect3842-5"
-       width="80"
-       height="80"
-       x="240"
-       y="392.36218" />
-    <text
-       xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#1a1a1a;fill-opacity:1;stroke:none;font-family:Arial;-inkscape-font-specification:Arial"
-       x="250"
-       y="412.36218"
-       id="text3855-1"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan3857-7"
-         x="250"
-         y="412.36218"
-         style="font-size:14px;font-family:Arial;-inkscape-font-specification:Arial;fill:#1a1a1a;fill-opacity:1">eve</tspan><tspan
-         sodipodi:role="line"
-         x="250"
-         y="429.86218"
-         style="font-size:14px;font-family:Arial;-inkscape-font-specification:Arial;fill:#1a1a1a;fill-opacity:1"
-         id="tspan3861-1">planning</tspan></text>
-    <rect
-       style="fill:#ffe88a;fill-opacity:1;stroke:#7f7f7f;stroke-width:1.03279554999999990;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        id="rect3842-4"
        width="80"
        height="80"
@@ -365,23 +341,23 @@
          style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial;fill:#1a1a1a;fill-opacity:1"
          id="tspan3861-3-3-18">...</tspan></text>
     <rect
-       style="fill:#ffe88a;fill-opacity:1;stroke:#7f7f7f;stroke-width:1.03279554999999990;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:8.26236439000000011, 8.26236439000000011;stroke-dashoffset:0"
+       style="fill:#ffe88a;fill-opacity:1;stroke:#7f7f7f;stroke-width:1.03279555;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:8.26236439, 8.26236439;stroke-dashoffset:0"
        id="rect3842-4-7-19-0"
        width="80"
        height="80"
-       x="340"
+       x="240"
        y="392.36218" />
     <text
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#1a1a1a;fill-opacity:1;stroke:none;font-family:Sans"
-       x="350"
+       x="250"
        y="412.36218"
        id="text3855-11-9-0-6"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         x="350"
+         x="250"
          y="412.36218"
-         style="font-size:14px;font-family:Arial;-inkscape-font-specification:Arial;fill:#1a1a1a;fill-opacity:1"
+         style="font-size:14px;fill:#1a1a1a;fill-opacity:1;font-family:Arial;-inkscape-font-specification:Arial"
          id="tspan3861-3-3-18-8">...</tspan></text>
     <text
        xml:space="preserve"

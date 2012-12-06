@@ -41,7 +41,7 @@ Agent Y executes the method with the provided parameters, and returns the result
 
 <table class="example" summary="Synchronous request">
 <tr>
-<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/Y</pre></td>
+<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agents/agent_y</pre></td>
 </tr>
 <tr>
 <th class="example">Request</th><td class="example"><pre class="example">{
@@ -95,20 +95,20 @@ An example of an activity:
     {
         "summary": "Meeting on project X",
         "description": "Extensive description of the meeting",
-        "agent": "https://eveagents.appspot.com/agents/meetingagent/ac87c9b4c94f3d1da6d64bfc9d03ee7f/",
+        "agent": "https://eveagents.appspot.com/agents/meetingagent_1/",
         "constraints": {
             "attendees": [
                 {
                     "displayName": null,
                     "email": null,
-                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/ac87c9b4c94f3d1da6d64bfc9d03ee7f/",
+                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent_2/",
                     "optional": null,
                     "responseStatus": null
                 },
                 {
                     "displayName": null,
                     "email": null,
-                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/6c646e0d79b48eac8ef766388a7afc93/",
+                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent_3/",
                     "optional": null,
                     "responseStatus": null
                 }
@@ -139,14 +139,14 @@ An example of an activity:
                 {
                     "displayName": null,
                     "email": null,
-                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/ac87c9b4c94f3d1da6d64bfc9d03ee7f/",
+                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent_2/",
                     "optional": null,
                     "responseStatus": null   // "needsAction", "declined", "tentative", "accepted"
                 },
                 {
                     "displayName": null,
                     "email": null,
-                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/6c646e0d79b48eac8ef766388a7afc93/",
+                    "agent": "https://eveagents.appspot.com/agents/googlecalendaragent_3/",
                     "optional": null,
                     "responseStatus": null
                 }
@@ -181,7 +181,7 @@ An example event looks like:
         "kind": "calendar#event",
         "etag": "\"DtwDXDyBz5ZZP0Bus85WBYkv-64/Q1BqTjhPUHlKaEVBQUFBQUFBQUFBQT09\"",
         "id": "1u924fot5dda30tn6h23hbt6tg",
-        "agent": "https://eveagents.appspot.com/agents/googlecalendaragent/025ddd36e86fedacc612fe570f369950",
+        "agent": "https://eveagents.appspot.com/agents/googlecalendaragent_1",
         "status": "confirmed",
         "htmlLink": "https://www.google.com/calendar/event?eid=MXU5MjRmb3Q1ZGRhMzB0bjZoMjNoYnQ2dGcgam9zQGFsbWVuZGUub3Jn",
         "created": "2012-05-08T12:42:18.000Z",
@@ -245,14 +245,14 @@ possibly resulting in request timeouts.
 
 In case of an asynchronous request,
 an agent can schedule the request and return an empty response immediately.
-It schedules the request and executes it lateron.
+It schedules the request and executes it later on.
 The result will be send to the provided callback url and method, with the
 parameters `result` and `error`.
 
 Example callback:
 
     {
-        "url": "http://myserver.com/agentX",
+        "url": "http://myserver.com/agents/agent_x",
         "method": "addCallback"
     }
 
@@ -265,7 +265,7 @@ it puts the request in its task queue and returns an empty response.
 
 <table class="example" summary="Asynchronous request 1/2">
 <tr>
-<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/Y</pre></td>
+<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agents/agent_y</pre></td>
 </tr>
 <tr>
 <th class="example">Request</th><td class="example"><pre class="example">{
@@ -297,7 +297,7 @@ via a new request, adressing the callback url and method of agent X:
 
 <table class="example" summary="Asynchronous request 2/2">
 <tr>
-<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agent/X</pre></td>
+<th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agents/agent_x</pre></td>
 </tr>
 <tr>
 <th class="example">Request</th><td class="example"><pre class="example">{
