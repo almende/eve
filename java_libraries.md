@@ -90,9 +90,9 @@ They can be downloaded at the
   *
 
 - **eve-planning.jar**  
-  Contains agents acting on the domain of calendaring and planning. 
-  Contains a GoogleCalendarAgent and a servlet for authorizing this agent.
-  Will contain agents planning activities in a dynamic way.
+  Contains agents acting on the domain of calendaring and planning.
+  Contains a set of agents using various Google API's such as calendar,
+  directions, translate. Also contains a servlet for authorizing agents.
 
   *Dependencies: 
     eve-core.jar
