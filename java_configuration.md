@@ -6,9 +6,9 @@ title: Configuration
 
 # Configuration
 
-Eve needs a configuration file containing information on the agent classes that
-needs to be hosted, settings for storage of agent states, and some environment
-settings. The servlet used to host the Eve agents points to an Eve
+Eve needs a configuration file containing settings for persistency of the agents
+context, settings for communication services such as HTTP and XMPP, and other
+environment settings. The servlet used to host the Eve agents points to an Eve
 configuration file, as explained on the page [Hosting](java_hosting.html).
 
 The configuration file is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
@@ -18,33 +18,37 @@ field names are case sensitive.
 
 file: **war/WEB-INF/eve.yaml**
 
-    # Eve settings
+    # Eve configuration
 
-    # environment settings
+    # environment specific settings
     environment:
       Development:
-        servlet_url: http://localhost:8888/agents/
-        auth_google_servlet_url: http://localhost:8888/auth/google
-      Production:
-        servlet_url: http://myproject.appspot.com/agents/
-        auth_google_servlet_url: http://myproject.appspot.com/auth/google
+        # communication services
+        services:
+        - class: HttpService
+          servlet_url: http://localhost:8888/agents/
 
-    # agent settings
-    agents:
-      - class: com.almende.eve.agent.example.EchoAgent
-        stateful: false
-        thread-safe: true
-      - class: com.almende.eve.agent.example.CalcAgent
-        stateful: false
-        thread-safe: true
-      - class: com.almende.eve.agent.example.ChatAgent
-        stateful: false
-        thread-safe: true
+        auth_google_servlet_url: http://localhost:8888/auth/google
+
+      Production:
+        # communication services
+        services:
+        - class: HttpService
+          servlet_url: http://my_server.com/agents/
+
+        auth_google_servlet_url: http://my_server.com/auth/google
+
+    # environment independent communication services
+    services:
+    - class: XmppService
+      host: my_xmpp_server.com
+      port: 5222
 
     # context settings
     # the context is used by agents for storing their state.
     context:
-      class: com.almende.eve.context.MemoryContext
+      class: FileContextFactory
+      path: .eveagents
 
     # Google API access
     google:
@@ -55,160 +59,186 @@ file: **war/WEB-INF/eve.yaml**
 Description of the available properties:
 
 <table>
-  <tr>
-    <th>Name</th>
-    <th>Description</th>
-  </tr>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
 
-  <!-- TODO: cleanup
-  <tr>
-    <td>environment.Development<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.agent_url<br>
-      environment.Production<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.agent_url</td>
-    <td>The url template for the hosted agents. This url needs to be specified,
-      as it is not possible for an agent to know via what servlet it is being
-      called. The url of an agent is built up from this template url, where the
-      agents class and id are filled in.<br><br>
+    <tr>
+        <td>environment.Development<br>
+            environment.Production<br>
+        </td>
+        <td>
+            The Eve configuration supports environment specific settings.
+            There are two environments available <code>Development</code> and
+            <code>Production</code>.
+            The environment is determined at runtime
+            and can be retrieved from the AgentFactory and ContextFactory using the
+            method <code>getEnvironment()</code>.<br>
+            <br>
+            All Eve settings can be placed both in the root of the configuration
+            file as well as under a specific environment.
 
-      The url template can contain the following parameters:
-      <ul>
-        <li><code>:class</code> The class name of the agent
-            (lowercase, simple name, not full class path).</li>
-        <li><code>:id</code> The id of the agent.</li>
-        <li><code>:resource</code> A resource of the agents web application.</li>
-      </ul>
+            <!-- TODO: move this text
+              The servlet url of the agents. This url needs to be specified,
+              as it is not possible for an agent to know via what servlet it is being
+              called. The url of an agent is built up by the servlet url, its class,
+              and its id.<br><br>
+              For example, when servlet_url is
+              <code>http://myproject.appspot.com/agents</code>, the agents class is
+              <code>EchoAgent</code>, and the agent has id <code>100</code>, the
+              agents url will be
+              <code>http://myproject.appspot.com/agents/echoagent/1/</code>.
+              -->
+        </td>
+    </tr>
+    <tr>
+        <td>services</td>
+        <td>
+        To communicate with Eve agents, one or multiple communication services
+        can be configured. An agent can be accessed via each of these
+        communication services. The available urls of an agent can be retrieved
+        via <code>getUrls</code>.
 
-      For example, when the configured agent_url is
-      <code>http://myproject.appspot.com/agents/:class/:id/:resource</code>,
-      the agents class is <code>EchoAgent</code>,
-      and the agent has id <code>100</code>, the
-      agents url will be
-      <code>http://myproject.appspot.com/agents/echoagent/1/</code>.
-      </td>
-  </tr>
-  -->
+        The following services are available:
 
-  <tr>
-    <td>environment.Development<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.servlet_url<br>
-      environment.Production<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.servlet_url</td>
-    <td>
-      The servlet url of the agents. This url needs to be specified,
-      as it is not possible for an agent to know via what servlet it is being
-      called. The url of an agent is built up by the servlet url, its class,
-      and its id.<br><br>
-      For example, when servlet_url is
-      <code>http://myproject.appspot.com/agents</code>, the agents class is
-      <code>EchoAgent</code>, and the agent has id <code>100</code>, the
-      agents url will be
-      <code>http://myproject.appspot.com/agents/echoagent/1/</code>.
-      </td>
-  </tr>
-  <tr>
-   <td>environment.Development<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.auth_google_servlet_url<br>
-      environment.Production<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.auth_google_servlet_url
-   </td>
-    <td>The url where the authentication servlet GoogleAuth is hosted.
-    Only required when using the GoogleAuth servlet provided by Eve Planning
-    (<code>eve-planning.jar</code>).</td>
-  </tr>
-  <!-- TODO: cleanup
-  <tr>
-    <td>agents[]</td>
-    <td>A list with properties of the agent classes to be hosted.</td>
-  </tr>
-  <tr>
-    <td>agents[].class</td>
-    <td>The full class path of the agent. Required.</td>
-  </tr>
-  <tr>
-    <td>agents[].stateful</td>
-    <td>A boolean specifying whether the agent is stateful or stateless.
-      This property is optional, and is false by default.
-      When stateful is true, the agent must be marked thread_safe as well.
-      <br><br>
-      When an agent is marked stateful, it will be loaded once and kept running,
-      as opposed to stateless agents which can be loaded and unloaded any time.
-      Making an agent stateful allows for keeping connections to services such
-      as messaging open.
-      <br><br>
-      Stateful agents are not supported on Google App Engine.
-      </td>
-  </tr>
-  <tr>
-    <td>agents[].thread_safe</td>
-    <td>A boolean specifying whether the agent is thread-safe.
-      This property is optional, and is false by default.
-      When thread-safe, the agent is instantiated once will be kept in memory
-      until it has been inactive for some time, or until the system needs to
-      free memory.
-      When not thread-safe, a new instance of the agent created for every
-      request, and is destroyed after the request has been handled.
-      <br><br>
-      The <i>thread_safe</i> property allows Eve to optimize the application
-      by keeping agents in memory as much as possible, instead of having to
-      create and destroy the agents with every request. The property does not
-      guarantee a one-off instantiated, continuously running agent though,
-      use the property <i>stateful</i> for that purpose instead.
-      </td>
-  </tr>
-  -->
-  <tr>
-    <td>agent.classes[]</td>
-    <td>A list with the full class paths of the agents to be hosted.</td>
-  </tr>
-  <tr>
-    <td>context.class</td>
-    <td>
-      A Context class. The context is used to store the agents state.
-      Available contexts:
-      <ul>
-        <li><code>com.almende.eve.context.FileContext</code>.
-            Located in eve-core.jar.
-            Not applicable when deployed on Google App Engine.</li>
-        <li><code>com.almende.eve.context.MemoryContext</code>.
-            Located in eve-core.jar.</li>
-        <li><code>com.almende.eve.context.google.DatastoreContext</code>.
-            Located in eve-google-appengine.jar.
-            Only applicable when the application is deployed on Google App Engine.
-        </li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td>context.path</td>
-    <td>
-      The path on disk where the agents state will be stored.
-      Only applicable when context.class is
-      <code>com.almende.eve.context.FileContext</code>.
-    </td>
-  </tr>
-  <tr>
-    <td>google.client_id</td>
-    <td>
-      Client id of the application as registered in the
-      <a href="https://code.google.com/apis/console/">Google APIs Console</a>.
-      Required when using the GoogleCalendarAgent and other google agents
-      provided by Eve Planning.
-    </td>
-  </tr>
-  <tr>
-    <td>google.client_secret</td>
-    <td>
-      Client secret of the application as registered in the
-      <a href="https://code.google.com/apis/console/">Google APIs Console</a>.
-      Required when using the GoogleCalendarAgent and other google agents
-      provided by Eve Planning.
-    </td>
-  </tr>
+        <h4>HttpService</h4>
+        Allows communication with agents via HTTP. All agents will be accessible
+        via a single servlet.
+
+        Configuration parameters:
+        <p></p>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>class</td>
+                <td>Must be <code>HttpService</code></td>
+            </tr>
+            <tr>
+                <td>servlet_url</td>
+                <td>
+                The servlet url of the agents. This url needs to be specified,
+                as it is not possible for an agent to know via what servlet it is being
+                called. The url of an agent is built up by the servlet url and its id.<br><br>
+                For example, when servlet_url is
+                <code>http://myproject.appspot.com/agents</code>,
+                and the agent has id <code>100</code>, the agents url will be
+                <code>http://myproject.appspot.com/agents/100/</code>.
+                .</td>
+            </tr>
+        </table>
+        <p></p>
+
+        <h4>XmppService</h4>
+        Allows communication of agents via XMPP. Each agent needs to have an account.
+        Configuration parameters:
+        <p></p>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>class</td>
+                <td>Must be <code>XmppService</code></td>
+            </tr>
+            <tr>
+                <td>host</td>
+                <td>
+                Connection host, for example jabber.com.</td>
+            </tr>
+            <tr>
+                <td>port</td>
+                <td>Connection port The XMPP host, 5222 by default.</td>
+            </tr>
+            <tr>
+                <td>serviceName</td>
+                <td>Optional service name for the connection.</td>
+            </tr>
+        </table>
+        <p></p>
+
+        </td>
+    </tr>
+    <tr>
+        <td>context</td>
+        <td>
+            Configuration for the context, used to persist the agents state.
+            An object containing parameters:
+
+            <p></p>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>class</td>
+                    <td>The full class path of an ContextFactory.
+                    For built-in context factories, it is enough to specify
+                    the classes simple name instead of the full path.</td>
+                </tr>
+                <tr>
+                    <td>path</td>
+                    <td>The path on disk where the agents state will be stored.
+                        Only applicable for the <code>FileContextFactory</code>.</td>
+                </tr>
+            </table>
+            <p></p>
+
+            The following context factories are available:
+
+            <ul>
+                <li><code>FileContextFactory</code>.
+                    Located in eve-core.jar.
+                    Not applicable when deployed on Google App Engine.</li>
+                <li><code>MemoryContextFactory</code>.
+                    Located in eve-core.jar.</li>
+                <li><code>DatastoreContextFactory</code>.
+                    Located in eve-google-appengine.jar.
+                    Only applicable when the application is deployed on Google App Engine.
+                </li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>auth_google_servlet_url</td>
+        <td>The url where the authentication servlet GoogleAuth is hosted.
+            Only required when using the GoogleAuth servlet provided by Eve Planning
+            (<code>eve-planning.jar</code>).</td>
+    </tr>
+    <tr>
+        <td>google</td>
+        <td>
+            Parameters for API access to Googles services.
+            These parameters are provided when registering an application in the
+            <a href="https://code.google.com/apis/console/">Google APIs Console</a>.
+            Required when using the GoogleCalendarAgent and other google agents
+            provided by Eve Planning.
+
+            Contains the following parameters:
+            <p></p>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>client_id</td>
+                    <td>Client id of the application.</td>
+                </tr>
+                <tr>
+                    <td>client_secret</td>
+                    <td>Client secret of the application.</td>
+                </tr>
+            </table>
+            <p></p>
+        </td>
+    </tr>
 </table>
-
-
-
 
 
 ## Accessing configuration properties {#accessing_configuration_properties}
@@ -269,26 +299,23 @@ context does not need any additional configuration.
 
 Example file: **war/WEB-INF/eve.yaml**
 
-    # Eve settings
+    # Eve configuration
 
-    # environment settings
+    # environment specific settings
     environment:
       Development:
-        servlet_url: http://localhost:8888/agents/
+        services:
+        - class: HttpService
+          servlet_url: http://localhost:8888/agents/
       Production:
-        servlet_url: http://myproject.appspot.com/agents/
-
-    # agent settings
-    agent:
-      classes:
-      - com.almende.eve.agent.example.EchoAgent
-      - com.almende.eve.agent.example.CalcAgent
-      - com.almende.eve.agent.example.ChatAgent
+        services:
+        - class: HttpService
+          servlet_url: http://myproject.appspot.com/agents/
 
     # context settings
     # the context is used by agents for storing their state.
     context:
-      class: com.almende.eve.context.google.DatastoreContext
+      class: DatastoreContextFactory
 
 
 
@@ -305,24 +332,21 @@ in the configured path.
 
 Example file: **war/WEB-INF/eve.yaml**
 
-    # Eve settings
+    # Eve configuration
 
-    # environment settings
-    environment:
-      Production:
-        servlet_url: http://localhost:8080/MyProject/agents/
-
-    # agent settings
-    agent:
-      classes:
-      - com.almende.eve.agent.example.EchoAgent
-      - com.almende.eve.agent.example.CalcAgent
-      - com.almende.eve.agent.example.ChatAgent
+    services:
+    # communication services
+    services:
+    - class: HttpService
+      servlet_url: http://localhost:8080/MyProject/agents/
+    - class: XmppService
+      host: my_xmpp_server.com
+      port: 5222
 
     # context settings
     # the context is used by agents for storing their state.
     context:
-      class: com.almende.eve.context.FileContext
+      class: com.almende.eve.context.FileContextFactory
       path: .eveagents
 
 
@@ -346,20 +370,23 @@ Example file: **war/WEB-INF/eve.yaml**
 
     # Eve settings
 
-    # environment settings
+    # environment specific settings
     environment:
       Development:
-        servlet_url: http://localhost:8888/agents/
+        services:
+        - class: HttpService
+          servlet_url: http://localhost:8888/agents/
         auth_google_servlet_url: http://localhost:8888/auth/google
       Production:
-        servlet_url: http://myproject.appspot.com/agents/
+        services:
+        - class: HttpService
+          servlet_url: http://myproject.appspot.com/agents/
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
-    # agent settings
-    ...
-
     # context settings
-    ...
+    # the context is used by agents for storing their state.
+    context:
+      class: DatastoreContextFactory
 
     # Google API access
     google:
