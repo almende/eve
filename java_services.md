@@ -7,11 +7,12 @@ title: Services
 # Services
 
 Eve agents can be accessed via communication services.
-Eve supports two protocols: HTTP and XMPP.
-With HTTP, agents are exposed via a regular Java servlet, and can be invoked
-by sending HTTP POST requests to this servlet.
-With XMPP, agents can be connected individually to an XMPP server,
-allowing them to communicate using this well known messaging protocol.
+Eve supports two services: HttpService and XmppService.
+
+- [HttpService](#HttpService) exposes agents via a regular Java servlet.
+  Agents can be invoked by sending a HTTP POST request to this servlet.
+- [XmppService](#XmppService) allows to connect agents to an XMPP server.
+  The agents can be invoked via XMPP.
 
 A single Eve application can have multiple XmppServices and HttpServices configured.
 This allows exposure of the agents via multiple communication services at the
