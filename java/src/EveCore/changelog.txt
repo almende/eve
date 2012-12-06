@@ -2,20 +2,20 @@ EVE CORE
 http://almende.github.com/eve/
 
 
-<not yet released>, version 0.11.0
+2012-12-06, version 0.11
 
-- Implemented support for messaging systems. First implemented messaging 
-  protocol is XMPP.
-- Agents must now implicitely be created before they can be invoked. The
+- Major change in the core of Eve. Incompatible with previous versions.
+- Implemented support for multiple communication services. 
+- Agents must now implicitly be created before they can be invoked. The
   AgentFactory contains methods to create, get, and delete agents, and 
   the ContextFactory is adjusted for this purpose.
+- Implemented messaging protocol XMPP.
 - Configuration of agent classes is no longer needed.
-- Configuration of communication services introduced.
 - JSONRequest, JSONResponse, and JSONRPCException are now less strict, they
   are more friendly to invalid input.
 
 
-2012-09-18, version 0.10.0
+2012-09-18, version 0.10
 
 - The web interface of the agents now has an option to enable/disable logging
   events using a LogAgent.

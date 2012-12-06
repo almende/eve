@@ -5,14 +5,14 @@ environment:
   Development:
     services:
     services:
-    - class: com.almende.eve.service.http.HttpService
+    - class: HttpService
       servlet_url: http://localhost:8080/EveCore/testagent/
   Production:
     services:
-    - class: com.almende.eve.service.http.HttpService
+    - class: HttpService
       servlet_url: http://localhost:8080/EveCore/testagent/
 
 # The context for reading and writing persistent data
 context:
-  class: com.almende.eve.context.FileContextFactory
+  class: FileContextFactory
   path: .eveagents

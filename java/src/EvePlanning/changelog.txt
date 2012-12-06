@@ -2,6 +2,11 @@ EVE PLANNING
 http://almende.github.com/eve/
 
 
+2012-12-06, version 0.9
+
+- Updates according to changes in EveCore.
+
+
 2012-09-18, version 0.8.1
 
 - Fixed a bug in the MeetingAgent, which always kept moving its activity

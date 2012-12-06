@@ -1,12 +1,12 @@
 # Eve XMPP settings
 
 services:
-- class: com.almende.eve.service.xmpp.XmppService
+- class: XmppService
   host: ec2-54-246-112-19.eu-west-1.compute.amazonaws.com
   port: 5222
 
 # context settings
 # the context is used by agents for storing their state.
 context:
-  class: com.almende.eve.context.FileContextFactory
+  class: FileContextFactory
   path: .eveagents

@@ -3,6 +3,7 @@ package com.almende.eve.agent;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -391,6 +392,15 @@ public class AgentFactory {
 				"Config parameter 'context.class' missing in Eve configuration.");
 		}
 		
+		// Recognize known classes by their short name,
+		// and replace the short name for the full class path
+		for (String name : CONTEXT_FACTORIES.keySet()) {
+			if (className.toLowerCase().equals(name.toLowerCase())) {
+				className = CONTEXT_FACTORIES.get(name);
+				break;
+			}
+		}
+		
 		try {
 			// get the class
 			Class<?> contextClass = Class.forName(className);
@@ -410,9 +420,8 @@ public class AgentFactory {
 			logger.info("Initialized context factory " + className);
 		}
 		catch (Exception e) {
-			
-		}
-		
+			e.printStackTrace();
+		}		
 	}
 
 	/**
@@ -470,6 +479,15 @@ public class AgentFactory {
 			String className = (String) serviceParams.get("class");
 			try {
 				if (className != null) {
+					// Recognize known classes by their short name,
+					// and replace the short name for the full class path
+					for (String name : SERVICES.keySet()) {
+						if (className.toLowerCase().equals(name.toLowerCase())) {
+							className = SERVICES.get(name);
+							break;
+						}
+					}
+					
 					Class<?> serviceClass = Class.forName(className);
 					Service service = (Service) serviceClass
 							.getConstructor(AgentFactory.class)
@@ -554,6 +572,19 @@ public class AgentFactory {
 
 	private static Map<String, AgentFactory> factories = 
 			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
+
+	private final static Map<String, String> CONTEXT_FACTORIES = new HashMap<String, String>();
+	static {
+        CONTEXT_FACTORIES.put("FileContextFactory", "com.almende.eve.context.FileContextFactory");
+        CONTEXT_FACTORIES.put("MemoryContextFactory", "com.almende.eve.context.MemoryContextFactory");
+        CONTEXT_FACTORIES.put("DatastoreContextFactory", "com.almende.eve.context.google.DatastoreContextFactory");
+    }
+	
+	private final static Map<String, String> SERVICES = new HashMap<String, String>();
+	static {
+		SERVICES.put("XmppService", "com.almende.eve.service.xmpp.XmppService");
+		SERVICES.put("HttpService", "com.almende.eve.service.http.HttpService");
+    }
 	
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }
