@@ -40,6 +40,7 @@ import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.service.AsyncCallback;
 import com.almende.eve.service.xmpp.XmppService;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
@@ -323,6 +324,33 @@ public class TestAgent extends Agent {
 				caught.printStackTrace();
 			}
 		}, Double.class);
+	}
+	
+	public void testGetContacts (@Name("url") String url) throws Exception {
+		System.out.println("testGetContacts, url=" + url);
+		String method = "getContacts";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("filter", "");
+		System.out.println("testGetContacts, request=" + new JSONRequest(method, params));
+		sendAsync(url, method, params, new AsyncCallback<ArrayNode>() {
+			@Override
+			public void onSuccess(ArrayNode result) {
+				System.out.println("testGetContacts result=" + result);
+				ObjectNode params = JOM.createObjectNode();
+				params.put("result", result);
+				try {
+					trigger("message", params);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onFailure(Throwable caught) {
+				caught.printStackTrace();
+			}
+		}, ArrayNode.class);
 	}
 	
 	public void testAsyncHTTP () throws Exception {

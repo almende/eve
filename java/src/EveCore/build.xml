@@ -8,6 +8,7 @@
   <target name="makejar" description="Create a jar library">
     <property name="localbin" location="bin" />
   	<property name="globalbin" location="../../bin" />
+    <property name="androidlib" location="lib/android" />
   	
     <mkdir dir="${localbin}" />
   	<mkdir dir="${globalbin}" />
@@ -21,15 +22,28 @@
     </jar>
   	<move file="${localbin}/${package}-temp.jar" tofile="${localbin}/${package}.jar" />
   	
-    <!-- copy jar to the global bin directory, 
-         and create a zip file with all dependencies bundled -->
-  	<copy file="${localbin}/${package}.jar" tofile="${globalbin}/${package}-${version}.jar" />
-  	<copy file="changelog.txt" tofile="${globalbin}/${package}-changelog.txt" />
+    <!-- copy jar and changelog to the global bin directory -->
+    <copy file="${localbin}/${package}.jar" tofile="${globalbin}/${package}-${version}.jar" />
+    <copy file="changelog.txt" tofile="${globalbin}/${package}-changelog.txt" />
+
+    <!-- create a zip file with all dependencies bundled -->
   	<zip destfile="${globalbin}/${package}-${version}-bundle.zip">
       <fileset dir="${globalbin}" includes="${package}-${version}.jar" /> 
       <fileset dir="${globalbin}" includes="${package}-changelog.txt" /> 
       <fileset dir="war/WEB-INF/lib/" 
       	includes="jackson-*, joda-time-*, snakeyaml-*, smack*" />
+    </zip>
+
+    <!-- create a zip file with all dependencies for android bundled (has a 
+         version of smack compiled for android instead of the regular smack 
+         libraries) -->
+    <zip destfile="${globalbin}/${package}-${version}-bundle-android.zip">
+      <fileset dir="${globalbin}" includes="${package}-${version}.jar" /> 
+      <fileset dir="${globalbin}" includes="${package}-changelog.txt" /> 
+      <fileset dir="war/WEB-INF/lib/" 
+        includes="jackson-*, joda-time-*, snakeyaml-*" />
+      <fileset dir="lib/android/" 
+        includes="*" />
     </zip>
 
   </target>

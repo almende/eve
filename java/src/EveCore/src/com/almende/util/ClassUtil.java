@@ -8,7 +8,6 @@ public class ClassUtil {
 	 */
 	public static boolean hasInterface(Class<?> checkClass, Class<?> interfaceClass) {
 		Class<?>[] interfaces = checkClass.getInterfaces();
-		
 		for (Class<?> i : interfaces) {
 			if (i.equals(interfaceClass)) {
 				return true;
@@ -24,6 +23,7 @@ public class ClassUtil {
 	 * @param superClass
 	 */
 	public static boolean hasSuperClass(Class<?> checkClass, Class<?> superClass) {
+		// TODO: replace with return (checkClass instanceof superClass);  ? 
 		Class<?> s = checkClass;
 		while ((s = s.getSuperclass()) != null) {
 			if (s.equals(superClass)) {

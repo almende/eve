@@ -17,6 +17,7 @@ import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.service.AsyncCallback;
 import com.almende.eve.service.Service;
+import com.almende.eve.service.http.HttpService;
 import com.almende.util.ClassUtil;
 
 /**
@@ -61,7 +62,9 @@ import com.almende.util.ClassUtil;
  * @author jos
  */
 public class AgentFactory {
-	public AgentFactory () {}
+	public AgentFactory () {
+		addService(new HttpService(this));
+	}
 	
 	/**
 	 * Construct an AgentFactory and initialize the configuration
@@ -70,6 +73,8 @@ public class AgentFactory {
 	 */
 	public AgentFactory(Config config) throws Exception {
 		setConfig(config);
+
+		addService(new HttpService(this));
 	}
 	
 	/**

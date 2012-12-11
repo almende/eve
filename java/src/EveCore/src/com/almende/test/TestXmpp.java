@@ -21,10 +21,12 @@ public class TestXmpp {
 		AgentFactory factory = new AgentFactory();
 		FileContextFactory contextFactory = new FileContextFactory(factory, ".eveagents");
 		factory.setContextFactory(contextFactory);
-		String host = "ec2-54-246-112-19.eu-west-1.compute.amazonaws.com";
+		//String host = "ec2-54-246-112-19.eu-west-1.compute.amazonaws.com";
+		String host = "openid.almende.org";
 		int port = 5222;
+		String serviceName = host;
 		XmppService xmppService = new XmppService(factory);
-		xmppService.init(host, port, null);
+		xmppService.init(host, port, serviceName);
 		factory.addService(xmppService);
 		
 		// instantiate an agent and connect it to a messenger service
@@ -47,8 +49,14 @@ public class TestXmpp {
 		}
 		xmppService.connect(agentId, agentId, agentPassword);
 		
-        agent.testAsyncXMPP("xmpp:jos@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
-
+        //agent.testAsyncXMPP("xmpp:jos@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
+        //agent.testAsyncXMPP("xmpp:gloria@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
+        agent.testAsyncXMPP("xmpp:jos@openid.almende.org");
+        agent.testAsyncXMPP("xmpp:gloria@openid.almende.org");
+        //agent.testGetContacts("xmpp:contact1@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
+        //agent.testGetContacts("xmpp:contact1@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
+        agent.testAsyncHTTP();
+        
         //agent.testAsyncHTTP();
 		
 		System.out.println("Press ENTER to quit");

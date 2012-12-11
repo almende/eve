@@ -2,6 +2,7 @@ package com.almende.eve.service.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class HttpService extends Service {
 		if (!this.servletUrl.endsWith("/")) {
 			this.servletUrl += "/";
 		}
-		protocols.clear();
+		protocols = new ArrayList<String>();
 		int separator = this.servletUrl.indexOf(":");
 		if (separator != -1) {
 			protocols.add(this.servletUrl.substring(0, separator));
@@ -223,6 +224,7 @@ public class HttpService extends Service {
 		return "";
 	}
 
-	private String servletUrl = null;
-	private List<String> protocols = new ArrayList<String>();
+	protected String servletUrl = null;
+	protected List<String> protocols = Arrays.asList("http", "https");
+	//protected List<String> protocols = new ArrayList<String>();
 }
