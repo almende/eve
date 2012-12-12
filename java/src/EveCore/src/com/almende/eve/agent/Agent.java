@@ -22,7 +22,7 @@
  * Copyright © 2010-2012 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2012-11-09
+ * @date	  2012-12-12
  */
 
 package com.almende.eve.agent;
@@ -37,7 +37,9 @@ import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
+import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.service.AsyncCallback;
+import com.almende.eve.service.Service;
 import com.almende.eve.session.Session;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
@@ -50,8 +52,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 abstract public class Agent {
+	private AgentFactory agentFactory = null;
 	private Context context = null;
-	private Session session = null;
+	private Scheduler scheduler = null;
+	private Session session = null; // TODO: remove session, replace with getRequest and getResponse
 	
 	public abstract String getDescription();
 	public abstract String getVersion();
@@ -85,14 +89,43 @@ abstract public class Agent {
 	
 	@Access(AccessType.UNAVAILABLE)
 	final public void setContext(Context context) {
-		if (context != null) {
-			this.context = context;
-		}
+		this.context = context;
 	}
 
+	/**
+	 * Get the agents context. The context contains methods get, put, etc. to
+	 * write properties into a persistent context.
+	 * @param context
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public Context getContext() {
 		return context;
+	}
+
+	/**
+	 * Get a scheduler to schedule tasks for the agent to be executed later on.
+	 * @param context
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public Scheduler getScheduler() {
+		if (scheduler == null && agentFactory != null) {
+			scheduler = agentFactory.createScheduler(getId());
+		}
+		return scheduler;
+	}
+
+	@Access(AccessType.UNAVAILABLE)
+	final public void setAgentFactory(AgentFactory agentFactory) {
+		this.agentFactory = agentFactory;
+	}
+
+	/**
+	 * Get the agent factory. The agent factory can create/delete agents. 
+	 * @return
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public AgentFactory getAgentFactory() {
+		return agentFactory;
 	}
 	
 	@Access(AccessType.UNAVAILABLE)
@@ -302,7 +335,7 @@ abstract public class Agent {
 			taskParams.put("params", callbackParams);
 			JSONRequest request = new JSONRequest("onTrigger", taskParams);
 			long delay = 0;
-			getContext().getScheduler().createTask(request, delay);
+			scheduler.createTask(request, delay);
 		}
 	}
 
@@ -332,7 +365,7 @@ abstract public class Agent {
 		// invoke the other agent via the context, allowing the context
 		// to route the request internally or externally
 		JSONRequest request = new JSONRequest(method, params);
-		JSONResponse response = getContext().getAgentFactory().send(this, url, request);
+		JSONResponse response = getAgentFactory().send(this, url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -406,7 +439,7 @@ abstract public class Agent {
 		JSONRequest req = new JSONRequest(method, params);
 		String callbackUrl = getUrl();
 		req.setCallback(callbackUrl, callbackMethod);
-		getContext().getAgentFactory().send(this, url, req);
+		getAgentFactory().send(this, url, req);
 	}
 	
 	/**
@@ -474,7 +507,7 @@ abstract public class Agent {
 			}
 		};
 		
-		getContext().getAgentFactory().sendAsync(this, url, request, responseCallback);
+		getAgentFactory().sendAsync(this, url, request, responseCallback);
 	}
 
 	/**
@@ -484,7 +517,7 @@ abstract public class Agent {
 	 */
 	@Deprecated
 	final public String getUrl() {
-		for (String url : context.getAgentUrls()) {
+		for (String url : getUrls()) {
 			if (url.startsWith("http")) {
 				return url;
 			}
@@ -499,7 +532,17 @@ abstract public class Agent {
 	 * @return urls
 	 */
 	final public List<String> getUrls() {
-		return context.getAgentUrls();
+		List<String> urls = new ArrayList<String>();
+		if (agentFactory != null) {
+			String agentId = getId();
+			for (Service service : agentFactory.getServices()) {
+				String url = service.getAgentUrl(agentId);
+				if (url != null) {
+					urls.add(url);
+				}
+			}
+		}
+		return urls;
 	}
 	
 	/**

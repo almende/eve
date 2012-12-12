@@ -211,14 +211,14 @@ public class TestAgent extends Agent {
 	}
 
 	public void cancelTask(@Name("id") String id) {
-		getContext().getScheduler().cancelTask(id);
+		getScheduler().cancelTask(id);
 	}
 	
 	public String createTask(@Name("delay") long delay) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", "hello world");
 		JSONRequest request = new JSONRequest("myTask", params);
-		String id = getContext().getScheduler().createTask(request, delay);
+		String id = getScheduler().createTask(request, delay);
 		return id;
 	}
 	
@@ -377,7 +377,7 @@ public class TestAgent extends Agent {
 	
 	public void xmppConnect(@Name("username") String username, 
 			@Name("password") String password) throws Exception {
-		AgentFactory factory = getContext().getAgentFactory();
+		AgentFactory factory = getAgentFactory();
 		
 		XmppService service = (XmppService) factory.getService("xmpp");
 		if (service != null) {
@@ -389,7 +389,7 @@ public class TestAgent extends Agent {
 	}
 	
 	public void xmppDisconnect() throws Exception {
-		AgentFactory factory = getContext().getAgentFactory();
+		AgentFactory factory = getAgentFactory();
 		XmppService service = (XmppService) factory.getService("xmpp");
 		if (service != null) {
 			service.disconnect(getId());

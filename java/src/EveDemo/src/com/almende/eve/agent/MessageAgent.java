@@ -135,7 +135,7 @@ public class MessageAgent extends Agent {
 					
 					long delay = 1; // milliseconds
 					
-					getContext().getScheduler().createTask(request, delay);
+					getScheduler().createTask(request, delay);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

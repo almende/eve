@@ -15,7 +15,7 @@ public class ManagementAgent extends Agent {
 	 */
 	public List<String> create(@Name("id") String agentId,
 			@Name("class") String agentClass) throws Exception {
-		Agent agent = getContext().getAgentFactory().createAgent(agentClass, agentId);
+		Agent agent = getAgentFactory().createAgent(agentClass, agentId);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
@@ -26,7 +26,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public void delete(@Name("id") String agentId) throws Exception {
-		getContext().getAgentFactory().deleteAgent(agentId);
+		getAgentFactory().deleteAgent(agentId);
 	}
 
 	/**
@@ -37,7 +37,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public List<String> get(@Name("id") String agentId) throws Exception {
-		Agent agent = getContext().getAgentFactory().getAgent(agentId);
+		Agent agent = getAgentFactory().getAgent(agentId);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
@@ -48,7 +48,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public boolean exists(@Name("id") String agentId) throws Exception {
-		Agent agent = getContext().getAgentFactory().getAgent(agentId);
+		Agent agent = getAgentFactory().getAgent(agentId);
 		return (agent != null);
 	}
 

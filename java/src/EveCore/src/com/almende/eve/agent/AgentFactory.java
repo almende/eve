@@ -16,6 +16,7 @@ import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
+import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.service.AsyncCallback;
 import com.almende.eve.service.Service;
 import com.almende.eve.service.http.HttpService;
@@ -160,15 +161,16 @@ public class AgentFactory {
 					"Class information missing in the agents context " +
 					"(agentId='" + agentId + "')");
 		}
-
+		
 		// instantiate the agent
 		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		agent.setAgentFactory(this);
 		agent.setContext(context);
 		agent.init();
 		
 		return agent;
 	}
-
+	
 	/**
 	 * Create an agent.
 	 * 
@@ -207,6 +209,7 @@ public class AgentFactory {
 		// instantiate the context
 		Context context = getContextFactory().create(agentId);
 		context.setAgentClass(agentClass);
+		agent.setAgentFactory(this);
 		agent.setContext(context);
 		context.init();
 		agent.init();
@@ -268,7 +271,6 @@ public class AgentFactory {
 			throws Exception {
 		String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
-			System.out.println("local call url=" + receiverUrl); // TODO: cleanup
 			return invoke(agentId, request);
 		}
 		else {
@@ -297,8 +299,6 @@ public class AgentFactory {
 			final AsyncCallback<JSONResponse> callback) throws Exception {
 		final String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
-			System.out.println("local call url=" + receiverUrl); // TODO: cleanup
-			
 			new Thread(new Runnable () {
 				@Override
 				public void run() {
@@ -369,6 +369,7 @@ public class AgentFactory {
 
 		initContextFactory(config);
 		initServices(config);
+		initScheduler(config);
 	}
 
 	/**
@@ -429,7 +430,7 @@ public class AgentFactory {
 			e.printStackTrace();
 		}		
 	}
-
+	
 	/**
 	 * Set a context factory. The context factory is used to get/create/delete
 	 * an agents context.
@@ -449,7 +450,50 @@ public class AgentFactory {
 		}
 		return contextFactory;
 	}
-	
+
+	/**
+	 * Initialize the scheduler. The class is read from the provided 
+	 * configuration file.
+	 * @param config
+	 * @throws Exception
+	 */
+	private void initScheduler(Config config) {
+		// get the class name from the config file
+		// first read from the environment specific configuration,
+		// if not found read from the global configuration
+		String className = config.get("environment", getEnvironment(), "scheduler", "class");
+		if (className == null) {
+			className = config.get("scheduler", "class");
+		}
+		if (className == null) {
+			throw new IllegalArgumentException(
+				"Config parameter 'scheduler.class' missing in Eve configuration.");
+		}
+		
+		// Recognize known classes by their short name,
+		// and replace the short name for the full class path
+		for (String name : SCHEDULERS.keySet()) {
+			if (className.toLowerCase().equals(name.toLowerCase())) {
+				className = SCHEDULERS.get(name);
+				break;
+			}
+		}
+		
+		try {
+			// get the class
+			schedulerClass = Class.forName(className);
+			if (!ClassUtil.hasSuperClass(schedulerClass, Scheduler.class)) {
+				throw new IllegalArgumentException(
+						"Scheduler class " + schedulerClass.getName() + 
+						" must extend " + Scheduler.class.getName());
+			}
+			logger.info("Initialized scheduler: " + schedulerClass.getName());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}		
+	}
+
 	/**
 	 * Initialize services for incoming and outgoing messages
 	 * (for example http and xmpp services).
@@ -573,9 +617,28 @@ public class AgentFactory {
 		return null;
 	}
 
+	/**
+	 * create a scheduler for an agent
+	 * @param agentId
+	 * @return scheduler
+	 */
+	public Scheduler createScheduler(String agentId) {
+		// instantiate the scheduler
+		Scheduler scheduler = null;
+		try {
+			scheduler = (Scheduler) schedulerClass
+					.getConstructor(AgentFactory.class, String.class )
+					.newInstance(this, agentId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return scheduler;
+	}
+	
 	// Note: the CopyOnWriteArrayList is inefficient but thread safe. 
 	private List<Service> services = new CopyOnWriteArrayList<Service>();
 	private ContextFactory contextFactory = null;
+	private Class<?> schedulerClass = null;
 	private Config config = null;
 
 	private static Map<String, AgentFactory> factories = 
@@ -586,6 +649,12 @@ public class AgentFactory {
         CONTEXT_FACTORIES.put("FileContextFactory", "com.almende.eve.context.FileContextFactory");
         CONTEXT_FACTORIES.put("MemoryContextFactory", "com.almende.eve.context.MemoryContextFactory");
         CONTEXT_FACTORIES.put("DatastoreContextFactory", "com.almende.eve.context.google.DatastoreContextFactory");
+    }
+
+	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
+	static {
+		SCHEDULERS.put("RunnableScheduler",  "com.almende.eve.scheduler.RunnableScheduler");
+		SCHEDULERS.put("AppEngineScheduler", "com.almende.eve.scheduler.google.AppEngineScheduler");
     }
 	
 	private final static Map<String, String> SERVICES = new HashMap<String, String>();

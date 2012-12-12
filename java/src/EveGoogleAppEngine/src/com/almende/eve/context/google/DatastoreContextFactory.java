@@ -20,7 +20,7 @@ public class DatastoreContextFactory extends ContextFactory {
 	 */
 	@Override
 	public DatastoreContext get(String agentId) {
-		DatastoreContext context = new DatastoreContext(agentFactory, agentId);
+		DatastoreContext context = new DatastoreContext(agentId);
 		// TODO: how to really check if the context exists in the datastore?
 		if (context.get("class") != null) {
 			return context;
@@ -41,7 +41,7 @@ public class DatastoreContextFactory extends ContextFactory {
 					"context with id '" + agentId + "' already exists.");
 		}
 		
-		return new DatastoreContext(agentFactory, agentId);
+		return new DatastoreContext(agentId);
 	}
 
 	@Override

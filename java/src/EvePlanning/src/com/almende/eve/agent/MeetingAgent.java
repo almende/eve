@@ -668,7 +668,7 @@ public class MeetingAgent extends Agent {
 
 		// schedule an update task and store the task id
 		JSONRequest request = new JSONRequest("update", null);
-		String task = context.getScheduler().createTask(request, interval);
+		String task = getScheduler().createTask(request, interval);
 		context.put("updateTask", task);
 
 		logger.info("Auto update started. Interval = " + interval
@@ -683,7 +683,7 @@ public class MeetingAgent extends Agent {
 
 		String task = (String) context.get("updateTask");
 		if (task != null) {
-			context.getScheduler().cancelTask(task);
+			getScheduler().cancelTask(task);
 			context.remove("updateTask");
 		}
 

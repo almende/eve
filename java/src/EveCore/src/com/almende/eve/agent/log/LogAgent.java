@@ -134,7 +134,7 @@ public class LogAgent extends Agent {
 	public void cancelTimeToLive() {
 		String timeoutId = (String) getContext().get("timeoutId");
 		if (timeoutId != null) {
-			getContext().getScheduler().cancelTask(timeoutId);
+			getScheduler().cancelTask(timeoutId);
 		}
 		getContext().remove("timeoutId");
 	}
@@ -154,8 +154,7 @@ public class LogAgent extends Agent {
 		
 		// create a new timeout
 		JSONRequest request = new JSONRequest("clear", null);
-		String timeoutId = 
-			getContext().getScheduler().createTask(request, interval);
+		String timeoutId = getScheduler().createTask(request, interval);
 		getContext().put("timeoutId", timeoutId);
 		
 		// TODO: remove this

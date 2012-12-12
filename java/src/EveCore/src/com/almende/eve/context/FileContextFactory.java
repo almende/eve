@@ -58,7 +58,7 @@ public class FileContextFactory extends ContextFactory {
 	@Override
 	public FileContext get(String agentId) {
 		if (exists(agentId)) {
-			return new FileContext(agentFactory, agentId, getFilename(agentId));
+			return new FileContext(agentId, getFilename(agentId));
 		}
 		return null;
 	}
@@ -83,7 +83,7 @@ public class FileContextFactory extends ContextFactory {
 		file.createNewFile();
 		
 		// instantiate the context
-		return new FileContext(agentFactory, agentId, filename);
+		return new FileContext(agentId, filename);
 	}
 	
 	/**

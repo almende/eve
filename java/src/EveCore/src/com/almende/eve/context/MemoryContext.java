@@ -5,10 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.scheduler.RunnableScheduler;
-import com.almende.eve.scheduler.Scheduler;
-
 /**
  * @class MemoryContext
  * 
@@ -22,7 +18,7 @@ import com.almende.eve.scheduler.Scheduler;
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
- *     FileContext context = new Context(factory, "agentClass", "agentId");<br>
+ *     FileContext context = new Context("agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
@@ -31,19 +27,8 @@ import com.almende.eve.scheduler.Scheduler;
 public class MemoryContext extends Context {
 	public MemoryContext() {}
 	
-	public MemoryContext(AgentFactory agentFactory, String agentId) {
-		super(agentFactory, agentId);
-		
-		// TODO: register this context in a singleton map
-	}
-
-	@Override
-	public Scheduler getScheduler() {
-		if (scheduler == null) {
-			scheduler = new RunnableScheduler();
-			scheduler.setContext(this);
-		}
-		return scheduler;
+	public MemoryContext(String agentId) {
+		super(agentId);
 	}
 
 	@Override
@@ -119,5 +104,4 @@ public class MemoryContext extends Context {
 	public void destroy() {}
 
 	private Map<String, Object> properties = new HashMap<String, Object>();
-	private Scheduler scheduler = null;
 }

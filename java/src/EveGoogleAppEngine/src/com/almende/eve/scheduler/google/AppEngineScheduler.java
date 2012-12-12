@@ -3,7 +3,7 @@ package com.almende.eve.scheduler.google;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.almende.eve.context.Context;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.service.Service;
@@ -13,16 +13,11 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
-public class AppEngineScheduler implements Scheduler {
-	private Context context = null;
-	
-	public AppEngineScheduler () {}
-
-	@Override
-	public void setContext(Context context) {
-		this.context = context;
+public class AppEngineScheduler extends Scheduler {
+	public AppEngineScheduler (AgentFactory agentFactory, String agentId) {
+		super(agentFactory, agentId);
 	}
-	
+
 	/**
 	 * Schedule a task
 	 * @param request   A JSONRequest with method and params
@@ -32,19 +27,21 @@ public class AppEngineScheduler implements Scheduler {
 	@Override
 	public String createTask(JSONRequest request, long delay) {
 		try {
-			String url = null;
-			if (context != null) {
-				// url = context.getAgentUrl(); // TODO: cleanup
-				// TODO: getting the first http service is not safe, should also check for https?
-				//       -> Scheduler should be configured with the servlet_url 
-				//          that it should use specified
-				Service service = context.getAgentFactory().getService("http");
-				if (service != null) {
-					url = service.getAgentUrl(context.getAgentId());
+			// TODO: getting an arbitrary http service is not safe
+			//       -> Scheduler should be configured with the servlet_url 
+			//          that it should use specified?
+			Service service = null;
+			for (Service s : agentFactory.getServices("http")) {
+				if (s.getAgentUrl(agentId) != null) {
+					service = s;
+					break;
 				}
 			}
-			if (url == null) {
-				return null;
+			
+			// FIXME: loop over all services and find one httpservice which knows this agent
+			String url = null;
+			if (service != null) {
+				url = service.getAgentUrl(agentId);
 			}
 			
 			URL uri = new URL(url);

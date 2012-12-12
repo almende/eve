@@ -6,10 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.Context;
-import com.almende.eve.scheduler.Scheduler;
-import com.almende.eve.scheduler.google.AppEngineScheduler;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
@@ -44,8 +41,8 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 public class DatastoreContext extends Context {
 	public DatastoreContext() {}
 
-	public DatastoreContext(AgentFactory agentFactory, String agentId) {
-		super(agentFactory, agentId);
+	public DatastoreContext(String agentId) {
+		super(agentId);
 	}
 
 	/**
@@ -82,15 +79,6 @@ public class DatastoreContext extends Context {
 		return appUrl;
 	}
 	*/
-
-	@Override
-	public Scheduler getScheduler() {
-		if (scheduler == null) {
-			scheduler = new AppEngineScheduler();
-			scheduler.setContext(this);
-		}
-		return scheduler;
-	}
 
 	/**
 	 * Load the context from cache. If the context is not available in cache,
@@ -350,7 +338,6 @@ public class DatastoreContext extends Context {
 	}
 
 	private Map<String, Object> properties = new HashMap<String, Object>();
-	private Scheduler scheduler = null;
 	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 	private IdentifiableValue cacheValue = null;
 	private boolean isChanged = false;

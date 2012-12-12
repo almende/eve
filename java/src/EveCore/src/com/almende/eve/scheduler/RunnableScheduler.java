@@ -7,37 +7,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.almende.eve.context.Context;
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.json.JSONRequest;
 
-public class RunnableScheduler implements Scheduler {
+public class RunnableScheduler extends Scheduler {
 	// http://docs.oracle.com/javase/1.5.0/docs/api/java/util/concurrent/ScheduledExecutorService.html
 	// http://www.javapractices.com/topic/TopicAction.do?Id=54
-
-	private static long count = 0;
-	private static final ScheduledExecutorService scheduler = 
-		Executors.newScheduledThreadPool(1);
-
-	private static final Map<String, Map<String, ScheduledFuture<?>>> allTasks = 
-		new HashMap<String, Map<String, ScheduledFuture<?>>>(); // {agentId: {taskId: task}}
-	private Map<String, ScheduledFuture<?>> tasks = null;      // {taskId: task}
-	
-	private Context context = null;
-	
-	public RunnableScheduler () {}
-	
-	/**
-	 * Set the agent context for the scheduler. 
-	 * This is needed for example to know for which agent the scheduler
-	 * needs to schedule a task
-	 * @param context
-	 */
-	@Override
-	public void setContext(Context context) {
-		this.context = context;
+	public RunnableScheduler (AgentFactory agentFactory, String agentId) {
+		super(agentFactory, agentId);
 		
 		// initialize a map to store the tasks for this agent
-		String agentId = context.getAgentId();
 		if (agentId != null) {
 			if (allTasks.containsKey(agentId)) {
 				tasks = allTasks.get(agentId);
@@ -48,7 +27,15 @@ public class RunnableScheduler implements Scheduler {
 			}
 		}
 	}
-	
+
+	private static long count = 0;
+	private static final ScheduledExecutorService scheduler = 
+		Executors.newScheduledThreadPool(1);
+
+	private static final Map<String, Map<String, ScheduledFuture<?>>> allTasks = 
+		new HashMap<String, Map<String, ScheduledFuture<?>>>(); // {agentId: {taskId: task}}
+	private Map<String, ScheduledFuture<?>> tasks = null;      // {taskId: task}
+
 	/**
 	 * Schedule a task
 	 * @param request   A JSONRequest with method and params
@@ -169,8 +156,7 @@ public class RunnableScheduler implements Scheduler {
 		public void run() {
 			try {
 				// TODO: test if the RunnableSchedular still works
-				String agentId = context.getAgentId();
-				context.getAgentFactory().invoke(agentId, request);
+				agentFactory.invoke(agentId, request);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

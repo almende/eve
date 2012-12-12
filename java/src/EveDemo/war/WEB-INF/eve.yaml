@@ -15,6 +15,10 @@ environment:
 context:
   class: DatastoreContextFactory
 
+# scheduler settings
+scheduler:
+  class: AppEngineScheduler
+
 # Google API access
 google:
   client_id: 231599786845-p4r6ka1emoj8enivejds6vma41ni2s26.apps.googleusercontent.com

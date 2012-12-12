@@ -93,7 +93,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 			throw new Exception("No refresh token available");
 		}
 		
-		Config config = getContext().getConfig();
+		Config config = getAgentFactory().getConfig();
 		String client_id = config.get("google", "client_id");
 		String client_secret = config.get("google", "client_secret");
 		

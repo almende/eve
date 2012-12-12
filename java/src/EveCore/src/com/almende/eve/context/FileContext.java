@@ -14,10 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.scheduler.RunnableScheduler;
-import com.almende.eve.scheduler.Scheduler;
-
 /**
  * @class FileContext
  * 
@@ -31,7 +27,7 @@ import com.almende.eve.scheduler.Scheduler;
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
- *     Context context = new Context(factory, "agentClass", "agentId");<br>
+ *     Context context = new Context("agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
@@ -41,18 +37,9 @@ import com.almende.eve.scheduler.Scheduler;
 public class FileContext extends Context {
 	protected FileContext() {}
 
-	public FileContext(AgentFactory agentFactory, String agentId, String filename) {
-		super(agentFactory, agentId);
+	public FileContext(String agentId, String filename) {
+		super(agentId);
 		this.filename = filename;
-	}
-
-	@Override
-	public Scheduler getScheduler() {
-		if (scheduler == null) {
-			scheduler = new RunnableScheduler();
-			scheduler.setContext(this);
-		}
-		return scheduler;
 	}
 
 	/**
@@ -196,5 +183,4 @@ public class FileContext extends Context {
 	
 	private String filename = null;
 	private Map<String, Object> properties = new HashMap<String, Object>();
-	private Scheduler scheduler = null;
 }

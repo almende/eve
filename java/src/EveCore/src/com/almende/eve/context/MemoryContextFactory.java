@@ -37,7 +37,7 @@ public class MemoryContextFactory extends ContextFactory {
 					"context with id '" + agentId + "' already exists.");
 		}
 		
-		MemoryContext context = new MemoryContext(agentFactory, agentId); 
+		MemoryContext context = new MemoryContext(agentId); 
 		contexts.put(agentId, context);
 		
 		return context;

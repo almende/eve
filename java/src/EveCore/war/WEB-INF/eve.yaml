@@ -19,3 +19,7 @@ services:
 context:
   class: FileContextFactory
   path: .eveagents
+
+# scheduler settings
+scheduler:
+  class: RunnableScheduler
