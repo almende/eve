@@ -14,6 +14,18 @@
       <param-name>config</param-name>
       <param-value>eve_singleagent.yaml</param-value>
     </init-param>
+    <init-param>
+      <param-name>servlet_url</param-name>
+      <param-value>http://localhost:8080/EveCore/testagent/</param-value>
+    </init-param>
+    <init-param>
+      <param-name>agentId</param-name>
+      <param-value>2</param-value>
+    </init-param>
+    <init-param>
+      <param-name>agentClass</param-name>
+      <param-value>com.almende.eve.agent.example.TestAgent</param-value>
+    </init-param>
   </servlet>
   <servlet-mapping>
     <servlet-name>SingleAgentServlet</servlet-name>
@@ -27,6 +39,10 @@
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
       <param-value>eve.yaml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>environment.Production.servlet_url</param-name>
+      <param-value>http://localhost:8080/EveCore/agents/</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>

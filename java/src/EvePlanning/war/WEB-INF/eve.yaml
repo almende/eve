@@ -1,24 +1,7 @@
 # Eve settings
 
-# environment settings
-environment:
-  Development:
-    # environment specific communication services
-    services:
-    - class: HttpService
-      servlet_url: http://localhost:8080/EvePlanning/agents
-
-    # authentication servlet url
-    auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
-
-  Production:
-    # environment specific communication services
-    services:
-    - class: HttpService
-      servlet_url: http://localhost:8080/EvePlanning/agents
-
-    # authentication servlet url
-    auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
+# authentication servlet url
+auth_google_servlet_url: http://localhost:8080/EvePlanning/auth/google
 
 # context settings
 # the context is used by agents for storing their state.

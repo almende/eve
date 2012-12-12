@@ -169,6 +169,17 @@ public class XmppService extends Service {
 		return "xmpp:" + username + "@" + host; 
 	}
 
+	@Override
+	public String toString() {
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("class", this.getClass().getName());
+		data.put("host", host);
+		data.put("port", port);
+		data.put("serviceName", serviceName);
+		data.put("protocols", protocols);
+		return data.toString();
+	}	
+	
 	private String host = null;
 	private Integer port = null;
 	private String serviceName = null;

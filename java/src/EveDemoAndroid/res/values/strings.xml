@@ -1,0 +1,9 @@
+<resources>
+
+    <string name="app_name">Eve Demo Android</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_eve_demo">Eve Demo</string>
+    <string name="connect">Connect</string>
+    <string name="ok">OK</string>
+    
+</resources>

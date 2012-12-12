@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 import com.almende.eve.config.Config;
@@ -422,7 +423,7 @@ public class AgentFactory {
 					.newInstance(this, params);
 
 			setContextFactory(contextFactory);
-			logger.info("Initialized context factory " + className);
+			logger.info("Initialized context factory: " + contextFactory.toString());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -499,7 +500,6 @@ public class AgentFactory {
 							.newInstance(this);
 					service.init(serviceParams);
 					addService(service);
-					logger.info("Initialized service " + className);
 				}
 				else {
 					logger.warning("Cannot load service at index " + index + 
@@ -520,6 +520,7 @@ public class AgentFactory {
 	 */
 	public void addService(Service service) {
 		services.add(service);
+		logger.info("Registered service: " + service.toString());
 	}
 
 	/**
@@ -528,6 +529,7 @@ public class AgentFactory {
 	 */
 	public void removeService(Service service) {
 		services.remove(service);
+		logger.info("Unregistered service " + service.toString());
 	}
 
 	/**
@@ -571,7 +573,8 @@ public class AgentFactory {
 		return null;
 	}
 
-	private List<Service> services = new ArrayList<Service>();
+	// Note: the CopyOnWriteArrayList is inefficient but thread safe. 
+	private List<Service> services = new CopyOnWriteArrayList<Service>();
 	private ContextFactory contextFactory = null;
 	private Config config = null;
 

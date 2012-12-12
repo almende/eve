@@ -1,5 +1,6 @@
 package com.almende.eve.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,13 @@ public abstract class Service {
 	 * @return protocols
 	 */
 	public abstract List<String> getProtocols();
+
+	@Override
+	public String toString() {
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("class", this.getClass().getName());
+		return data.toString();
+	}
 	
 	protected AgentFactory agentFactory = null;
 }

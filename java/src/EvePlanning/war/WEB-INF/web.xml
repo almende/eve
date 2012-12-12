@@ -13,6 +13,10 @@
       <param-name>config</param-name>
       <param-value>eve.yaml</param-value>
     </init-param>
+    <init-param>
+      <param-name>servlet_url</param-name>
+      <param-value>http://localhost:8080/EvePlanning/agents</param-value>
+    </init-param>    
   </servlet>
   <servlet-mapping>
     <servlet-name>AgentServlet</servlet-name>

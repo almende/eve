@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRPCException;
@@ -16,14 +17,13 @@ import com.almende.eve.json.JSONResponse;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
 
-// FIXME: SingleAgentServlet does not yet work correctly
 @SuppressWarnings("serial")
 public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private AgentFactory agentFactory = null;
 	private HttpService httpService = null;
-	private String agentId = "1"; // TODO: what to do with id?
+	private String agentId = null;
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
 	/**
@@ -34,6 +34,8 @@ public class SingleAgentServlet extends HttpServlet {
 	public void init() {
 		try {
 			initAgentFactory();
+			initHttpService();
+			initAgent();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -44,7 +46,10 @@ public class SingleAgentServlet extends HttpServlet {
 			HttpServletResponse response) throws IOException {
 		String servletUrl = httpService.getServletUrl();
 		String uri = httpService.getDomain(servletUrl) + request.getRequestURI();
-		String resource = uri.substring(servletUrl.length());
+		String resource  = null;
+		if (uri.length() > servletUrl.length()) {
+			resource = uri.substring(servletUrl.length());
+		}
 		
 		if (resource == null || resource.isEmpty()) {
 			if (!uri.endsWith("/")) {
@@ -63,7 +68,7 @@ public class SingleAgentServlet extends HttpServlet {
 		String filename = RESOURCES + resource;
 		InputStream is = this.getClass().getResourceAsStream(filename);
 		StreamingUtil.streamBinaryData(is, mimetype, response);
-	}	
+	}
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -102,25 +107,81 @@ public class SingleAgentServlet extends HttpServlet {
 	 * @throws Exception 
 	 */
 	private void initAgentFactory() throws Exception {
-		String filename = getInitParameter("config");
-		if (filename == null) {
-			filename = "eve.yaml";
-			logger.warning(
-				"Init parameter 'config' missing in servlet configuration web.xml. " +
-				"Trying default filename '" + filename + "'.");
-		}
-		String fullname = "/WEB-INF/" + filename;
-		logger.info("loading configuration file '" + 
-				getServletContext().getRealPath(fullname) + "'...");
-		Config config = new Config(getServletContext().getResourceAsStream(fullname));
-		
-		/* TODO: use a shared agent factory?
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
-		agentFactory.setConfig(config);
-		*/
-		agentFactory = new AgentFactory(config);
+		if (agentFactory == null) {
+			// if the agent factory is not yet loaded, load it from config
+			String filename = getInitParameter("config");
+			if (filename == null) {
+				filename = "eve.yaml";
+				logger.warning(
+					"Init parameter 'config' missing in servlet configuration web.xml. " +
+					"Trying default filename '" + filename + "'.");
+			}
+			String fullname = "/WEB-INF/" + filename;
+			logger.info("loading configuration file '" + 
+					getServletContext().getRealPath(fullname) + "'...");
+			Config config = new Config(getServletContext().getResourceAsStream(fullname));
+			
+			agentFactory = AgentFactory.createInstance(config);
+		}
+	}
+	
+	/**
+	 * Register this servlet at the agent factory
+	 * @throws Exception 
+	 */
+	private void initHttpService () throws Exception {
+		if (agentFactory == null) {
+			throw new Exception(
+					"Cannot initialize HttpService: no AgentFactory initialized.");
+		}
+		
+		// try to read servlet url from init parameter environment.<environment>.servlet_url
+		String environment = agentFactory.getEnvironment();
+		String envParam = "environment." + environment + ".servlet_url";
+		String globalParam = "servlet_url";
+		String servletUrl = getInitParameter(envParam);
+		if (servletUrl == null) {
+			// if no environment specific servlet_url is defined, read the global servlet_url
+			servletUrl = getInitParameter("servlet_url");
+		}
+		if (servletUrl == null) {
+			throw new Exception("Cannot initialize HttpService: " +
+					"Init Parameter '" + globalParam + "' or '" + envParam + "' " + 
+					"missing in servlet configuration web.xml.");
+		}
+		
+		httpService = new HttpService(agentFactory); 
+		httpService.init(servletUrl);
+		agentFactory.addService(httpService);
+	}
+	
+	/**
+	 * Register this servlet at the agent factory
+	 * @throws Exception 
+	 */
+	private void initAgent () throws Exception {
+		// retrieve the agents id
+		agentId = getInitParameter("agentId");
+		if (agentId == null) {
+			throw new Exception("Cannot initialize agent: " +
+					"Init Parameter 'agentId' missing in servlet configuration web.xml.");
+		}
+		
+		// create the agent if it does not yet exist
+		Agent agent = agentFactory.getAgent(agentId);
+		if (agent == null) {
+			String agentClass = getInitParameter("agentClass");
+			if (agentId == null) {
+				throw new Exception("Cannot create agent: " +
+						"Init Parameter 'agentClass' missing in servlet configuration web.xml.");
+			}
+			
+			agent = agentFactory.createAgent(agentClass, agentId);
+			logger.info("Agent created: " + agent.toString());
+		}
 
-		httpService = (HttpService) agentFactory.getService("http");
+		logger.info("Agent initialized: " + agent.toString());
 	}
 }

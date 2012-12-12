@@ -2,6 +2,7 @@ package com.almende.eve.context;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -124,6 +125,14 @@ public class FileContextFactory extends ContextFactory {
 	 */
 	private String getFilename(String agentId) {
 		return (path != null ? path : "") + agentId;
+	}
+
+	@Override
+	public String toString() {
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("class", this.getClass().getName());
+		data.put("path", path);
+		return data.toString();
 	}
 
 	private String path = null;

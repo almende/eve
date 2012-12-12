@@ -3,20 +3,10 @@
 # environment settings
 environment:
   Development:
-    # environment specific communication services
-    services:
-    - class: HttpService
-      servlet_url: http://localhost:8888/agents
-
     # authentication servlet url
     auth_google_servlet_url: http://localhost:8888/auth/google
 
   Production:
-    # environment specific communication services
-    services:
-    - class: HttpService
-      servlet_url: http://eveagents.appspot.com/agents
-
     # authentication servlet url
     auth_google_servlet_url: https://eveagents.appspot.com/auth/google
 
@@ -24,8 +14,6 @@ environment:
 # the context is used by agents for storing their state.
 context:
   class: DatastoreContextFactory
-  # class: FileContextFactory
-  # class: MemoryContextFactory
 
 # Google API access
 google:

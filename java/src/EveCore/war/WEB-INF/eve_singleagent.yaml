@@ -1,17 +1,5 @@
 # Eve singleagent settings
 
-# environment settings
-environment:
-  Development:
-    services:
-    services:
-    - class: HttpService
-      servlet_url: http://localhost:8080/EveCore/testagent/
-  Production:
-    services:
-    - class: HttpService
-      servlet_url: http://localhost:8080/EveCore/testagent/
-
 # The context for reading and writing persistent data
 context:
   class: FileContextFactory

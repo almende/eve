@@ -517,4 +517,12 @@ abstract public class Agent {
 	final public String getType() {
 		return getClass().getSimpleName();
 	}
+
+	@Override
+	public String toString() {
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("class", this.getClass().getName());
+		data.put("id", getId());
+		return data.toString();
+	}
 }

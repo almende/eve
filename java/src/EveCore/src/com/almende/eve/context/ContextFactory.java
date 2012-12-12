@@ -1,5 +1,6 @@
 package com.almende.eve.context;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
@@ -45,5 +46,12 @@ public abstract class ContextFactory {
 	 */
 	public abstract String getEnvironment();
 
+	@Override
+	public String toString() {
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("class", this.getClass().getName());
+		return data.toString();
+	}
+	
 	protected AgentFactory agentFactory = null;
 }

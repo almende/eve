@@ -1,5 +1,6 @@
 # Eve XMPP settings
 
+# communication services
 services:
 - class: XmppService
   host: openid.almende.org
@@ -7,7 +8,6 @@ services:
   serviceName: openid.almende.org
 
 # context settings
-# the context is used by agents for storing their state.
 context:
   class: FileContextFactory
   path: .eveagents

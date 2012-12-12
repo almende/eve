@@ -29,7 +29,8 @@ public class AgentServlet extends HttpServlet {
 	@Override
 	public void init() {
 		try {
-			initAgentFactory();	
+			initAgentFactory();
+			initHttpService();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -197,7 +198,6 @@ public class AgentServlet extends HttpServlet {
 	private void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
-		
 		if (agentFactory == null) {
 			// if the agent factory is not yet loaded, load it from config
 			String filename = getInitParameter("config");
@@ -214,11 +214,37 @@ public class AgentServlet extends HttpServlet {
 			
 			agentFactory = AgentFactory.createInstance(config);
 		}
-		
-		// TODO: this will not work with multiple http servlets
-		httpService = (HttpService) agentFactory.getService("http");
 	}
 	
+	/**
+	 * Register this servlet at the agent factory
+	 * @throws Exception 
+	 */
+	private void initHttpService () throws Exception {
+		if (agentFactory == null) {
+			throw new Exception(
+					"Cannot initialize HttpService: no AgentFactory initialized.");
+		}
+		
+		// try to read servlet url from init parameter environment.<environment>.servlet_url
+		String environment = agentFactory.getEnvironment();
+		String envParam = "environment." + environment + ".servlet_url";
+		String globalParam = "servlet_url";
+		String servletUrl = getInitParameter(envParam);
+		if (servletUrl == null) {
+			// if no environment specific servlet_url is defined, read the global servlet_url
+			servletUrl = getInitParameter("servlet_url");
+		}
+		if (servletUrl == null) {
+			throw new Exception("Cannot initialize HttpService: " +
+					"Init Parameter '" + globalParam + "' or '" + envParam + "' " + 
+					"missing in servlet configuration web.xml.");
+		}
+		
+		httpService = new HttpService(agentFactory); 
+		httpService.init(servletUrl);
+		agentFactory.addService(httpService);
+	}
 	
 	/**
 	 * Get a description on how to use this servlet
