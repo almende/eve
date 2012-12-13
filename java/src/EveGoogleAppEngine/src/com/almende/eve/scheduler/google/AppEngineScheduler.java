@@ -27,7 +27,8 @@ public class AppEngineScheduler extends Scheduler {
 	@Override
 	public String createTask(JSONRequest request, long delay) {
 		try {
-			// TODO: getting an arbitrary http service is not safe
+			// TODO: getting an arbitrary http service which knows this agent
+			//       is not safe
 			//       -> Scheduler should be configured with the servlet_url 
 			//          that it should use specified?
 			Service service = null;
@@ -37,8 +38,6 @@ public class AppEngineScheduler extends Scheduler {
 					break;
 				}
 			}
-			
-			// FIXME: loop over all services and find one httpservice which knows this agent
 			String url = null;
 			if (service != null) {
 				url = service.getAgentUrl(agentId);

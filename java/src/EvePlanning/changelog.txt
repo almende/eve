@@ -2,6 +2,11 @@ EVE PLANNING
 http://almende.github.com/eve/
 
 
+2012-12-13, version 0.10
+
+- Minor updates according to changes in EveCore 0.12.
+
+
 2012-12-06, version 0.9
 
 - Updates according to changes in EveCore.

@@ -390,10 +390,7 @@ public class AgentFactory {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
-		String className = config.get("environment", getEnvironment(), "context", "class");
-		if (className == null) {
-			className = config.get("context", "class");
-		}
+		String className = config.get("context", "class");
 		if (className == null) {
 			throw new IllegalArgumentException(
 				"Config parameter 'context.class' missing in Eve configuration.");

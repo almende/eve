@@ -2,14 +2,14 @@ EVE CORE
 http://almende.github.com/eve/
 
 
-<not yet released>, version 0.12
+2012-12-13, version 0.12
 
 - The AgentServlet registers itself to the AgentFactory now. 
   Servlet configuration is therefore moved from eve.yaml to web.xml.
-- The method getAgentFactory from the context to the agent itself.
+- The method getAgentFactory is moved from the context to the agent itself.
 - The method getScheduler is moved from the context to the agent itself.
-- Scheduler can/must be configured in eve.yaml now, the scheduler is no longer 
-  coupled with the chosen ContextFactory.
+- Scheduler must be configured in eve.yaml now, the scheduler is no longer 
+  coupled to the ContextFactory.
 
 
 2012-12-06, version 0.11

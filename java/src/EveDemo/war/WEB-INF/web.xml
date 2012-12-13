@@ -13,7 +13,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		    <servlet-name>AgentServlet</servlet-name>
 		    <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
 		    <init-param>
-			      <description>servlet configuration (yaml file)</description> 
 			      <param-name>config</param-name>
 			      <param-value>eve.yaml</param-value>
 		    </init-param>
@@ -35,7 +34,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
           <servlet-name>RestServlet</servlet-name>
           <servlet-class>com.almende.eve.service.http.RestServlet</servlet-class>
           <init-param>
-              <description>servlet configuration (yaml file)</description>
               <param-name>config</param-name>
               <param-value>eve.yaml</param-value>
           </init-param>
