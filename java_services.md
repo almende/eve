@@ -21,9 +21,9 @@ same time. An agent can be accessible via both XMPP and HTTP at the same time.
 
 ## HttpService {#HttpService}
 
-EveCore comes with a servlet *AgentServlet* which exposes agents via a standard
-Java servlet. A specific agent can be addressed by specifying appending its
-id to the servlet url.
+Eve comes with a servlet *AgentServlet* which exposes agents via a standard
+Java servlet. A specific agent can be addressed via this servlet by specifying
+its id in the servlet url.
 
 To use the AgentServlet, the servlet must be configured in the web.xml file
 of the Java project, and an Eve configuration file must be created.
@@ -37,28 +37,78 @@ To configure the servlet, add the following lines to the **web.xml** file of
 the Java project, inside the &lt;web-app&gt; tag:
 
     <servlet>
-      <servlet-name>AgentServlet</servlet-name>
-      <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
-      <init-param>
-        <description>servlet configuration (yaml file)</description>
-        <param-name>config</param-name>
-        <param-value>eve.yaml</param-value>
-      </init-param>
+        <servlet-name>AgentServlet</servlet-name>
+        <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>eve.yaml</param-value>
+        </init-param>
+        <init-param>
+            <param-name>environment.Development.servlet_url</param-name>
+            <param-value>http://localhost:8888/agents/</param-value>
+        </init-param>
+        <init-param>
+            <param-name>environment.Production.servlet_url</param-name>
+            <param-value>http://myeveproject.appspot.com/agents/</param-value>
+        </init-param>
     </servlet>
     <servlet-mapping>
-      <servlet-name>AgentServlet</servlet-name>
-      <url-pattern>/agents/*</url-pattern>
+        <servlet-name>AgentServlet</servlet-name>
+        <url-pattern>/agents/*</url-pattern>
     </servlet-mapping>
 
-The *url-pattern* can be freely chosen (in the example chosen as `/agents/*`.
+The *url-pattern* in the servlet mapping can be freely chosen (in the example
+chosen as `/agents/*`).
 This determines the url at which the servlet is running.
 It is important to end the url with the pattern /\*,
 as the url of the servlet will end with the id of the agent.
 
-The servlet configuration contains an init-param `config`,
-which must point to an Eve configuration file (for example eve.yaml).
-It is possible to configure multiple servlets, and use a different
-configuration file for each of them.
+The servlet configuration can contain the following init parameters:
+
+<p></p>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>config</td>
+        <td>
+            The init-param `config` points to an eve configuration file
+            (for example eve.yaml). The configuration file is used by the AgentFactory
+            and contains configuration for the context, scheduler, and services.
+        </td>
+    </tr>
+    <tr>
+        <td>servlet_url</td>
+        <td>
+        The url of the servlet.
+        This url is needed in order to be able to built an agents url.
+        The url of an agent is built up by the servlet url and its id.
+        For example, when servlet_url is
+        <code>http://myserver.com/agents</code>,
+        and the agent has id <code>100</code>, the agents url will be
+        <code>http://myserver.com/agents/100/</code>.
+        </td>
+    </tr>
+    <tr>
+        <td>environment.Development.servlet_url</td>
+        <td>
+        The url of the servlet while running in development mode.
+        This url will override *servlet_url* if specified.
+        </td>
+    </tr>
+    <tr>
+        <td>environment.Production.servlet_url</td>
+        <td>
+        The url of the servlet while running in production mode.
+        This url will override *servlet_url* if specified.
+        </td>
+    </tr>
+
+</table>
+<p></p>
+
 
 
 #### Eve configuration
@@ -71,28 +121,18 @@ Create a file eve.yaml and insert the following text:
 
     # Eve configuration
 
-    # environment dependent settings
-    environment:
-      Development:
-        # communication services
-        services:
-        - class: HttpService
-          servlet_url: http://localhost:8080/MyProject/agents
-
-      Production:
-        # communication services
-        services:
-        - class: HttpService
-          servlet_url: http://MyServer/MyProject/agents
-
-    # context settings
-    # the context is used by agents for storing their state.
+    # context settings (for persistency)
     context:
       class: FileContextFactory
       path: .eveagents
 
+    # scheduler settings (for tasks)
+    scheduler:
+      class: AppEngineScheduler
+
 The configuration contains:
 
+<!-- TODO: cleanup
 - A parameter *environment*.
   A project typically has two different environments:
   *Development* and *Production*. All Eve settings can be defined for a
@@ -100,10 +140,14 @@ The configuration contains:
 
 - Parameters *services*. One can define one or multiple communication services
   via which the agents can be accessed, for example HTTP and XMPP.
+-->
 
 - A parameter *context* specifying the type of context that will be
   available for the agents to read and write persistent data.
   Agents themselves are stateless. They can use a context to store data.
+
+- A parameter *scheduler* specifying the scheduler that will be used to
+  let agents schedule tasks for themselves.
 
 Each agent has access has access to this configuration file via its
 [context](java_agents.html#context).
@@ -164,6 +208,11 @@ In order to support XMPP, the application requires the
 [Smack XMPP libraries](http://www.igniterealtime.org/projects/smack/)
 *smack.jar* and *smackx.jar* to be included in the projects build path.
 
+Note that XmppService is not supported on Google App Engine, as it requires
+continuous connections to an XMPP server from one application instance,
+while Google App Engine is based on stateless application instances which can
+be started and stopped any moment.
+
 ### Configuration
 
 XMPP support must be configured in the Eve configuration file with default
@@ -171,18 +220,21 @@ file name **eve.yaml**.
 
     # Eve configuration
 
-    # environment independent communication services
+    # communication services
     services:
     - class: XmppService
       host: my_xmpp_server.com
       port: 5222
       serviceName: my_xmpp_service_name
 
-    # context settings
-    # the context is used by agents for storing their state.
+    # context settings (for persistency)
     context:
       class: FileContextFactory
       path: .eveagents
+
+    # scheduler settings (for tasks)
+    scheduler:
+      class: RunnableScheduler
 
 ### Usage
 
@@ -193,7 +245,7 @@ and connect itself to the service with a username and password.
 
     public void xmppConnect(@Name("username") String username,
             @Name("password") String password) throws Exception {
-        AgentFactory factory = getContext().getAgentFactory();
+        AgentFactory factory = getAgentFactory();
 
         XmppService service = (XmppService) factory.getService("xmpp");
         if (service != null) {
@@ -205,7 +257,7 @@ and connect itself to the service with a username and password.
     }
 
     public void xmppDisconnect() throws Exception {
-        AgentFactory factory = getContext().getAgentFactory();
+        AgentFactory factory = getAgentFactory();
         XmppService service = (XmppService) factory.getService("xmpp");
         if (service != null) {
             service.disconnect(getId());

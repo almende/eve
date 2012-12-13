@@ -4,8 +4,8 @@ title: Getting Started
 ---
 
 
-{% assign eve_core_version = '0.11' %}
-{% assign eve_google_appengine_version = '0.7' %}
+{% assign eve_core_version = '0.12' %}
+{% assign eve_google_appengine_version = '0.12' %}
 
 
 # Getting Started
@@ -103,9 +103,16 @@ web servlet.
         <servlet-name>AgentServlet</servlet-name>
         <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
         <init-param>
-          <description>servlet configuration (yaml file)</description> 
           <param-name>config</param-name>
           <param-value>eve.yaml</param-value>
+        </init-param>
+        <init-param>
+          <param-name>environment.Development.servlet_url</param-name>
+          <param-value>http://localhost:8888/agents/</param-value>
+        </init-param>
+        <init-param>
+          <param-name>environment.Production.servlet_url</param-name>
+          <param-value>http://myeveproject.appspot.com/agents/</param-value>
         </init-param>
       </servlet>
       <servlet-mapping>
@@ -113,48 +120,54 @@ web servlet.
         <url-pattern>/agents/*</url-pattern>
       </servlet-mapping>
       
-  Note that we have added an init-param `config` to the the servlet settings. 
-  This parameter points to a configuration file eve.yaml,
-  which we will create next. 
+  Note that we have added a number of init parameters.
+  The init-param `config` points to an eve configuration file eve.yaml,
+  which we will create next.
+  Furthermore, the servlet needs a parameter `servlet_url`. This url is needed
+  in order to be able to built an agents full url.
+  The `servlet_url` parameter can be defined separately for different
+  environments, hence the parameters
+  `environment.Development.servlet_url` and `environment.Production.servlet_url`.
 
 - Create an Eve configuration file named eve.yaml in the folder war/WEB-INF 
   (where web.xml is located too). Insert the following text in this file:
   
       # Eve configuration
 
-      # environment specific settings
-      environment:
-        Development:
-          services:
-          - class: HttpService
-            servlet_url: http://localhost:8888/agents/
-        Production:
-          services:
-          - class: HttpService
-            servlet_url: http://myeveproject.appspot.com/agents/
+      # communication services
+      # services:
+      # - class: ...
 
-      # context settings
-      # the context is used by agents for storing their state.
+      # context settings (for persistence)
       context:
         class: DatastoreContextFactory
 
+      # scheduler settings (for tasks)
+      scheduler:
+        class: AppEngineScheduler
+
   The configuration is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
   It contains:
-  
-  - A parameter *environment*. 
-    A project typically has two different environments: 
-    *Development* and *Production*.
 
-  - Parameters *services*. To communicate with Eve agents, they have to be
-    exposed via one or multiple communication services (HTTP, XMPP).
-    In this case a HTTP Servlet is configured, so the agents can be accessed
-    via this servlet. The parameter *servlet_url* defines the url of the servlet,
-    neccessary to let an agent know how via what urls it is connected to the
-    outside world.
+  - Parameters *services*. This parameter is not needed in our case, as the
+    configured servlet will register itself as communication service for the
+    agents.
+    The parameter *services* allows configuration of multiple communication
+    services such ass HTTP or XMPP, which enables agents to communicate with
+    each other in multiple ways.
+    An agent will have a unique url for each of the configured services.
 
   - The parameter *context* specifies the type of context that will be
     available for the agents to read and write persistent data.
     Agents themselves are stateless. They can use a context to store data.
+
+  - The parameter *scheduler* specifies the scheduler that will be used to
+    let agents schedule tasks for themselves.
+
+  - Optionally, all Eve parameters can be defined for a specific environment:
+    Development or Production. In that case, the concerning parameters
+    can be defined under `environment.Development.[param]` and/or
+    `environment.Production.[param]`.
 
   Each agent has access has access to this configuration file via its 
   [context](java_agents.html#context).
@@ -328,21 +341,19 @@ Now you can deploy your application in the cloud, to Google App Engine.
   Under *Deployment*, enter the identifier "myeveproject" of your application 
   that you have just created on the appengine site. Set version to 1. Click Ok.
   
-- Ensure the servlet_url for the production environment in the configuration 
-  file war/WEB-INF/eve.yaml corresponds with your application
+- Ensure the servlet_url for the production environment in the configuration
+  file war/WEB-INF/web.xml corresponds with your application
   identifier: http://myeveproject.appspot.com/agents/
   
       ...
-      # environment specific settings
-      environment:
-        Development:
-          services:
-          - class: HttpService
-            servlet_url: http://localhost:8888/agents/
-        Production:
-          services:
-          - class: HttpService
-            servlet_url: http://myeveproject.appspot.com/agents/
+        <init-param>
+          <param-name>environment.Development.servlet_url</param-name>
+          <param-value>http://localhost:8888/agents/</param-value>
+        </init-param>
+        <init-param>
+          <param-name>environment.Production.servlet_url</param-name>
+          <param-value>http://myeveproject.appspot.com/agents/</param-value>
+        </init-param>
       ...
 
 - In Eclipse, right-click your project in the Package Explorer. In the context

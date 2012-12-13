@@ -23,19 +23,8 @@ file: **war/WEB-INF/eve.yaml**
     # environment specific settings
     environment:
       Development:
-        # communication services
-        services:
-        - class: HttpService
-          servlet_url: http://localhost:8888/agents/
-
         auth_google_servlet_url: http://localhost:8888/auth/google
-
       Production:
-        # communication services
-        services:
-        - class: HttpService
-          servlet_url: http://my_server.com/agents/
-
         auth_google_servlet_url: http://my_server.com/auth/google
 
     # environment independent communication services
@@ -44,11 +33,14 @@ file: **war/WEB-INF/eve.yaml**
       host: my_xmpp_server.com
       port: 5222
 
-    # context settings
-    # the context is used by agents for storing their state.
+    # context settings (for persistency)
     context:
       class: FileContextFactory
       path: .eveagents
+
+    # scheduler settings (for tasks)
+    scheduler:
+      class: RunnableScheduler
 
     # Google API access
     google:
@@ -78,59 +70,23 @@ Description of the available properties:
             <br>
             All Eve settings can be placed both in the root of the configuration
             file as well as under a specific environment.
-
-            <!-- TODO: move this text
-              The servlet url of the agents. This url needs to be specified,
-              as it is not possible for an agent to know via what servlet it is being
-              called. The url of an agent is built up by the servlet url, its class,
-              and its id.<br><br>
-              For example, when servlet_url is
-              <code>http://myproject.appspot.com/agents</code>, the agents class is
-              <code>EchoAgent</code>, and the agent has id <code>100</code>, the
-              agents url will be
-              <code>http://myproject.appspot.com/agents/echoagent/1/</code>.
-              -->
         </td>
     </tr>
     <tr>
         <td>services</td>
         <td>
         To communicate with Eve agents, one or multiple communication services
-        can be configured. An agent can be accessed via each of these
-        communication services. The available urls of an agent can be retrieved
-        via <code>getUrls</code>.
+        can be configured. An agent will get an url for each of the configured
+        services, which can be retrieved via <code>getUrls</code>.
 
         The following services are available:
 
         <h4>HttpService</h4>
-        Allows communication with agents via HTTP. All agents will be accessible
-        via a single servlet.
-
-        Configuration parameters:
-        <p></p>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-            </tr>
-            <tr>
-                <td>class</td>
-                <td>Must be <code>HttpService</code></td>
-            </tr>
-            <tr>
-                <td>servlet_url</td>
-                <td>
-                The servlet url of the agents. This url needs to be specified,
-                as it is not possible for an agent to know via what servlet it is being
-                called. The url of an agent is built up by the servlet url and its id.<br><br>
-                For example, when servlet_url is
-                <code>http://myproject.appspot.com/agents</code>,
-                and the agent has id <code>100</code>, the agents url will be
-                <code>http://myproject.appspot.com/agents/100/</code>.
-                .</td>
-            </tr>
-        </table>
-        <p></p>
+        Allows communication with agents via HTTP.
+        All agents will be accessible via a servlet, for example the AgentServlet.
+        The servlet initiates and registers an HttpService itself,
+        there is no need to configure an HttpService in eve.yaml. See
+        <a href="java_services.html#HttpService">HttpService</a> for more details.
 
         <h4>XmppService</h4>
         Allows communication of agents via XMPP. Each agent needs to have an account.
@@ -156,7 +112,7 @@ Description of the available properties:
             </tr>
             <tr>
                 <td>serviceName</td>
-                <td>Optional service name for the connection.</td>
+                <td>Service name for the connection.</td>
             </tr>
         </table>
         <p></p>
@@ -201,6 +157,41 @@ Description of the available properties:
                     Located in eve-google-appengine.jar.
                     Only applicable when the application is deployed on Google App Engine.
                 </li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>scheduler</td>
+        <td>
+            Configuration for the scheduler, which allows agents to schedule
+            tasks for themselves.
+            An object containing parameters:
+
+            <p></p>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>class</td>
+                    <td>The full class path of a Scheduler.
+                    For built-in schedulers, it is enough to specify
+                    the classes simple name instead of the full path.</td>
+                </tr>
+            </table>
+            <p></p>
+
+            The following context factories are available:
+
+            <ul>
+                <li><code>RunnableScheduler</code>.
+                    Located in eve-core.jar.
+                    Not applicable when deployed on Google App Engine.</li>
+                <li><code>AppEngineScheduler</code>.
+                    Located in eve-google-appengine.jar.
+                    Only applicable when the application is deployed on
+                    Google App Engine.</li>
             </ul>
         </td>
     </tr>
@@ -261,11 +252,11 @@ These properties can be stored in the configuration file:
       client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
       client_secret: xxxxxxxxxxxxxxxx
 
-The properties can be retrieved by an agent via its context
+The properties can be retrieved by an agent via its agent factory:
 
     void authorizeGoogleApis () {
         // retrieve properties
-        Config config = getContext().getConfig();
+        Config config = getAgentFactory().getConfig();
         String client_id = config.get('google', 'client_id');
         String client_secret = config.get('google', 'client_secret');
 
@@ -296,26 +287,54 @@ There are two environments available:
 There is one context available on Google App Engine: `DatastoreContext`,
 which uses Google Datastore to persist the state of the agents. The Datastore
 context does not need any additional configuration.
+There is one scheduler available: `AppEngineScheduler`.
+
+Example file: **war/WEB-INF/web.inf**
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://java.sun.com/xml/ns/javaee"
+            xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+
+        <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        </welcome-file-list>
+
+        <servlet>
+            <servlet-name>AgentServlet</servlet-name>
+            <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+            <init-param>
+                <param-name>config</param-name>
+                <param-value>eve.yaml</param-value>
+            </init-param>
+            <init-param>
+                <param-name>environment.Development.servlet_url</param-name>
+                <param-value>http://localhost:8888/agents</param-value>
+            </init-param>
+            <init-param>
+                <param-name>environment.Production.servlet_url</param-name>
+                <param-value>http://eveagents.appspot.com/agents</param-value>
+            </init-param>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>AgentServlet</servlet-name>
+            <url-pattern>/agents/*</url-pattern>
+        </servlet-mapping>
+    </web-app>
 
 Example file: **war/WEB-INF/eve.yaml**
 
     # Eve configuration
 
-    # environment specific settings
-    environment:
-      Development:
-        services:
-        - class: HttpService
-          servlet_url: http://localhost:8888/agents/
-      Production:
-        services:
-        - class: HttpService
-          servlet_url: http://myproject.appspot.com/agents/
-
-    # context settings
-    # the context is used by agents for storing their state.
+    # context settings (for persistency)
     context:
       class: DatastoreContextFactory
+
+    # scheduler settings (for tasks)
+    scheduler:
+      class: AppEngineScheduler
 
 
 
@@ -329,6 +348,39 @@ context available for storing the agents state: `FileContext` and
 `MemoryContext`.
 In case of `FileContext`, each agent stores its state in a single file
 in the configured path.
+There is one scheduler available: `RunnableScheduler`.
+
+
+Example file: **war/WEB-INF/web.inf**
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://java.sun.com/xml/ns/javaee"
+            xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+
+        <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        </welcome-file-list>
+
+        <servlet>
+            <servlet-name>AgentServlet</servlet-name>
+            <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+            <init-param>
+                <param-name>config</param-name>
+                <param-value>eve.yaml</param-value>
+            </init-param>
+            <init-param>
+                <param-name>servlet_url</param-name>
+                <param-value>http://localhost:8888/MyProject/agents</param-value>
+            </init-param>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>AgentServlet</servlet-name>
+            <url-pattern>/agents/*</url-pattern>
+        </servlet-mapping>
+    </web-app>
 
 Example file: **war/WEB-INF/eve.yaml**
 
@@ -337,18 +389,18 @@ Example file: **war/WEB-INF/eve.yaml**
     services:
     # communication services
     services:
-    - class: HttpService
-      servlet_url: http://localhost:8080/MyProject/agents/
     - class: XmppService
       host: my_xmpp_server.com
       port: 5222
 
-    # context settings
-    # the context is used by agents for storing their state.
+    # context settings (for persistency)
     context:
-      class: com.almende.eve.context.FileContextFactory
+      class: FileContextFactory
       path: .eveagents
 
+    # scheduler settings (for tasks)
+    scheduler:
+      class: RunnableScheduler
 
 
 ### Eve Planning configuration {#eve_planning_configuration}
@@ -360,11 +412,59 @@ access these services.
 Eve Planning comes with an additional servlet to handle user authentication:
 `com.almende.eve.servlet.google.GoogleAuth`. This servlet requires:
 
-- the url `auth_google_servlet_url` for each environment, pointing to the url
+- The url `auth_google_servlet_url` for each environment, pointing to the url
   where the authentication servlet `GoogleAuth` is hosted.
-- a `client_id` and `client_secret` defined under `google`, in order to be able
+- A `client_id` and `client_secret` defined under `google`, in order to be able
   to get access to the Google APIs. A client id and secret can be retrieved
   via the [Google APIs Console](https://code.google.com/apis/console/).
+
+Example file: **war/WEB-INF/web.inf**
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://java.sun.com/xml/ns/javaee"
+            xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+
+        <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        </welcome-file-list>
+
+        <servlet>
+            <servlet-name>AgentServlet</servlet-name>
+            <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+            <init-param>
+                <param-name>config</param-name>
+                <param-value>eve.yaml</param-value>
+            </init-param>
+            <init-param>
+                <param-name>environment.Development.servlet_url</param-name>
+                <param-value>http://localhost:8888/agents</param-value>
+            </init-param>
+            <init-param>
+                <param-name>environment.Production.servlet_url</param-name>
+                <param-value>http://eveagents.appspot.com/agents</param-value>
+            </init-param>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>AgentServlet</servlet-name>
+            <url-pattern>/agents/*</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>GoogleAuth</servlet-name>
+            <servlet-class>com.almende.eve.servlet.google.GoogleAuth</servlet-class>
+            <init-param>
+            <param-name>config</param-name>
+            <param-value>eve.yaml</param-value>
+            </init-param>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>GoogleAuth</servlet-name>
+            <url-pattern>/auth/google</url-pattern>
+        </servlet-mapping>
+    </web-app>
 
 Example file: **war/WEB-INF/eve.yaml**
 
@@ -373,14 +473,8 @@ Example file: **war/WEB-INF/eve.yaml**
     # environment specific settings
     environment:
       Development:
-        services:
-        - class: HttpService
-          servlet_url: http://localhost:8888/agents/
         auth_google_servlet_url: http://localhost:8888/auth/google
       Production:
-        services:
-        - class: HttpService
-          servlet_url: http://myproject.appspot.com/agents/
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
     # context settings

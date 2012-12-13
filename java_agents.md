@@ -60,7 +60,7 @@ All agents automatically inherit the following methods from the base class Agent
 
 - `getMethods` returns an automatically generated list with all available methods.
 - `getType` returns the class name of the agent.
-- `getUrl` returns the full url of the agent.
+- `getUrls` returns the full url of the agent.
 - `getId` returns the id of the agent
 - `onSubscribe` to recevie a subscription to an event
 - `onUnsubscribe` to receive an unsubscription from an event
@@ -76,7 +76,6 @@ and Java objects such as a Contact or Person class.
         // ...
     }
 
-
 ## Instances {#instances}
 
 Eve agents themselves are stateless. Every request, a new instance of the agent 
@@ -85,12 +84,45 @@ class are not persisted. Instead, an agent can store its state using its
 [context](#context).
 
 As the agents are stateless, it is possible to have multiple instances 
-of the same agent running simultaneously. The amout of work which can be done
+of the same agent running simultaneously. The amount of work which can be done
 by one agent is thus not limited to the limitations of one physical server,
 but can be scaled endlessly over more instances running on different servers
 in the cloud. 
 One interesting use for this is parallel processing of computationally 
 intensive tasks.
+
+
+## Requests {#requests}
+
+An agent can call an other agent using the methods `send` or `sendAsync`.
+
+Synchronous example:
+
+    String url = "http://myserver.com/agents/mycalcagent/";
+    String method = "eval";
+    ObjectNode params = JOM.createObjectNode();
+    params.put("expr", "Sin(0.25 * pi) ^ 2");
+    String result = send(url, method, params, String.class);
+    System.out.println("result=" + result);
+
+Asynchronous example:
+
+    String url = "xmpp:mycalcagent@myxmppserver.com";
+    String method = "getDurationHuman";
+    String method = "eval";
+    ObjectNode params = JOM.createObjectNode();
+    params.put("expr", "Sin(0.25 * pi) ^ 2");
+    sendAsync(url, method, params, new AsyncCallback<String>() {
+        @Override
+        public void onSuccess(String result) {
+            System.out.println("result=" + result);
+        }
+
+        @Override
+        public void onFailure(Throwable caught) {
+            caught.printStackTrace();
+        }
+    }, String.class);
 
 
 ## Context {#context}
@@ -117,27 +149,6 @@ An example of using the context is shown in the following example:
     public String getUsename() {
         return getContext().get("username");
     }
-
-From the context, an agent has access to the [scheduler](#scheduler) via the 
-method `getScheduler`:
-
-    Scheduler scheduler = getContext().getScheduler();
-
-The context offers agent specific information via the methods `getAgentUrl`, 
-`getAgentId`, and `getAgentClass`. 
-The context offers system information via the methods `getEnvironment`,
-`getServletUrl` and `getConfig`. 
-
-For example if an agent requires some specific configuration properties,
-these properties can be stored in the configuration file (typically eve.yaml),
-and read by the agent:
-
-    Config config = getContext().getConfig();
-    String database_url = config.get('database_url');
-
-See also the page
-[Configuration](java_configuration.html#accessing_configuration_properties).
-
 
 ## Events {#events}
 
@@ -211,7 +222,7 @@ be called with the following parameters:
 
 ## Scheduler {#scheduler}
 
-Unlike some traditional agent platforms, Eve agents are not contiuously running
+Unlike some traditional agent platforms, Eve agents are not continuously running
 as a thread on some server. An Eve agent must be triggered externally
 to execute a task. An action can be triggered in different ways:
 
@@ -222,7 +233,7 @@ to execute a task. An action can be triggered in different ways:
 The first two ways are events triggered externally and not by the agent itself.
 An agent can schedule a task for itself using the built in Scheduler.
 The Scheduler can be used to schedule a single task and repeating tasks.
-An agent can access the scheduler via its [Context](#context).
+An agent can access the scheduler via the method `getScheduler()`.
 
 A task is a delayed JSON-RPC call to the agent itself. 
 Tasks can be created and canceled.
@@ -234,18 +245,42 @@ The following example shows how to schedule a task:
         JSONRequest request = new JSONRequest("myTask", params);
         long delay = 5000; // milliseconds
         
-        String id = getContext().getScheduler().createTask(request, delay);
+        String id = getScheduler().createTask(request, delay);
         return id;
     }
 
     public void cancelTask(@Name("id") String id) {
-        getContext().getScheduler().cancelTask(id);
+        getScheduler().cancelTask(id);
     }
 
     public void myTask(@Name("message") String message) {
         System.out.println("myTask is executed. Message: " + message);
     }
 
+
+## AgentFactory {#agentfactory}
+
+Eve agents are managed by an AgentFactory. Via the AgentFactory, an agent
+can be created, deleted, and invoked. The AgentFactory manages the communication
+services, and all incoming and outgoing request go via the AgentFactory.
+
+Each agent has access to the AgentFactory via the method `getAgentFactory()`.
+From the AgentFactory, it is possible to
+
+- Create an agent: `createAgent(id, class)`,
+- Delete an agent: `deleteAgent(id)`,
+- Test existance of an agent: `hasAgent(id)`,
+
+The AgentFactory also gives access to the configuration file, which enables
+reading any configuration settings. If an agent requires some specific
+configuration properties, these properties can be stored in the configuration
+file (typically eve.yaml), and read by the agent:
+
+    Config config = getAgentFactory().getConfig();
+    String database_url = config.get('database_url');
+
+See also the page
+[Configuration](java_configuration.html#accessing_configuration_properties).
 
 
 ## Database {#database}
