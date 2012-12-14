@@ -63,7 +63,7 @@ public class XmppService extends Service {
 		if (params != null) {
 			host = (String) params.get("host");
 			port = (Integer) params.get("port");
-			serviceName = (String) params.get("serviceName");
+			service = (String) params.get("service");
 		}
 	}
 
@@ -71,12 +71,12 @@ public class XmppService extends Service {
 	 * initialize the settings for the xmpp service
 	 * @param host
 	 * @param port
-	 * @param serviceName
+	 * @param service  service name
      */
-	public void init(String host, Integer port, String serviceName) {
+	public void init(String host, Integer port, String service) {
 		this.host = host;
 		this.port = port;
-		this.serviceName = serviceName;
+		this.service = service;
 	}
 	
 	/**
@@ -112,7 +112,7 @@ public class XmppService extends Service {
 
 		// instantiate open the connection		
 		XmppAgentConnection connection = new XmppAgentConnection(agentFactory);
-		connection.connect(agentId, host, port, serviceName, username, password);
+		connection.connect(agentId, host, port, service, username, password);
 		
 		// register the connection
 		connectionsById.put(agentId, connection);
@@ -175,14 +175,14 @@ public class XmppService extends Service {
 		data.put("class", this.getClass().getName());
 		data.put("host", host);
 		data.put("port", port);
-		data.put("serviceName", serviceName);
+		data.put("service", service);
 		data.put("protocols", protocols);
 		return data.toString();
 	}	
 	
 	private String host = null;
 	private Integer port = null;
-	private String serviceName = null;
+	private String service = null;
 
 	private Map<String, XmppAgentConnection> connectionsById = 
 			new HashMap<String, XmppAgentConnection>();   // agentId as key

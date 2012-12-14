@@ -30,7 +30,9 @@
     <p>General information about me.</p>
 
     <table>
-        <tr><th>Url</th><td>{{url}}</td></tr>
+        <tr><th>Urls</th><td>
+            <div ng:repeat="url in urls">{{url}}</div>
+        </td></tr>
         <tr><th>Type</th><td>{{type}}</td></tr>
         <tr><th>Id</th><td>{{id}}</td></tr>
         <tr><th>Version</th><td>{{version}}</td></tr>
@@ -153,6 +155,8 @@
         <input type="checkbox" name="enableEvents" ng:change="updateEnableEvents()">
         Enable monitoring of events
     </p>
+
+    {{url}}
 
 </div>
 </body>

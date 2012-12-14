@@ -5,7 +5,7 @@ services:
 - class: XmppService
   host: openid.almende.org
   port: 5222
-  serviceName: openid.almende.org
+  service: openid.almende.org
 
 # context settings
 context:

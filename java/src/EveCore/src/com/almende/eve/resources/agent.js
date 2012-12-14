@@ -19,7 +19,10 @@ function Ctrl() {
     var scope = this;
 
     var loadingText = '...';
-    this.url         = document.location.href;
+    var url = document.location.href;
+    var lastSlash = url.lastIndexOf('/');
+    this.url         = url.substring(0, lastSlash + 1);
+    this.urls        = loadingText;
     this.title       = loadingText;
     this.version     = loadingText;
     this.description = loadingText;
@@ -383,8 +386,8 @@ function Ctrl() {
 
         var reqs = [
             {
-                'method': 'getUrl',
-                'field': 'url',
+                'method': 'getUrls',
+                'field': 'urls',
                 'callback': function () {
                     self.updateEnableEvents();
                 }

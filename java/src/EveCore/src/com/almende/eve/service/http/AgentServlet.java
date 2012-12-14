@@ -226,6 +226,8 @@ public class AgentServlet extends HttpServlet {
 					"Cannot initialize HttpService: no AgentFactory initialized.");
 		}
 		
+		// TODO: one servlet must be able to support multiple servlet_urls
+		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
 		String environment = agentFactory.getEnvironment();
 		String envParam = "environment." + environment + ".servlet_url";
