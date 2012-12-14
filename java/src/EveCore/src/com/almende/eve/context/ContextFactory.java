@@ -13,7 +13,7 @@ public abstract class ContextFactory {
 	}
 	
 	/**
-	 * Get context with given id. Return null if not found
+	 * Get context with given id. Returns null if not found
 	 * @param agentId
 	 * @return context
 	 */

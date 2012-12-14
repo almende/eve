@@ -106,7 +106,8 @@ public class AgentFactory {
 	 * @param config
 	 * @return factory
 	 */
-	public static AgentFactory createInstance(Config config) throws Exception{
+	public static synchronized AgentFactory createInstance(Config config) 
+			throws Exception{
 		return createInstance(null, config);
 	}
 
@@ -117,8 +118,8 @@ public class AgentFactory {
 	 * @return factory
 	 * @throws Exception 
 	 */
-	public static AgentFactory createInstance(String namespace, Config config) 
-			throws Exception {
+	public static synchronized AgentFactory createInstance(String namespace, 
+			Config config) throws Exception {
 		if (namespace == null) {
 			namespace = "default";
 		}

@@ -46,6 +46,7 @@ public class DatastoreContextFactory extends ContextFactory {
 
 	@Override
 	public void delete(String agentId) throws Exception {
+		// TODO: optimize deleting a context (do not first retrieve the context)
 		DatastoreContext context = get(agentId);
 		if (context != null) {
 			context.delete();
