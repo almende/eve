@@ -111,7 +111,7 @@ Description of the available properties:
                 <td>Connection port The XMPP host, 5222 by default.</td>
             </tr>
             <tr>
-                <td>serviceName</td>
+                <td>service</td>
                 <td>Service name for the connection.</td>
             </tr>
         </table>

@@ -225,7 +225,7 @@ file name **eve.yaml**.
     - class: XmppService
       host: my_xmpp_server.com
       port: 5222
-      serviceName: my_xmpp_service_name
+      service: my_xmpp_service_name
 
     # context settings (for persistency)
     context:

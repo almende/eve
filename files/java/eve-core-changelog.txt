@@ -2,6 +2,12 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+2012-12-14, version 0.13
+
+- Updated the agents web interface to show all its urls
+- Renamed the parameter XmppService.serviceName to XmppService.service
+
+
 2012-12-13, version 0.12
 
 - The AgentServlet registers itself to the AgentFactory now. 

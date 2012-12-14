@@ -4,8 +4,8 @@ title: Getting Started
 ---
 
 
-{% assign eve_core_version = '0.12' %}
-{% assign eve_google_appengine_version = '0.12' %}
+{% assign eve_core_version = '0.13' %}
+{% assign eve_google_appengine_version = '0.13' %}
 
 
 # Getting Started
