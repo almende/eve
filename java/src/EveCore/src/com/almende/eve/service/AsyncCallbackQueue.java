@@ -44,7 +44,7 @@ public class AsyncCallbackQueue<T> {
         };
 		timer.schedule(handler.timeout, TIMEOUT);
 		if (queue.containsKey(id)) {
-			throw new Exception("Callback with id '" + id+ "' already in queue");
+			throw new Exception("Callback with id '" + id + "' already in queue");
 		}
 		queue.put(id, handler);
 	}

@@ -51,11 +51,12 @@ public class TestXmpp {
 		
         //agent.testAsyncXMPP("xmpp:jos@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
         //agent.testAsyncXMPP("xmpp:gloria@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
-        agent.testAsyncXMPP("xmpp:jos@openid.almende.org");
-        agent.testAsyncXMPP("xmpp:gloria@openid.almende.org");
+        //agent.testAsyncXMPP("xmpp:jos@openid.almende.org");
+        //agent.testAsyncXMPP("xmpp:gloria@openid.almende.org");
         //agent.testGetContacts("xmpp:contact1@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
         //agent.testGetContacts("xmpp:contact1@ec2-54-246-112-19.eu-west-1.compute.amazonaws.com");
-        agent.testAsyncHTTP();
+        //agent.testAsyncHTTP();
+        agent.testSyncXMPP("xmpp:jos@openid.almende.org");
         
         //agent.testAsyncHTTP();
 		

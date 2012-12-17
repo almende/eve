@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Access;
@@ -13,6 +14,7 @@ import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.service.AsyncCallback;
 import com.almende.eve.service.Service;
+import com.almende.eve.service.SyncCallback;
 
 public class XmppService extends Service {	
 	public XmppService(AgentFactory agentFactory) {
@@ -133,14 +135,27 @@ public class XmppService extends Service {
 			connectionsByUrl.remove(url);
 		}
 	}
-
+	
+	/**
+	 * Send a message to an other agent
+	 * @param url
+	 * @param request
+	 * @param response
+	 */
 	@Override
-	public JSONResponse send(String sender, String receiver, JSONRequest request)
-			throws Exception {
-		// TODO: implement synchronous xmpp request
-		throw new Exception("Synchronous xmpp requests are not yet supported");
+	public JSONResponse send(String senderId, String receiver, 
+			JSONRequest request) throws Exception {
+		SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
+		sendAsync(senderId, receiver, request, callback);
+		return callback.get();
 	}
 
+	/**
+	 * Asynchronously Send a message to an other agent
+	 * @param url
+	 * @param request
+	 * @param callback with a JSONResponse
+	 */
 	@Override
 	public void sendAsync(String senderId, String receiver, JSONRequest request,
 			AsyncCallback<JSONResponse> callback) throws Exception {
@@ -185,8 +200,8 @@ public class XmppService extends Service {
 	private String service = null;
 
 	private Map<String, XmppAgentConnection> connectionsById = 
-			new HashMap<String, XmppAgentConnection>();   // agentId as key
+			new ConcurrentHashMap<String, XmppAgentConnection>();   // agentId as key
 	private Map<String, XmppAgentConnection> connectionsByUrl = 
-			new HashMap<String, XmppAgentConnection>();   // xmpp url as key "xmpp:username@host"
+			new ConcurrentHashMap<String, XmppAgentConnection>();   // xmpp url as key "xmpp:username@host"
 	List<String> protocols = Arrays.asList("xmpp");
 }

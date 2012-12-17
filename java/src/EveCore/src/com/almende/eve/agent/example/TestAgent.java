@@ -320,10 +320,29 @@ public class TestAgent extends Agent {
 			}
 
 			@Override
-			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
+			public void onFailure(Exception exception) {
+				exception.printStackTrace();
 			}
 		}, Double.class);
+	}
+
+	public void testSyncXMPP (@Name("url") String url) throws Exception {
+		System.out.println("testSyncSend, url=" + url);
+		String method = "multiply";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("a", new Double(3));
+		params.put("b", new Double(4.5));
+		System.out.println("testSyncXMPP, request=" + new JSONRequest(method, params));
+		Double result = send(url, method, params, Double.class);
+		System.out.println("testSyncXMPP result=" + result);
+		try {
+			ObjectNode messageParams = JOM.createObjectNode();
+			messageParams.put("result", result);
+			trigger("message", messageParams);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void testGetContacts (@Name("url") String url) throws Exception {
@@ -347,8 +366,8 @@ public class TestAgent extends Agent {
 			}
 
 			@Override
-			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
+			public void onFailure(Exception exception) {
+				exception.printStackTrace();
 			}
 		}, ArrayNode.class);
 	}
@@ -367,8 +386,8 @@ public class TestAgent extends Agent {
 			}
 
 			@Override
-			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
+			public void onFailure(Exception exception) {
+				exception.printStackTrace();
 			}
 		}, String.class);
 		

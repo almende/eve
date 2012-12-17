@@ -1,7 +1,6 @@
 package com.almende.eve.agent;
 
 import java.net.ProtocolException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -275,15 +274,20 @@ public class AgentFactory {
 			return invoke(agentId, request);
 		}
 		else {
-			String protocol = new URL(receiverUrl).getProtocol();
-			Service service = getService(protocol);
+			Service service = null;
+			String protocol = null;
+			int separator = receiverUrl.indexOf(":");
+			if (separator != -1) {
+				protocol = receiverUrl.substring(0, separator);
+				service = getService(protocol);
+			}
 			if (service != null) {
 				return service.send(sender.getId(), receiverUrl, request);
 			}
 			else {
 				throw new ProtocolException(
 					"No service configured for protocol '" + protocol + "'.");
-			}
+			}			
 		}
 	}
 	
@@ -314,7 +318,6 @@ public class AgentFactory {
 			}).start();
 		}
 		else {
-			//String protocol = new URL(receiver).getProtocol();
 			Service service = null;
 			String protocol = null;
 			int separator = receiverUrl.indexOf(":");

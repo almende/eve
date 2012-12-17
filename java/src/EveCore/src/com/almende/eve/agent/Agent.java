@@ -364,7 +364,8 @@ abstract public class Agent {
 	
 		// invoke the other agent via the context, allowing the context
 		// to route the request internally or externally
-		JSONRequest request = new JSONRequest(method, params);
+		String id = UUID.randomUUID().toString();
+		JSONRequest request = new JSONRequest(id, method, params);
 		JSONResponse response = getAgentFactory().send(this, url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
@@ -502,8 +503,8 @@ abstract public class Agent {
 			}
 
 			@Override
-			public void onFailure(Throwable caught) {
-				callback.onFailure(caught);
+			public void onFailure(Exception exception) {
+				callback.onFailure(exception);
 			}
 		};
 		
