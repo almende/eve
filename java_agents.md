@@ -146,7 +146,7 @@ An example of using the context is shown in the following example:
         getContext().put("username", username);
     }
     
-    public String getUsename() {
+    public String getUsername() {
         return getContext().get("username");
     }
 
@@ -172,7 +172,7 @@ The callback method `onEvent` can have any name, and must have three parameters:
 `agent`, `event`, and `params`.
 
     public void subscribeToAgentY() throws Exception {
-        String url = "http://server/agents/agenttype/agenty";
+        String url = "http://server/agents/agenty/";
         String event = "dataChanged";
         String callback = "onEvent";
 
@@ -180,7 +180,7 @@ The callback method `onEvent` can have any name, and must have three parameters:
     }
 
     public void unsubscribeFromAgentY() throws Exception {
-        String url = "http://server/agents/agenttype/agenty";
+        String url = "http://server/agents/agenty/";
         String event = "dataChanged";
         String callback = "onEvent";
 

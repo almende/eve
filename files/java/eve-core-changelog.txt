@@ -2,6 +2,13 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+2012-12-21, version 0.14
+
+- Implemented synchronous send for the XmppService.
+- Re-implemented the LogAgent, used to monitor an agents events in their 
+  web interface.
+
+
 2012-12-14, version 0.13
 
 - Updated the agents web interface to show all its urls
@@ -22,7 +29,7 @@ http://almende.github.com/eve/
 
 - Major change in the core of Eve. Incompatible with previous versions.
 - Implemented support for multiple communication services. 
-- Agents must now implicitly be created before they can be invoked. The
+- Agents must now explicitly be created before they can be invoked. The
   AgentFactory contains methods to create, get, and delete agents, and 
   the ContextFactory is adjusted for this purpose.
 - Implemented messaging protocol XMPP.
