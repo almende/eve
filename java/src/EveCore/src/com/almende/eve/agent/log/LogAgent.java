@@ -8,8 +8,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.json.JSONRequest;
 
 public class LogAgent extends Agent {
-	private static long TIME_TO_LIVE = 1 * 60 * 1000; // milliseconds
-	// TODO: change time to live to 20 min
+	private static long TIME_TO_LIVE = 20 * 60 * 1000; // milliseconds
 	
 	public void log(Log log) {
 		@SuppressWarnings("unchecked")
@@ -20,6 +19,8 @@ public class LogAgent extends Agent {
 			logs = new ArrayList<Log>();
 		}
 		logs.add(log);
+		
+		// TODO: limit to a maximum number and age of the logs?
 		
 		getContext().put("logs", logs);
 	}

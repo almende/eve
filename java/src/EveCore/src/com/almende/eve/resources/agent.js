@@ -102,9 +102,14 @@ function Ctrl() {
         return (primitives.indexOf(type.toLowerCase()) != -1);
     };
 
+    /**
+     * Format the given date as string
+     * @param {Date | Number} date
+     * @return {String} formattedDate
+     */
     this.formatDate = function(date) {
         var d = new Date(date);
-        return d.toISOString();
+        return d.toISOString ? d.toISOString() : d.toString();
     };
 
     /**
