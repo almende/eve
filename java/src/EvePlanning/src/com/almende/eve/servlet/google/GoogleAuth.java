@@ -42,7 +42,7 @@ public class GoogleAuth extends HttpServlet {
 	String REDIRECT_URI = null; 
 	
 	// hard coded uri's
-	private String AGENTS_URL = "http://localhost:8888/agents/googletaskagent/id"; // TODO: do not hardcode
+	private String AGENTS_URL = "http://localhost:8888/agents/id"; // TODO: do not hardcode
 	private String AGENTS_METHOD = "setAuthorization";
 	private String OAUTH_URI  = "https://accounts.google.com/o/oauth2";
 	private String CONFIG_FILENAME = "/WEB-INF/eve.yaml";
@@ -83,7 +83,7 @@ public class GoogleAuth extends HttpServlet {
 				String path = "environment." + environment + ".auth_google_servlet_url";
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
 				e.printStackTrace();
-			}
+			}			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		

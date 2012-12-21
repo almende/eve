@@ -275,7 +275,7 @@ abstract public class Agent {
 		String method = "onSubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
-		params.put("callbackUrl", getUrl());
+		params.put("callbackUrl", getFirstUrl());
 		params.put("callbackMethod", callbackMethod);
 		send(url, method, params);
 	}
@@ -289,7 +289,7 @@ abstract public class Agent {
 		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
-		params.put("callbackUrl", getUrl());
+		params.put("callbackUrl", getFirstUrl());
 		params.put("callbackMethod", callbackMethod);
 		send(url, method, params);
 	}
@@ -304,13 +304,16 @@ abstract public class Agent {
 	@Access(AccessType.UNAVAILABLE)
 	final public void trigger(@Name("event") String event, 
 			@Name("params") ObjectNode params) throws Exception {
-		String url = getUrl();
+		String url = getFirstUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 
 		if (event.equals("*")) {
 			throw new Exception("Cannot trigger * event");
 		}
 
+		// send a trigger to the agent factory
+		getAgentFactory().getEventLogger().log(getId(), event, params);
+		
 		// retrieve subscriptions from the event
 		List<Callback> valueEvent = getSubscriptions(event);
 		subscriptions.addAll(valueEvent);
@@ -339,6 +342,19 @@ abstract public class Agent {
 		}
 	}
 
+	/**
+	 * Get the first url of the agents urls. Returns null if the agent does not
+	 * have any urls.
+	 * @return firstUrl
+	 */
+	private String getFirstUrl() {
+		List<String> urls = getUrls();
+		if (urls.size() > 0) {
+			return urls.get(0);
+		}
+		return null;
+	}
+	
 	/**
 	 * Get all available methods of this agent
 	 * @return
@@ -420,31 +436,6 @@ abstract public class Agent {
 
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent
-	 * @param callbackMethod  The method to be executed on callback
-	 * @param url             The url of the agent to be called
-	 * @param method          The name of the method
-	 * @param params          A JSONObject containing the parameter 
-	 *                        values of the method
-	 * @return response       A Confirmation message or error message in JSON 
-	 *                        format
-	 * @throws Exception 
-	 * @throws JSONException 
-	 * @deprecated Use the sendAsync methods with an AsyncCallback parameter
-	 * instead.
-	 */
-	@Deprecated
-	@Access(AccessType.UNAVAILABLE)
-	final public void sendAsync(String url, String method, ObjectNode params,
-			String callbackMethod) throws Exception {
-		// TODO: cleanup this method after a while (deprecated on 2012-11-20, v0.11)
-		JSONRequest req = new JSONRequest(method, params);
-		String callbackUrl = getUrl();
-		req.setCallback(callbackUrl, callbackMethod);
-		getAgentFactory().send(this, url, req);
-	}
-	
-	/**
-	 * Send an asynchronous JSON-RPC request to an agent
 	 * sendAsync is not supported on Google App Engine
 	 * @param url             The url of the agent to be called
 	 * @param method          The name of the method
@@ -509,21 +500,6 @@ abstract public class Agent {
 		};
 		
 		getAgentFactory().sendAsync(this, url, request, responseCallback);
-	}
-
-	/**
-	 * Get the full url of this agent, for example "http://mysite.com/agents/key"
-	 * @return url
-	 * @deprecated Since version 0.11. Replaced by {@link #getUrls()}
-	 */
-	@Deprecated
-	final public String getUrl() {
-		for (String url : getUrls()) {
-			if (url.startsWith("http")) {
-				return url;
-			}
-		}
-		return null;
 	}
 
 	/**

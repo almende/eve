@@ -40,10 +40,9 @@ function Ctrl() {
     this.response = undefined;
     this.rpcStatus = '';
 
-    // logs
+    // event logs
     this.lastTimestamp = 0;
     this.pollingInterval = 10000;  // polling interval in milliseconds
-    this.timeToLive = 60*1000;       // time to live for the logagent
     this.logs = [];
     this.enableEvents = true;
 
@@ -249,128 +248,73 @@ function Ctrl() {
     };
 
     /**
-     * Store the setting enableEvents,
-     * and create/delete the logagent depending on the setting enableEvents
+     * Store the setting enableEvents
      */
     this.updateEnableEvents = function () {
         if (this.enableEvents == true) {
             // enableEvents==true is the default setting, do not store it
             delete localStorage['enableEvents'];
-            this.logAgentDelete();
-            this.logAgentCreate();
+            this.startMonitoringEvents();
         }
         else {
             localStorage['enableEvents'] = false;
-            this.logAgentDelete();
+            this.stopMonitoringEvents();
+            this.clearEvents();
         }
     };
 
     /**
-     * Create a log agent and start polling it for events
+     * Start monitoring the events of the agent
      */
-    this.logAgentCreate = function () {
-        var self = this;
+    this.startMonitoringEvents = function () {
+        scope.updateEvents();
+    };
 
-        // clear any old logs
-        this.logs = [];
+    /**
+     * Stop monitoring the events of the agent
+     */
+    this.stopMonitoringEvents = function () {
+        if (scope.updateEventsTimer) {
+            clearTimeout(scope.updateEventsTimer);
+            delete scope.updateEventsTimer;
+        }
+    };
 
-        // built url for logAgent
-        // TODO: this url splitting is kind of dangerous...
-        var urlParts = this.url.split('/');
-        urlParts.pop();
-        var id = urlParts.pop();
-        var clazz = urlParts.pop();
-        urlParts.push('logagent');
-        var logAgentId = clazz + '.' + id;
-        //urlParts.push(String(this.logAgentId));
-        urlParts.push(logAgentId);
-        this.logAgentUrl = urlParts.join('/');
-        this.$root.$eval();
+    /**
+     * Retrieve the latest event logs, and set a timeout for the next update
+     */
+    this.updateEvents = function () {
+        scope.stopMonitoringEvents();
 
-        // register this agent to the logagent
-        var request = {
-            'id': 1,
-            'method': 'addAgent',
-            'params': {
-                'url': self.url
-            }
-        };
-        self.logAgentError = undefined;
-        self.send(this.logAgentUrl, request, function (response) {
-            self.logAgentUpdate();
-        });
-        // TODO: error when failed to create logagent
-
-        // method for keeping the logagent alive during the session
-        var timeToLive = (self.timeToLive > 60*1000) ? self.timeToLive : 60*1000;
-        var setTimeToLive = function () {
-            var request = {
-                'id': 1,
-                'method': 'setTimeToLive',
-                'params': {
-                    'interval': timeToLive
+        $.ajax({
+            'type': 'GET',
+            'url': "events?since=" + scope.lastTimestamp,
+            'contentType': 'application/json',
+            'success': function (newLogs) {
+                while (newLogs && newLogs.length) {
+                    var newLog = newLogs.shift();
+                    scope.lastTimestamp = newLog.timestamp;
+                    scope.logs.push(newLog);
                 }
-            };
-            self.send(self.logAgentUrl, request, function (response) {
-                self.logAgentTTLTimer =
-                    setTimeout(setTimeToLive, timeToLive - 10*1000); // set a new timeout
-            }, function (err) {
-                self.logAgentTTLTimer =
-                    setTimeout(setTimeToLive, timeToLive - 10*1000); // set a new timeout
-            });
-        };
-        setTimeToLive();
-    };
+                scope.lastUpdate = (new Date()).toISOString();
+                scope.$root.$eval();
 
-    /**
-     * Stop the log agent
-     */
-    this.logAgentDelete = function () {
-        if (this.logAgentTimer) {
-            clearTimeout(this.logAgentTimer);
-            delete this.logAgentTimer;
-        }
-        if (this.logAgentTTLTimer) {
-            clearTimeout(this.logAgentTTLTimer);
-            delete this.logAgentTTLTimer;
-        }
-    };
-
-    /**
-     * Retrieve the latest logs from the logagent
-     */
-    this.logAgentUpdate = function () {
-        if (this.logAgentTimer) {
-            clearTimeout(this.logAgentTimer);
-            delete this.logAgentTimer;
-        }
-
-        var request = {
-            'id': 1,
-            'method': 'getLogs',
-            'params': {
-                'since': scope.lastTimestamp,
-                'url': scope.url
+                // set a new timeout
+                scope.updateEventsTimer = setTimeout(scope.updateEvents, scope.pollingInterval);
+            },
+            'error': function (err) {
+                // set a new timeout
+                scope.updateEventsTimer = setTimeout(scope.updateEvents, scope.pollingInterval);
             }
-        };
-        scope.send(scope.logAgentUrl, request, function (response) {
-            var newLogs = response.result;
-            while (newLogs && newLogs.length) {
-                var newLog = newLogs.shift();
-                scope.lastTimestamp = newLog.timestamp;
-                scope.logs.push(newLog);
-            }
-            scope.lastUpdate = (new Date()).toISOString();
-            scope.$root.$eval();
-
-            // set a new timeout
-            scope.logAgentTimer = setTimeout(scope.logAgentUpdate, scope.pollingInterval);
-        }, function (err) {
-            // set a new timeout
-            scope.logAgentTimer = setTimeout(scope.logAgentUpdate, scope.pollingInterval);
         });
     };
 
+    /**
+     * Clear the list with events
+     */
+    this.clearEvents = function () {
+        scope.logs = [];
+    };
 
     /**
      * Load information and data from the agent via JSON-RPC calls.

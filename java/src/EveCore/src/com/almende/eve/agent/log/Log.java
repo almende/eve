@@ -18,14 +18,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("serial")
 public class Log implements Serializable {
 	private Long timestamp = null;
-	private String agent = null;
+	private String agentId = null;
 	private String event = null;
 	private String params = null;
 
-	Log(String agent, String event, ObjectNode params) 
+	public Log(String agentId, String event, ObjectNode params) 
 			throws JsonGenerationException, JsonMappingException, IOException {
 		this.setTimestamp(new Date().getTime());
-		this.setAgent(agent);
+		this.setAgentId(agentId);
 		this.setEvent(event);
 		this.setParams(params);
 	}
@@ -38,12 +38,12 @@ public class Log implements Serializable {
 		return timestamp;
 	}
 
-	public void setAgent(String agent) {
-		this.agent = agent;
+	public void setAgentId(String agentId) {
+		this.agentId = agentId;
 	}
 
-	public String getAgent() {
-		return agent;
+	public String getAgentId() {
+		return agentId;
 	}
 
 	public void setEvent(String event) {

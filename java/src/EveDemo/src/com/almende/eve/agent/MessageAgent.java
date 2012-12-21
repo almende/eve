@@ -90,7 +90,7 @@ public class MessageAgent extends Agent {
 	 */
 	public void onMessage(@Name("message") Message message) throws Exception {
 		// store the message in the inbox
-		message.setAgent(getUrl());
+		message.setAgent(getFirstUrl());
 		message.setBox("inbox");
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		datastore.store(message);
@@ -111,11 +111,11 @@ public class MessageAgent extends Agent {
 	public void send (@Name("message") Message message) throws Exception {
 		// set timestamp and from fields
 		message.setTimestamp(DateTime.now().toString());
-		message.setFrom(getUrl());
+		message.setFrom(getFirstUrl());
 		message.setStatus("unread");
 
 		// store the message in the outbox
-		message.setAgent(getUrl());
+		message.setAgent(getFirstUrl());
 		message.setBox("outbox");
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		datastore.store(message);
@@ -211,7 +211,7 @@ public class MessageAgent extends Agent {
 		
 		RootFindCommand<Message> command = datastore.find()
 			.type(Message.class)
-			.addFilter("agent", FilterOperator.EQUAL, getUrl());
+			.addFilter("agent", FilterOperator.EQUAL, getFirstUrl());
 		if (box != null) {
 			command = command.addFilter("box", FilterOperator.EQUAL, box);
 		}
@@ -240,7 +240,7 @@ public class MessageAgent extends Agent {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		QueryResultIterator<Message> it = datastore.find()
 			.type(Message.class)
-			.addFilter("agent", FilterOperator.EQUAL, getUrl())
+			.addFilter("agent", FilterOperator.EQUAL, getFirstUrl())
 			.now();
 		
 		while (it.hasNext()) {
@@ -250,6 +250,19 @@ public class MessageAgent extends Agent {
 		}
 		
 		super.clear();
+	}
+
+	/**
+	 * Get the first url of the agents urls. Returns null if the agent does not
+	 * have any urls.
+	 * @return firstUrl
+	 */
+	private String getFirstUrl() {
+		List<String> urls = getUrls();
+		if (urls.size() > 0) {
+			return urls.get(0);
+		}
+		return null;
 	}
 	
 	@Override

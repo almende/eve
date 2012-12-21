@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
+import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
@@ -203,18 +204,13 @@ public class AgentFactory {
 					"Class " + agentClass + " does not extend class " + Agent.class);
 		}
 		
-		// instantiate the agent
-		Agent agent = (Agent) agentClass.getConstructor().newInstance();
-		
-		// instantiate the context
+		// create the context
 		Context context = getContextFactory().create(agentId);
 		context.setAgentClass(agentClass);
-		agent.setAgentFactory(this);
-		agent.setContext(context);
-		context.init();
-		agent.init();
+		context.destroy();
 		
-		return agent;
+		// get the agent
+		return getAgent(agentId);
 	}
 	
 	/**
@@ -236,6 +232,15 @@ public class AgentFactory {
 		return getContextFactory().exists(agentId);
 	}
 
+	/**
+	 * Get the event logger. The event logger is used to temporary log 
+	 * triggered events, and display them on the agents web interface.
+	 * @return eventLogger
+	 */
+	public EventLogger getEventLogger() {
+		return eventLogger;
+	}
+	
 	/**
 	 * Invoke a local agent
 	 * @param agentId
@@ -645,6 +650,8 @@ public class AgentFactory {
 	private static Map<String, AgentFactory> factories = 
 			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
 
+	private EventLogger eventLogger = new EventLogger(this);
+	
 	private final static Map<String, String> CONTEXT_FACTORIES = new HashMap<String, String>();
 	static {
         CONTEXT_FACTORIES.put("FileContextFactory", "com.almende.eve.context.FileContextFactory");

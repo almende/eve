@@ -38,7 +38,7 @@ public class AsyncCallbackQueue<T> {
 				AsyncCallback<T> callback = me.pull(id);
 				if (callback != null) {
 					callback.onFailure(new TimeoutException(
-						"Timeout occurrend for request with id '" + id + "'"));
+						"Timeout occurred for request with id '" + id + "'"));
 				}
 			}
         };

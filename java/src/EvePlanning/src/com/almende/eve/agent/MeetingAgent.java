@@ -196,7 +196,7 @@ public class MeetingAgent extends Agent {
 		activity = Activity.sync(activity, updatedActivity);
 
 		// ensure the url of the meeting agent is filled in
-		String myUrl = getUrl();
+		String myUrl = getFirstUrl();
 		activity.setAgent(myUrl);
 
 		// create duration when missing
@@ -1487,6 +1487,19 @@ public class MeetingAgent extends Agent {
 		return array;
 	}
 
+	/**
+	 * Get the first url of the agents urls. Returns null if the agent does not
+	 * have any urls.
+	 * @return firstUrl
+	 */
+	private String getFirstUrl() {
+		List<String> urls = getUrls();
+		if (urls.size() > 0) {
+			return urls.get(0);
+		}
+		return null;
+	}
+	
 	@Override
 	public String getDescription() {
 		return "A MeetingAgent can dynamically plan and manage a meeting.";

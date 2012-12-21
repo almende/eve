@@ -2,6 +2,7 @@ package com.almende.eve.service.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -11,10 +12,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
+import com.almende.eve.json.jackson.JOM;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
 
@@ -76,15 +79,33 @@ public class AgentServlet extends HttpServlet {
 		}
 		String extension = resource.substring(resource.lastIndexOf(".") + 1);
 		
-		// load the resource
-		String mimetype = StreamingUtil.getMimeType(extension);
-		String filename = RESOURCES + resource;
-		InputStream is = this.getClass().getResourceAsStream(filename);
-		if (is != null) {
-			StreamingUtil.streamBinaryData(is, mimetype, resp);
+		if (resource.equals("events")) {
+			// retrieve the agents logs
+			String sinceStr = req.getParameter("since");
+			Long since = null;
+			if (sinceStr != null) {
+				since = Long.valueOf(sinceStr);
+			}
+			
+			try {
+				List<Log> logs = agentFactory.getEventLogger().getLogs(agentId, since);
+				resp.addHeader("Content-type", "application/json");				
+				JOM.getInstance().writer().writeValue(resp.getWriter(), logs);
+			} catch (Exception e) {
+				resp.sendError(500, e.getMessage());
+			}
 		}
 		else {
-			throw new ServletException("Resource '" + resource + "' not found");
+			// load the resource
+			String mimetype = StreamingUtil.getMimeType(extension);
+			String filename = RESOURCES + resource;
+			InputStream is = this.getClass().getResourceAsStream(filename);
+			if (is != null) {
+				StreamingUtil.streamBinaryData(is, mimetype, resp);
+			}
+			else {
+				throw new ServletException("Resource '" + resource + "' not found");
+			}
 		}
 	}
 

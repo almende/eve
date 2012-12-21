@@ -33,7 +33,7 @@ public class DirectoryAgent extends Agent {
 		
 		// create a new registration
 		Registration registration = new Registration();
-		registration.setDirectoryAgent(getUrl());
+		registration.setDirectoryAgent(getFirstUrl());
 		registration.setAgent(agent);
 		registration.setType(type);
 		registration.setUsername(username);
@@ -90,7 +90,7 @@ public class DirectoryAgent extends Agent {
 		
 		RootFindCommand<Registration> command = datastore.find()
 			.type(Registration.class)
-			.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl());
+			.addFilter("directoryAgent", FilterOperator.EQUAL, getFirstUrl());
 		if (agent != null) {
 			command = command.addFilter("agent", FilterOperator.EQUAL, agent);
 		}
@@ -129,7 +129,7 @@ public class DirectoryAgent extends Agent {
 		
 		QueryResultIterator<Registration> it = datastore.find()
 		.type(Registration.class)
-		.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl())
+		.addFilter("directoryAgent", FilterOperator.EQUAL, getFirstUrl())
 		.addFilter(field, FilterOperator.EQUAL, value)
 		.now();
 	
@@ -147,7 +147,7 @@ public class DirectoryAgent extends Agent {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		QueryResultIterator<Registration> it = datastore.find()
 			.type(Registration.class)
-			.addFilter("directoryAgent", FilterOperator.EQUAL, getUrl())
+			.addFilter("directoryAgent", FilterOperator.EQUAL, getFirstUrl())
 			.now();
 		
 		while (it.hasNext()) {
@@ -157,6 +157,19 @@ public class DirectoryAgent extends Agent {
 		}
 		
 		super.clear();
+	}
+
+	/**
+	 * Get the first url of the agents urls. Returns null if the agent does not
+	 * have any urls.
+	 * @return firstUrl
+	 */
+	private String getFirstUrl() {
+		List<String> urls = getUrls();
+		if (urls.size() > 0) {
+			return urls.get(0);
+		}
+		return null;
 	}
 	
 	@Override

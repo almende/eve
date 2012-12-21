@@ -142,13 +142,9 @@
         </table>
 
         <p>
-            During this session, events are logged by
-            <a href="{{logAgentUrl}}" target="_blank">this</a> LogAgent,
-            which is polled every {{pollingInterval / 1000}} seconds for updates.
-        </p>
-        <p>
+            <button ng:click="updateEvents()">Refresh</button>
+            <button ng:click="clearEvents()">Clear</button>
             Last update: {{lastUpdate}}
-            <a ng:click="logAgentUpdate()">refresh now</a>
         </p>
     </div>
 

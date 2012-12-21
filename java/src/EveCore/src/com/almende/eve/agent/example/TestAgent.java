@@ -418,6 +418,10 @@ public class TestAgent extends Agent {
 		}
 	}
 	
+	public void deleteMySelf() throws Exception {
+		getAgentFactory().deleteAgent(getId());
+	}
+	
 	@Override
 	public String getVersion() {
 		return "1.0";
