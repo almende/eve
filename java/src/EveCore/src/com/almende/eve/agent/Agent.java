@@ -206,6 +206,10 @@ abstract public class Agent {
 			@Name("callbackMethod") String callbackMethod) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback s : subscriptions) {
+			if (s.url == null || s.method == null){
+//				System.err.println("Error: callback has empty fields!");
+				continue;
+			}
 			if (s.url.equals(callbackUrl) && 
 					s.method.equals(callbackMethod)) {
 				// The callback already exists. do not duplicate it
@@ -338,6 +342,9 @@ abstract public class Agent {
 			taskParams.put("params", callbackParams);
 			JSONRequest request = new JSONRequest("onTrigger", taskParams);
 			long delay = 0;
+			if (scheduler == null && agentFactory != null) {
+				scheduler = agentFactory.createScheduler(getId());
+			}
 			scheduler.createTask(request, delay);
 		}
 	}
