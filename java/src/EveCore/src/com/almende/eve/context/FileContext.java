@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +75,8 @@ public class FileContext extends Context {
 			if (file.length() > 0) {
 				FileInputStream fis = new FileInputStream(filename);
 				ObjectInput in = new ObjectInputStream(fis);
-				properties = (Map<String, Object>) in.readObject();
+				properties.clear();
+				properties.putAll((Map<String, Object>) in.readObject());
 				fis.close();
 				in.close();
 			}
@@ -106,81 +108,105 @@ public class FileContext extends Context {
 
 	@Override
 	public synchronized void clear() {
-		read();
-		properties.clear();
+		synchronized(properties){
+			read();
+			properties.clear();
+		}
 	}
 
 	@Override
 	public synchronized Set<String> keySet() {
-		read();
-		return properties.keySet();
+		synchronized(properties){
+			read();
+			return properties.keySet();
+		}
 	}
 
 	@Override
 	public synchronized boolean containsKey(Object key) {
-		read();
-		return properties.containsKey(key);
+		synchronized(properties){
+			read();
+			return properties.containsKey(key);
+		}
 	}
 
 	@Override
 	public synchronized boolean containsValue(Object value) {
-		read();
-		return properties.containsValue(value);
+		synchronized(properties){
+			read();
+			return properties.containsValue(value);
+		}
 	}
 
 	@Override
 	public synchronized Set<java.util.Map.Entry<String, Object>> entrySet() {
-		read();
-		return properties.entrySet();
+		synchronized(properties){
+			read();
+			return properties.entrySet();
+		}
 	}
 
 	@Override
 	public synchronized Object get(Object key) {
-		read();
-		return properties.get(key);
+		synchronized(properties){
+			read();
+			return properties.get(key);
+		}
 	}
 
 	@Override
 	public synchronized boolean isEmpty() {
-		read();
-		return properties.isEmpty();
+		synchronized(properties){
+			read();
+			return properties.isEmpty();
+		}
 	}
 
 	@Override
 	public synchronized Object put(String key, Object value) {
-		read();
-		Object ret = properties.put(key, value);
-		write();
-		return ret;
+		synchronized(properties){
+			read();
+			Object ret = properties.put(key, value);
+			write();
+			return ret;
+		}
 	}
 
 	@Override
 	public synchronized void putAll(Map<? extends String, ? extends Object> map) {
-		read();
-		properties.putAll(map);
-		write();
+		synchronized(properties){
+			read();
+			properties.putAll(map);
+			write();
+		}
 	}
 
 	@Override
 	public synchronized Object remove(Object key) {
-		read();
-		Object value = properties.remove(key);
-		write();
-		return value; 
+		synchronized(properties){
+			read();
+			Object value = properties.remove(key);
+			write();
+			return value; 
+		}
 	}
 
 	@Override
 	public synchronized int size() {
-		read();
-		return properties.size();
+		synchronized(properties){
+			read();
+			return properties.size();
+		}
 	}
 
 	@Override
 	public synchronized Collection<Object> values() {
-		read();
-		return properties.values();
+		synchronized(properties){
+			read();
+			return properties.values();
+		}
 	}
 	
 	private String filename = null;
-	private Map<String, Object> properties = new HashMap<String, Object>();
+	private static Map<String, Object> properties = Collections.synchronizedMap(new HashMap<String, Object>());
 }
