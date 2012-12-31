@@ -2,6 +2,11 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+<not yet released>, version 0.15
+
+- improved stability of the agents context.
+
+
 2012-12-21, version 0.14
 
 - Implemented synchronous send for the XmppService.

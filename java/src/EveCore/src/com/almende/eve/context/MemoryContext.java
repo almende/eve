@@ -1,9 +1,9 @@
 package com.almende.eve.context;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @class MemoryContext
@@ -32,62 +32,62 @@ public class MemoryContext extends Context {
 	}
 
 	@Override
-	public synchronized void clear() {
+	public void clear() {
 		properties.clear();
 	}
 
 	@Override
-	public synchronized Set<String> keySet() {
+	public Set<String> keySet() {
 		return properties.keySet();
 	}
 
 	@Override
-	public synchronized boolean containsKey(Object key) {
+	public boolean containsKey(Object key) {
 		return properties.containsKey(key);
 	}
 
 	@Override
-	public synchronized boolean containsValue(Object value) {
+	public boolean containsValue(Object value) {
 		return properties.containsValue(value);
 	}
 
 	@Override
-	public synchronized Set<java.util.Map.Entry<String, Object>> entrySet() {
+	public Set<java.util.Map.Entry<String, Object>> entrySet() {
 		return properties.entrySet();
 	}
 
 	@Override
-	public synchronized Object get(Object key) {
+	public Object get(Object key) {
 		return properties.get(key);
 	}
 
 	@Override
-	public synchronized boolean isEmpty() {
+	public boolean isEmpty() {
 		return properties.isEmpty();
 	}
 
 	@Override
-	public synchronized Object put(String key, Object value) {
+	public Object put(String key, Object value) {
 		return properties.put(key, value);
 	}
 
 	@Override
-	public synchronized void putAll(Map<? extends String, ? extends Object> map) {
+	public void putAll(Map<? extends String, ? extends Object> map) {
 		properties.putAll(map);
 	}
 
 	@Override
-	public synchronized Object remove(Object key) {
+	public Object remove(Object key) {
 		return properties.remove(key);
 	}
 
 	@Override
-	public synchronized int size() {
+	public int size() {
 		return properties.size();
 	}
 
 	@Override
-	public synchronized Collection<Object> values() {
+	public Collection<Object> values() {
 		return properties.values();
 	}
 
@@ -103,5 +103,5 @@ public class MemoryContext extends Context {
 	@Override
 	public void destroy() {}
 
-	private Map<String, Object> properties = new HashMap<String, Object>();
+	private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
 }
