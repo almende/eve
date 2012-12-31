@@ -450,7 +450,7 @@ public class AgentFactory {
 	 * Get the configured context factory.
 	 * @return contextFactory
 	 */
-	public ContextFactory  getContextFactory() throws Exception {
+	public ContextFactory getContextFactory() throws Exception {
 		if (contextFactory == null) {
 			throw new Exception("No context factory initialized.");
 		}
@@ -544,11 +544,14 @@ public class AgentFactory {
 						}
 					}
 					
+					// initialize the service
 					Class<?> serviceClass = Class.forName(className);
 					Service service = (Service) serviceClass
 							.getConstructor(AgentFactory.class)
 							.newInstance(this);
 					service.init(serviceParams);
+
+					// register the service with the agent factory
 					addService(service);
 				}
 				else {
