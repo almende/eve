@@ -167,6 +167,7 @@ public class XmppService extends Service {
 		connectionsById.put(agentId, connection);
 		connectionsByUrl.put(generateUrl(username, host), connection);
 		
+		/* TODO: persist connection (after XMPP certificates are implemented)
 		// persist the parameters for the connection
 		if (context != null) {
 			synchronized (context) {
@@ -183,6 +184,7 @@ public class XmppService extends Service {
 				context.put("connections", connections);
 			}
 		}
+		*/
 	}
 	
 	/**

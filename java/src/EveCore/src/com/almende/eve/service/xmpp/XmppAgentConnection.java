@@ -40,15 +40,6 @@ public class XmppAgentConnection {
 	}
 	
 	/**
-	 * Get the password of the connection
-	 * @return password
-	 */
-	// FIXME: remove this method asap when xmpp certificates are implemented
-	public String getPassword() {
-		return password;
-	}
-
-	/**
 	 * Login and connect the agent to the messaging service
 	 * @param agentId
 	 * @param host
@@ -62,7 +53,6 @@ public class XmppAgentConnection {
 			String serviceName, String username, String password) throws Exception {
 		this.agentId = agentId;
 		this.username = username;
-		this.username = password;
 		
 		try {
 			// configure and connect
@@ -232,7 +222,6 @@ public class XmppAgentConnection {
 	private AgentFactory agentFactory = null;
 	private String agentId = null;
 	private String username = null;
-	private String password = null; // TODO: remove variable password asap as soon as xmpp certificates are implemented
 	private XMPPConnection conn = null;
 	private AsyncCallbackQueue<JSONResponse> callbacks = 
 			new AsyncCallbackQueue<JSONResponse>();
