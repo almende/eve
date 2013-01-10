@@ -26,6 +26,7 @@ package com.almende.eve.agent.example;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +94,7 @@ public class TestAgent extends Agent {
 
 	public String cascade() throws IOException, JSONRPCException, Exception {
 		String name1 = get("name");
-		ObjectNode params = JOM.createObjectNode();
+		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("key", "name");
 		params.put("value", Math.round(Math.random() * 1000));
 		send(getMyUrl(), "put" , params);
@@ -102,6 +103,13 @@ public class TestAgent extends Agent {
 
 		System.out.println("callMyself name1=" + name1 + ", name2=" + name2);
 		return name1 + " " + name2;
+	}
+	
+	public Person cascade2() throws IOException, JSONRPCException, Exception {
+		// test sending a POJO as params
+		Person person = new Person();
+		person.setName("testname");
+		return send(getMyUrl(), "getPerson" , person, Person.class);
 	}
 	
 	public Person getPerson(@Name("name") String name) {
@@ -422,6 +430,48 @@ public class TestAgent extends Agent {
 		getAgentFactory().deleteAgent(getId());
 	}
 	
+	public Double testAgentProxy() {
+		String url = "http://eveagents.appspot.com/agents/testagent/1/";
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		
+		Double value = other.increment();
+		return value;
+	}
+	
+	public Double testAgentProxy2() {
+		String url = "http://eveagents.appspot.com/agents/testagent/1/";
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		
+		Double value = other.add(2.3, 4.5);
+		return value;
+	}
+
+	public List<Object> testAgentProxy3(@Name("asJSON") @Required(false) Boolean asJSON) {
+		String url = "http://eveagents.appspot.com/agents/testagent/1/";
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		
+		System.out.println("asJSON=" + asJSON);
+		
+		List<Object> value = other.getMethods(asJSON);
+		return value;
+	}
+	
+	public void testAgentProxy5() {
+		String url = "http://eveagents.appspot.com/agents/testagent/1/";
+		Person other = createAgentProxy(url, Person.class);
+		other.setName("bla");
+	}
+	
+	public Double testAgentProxy4() {
+		String url = "http://eveagents.appspot.com/agents/testagent/1/";
+		
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		
+		Double value = other.add(2.3, null);
+		return value;
+	}
+
+
 	@Override
 	public String getVersion() {
 		return "1.0";

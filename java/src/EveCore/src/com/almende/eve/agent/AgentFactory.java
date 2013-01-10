@@ -1,5 +1,8 @@
 package com.almende.eve.agent;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +17,7 @@ import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
 import com.almende.eve.json.JSONRPC;
+import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
@@ -125,8 +129,10 @@ public class AgentFactory {
 		}
 		
 		if (factories.containsKey(namespace)) {
-			throw new Exception("AgentFactory with namespace '" + namespace +
-					"' already exists");
+			throw new Exception("Shared AgentFactory with namespace '" + 
+					namespace + "' already exists. " +
+					"A shared AgentFactory can only be created once. " +
+					"Use getInstance instead to get the existing shared instance.");
 		}
 		
 		AgentFactory factory = new AgentFactory(config);
@@ -171,7 +177,56 @@ public class AgentFactory {
 		
 		return agent;
 	}
-	
+
+	/**
+	 * Create an agent proxy from an java interface
+	 * @param sender          The sender agent
+	 * @param receiverUrl     Url of the receiving agent
+	 * @param agentInterface  A java Interface, extending AgentInterface
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T createAgentProxy(final Agent sender, final String receiverUrl,
+			Class<T> agentInterface) {
+		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
+			throw new IllegalArgumentException("agentInterface must extend AgentInterface");
+		}
+		
+		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
+		T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
+				new Class[] { agentInterface },
+				new InvocationHandler() {
+					public Object invoke(Object proxy, Method method,
+							Object[] args) throws Throwable {
+						String id = getAgentId(receiverUrl);
+						if (id != null) {
+							// local agent
+							Agent agent = getAgent(id);
+							return method.invoke(agent, args);
+						}
+						else {
+							// remote agent
+							JSONRequest request = JSONRPC.createRequest(method, args);
+							JSONResponse response = send(sender, receiverUrl, request);
+							JSONRPCException err = response.getError();
+							if (err != null) {
+								throw err;
+							}
+							else if (response.getResult() != null) {
+								return response.getResult(Object.class);
+							}
+							else {
+								return null;
+							}
+						}
+					}
+				});
+		
+		// TODO: for optimization, one can cache the created proxy's
+
+		return proxy;
+	}
+
 	/**
 	 * Create an agent.
 	 * 
@@ -276,6 +331,7 @@ public class AgentFactory {
 			throws Exception {
 		String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
+			// local agent, invoke locally
 			return invoke(agentId, request);
 		}
 		else {

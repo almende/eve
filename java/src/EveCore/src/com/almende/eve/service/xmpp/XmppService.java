@@ -117,6 +117,7 @@ public class XmppService extends Service {
 			logger.info("No id specified for XmppService. Using " + contextId + " as id.");
 		}
 		try {
+			// TODO: dangerous to use a generic context (can possibly conflict with the id a regular agent)
 			context = agentFactory.getContextFactory().get(contextId);
 			if (context == null) {
 				context = agentFactory.getContextFactory().create(contextId);
