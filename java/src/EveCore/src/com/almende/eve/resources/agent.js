@@ -366,6 +366,11 @@ function Ctrl() {
                         self.methodName = self.methods[0].method;
                         self.setMethod();
                         self.$root.$eval();
+
+                        // update method select box
+                        setTimeout(function () {
+                            $(".chzn-select").chosen();
+                        }, 0);
                     }
                 }
             }

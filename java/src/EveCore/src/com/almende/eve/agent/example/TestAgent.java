@@ -122,23 +122,19 @@ public class TestAgent extends Agent {
 		return person;
 	}
 
-	public Double add(@Name("a") Double a, 
-			@Name("b") Double b) {
+	public Double add(@Name("a") Double a, @Name("b") Double b) {
 		return a + b;
 	}
 
-	public Double subtract(@Name("a") Double a, 
-			@Name("b") Double b) {
+	public Double subtract(@Name("a") Double a, @Name("b") Double b) {
 		return a - b;
 	}
 
-	public Double multiply(@Name("a") Double a, 
-			@Name("b") Double b) {
+	public Double multiply(@Name("a") Double a, @Name("b") Double b) {
 		return a * b;
 	}
 
-	public Double divide(@Name("a") Double a, 
-			@Name("b") Double b) {
+	public Double divide(@Name("a") Double a, @Name("b") Double b) {
 		return a / b;
 	}
 
@@ -458,6 +454,7 @@ public class TestAgent extends Agent {
 	
 	public void testAgentProxy5() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
+		// This should fail, Person is no Interface...
 		Person other = createAgentProxy(url, Person.class);
 		other.setName("bla");
 	}
