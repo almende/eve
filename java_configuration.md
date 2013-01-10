@@ -139,7 +139,7 @@ Description of the available properties:
                 </tr>
                 <tr>
                     <td>path</td>
-                    <td>The path on disk where the agents state will be stored.
+                    <td>The path on disk where the context of the agents will be stored.
                         Only applicable for the <code>FileContextFactory</code>.</td>
                 </tr>
             </table>
@@ -150,7 +150,11 @@ Description of the available properties:
             <ul>
                 <li><code>FileContextFactory</code>.
                     Located in eve-core.jar.
-                    Not applicable when deployed on Google App Engine.</li>
+                    The FileContextFactory stores the context of each agent as a
+                    file on disk. The files may only be used by a single Eve
+                    application. Multiple Eve applications running on the same
+                    machine must use a different `path`.
+                    This context is not applicable when deployed on Google App Engine.</li>
                 <li><code>MemoryContextFactory</code>.
                     Located in eve-core.jar.</li>
                 <li><code>DatastoreContextFactory</code>.
