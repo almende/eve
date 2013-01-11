@@ -1,6 +1,8 @@
 package com.almende.eve.context;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -109,13 +111,28 @@ public class FileContextFactory extends ContextFactory {
 	}
 
 	/**
-	 * Get the current environment, "Production" or "Development". 
-	 * In case of a file context, this will always return "Production".
+	 * Get the current environment. 
+	 * In case of a file context, it tries to read the environment name from a 
+	 * file called "_environment", on error/non-existence this will return "Production".
+	 * 
 	 * @return environment
 	 */
 	@Override
 	public String getEnvironment() {
-		return "Production";
+		String environment = "Production";
+		File file = new File((path != null ? path : "") + "_environment");
+		if (file.exists()){
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(file));
+				String line = reader.readLine();
+				if (line != null && !"".equals(line)){
+					environment = line;
+				}
+			} catch (Exception e){ 
+				//TODO: How to handle this error? (File not readable, not containing text, etc.)			
+			}
+		}
+		return environment;
 	}
 
 	/**

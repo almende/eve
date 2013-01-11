@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
+import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
@@ -70,6 +71,7 @@ import com.almende.util.ClassUtil;
 public class AgentFactory {
 	public AgentFactory () {
 		addService(new HttpService(this));
+		agents = new AgentCache();
 	}
 	
 	/**
@@ -81,6 +83,7 @@ public class AgentFactory {
 		setConfig(config);
 
 		addService(new HttpService(this));
+		agents = new AgentCache(config);
 	}
 	
 	/**
@@ -152,6 +155,15 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	public Agent getAgent(String agentId) throws Exception {
+		
+		//Check if agent is instantiated already, returning if it is:
+		Agent agent = agents.get(agentId);
+		if (agent != null){
+			//System.err.println("Agent "+agentId+" found in cache!");
+			return agent;
+		}
+		//No agent found, normal initialization:
+		
 		// load the context
 		Context context = null; 
 		context = getContextFactory().get(agentId);
@@ -170,10 +182,15 @@ public class AgentFactory {
 		}
 		
 		// instantiate the agent
-		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		agent = (Agent) agentClass.getConstructor().newInstance();
 		agent.setAgentFactory(this);
 		agent.setContext(context);
 		agent.init();
+		
+		if (agentClass.isAnnotationPresent(ThreadSafe.class) && agentClass.getAnnotation(ThreadSafe.class).value()){
+			//System.err.println("Agent "+agentId+" is threadSafe, keeping!");
+			agents.put(agentId, agent);
+		}
 		
 		return agent;
 	}
@@ -729,6 +746,8 @@ public class AgentFactory {
 		SERVICES.put("XmppService", "com.almende.eve.service.xmpp.XmppService");
 		SERVICES.put("HttpService", "com.almende.eve.service.http.HttpService");
     }
+
+	private static AgentCache agents;
 	
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }
