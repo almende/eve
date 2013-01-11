@@ -65,8 +65,9 @@ public class JSONRPC {
 		resp.setId(request.getId());
 
 		try {
-			Method method = getMethod(object, request.getMethod());
-			Object[] params = castParams(request.getParams(), method);
+			MethodType methodType = getMethod(object, request.getMethod());
+			Method method = methodType.method;
+			Object[] params = castParams(request.getParams(), methodType.params);
 			Object result = method.invoke(object, params);
 			if (result == null) {
 				result = JOM.createNullNode();
@@ -163,9 +164,9 @@ public class JSONRPC {
 				String methodName = method.getName();
 				boolean available = isAvailable(method);
 				if (available) {
-					Param[] params = getParams(method);
+					ParamType[] params = getParams(method);
 					boolean validParamNames = true;
-					for (Param param: params) {
+					for (ParamType param: params) {
 						if (param.name == null) {
 							validParamNames = false;
 							break;
@@ -174,8 +175,7 @@ public class JSONRPC {
 					
 					// TODO: not so nice 
 					if (!validParamNames) {
-						Class<?>[] pt = method.getParameterTypes();
-						if (pt.length == 1 && pt[0].equals(ObjectNode.class)) {
+						if (params.length == 1 && params[0].type.equals(ObjectNode.class)) {
 							params[0].name = "params";
 							validParamNames = true;
 						}
@@ -301,19 +301,24 @@ public class JSONRPC {
 	}
 	
 	/**
-	 * Find a method by name
+	 * Find a method by name, 
+	 * which is available for JSON-RPC, and has named parameters 
 	 * @param object
 	 * @param method
-	 * @return
+	 * @return meta information on the method
 	 * @throws JSONRPCException 
 	 */
-	static private Method getMethod(Object object, String method) 
+	static private MethodType getMethod(Object object, String method) 
 			throws JSONRPCException {
 		Class<?> c = object.getClass();
 		while (c != null && c != Object.class) {
-			for (Method m : c.getDeclaredMethods()) {
-				if (isAvailable(m) && m.getName().equals(method)) {
-					return m;
+			for (Method m : c.getMethods()) {
+				if (m.getName().equals(method) && isAvailable(m)) {
+					MethodType meta = new MethodType();
+					// meta.name = m.getName();
+					meta.method = m;
+					meta.params = getParams(m);
+					return meta;
 				}
 			}
 			
@@ -333,12 +338,11 @@ public class JSONRPC {
 	 * @return 
 	 * @throws Exception 
 	 */
-	static private Object[] castParams(Object params, Method method) 
+	static private Object[] castParams(Object params, ParamType[] paramTypes) 
 			throws Exception {
 		ObjectMapper mapper = JOM.getInstance();
-		Param[] methodParams = getParams(method);
 
-		if (methodParams.length == 0) {
+		if (paramTypes.length == 0) {
 			return new Object[0];
 		}
 		
@@ -347,7 +351,7 @@ public class JSONRPC {
 
 			// check whether all method parameters are named
 			boolean hasParamNames = false;
-			for (Param param : methodParams) {
+			for (ParamType param : paramTypes) {
 				if (param.name != null) {
 					hasParamNames = true;
 					break;
@@ -357,9 +361,9 @@ public class JSONRPC {
 			if (hasParamNames) {
 				ObjectNode paramsObject = (ObjectNode)params;
 				
-				Object[] objects = new Object[methodParams.length];
-				for (int i = 0; i < methodParams.length; i++) {
-					Param p = methodParams[i];
+				Object[] objects = new Object[paramTypes.length];
+				for (int i = 0; i < paramTypes.length; i++) {
+					ParamType p = paramTypes[i];
 					if (p.name == null) {
 						throw new Exception("Name of parameter " + i + " not defined");
 					}
@@ -386,8 +390,8 @@ public class JSONRPC {
 				}
 				return objects;
 			}
-			else if (methodParams.length == 1 && 
-					methodParams[0].equals(ObjectNode.class)) {
+			else if (paramTypes.length == 1 && 
+					paramTypes[0].equals(ObjectNode.class)) {
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];
@@ -410,7 +414,7 @@ public class JSONRPC {
 	 * @return
 	 */
 	public static JSONRequest createRequest(Method method, Object[] args) {
-		Param[] methodParams = getParams(method);
+		ParamType[] methodParams = getParams(method);
 		
 		ObjectNode params = JOM.createObjectNode();
 		
@@ -440,18 +444,18 @@ public class JSONRPC {
 	/**
 	 * Get a description of a methods parameters
 	 * @param method
-	 * @return
+	 * @return params
 	 */
-	private static Param[] getParams (Method method) {
+	private static ParamType[] getParams (Method method) {
 		Class<?>[] types = method.getParameterTypes();
 		Type[] genericTypes = method.getGenericParameterTypes();
 		int paramNum = Math.min(types.length, genericTypes.length);
 
-		Param[] params = new Param[paramNum];
+		ParamType[] params = new ParamType[paramNum];
 		
 		Annotation[][] paramAnnotations = method.getParameterAnnotations();
 		for(int i = 0; i < paramNum; i++){
-			params[i] = new Param();
+			params[i] = new ParamType();
 			params[i].type = types[i];
 			params[i].genericType = genericTypes[i];
 			
@@ -487,10 +491,19 @@ public class JSONRPC {
 	/**
 	 * Helper class to describe a method parameter
 	 */
-	private static class Param {
+	private static class ParamType {
 		String name = null;
 		boolean required = true;
 		Class<?> type = null;
 		Type genericType = null;
+	}
+	
+	/**
+	 * Helper class to describe a method
+	 */
+	private static class MethodType {
+		// String name = null;
+		Method method = null;
+		ParamType[] params = null;
 	}
 }
