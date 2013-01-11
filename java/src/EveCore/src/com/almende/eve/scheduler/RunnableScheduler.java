@@ -2,6 +2,7 @@ package com.almende.eve.scheduler;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -33,9 +34,9 @@ public class RunnableScheduler extends Scheduler {
 		Executors.newScheduledThreadPool(1);
 
 	private static final Map<String, Map<String, ScheduledFuture<?>>> allTasks = 
-		new HashMap<String, Map<String, ScheduledFuture<?>>>(); // {agentId: {taskId: task}}
+		new ConcurrentHashMap<String, Map<String, ScheduledFuture<?>>>(); // {agentId: {taskId: task}}
 	private Map<String, ScheduledFuture<?>> tasks = null;      // {taskId: task}
-
+	
 	/**
 	 * Schedule a task
 	 * @param request   A JSONRequest with method and params
@@ -87,8 +88,8 @@ public class RunnableScheduler extends Scheduler {
 			boolean mayInterruptIfRunning = false;
 			scheduledFuture.cancel(mayInterruptIfRunning);
 		}
-		
-		tasks.remove(id);
+	    
+		removeFuture(id);
 	}
 
 	/**
@@ -115,19 +116,19 @@ public class RunnableScheduler extends Scheduler {
 		return Long.toString(id);
 	}
 	
-	private synchronized void putFuture(String id, ScheduledFuture<?> future) {
+	private void putFuture(String id, ScheduledFuture<?> future) {
 		if (tasks != null && id != null) {
 			tasks.put(id, future);
 		}
 	}
 
-	private synchronized void removeFuture(String id) {
+	private void removeFuture(String id) {
 		if (tasks != null && id != null) {
 			tasks.remove(id);
 		}
 	}
 	
-	private synchronized boolean isDone(String id) {
+	private boolean isDone(String id) {
 		if (tasks != null && id != null) {
 			ScheduledFuture<?> scheduledFuture = tasks.get(id);
 			

@@ -51,7 +51,7 @@ import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
-abstract public class Agent {
+abstract public class Agent implements AgentInterface {
 	private AgentFactory agentFactory = null;
 	private Context context = null;
 	private Scheduler scheduler = null;
@@ -200,7 +200,7 @@ abstract public class Agent {
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
-	final public void onSubscribe(
+	final public void onSubscribe (
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod) {
@@ -375,20 +375,29 @@ abstract public class Agent {
 	 * Send a request to an agent in JSON-RPC format
 	 * @param url    The url of the agent
 	 * @param method The name of the method
-	 * @param params A ObjectNode containing the parameter values of the method
+	 * @param params A Object containing the parameter values of the method.
+	 *               This can be an ObjectNode, Map, or POJO.
 	 * @param type   The return type of the method
 	 * @return       
 	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, ObjectNode params, 
+	final public <T> T send(String url, String method, Object params, 
 			Class<T> type) throws Exception {
 		// TODO: implement support for adding custom http headers (for authorization for example)
 	
+		ObjectNode jsonParams;
+		if (params instanceof ObjectNode) {
+			jsonParams = (ObjectNode) params;
+		}
+		else {
+			jsonParams = JOM.getInstance().convertValue(params, ObjectNode.class);
+		}
+		
 		// invoke the other agent via the context, allowing the context
 		// to route the request internally or externally
 		String id = UUID.randomUUID().toString();
-		JSONRequest request = new JSONRequest(id, method, params);
+		JSONRequest request = new JSONRequest(id, method, jsonParams);
 		JSONResponse response = getAgentFactory().send(this, url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
@@ -418,16 +427,29 @@ abstract public class Agent {
 	 * Send a request to an agent in JSON-RPC format
 	 * @param url    The url of the agent
 	 * @param method The name of the method
-	 * @param params A ObjectNode containing the parameter values of the method
+	 * @param params A Object containing the parameter values of the method.
+	 *               This can be an ObjectNode, Map, or POJO.
 	 * @return 
 	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void send(String url, String method, ObjectNode params) 
+	final public void send(String url, String method, Object params) 
 			throws Exception {
 		send(url, method, params, void.class);
 	}
-
+	
+	/**
+	 * Create a proxy to an other agent. Invoked methods will be send to the 
+	 * actual agent via the AgentFactory.
+	 * @param url
+	 * @param agentInterface  A Java Interface, extending AgentInterface
+	 * @return agentProxy
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T createAgentProxy(String url, Class<T> agentInterface) {
+		return getAgentFactory().createAgentProxy(this, url, agentInterface);
+	}
+	
 	/**
 	 * Send a request to an agent in JSON-RPC format
 	 * @param url    The url of the agent

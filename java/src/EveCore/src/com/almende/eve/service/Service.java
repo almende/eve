@@ -58,7 +58,7 @@ public abstract class Service {
 	 * @return protocols
 	 */
 	public abstract List<String> getProtocols();
-
+	
 	@Override
 	public String toString() {
 		Map<String, Object> data = new HashMap<String, Object>();

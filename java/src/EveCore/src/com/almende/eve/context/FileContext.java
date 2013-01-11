@@ -107,7 +107,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized void clear() {
+	public void clear() {
 		synchronized(properties){
 			read();
 			properties.clear();
@@ -115,7 +115,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized Set<String> keySet() {
+	public Set<String> keySet() {
 		synchronized(properties){
 			read();
 			return properties.keySet();
@@ -123,7 +123,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized boolean containsKey(Object key) {
+	public boolean containsKey(Object key) {
 		synchronized(properties){
 			read();
 			return properties.containsKey(key);
@@ -131,7 +131,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized boolean containsValue(Object value) {
+	public boolean containsValue(Object value) {
 		synchronized(properties){
 			read();
 			return properties.containsValue(value);
@@ -139,7 +139,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized Set<java.util.Map.Entry<String, Object>> entrySet() {
+	public Set<java.util.Map.Entry<String, Object>> entrySet() {
 		synchronized(properties){
 			read();
 			return properties.entrySet();
@@ -147,7 +147,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized Object get(Object key) {
+	public Object get(Object key) {
 		synchronized(properties){
 			read();
 			return properties.get(key);
@@ -155,7 +155,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized boolean isEmpty() {
+	public boolean isEmpty() {
 		synchronized(properties){
 			read();
 			return properties.isEmpty();
@@ -163,7 +163,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized Object put(String key, Object value) {
+	public Object put(String key, Object value) {
 		synchronized(properties){
 			read();
 			Object ret = properties.put(key, value);
@@ -173,7 +173,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized void putAll(Map<? extends String, ? extends Object> map) {
+	public void putAll(Map<? extends String, ? extends Object> map) {
 		synchronized(properties){
 			read();
 			properties.putAll(map);
@@ -182,7 +182,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized Object remove(Object key) {
+	public Object remove(Object key) {
 		synchronized(properties){
 			read();
 			Object value = properties.remove(key);
@@ -192,7 +192,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized int size() {
+	public int size() {
 		synchronized(properties){
 			read();
 			return properties.size();
@@ -200,7 +200,7 @@ public class FileContext extends Context {
 	}
 
 	@Override
-	public synchronized Collection<Object> values() {
+	public Collection<Object> values() {
 		synchronized(properties){
 			read();
 			return properties.values();

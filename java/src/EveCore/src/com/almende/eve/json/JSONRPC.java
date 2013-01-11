@@ -19,9 +19,9 @@ import com.almende.eve.json.annotation.Name;
 import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.agent.annotation.Access;
-import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -29,132 +29,6 @@ public class JSONRPC {
 	//static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
 
 	// TODO: implement JSONRPC 2.0 Batch
-	
-	/* TODO: implement again
-	static public Object send (String url, String method, JSONObject params) 
-			throws Exception {
-
-		final int id = 1;
-		resp = send(url, new JSONRequest(id, method, params));
-		
-				// check if an error occurred
-		if (jsonResponse.has("error")) {
-			if (jsonResponse.get("error") != null) {
-				JSONObject jsonError = jsonResponse.getJSONObject("error");
-				
-				if (jsonError.has("message")) {
-					Object message = jsonError.get("message");
-					throw new Exception(message.toString());
-				}
-				else {
-					throw new Exception("Unknown error");
-				}
-			}
-		}
-	}
-	*/
-	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * @param url         The url of the agent
-	 * @param jsonRequest The request, containing id, method and parameters
-	 * @return jsonResponse       
-	 * @throws IOException 
-	 */
-	// TODO: remove the send methods from JSONRPC
-	static public JSONResponse send___ (String url, JSONRequest jsonRequest) 
-			throws IOException {
-		String req = jsonRequest.toString();
-		String resp = HttpUtil.post(url, req);
-
-		JSONResponse jsonResponse;
-		try {
-			jsonResponse = new JSONResponse(resp);
-		} catch (JSONRPCException err) {
-			jsonResponse = new JSONResponse(err);
-		}
-		
-		return jsonResponse;
-	}
-	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * @param url    The url of the agent
-	 * @param method The name of the method
-	 * @param params A ObjectNode containing the parameter values of the method
-	 * @param type   The return type of the method
-	 * @return       
-	 * @throws JSONRPCException 
-	 * @throws IOException 
-	 */
-	static public <T> T send___(String url, String method, ObjectNode params, 
-			Class<T> type) throws IOException, JSONRPCException {
-		JSONResponse response = JSONRPC.send___(url, new JSONRequest(method, params));
-		JSONRPCException err = response.getError();
-		if (err != null) {
-			throw err;
-		}
-		if (type != null && type != void.class) {
-			return response.getResult(type);
-		}
-		return null;
-	}
-
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * @param url    The url of the agent
-	 * @param method The name of the method
-	 * @param params A ObjectNode containing the parameter values of the method
-	 * @return 
-	 * @throws JSONRPCException 
-	 * @throws IOException 
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	static public void send___(String url, String method, ObjectNode params) 
-			throws JSONRPCException, IOException {
-		send___(url, method, params, void.class);
-	}
-
-	/**
-	 * Send a request to an agent in JSON-RPC 1.0 format (array with parameters)
-	 * @param callbackMethod  The method to be executed on callback
-	 * @param url             The url of the agent to be called
-	 * @param method          The name of the method
-	 * @param params          A JSONObject or JSONArray containing the parameter 
-	 *                        values of the method
-	 * @return response       A Confirmation message or error message in JSON 
-	 *                        format
-	 * @throws JSONException 
-	 * @throws IOException 
-	 * @throws URISyntaxException 
-	 */
-	/* TODO: implement async json-rpc again
-	static public void sendAsync (String url, String method, Object params,
-			String callbackMethod) throws IOException, URISyntaxException {
-		final String id = context.getId();
-		final String id = "1";
-
-		// built up the JSON request
-		JSONObject jsonRequest = new JSONObject();
-		jsonRequest.put("id", id);
-		jsonRequest.put("method", method);
-		jsonRequest.put("params", params);
-
-		JSONObject callback = new JSONObject();
-		callback.put("url", url);
-		callback.put("method", callbackMethod);
-		jsonRequest.put("callback", callback);
-
-		// send the request to the agent. 
-		// there will be no response, as we send an async message
-		if (isInternalUrl(url)) {
-			fetchInternalAsync(url, jsonRequest.toString());
-		}
-		else {
-			fetch(url, jsonRequest.toString());
-		}
-	}
-	*/
 	
 	/**
 	 * Invoke a method on an object
@@ -617,17 +491,52 @@ public class JSONRPC {
 		}
 	}
 
-	/* TODO: use or cleanup
-	static private <T> T convertParam (JsonNode param, Class<T> type) {
-		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(param, new TypeReference<T>() {});
+	/**
+	 * Create a JSONRequest from a java method and arguments
+	 * @param method
+	 * @param args
+	 * @return
+	 */
+	public static JSONRequest createRequest(Method method, Object[] args) {
+		ObjectNode params = JOM.createObjectNode();
+		
+		Type[] types = method.getGenericParameterTypes();
+		int paramNum = types.length;
+		
+		Annotation[][] paramAnnotations = method.getParameterAnnotations();
+		for(int i = 0; i < paramNum; i++){
+			String paramName = null;
+			Boolean required = true;
+			
+			Annotation[] annotations = paramAnnotations[i];
+			for(Annotation annotation : annotations) {
+				if(annotation instanceof Name){
+					paramName =  ((Name) annotation).value();
+				}
+				if(annotation instanceof Required){
+					required = ((Required) annotation).value();
+				}
+			}
+			
+			if (i < args.length && args[i] != null) {
+				if (paramName != null) {
+					JsonNode paramValue = JOM.getInstance().convertValue(args[i], 
+							JsonNode.class);
+					params.put(paramName, paramValue);
+				}
+				else {
+					throw new IllegalArgumentException(
+							"Parameter " + i + " in method '" + method.getName() + 
+							"' is missing the @Name annotation.");
+				}
+			}
+			else if (required) {
+				throw new IllegalArgumentException(
+						"Required parameter " + i + " in method '" + method.getName() + 
+						"' is null.");
+			}
+		}
+		
+		return new JSONRequest(method.getName(), params);		
 	}
-	//*/
-	
-	/* TODO
-	final private boolean isInternalUrl(String url) 
-			throws FileNotFoundException, IOException {
-		return url.startsWith(AgentsContext.getServletUrl());		
-	}
-	*/
 }

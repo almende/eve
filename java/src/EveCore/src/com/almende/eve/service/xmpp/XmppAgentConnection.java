@@ -38,7 +38,7 @@ public class XmppAgentConnection {
 	public String getUsername() {
 		return username;
 	}
-
+	
 	/**
 	 * Login and connect the agent to the messaging service
 	 * @param agentId
@@ -53,7 +53,7 @@ public class XmppAgentConnection {
 			String serviceName, String username, String password) throws Exception {
 		this.agentId = agentId;
 		this.username = username;
-
+		
 		try {
 			// configure and connect
 			ConnectionConfiguration connConfig = 

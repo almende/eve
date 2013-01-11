@@ -46,6 +46,7 @@ public abstract class Context implements Map<String, Object> {
 	 * @return agentClass
 	 */
 	public synchronized void setAgentClass(Class<?> agentClass) {
+		// TODO: dangerous to use a generic context parameter to store the agent class, can be accidentally overwritten 
 		put("class", agentClass.getName());
 	}
 	

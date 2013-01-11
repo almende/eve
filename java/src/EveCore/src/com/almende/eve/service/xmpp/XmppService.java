@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
+import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.service.AsyncCallback;
@@ -62,11 +64,17 @@ public class XmppService extends Service {
      */
 	@Override
 	public void init(Map<String, Object> params) {
+		String contextId = null;
+
 		if (params != null) {
 			host = (String) params.get("host");
 			port = (Integer) params.get("port");
 			service = (String) params.get("service");
+			contextId = (String) params.get("id");
 		}
+		
+		initContext(contextId);
+		initConnections();
 	}
 
 	/**
@@ -76,9 +84,48 @@ public class XmppService extends Service {
 	 * @param service  service name
      */
 	public void init(String host, Integer port, String service) {
+		String id = null;
+		init(host, port, service, id);
+	}
+
+	/**
+	 * initialize the settings for the xmpp service
+	 * @param host
+	 * @param port
+	 * @param service  service name
+	 * @param id       context id, to persist the state
+     */
+	public void init(String host, Integer port, String service, String id) {
 		this.host = host;
 		this.port = port;
 		this.service = service;
+		
+		initContext(id);
+		initConnections();
+	}
+	
+	/**
+	 * Initialize a context for the service, to persist the parameters of all
+	 * open connections.
+	 * @param contextId
+	 */
+	private void initContext (String contextId) {
+		// set a context for the service, where the service can 
+		// persist its state.
+		if (contextId == null) {
+			contextId = ".xmppservice";
+			logger.info("No id specified for XmppService. Using " + contextId + " as id.");
+		}
+		try {
+			// TODO: dangerous to use a generic context (can possibly conflict with the id a regular agent)
+			context = agentFactory.getContextFactory().get(contextId);
+			if (context == null) {
+				context = agentFactory.getContextFactory().create(contextId);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -119,6 +166,25 @@ public class XmppService extends Service {
 		// register the connection
 		connectionsById.put(agentId, connection);
 		connectionsByUrl.put(generateUrl(username, host), connection);
+		
+		/* TODO: persist connection (after XMPP certificates are implemented)
+		// persist the parameters for the connection
+		if (context != null) {
+			synchronized (context) {
+				@SuppressWarnings("unchecked")
+				Map<String, Map<String, String>> connections = 
+						(Map<String, Map<String, String>>)context.get("connections");
+				if (connections == null) {
+					connections = new HashMap<String, Map<String, String>>();
+				}
+				Map<String, String> params = new HashMap<String, String>();
+				params.put("username", username);
+				params.put("password", password);
+				connections.put(agentId, params);
+				context.put("connections", connections);
+			}
+		}
+		*/
 	}
 	
 	/**
@@ -133,6 +199,19 @@ public class XmppService extends Service {
 			String url = generateUrl(connection.getUsername(), host);
 			connectionsById.remove(agentId);
 			connectionsByUrl.remove(url);
+
+			// remove the connection parameters from the persisted state
+			if (context != null) {
+				synchronized (context) {
+					@SuppressWarnings("unchecked")
+					Map<String, Map<String, String>> connections = 
+							(Map<String, Map<String, String>>)context.get("connections");
+					if (connections != null && connections.containsKey(agentId)) {
+						connections.remove(agentId);
+						context.put("connections", connections);
+					}
+				}
+			}
 		}
 	}
 	
@@ -184,6 +263,33 @@ public class XmppService extends Service {
 		return "xmpp:" + username + "@" + host; 
 	}
 
+	/**
+	 * initialize all connections stored in the services context
+	 */
+	private void initConnections() {
+		if (context != null) {
+			synchronized (context) {
+				@SuppressWarnings("unchecked")
+				Map<String, Map<String, String>> connections = 
+						(Map<String, Map<String, String>>)context.get("connections");
+				if (connections != null) {
+					logger.info("Initializing " + connections.size() + " XMPP connections...");
+					
+					for (String agentId : connections.keySet()) {
+						Map<String, String> params = connections.get(agentId);
+						try {
+							connect(agentId, params.get("username"), params.get("password"));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					
+					logger.info("XMPP connections initialized");
+				}
+			}
+		}
+	}
+
 	@Override
 	public String toString() {
 		Map<String, Object> data = new HashMap<String, Object>();
@@ -192,16 +298,24 @@ public class XmppService extends Service {
 		data.put("port", port);
 		data.put("service", service);
 		data.put("protocols", protocols);
+
+		if (context != null) {
+			data.put("id", context.getAgentId());
+		}
+		
 		return data.toString();
 	}	
 	
 	private String host = null;
 	private Integer port = null;
 	private String service = null;
-
+	private Context context = null;	
+	
 	private Map<String, XmppAgentConnection> connectionsById = 
 			new ConcurrentHashMap<String, XmppAgentConnection>();   // agentId as key
 	private Map<String, XmppAgentConnection> connectionsByUrl = 
 			new ConcurrentHashMap<String, XmppAgentConnection>();   // xmpp url as key "xmpp:username@host"
 	List<String> protocols = Arrays.asList("xmpp");
+
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

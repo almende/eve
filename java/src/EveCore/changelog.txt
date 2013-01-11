@@ -2,6 +2,22 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+<not yet released>, version 0.15
+
+- The send method of the Agent is more generic and no longer only accepts an
+  ObjectNode as params, but also a Map or POJO. 
+- An agent proxy can be created via the AgentFactory by providing a Java 
+  Interface. So instead of Agent.send(url, method, params, type) where the 
+  method is a string and one has to prepare an object with the parameters, one 
+  can create a proxy for the agent and execute a regular java method call like
+  ProxyAgent.method(a, b).
+  When a call is made to a local agent, the local agents method is immediately
+  invoked, without converting the call into JSON-RPC.
+- XmppService automatically restores all open connections after a server 
+  restart.
+- Improved stability of the agents context.
+
+
 2012-12-21, version 0.14
 
 - Implemented synchronous send for the XmppService.
