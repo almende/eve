@@ -61,22 +61,6 @@ public class JSONRPC {
 	 * @return
 	 */
 	static public JSONResponse invoke (Object object, JSONRequest request) {
-		if (request.hasCallback()) {
-			System.out.println("WARNING: JSON-RPC async is not yet implemented");
-			
-			/* TODO: implement async json-rpc, as soon as a schedular is available
-			if (isJSON_RPC_2) {
-				// return callback in JSON-RPC 2.0 format
-				send(callbackUrl, callbackMethod, resp);
-			}
-			else {
-				// return callback in JSON-RPC 1.0 format
-				JSONArray params = createJSONArray(result);
-				send(callbackUrl, callbackMethod, params);
-			}
-			*/
-		}
-		
 		JSONResponse resp = new JSONResponse(); 
 		resp.setId(request.getId());
 
@@ -98,8 +82,6 @@ public class JSONRPC {
 				resp.setError((JSONRPCException) err.getCause());
 			}
 			else {
-				err.printStackTrace(); // TODO: remove printing stacktrace?
-				
 				JSONRPCException jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
 				resp.setError(jsonError);
@@ -125,14 +107,7 @@ public class JSONRPC {
 		while (c != null && c != Object.class) {
 			Set<String> methodNames = new HashSet<String>();
 			for (Method method : c.getDeclaredMethods()) {
-				int mod = method.getModifiers();
-				Access access = method.getAnnotation(Access.class);
-				boolean available = 
-					Modifier.isPublic(mod) &&
-					(access == null || 
-							(access.value() != AccessType.UNAVAILABLE && 
-							access.visible()));
-				
+				boolean available = isAvailable(method);				
 				if (available) {
 					// The method name may only occur once
 					String name = method.getName();
@@ -186,56 +161,22 @@ public class JSONRPC {
 		while (c != null && c != Object.class) {
 			for (Method method : c.getDeclaredMethods()) {
 				String methodName = method.getName();
-				int mod = method.getModifiers();
-				Access access = method.getAnnotation(Access.class); 
-				// TODO: apply access when invoking a method of the agent
-
-				boolean available = 
-					Modifier.isPublic(mod) &&
-					(access == null || 
-							(access.value() != AccessType.UNAVAILABLE &&
-							 access.visible()));
-
+				boolean available = isAvailable(method);
 				if (available) {
-					//Class<?>[] types = method.getParameterTypes();
-					Type[] types = method.getGenericParameterTypes();
-					int paramNum = types.length;
-					Annotation[][] paramAnnotations = method.getParameterAnnotations();
-					String[] paramTypes = new String[paramNum];
-					for(int i = 0; i < paramNum; i++){
-						paramTypes[i] = typeToString(types[i]);	
+					Param[] params = getParams(method);
+					boolean validParamNames = true;
+					for (Param param: params) {
+						if (param.name == null) {
+							validParamNames = false;
+							break;
+						}
 					}
 					
-					// get parameters
-					boolean validParamNames = true;
-					String[] paramNames = new String[paramNum];
-					boolean[] paramRequired = new boolean[paramNum];
-					for(int i = 0; i < paramNum; i++){
-						paramTypes[i] = typeToString(types[i]);	
-						paramRequired[i] = true;
-						
-						Annotation[] annotations = paramAnnotations[i];
-						for(Annotation annotation : annotations){
-							if(annotation instanceof Name){
-								Name pn = (Name) annotation;
-								paramNames[i] = pn.value();
-							}
-							if(annotation instanceof Required){
-								Required pr = (Required) annotation;
-								paramRequired[i] = pr.value();
-							}
-						}
-						
-						if (paramNames[i] == null) {
-							validParamNames = false;
-						}
-					}
-
 					// TODO: not so nice 
 					if (!validParamNames) {
 						Class<?>[] pt = method.getParameterTypes();
 						if (pt.length == 1 && pt[0].equals(ObjectNode.class)) {
-							paramNames[0] = "params";
+							params[0].name = "params";
 							validParamNames = true;
 						}
 					}
@@ -247,11 +188,11 @@ public class JSONRPC {
 						if (asJSON) {
 							// format as JSON
 							List<Object> descParams = new ArrayList<Object>();
-							for(int i = 0; i < paramNum; i++){
+							for(int i = 0; i < params.length; i++){
 								Map<String, Object> paramData = new HashMap<String, Object>();
-								paramData.put("name", paramNames[i]);
-								paramData.put("type", paramTypes[i]);
-								paramData.put("required", paramRequired[i]);
+								paramData.put("name", params[i].name);
+								paramData.put("type", typeToString(params[i].genericType));
+								paramData.put("required", params[i].required);
 								descParams.add(paramData);
 							}
 							
@@ -267,15 +208,15 @@ public class JSONRPC {
 						else {
 							// format as string
 							String p = "";
-							for(int i = 0; i < paramNum; i++){
+							for(int i = 0; i < params.length; i++){
 								if (!p.isEmpty()) {
 									p += ", ";
 								}
-								if (paramRequired[i]) {
-									p += paramTypes[i] + " " + paramNames[i];
+								if (params[i].required) {
+									p += typeToString(params[i].genericType) + " " + params[i].name;
 								}
 								else {
-									p += "[" + paramTypes[i] + " " + paramNames[i] + "]";
+									p += "[" + typeToString(params[i].genericType) + " " + params[i].name + "]";
 								}
 							}
 							String desc = returnType + " " + methodName + "(" + p + ")";
@@ -371,19 +312,8 @@ public class JSONRPC {
 		Class<?> c = object.getClass();
 		while (c != null && c != Object.class) {
 			for (Method m : c.getDeclaredMethods()) {
-
-				int mod = m.getModifiers();
-				Access access = m.getAnnotation(Access.class);
-				boolean available = 
-					Modifier.isPublic(mod) &&
-					(access == null || access.value() != AccessType.UNAVAILABLE);
-				
-				if (available) {
-					String name = m.getName();
-					
-					if (name.equals(method)) {
-						return m;
-					}
+				if (isAvailable(m) && m.getName().equals(method)) {
+					return m;
 				}
 			}
 			
@@ -406,66 +336,48 @@ public class JSONRPC {
 	static private Object[] castParams(Object params, Method method) 
 			throws Exception {
 		ObjectMapper mapper = JOM.getInstance();
-		Class<?>[] paramTypes = method.getParameterTypes();
-		Annotation[][] paramAnnotations = method.getParameterAnnotations();
-		
-		if (paramTypes.length == 0) {
+		Param[] methodParams = getParams(method);
+
+		if (methodParams.length == 0) {
 			return new Object[0];
 		}
 		
 		if (params instanceof ObjectNode) {
 			// JSON-RPC 2.0 with named parameters in a JSONObject
 
-			// find named parameter annotations
+			// check whether all method parameters are named
 			boolean hasParamNames = false;
-			String[] paramNames = new String[paramTypes.length];
-			Boolean[] paramRequired = new Boolean[paramTypes.length];
-			for(int i = 0; i < paramTypes.length; i++){
-				paramRequired[i] = true;
-				Annotation[] annotations = paramAnnotations[i];
-				for(Annotation annotation : annotations){
-					if(annotation instanceof Name){
-						Name name = (Name) annotation;
-						paramNames[i] = name.value();
-						hasParamNames = true;
-					}
-					if(annotation instanceof Required){
-						Required required = (Required) annotation;
-						paramRequired[i] = required.value();
-					}
+			for (Param param : methodParams) {
+				if (param.name != null) {
+					hasParamNames = true;
+					break;
 				}
 			}
 			
 			if (hasParamNames) {
 				ObjectNode paramsObject = (ObjectNode)params;
 				
-				Object[] objects = new Object[paramTypes.length];
-				for (int i = 0; i < paramTypes.length; i++) {
-					Class<?> paramType = paramTypes[i];
-					String paramName = paramNames[i];
-					if (paramName == null) {
+				Object[] objects = new Object[methodParams.length];
+				for (int i = 0; i < methodParams.length; i++) {
+					Param p = methodParams[i];
+					if (p.name == null) {
 						throw new Exception("Name of parameter " + i + " not defined");
 					}
-					if (paramsObject.has(paramName)) {
-						objects[i] = mapper.convertValue(
-								paramsObject.get(paramName), paramType);
-
-						/* TODO
-						objects[i] = convertParam(paramsObject.get(paramName), paramType);
-						//*/
+					if (paramsObject.has(p.name)) {
+						objects[i] = mapper.convertValue(paramsObject.get(p.name), p.type);
 					}
 					else {
-						if (paramRequired[i]) {
+						if (p.required) {
 							throw new Exception("Required parameter '" + 
-									paramName + "' missing");
+									p.name + "' missing");
 						}
 						//else if (paramType.getSuperclass() == null) {
-						else if (paramType.isPrimitive()) {
+						else if (p.type.isPrimitive()) {
 							throw new Exception(
-									"Parameter '" + paramName +
+									"Parameter '" + p.name +
 									"' cannot be both optional and " +
 									"a primitive type (" +
-									paramType.getSimpleName() + ")");
+									p.type.getSimpleName() + ")");
 						}
 						else {
 							objects[i] = null;
@@ -474,8 +386,8 @@ public class JSONRPC {
 				}
 				return objects;
 			}
-			else if (paramTypes.length == 1 && 
-					paramTypes[0].equals(ObjectNode.class)) {
+			else if (methodParams.length == 1 && 
+					methodParams[0].equals(ObjectNode.class)) {
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];
@@ -498,31 +410,16 @@ public class JSONRPC {
 	 * @return
 	 */
 	public static JSONRequest createRequest(Method method, Object[] args) {
+		Param[] methodParams = getParams(method);
+		
 		ObjectNode params = JOM.createObjectNode();
 		
-		Type[] types = method.getGenericParameterTypes();
-		int paramNum = types.length;
-		
-		Annotation[][] paramAnnotations = method.getParameterAnnotations();
-		for(int i = 0; i < paramNum; i++){
-			String paramName = null;
-			Boolean required = true;
-			
-			Annotation[] annotations = paramAnnotations[i];
-			for(Annotation annotation : annotations) {
-				if(annotation instanceof Name){
-					paramName =  ((Name) annotation).value();
-				}
-				if(annotation instanceof Required){
-					required = ((Required) annotation).value();
-				}
-			}
-			
+		for(int i = 0; i < methodParams.length; i++) {
 			if (i < args.length && args[i] != null) {
-				if (paramName != null) {
+				if (methodParams[i].name != null) {
 					JsonNode paramValue = JOM.getInstance().convertValue(args[i], 
 							JsonNode.class);
-					params.put(paramName, paramValue);
+					params.put(methodParams[i].name, paramValue);
 				}
 				else {
 					throw new IllegalArgumentException(
@@ -530,7 +427,7 @@ public class JSONRPC {
 							"' is missing the @Name annotation.");
 				}
 			}
-			else if (required) {
+			else if (methodParams[i].required) {
 				throw new IllegalArgumentException(
 						"Required parameter " + i + " in method '" + method.getName() + 
 						"' is null.");
@@ -538,5 +435,62 @@ public class JSONRPC {
 		}
 		
 		return new JSONRequest(method.getName(), params);		
+	}
+	
+	/**
+	 * Get a description of a methods parameters
+	 * @param method
+	 * @return
+	 */
+	private static Param[] getParams (Method method) {
+		Class<?>[] types = method.getParameterTypes();
+		Type[] genericTypes = method.getGenericParameterTypes();
+		int paramNum = Math.min(types.length, genericTypes.length);
+
+		Param[] params = new Param[paramNum];
+		
+		Annotation[][] paramAnnotations = method.getParameterAnnotations();
+		for(int i = 0; i < paramNum; i++){
+			params[i] = new Param();
+			params[i].type = types[i];
+			params[i].genericType = genericTypes[i];
+			
+			Annotation[] annotations = paramAnnotations[i];
+			for(Annotation annotation : annotations) {
+				if(annotation instanceof Name){
+					params[i].name = ((Name) annotation).value();
+				}
+				if(annotation instanceof Required){
+					params[i].required = ((Required) annotation).value();
+				}
+			}
+		}
+		
+		return params;
+	}
+	
+	/**
+	 * Check whether a method is available for JSON-RPC calls. This is the
+	 * case when it is public, and has no annotation @Access(UNAVAILABLE)
+	 * @param method
+	 * @return available
+	 */
+	private static boolean isAvailable(Method method) {
+		int mod = method.getModifiers();
+		Access access = method.getAnnotation(Access.class); 
+		return Modifier.isPublic(mod) &&
+				(access == null || 
+				(access.value() != AccessType.UNAVAILABLE &&
+				 access.visible()));
+	}
+	
+	/**
+	 * Helper class to describe a method parameter
+	 */
+	private static class Param {
+		String name = null;
+		boolean required = true;
+		Class<?> type = null;
+		Type genericType = null;
 	}
 }
