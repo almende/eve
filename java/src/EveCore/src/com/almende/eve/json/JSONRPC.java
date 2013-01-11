@@ -391,7 +391,7 @@ public class JSONRPC {
 				return objects;
 			}
 			else if (paramTypes.length == 1 && 
-					paramTypes[0].equals(ObjectNode.class)) {
+					paramTypes[0].type.equals(ObjectNode.class)) {
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];

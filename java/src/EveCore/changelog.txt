@@ -2,7 +2,7 @@ EVE CORE
 http://almende.github.com/eve/
 
 
-<not yet released>, version 0.15
+2013-01-11, version 0.15
 
 - The send method of the Agent is more generic and no longer only accepts an
   ObjectNode as params, but also a Map or POJO. 
@@ -13,8 +13,6 @@ http://almende.github.com/eve/
   ProxyAgent.method(a, b).
   When a call is made to a local agent, the local agents method is immediately
   invoked, without converting the call into JSON-RPC.
-- XmppService automatically restores all open connections after a server 
-  restart.
 - Improved stability of the agents context.
 
 

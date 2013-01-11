@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 // TODO: put TestAgent in a separate unit test project
-public class TestAgent extends Agent {
+public class TestAgent extends Agent implements TestAgentInterface {
 	public String ping(@Name("message") String message) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", message);
@@ -130,7 +130,7 @@ public class TestAgent extends Agent {
 		return a - b;
 	}
 
-	public Double multiply(@Name("a") Double a, @Name("b") Double b) {
+	public Double multiply(Double a, Double b) {
 		return a * b;
 	}
 
@@ -169,6 +169,12 @@ public class TestAgent extends Agent {
 
 	public void complexParameter(
 			@Name("values") Map<String, List<Double>> values) {
+		for (String key : values.keySet()) {
+			List<Double> value = values.get(key);
+			for (Double v : value) {
+				System.out.println(key + " " + v);
+			}
+		}
 	}
 	
 	public Double increment() {
