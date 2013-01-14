@@ -18,6 +18,7 @@
 		<snakeyaml.version>1.11</snakeyaml.version>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 		<smack.version>3.1.0</smack.version>
+		<jetty.version>8.1.8.v20121106</jetty.version>
 	</properties>
 
 	<dependencies>
@@ -42,6 +43,14 @@
 			<artifactId>smack</artifactId>
 			<version>${smack.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-maven-plugin</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- <dependency> <groupId>org.eclipse.jetty</groupId> <artifactId>jetty-webapp</artifactId> 
+			<version>${jetty.version}</version> </dependency> -->
 	</dependencies>
 
 	<repositories>
@@ -99,6 +108,49 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-eclipse-plugin</artifactId>
 					<version>2.9</version>
+				</plugin>
+				<plugin>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>jetty-maven-plugin</artifactId>
+					<version>${jetty.version}</version>
+					<configuration>
+						<webApp>
+							<contextPath>/test</contextPath>
+						</webApp>
+						<scanIntervalSeconds>10</scanIntervalSeconds>
+						<scanTargets>
+							<scanTarget>src/test/resources</scanTarget>
+							<scanTarget>src/main/resources</scanTarget>
+						</scanTargets>
+						<webAppSourceDirectory>/</webAppSourceDirectory>
+						<webApp>
+							<contextPath>/</contextPath>
+							<descriptor>src/test/webapp/web.xml</descriptor>
+							<!-- <jettyEnvXml>src/test/webapp/jetty-env.xml</jettyEnvXml> -->
+						</webApp>
+						<!-- <classesDirectory>/Users/jesse/docsync/jetty-documentation/somewhere/else</classesDirectory> -->
+					</configuration>
+
+					<executions>
+						<execution>
+							<id>start-jetty</id>
+							<phase>pre-integration-test</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<scanIntervalSeconds>0</scanIntervalSeconds>
+								<daemon>true</daemon>
+							</configuration>
+						</execution>
+						<execution>
+							<id>stop-jetty</id>
+							<phase>post-integration-test</phase>
+							<goals>
+								<goal>stop</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>

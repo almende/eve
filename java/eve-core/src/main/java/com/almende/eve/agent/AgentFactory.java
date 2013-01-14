@@ -197,13 +197,15 @@ public class AgentFactory {
 
 	/**
 	 * Create an agent proxy from an java interface
-	 * @param sender          The sender agent
+	 * @param senderId        Internal id of the sender agent.
+	 *                        Not required for all services (for example not for
+	 *                        outgoing HTTP requests)
 	 * @param receiverUrl     Url of the receiving agent
 	 * @param agentInterface  A java Interface, extending AgentInterface
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T createAgentProxy(final Agent sender, final String receiverUrl,
+	public <T> T createAgentProxy(final String senderId, final String receiverUrl,
 			Class<T> agentInterface) {
 		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
 			throw new IllegalArgumentException("agentInterface must extend AgentInterface");
@@ -224,7 +226,7 @@ public class AgentFactory {
 						else {
 							// remote agent
 							JSONRequest request = JSONRPC.createRequest(method, args);
-							JSONResponse response = send(sender, receiverUrl, request);
+							JSONResponse response = send(senderId, receiverUrl, request);
 							JSONRPCException err = response.getError();
 							if (err != null) {
 								throw err;
@@ -338,13 +340,15 @@ public class AgentFactory {
 	 * In case of an local agent, the agent is invoked immediately.
 	 * In case of an remote agent, an HTTP Request is sent to the concerning
 	 * agent.
-	 * @param sender
+	 * @param senderId    Internal id of the sender agent
+	 *                    Not required for all services (for example not for
+	 *                    outgoing HTTP requests)
 	 * @param receiverUrl
 	 * @param request
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONResponse send(Agent sender, String receiverUrl, JSONRequest request) 
+	public JSONResponse send(String senderId, String receiverUrl, JSONRequest request) 
 			throws Exception {
 		String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
@@ -360,7 +364,7 @@ public class AgentFactory {
 				service = getService(protocol);
 			}
 			if (service != null) {
-				return service.send(sender.getId(), receiverUrl, request);
+				return service.send(senderId, receiverUrl, request);
 			}
 			else {
 				throw new ProtocolException(
@@ -371,13 +375,15 @@ public class AgentFactory {
 	
 	/**
 	 * Asynchronously invoke a request on an agent.
-	 * @param sender
+	 * @param senderId    Internal id of the sender agent. 
+	 *                    Not required for all services (for example not for
+	 *                    outgoing HTTP requests)
 	 * @param receiverUrl
 	 * @param request
 	 * @param callback
 	 * @throws Exception 
 	 */
-	public void sendAsync(final Agent sender, final String receiverUrl, 
+	public void sendAsync(final String senderId, final String receiverUrl, 
 			final JSONRequest request, 
 			final AsyncCallback<JSONResponse> callback) throws Exception {
 		final String agentId = getAgentId(receiverUrl);
@@ -404,7 +410,7 @@ public class AgentFactory {
 				service = getService(protocol);
 			}
 			if (service != null) {
-				service.sendAsync(sender.getId(), receiverUrl, request, callback);
+				service.sendAsync(senderId, receiverUrl, request, callback);
 			}
 			else {
 				throw new ProtocolException(
