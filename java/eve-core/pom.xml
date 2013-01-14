@@ -4,7 +4,7 @@
 
 	<parent>
 		<groupId>com.almende.eve</groupId>
-		<artifactId>eve-parent</artifactId>
+		<artifactId>eve</artifactId>
 		<version>0.15</version>
 	</parent>
 

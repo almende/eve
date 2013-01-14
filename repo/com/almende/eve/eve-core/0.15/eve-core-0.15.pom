@@ -1,50 +1,46 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.almende.eve</groupId>
+
+	<parent>
+		<groupId>com.almende.eve</groupId>
+		<artifactId>eve</artifactId>
+		<version>0.15</version>
+	</parent>
+
 	<artifactId>eve-core</artifactId>
-	<version>0.15</version>
 
 	<name>EVE core</name>
 	<url>http://almende.github.com/eve</url>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.scm.version>1.8.1</maven.scm.version>
+		<jackson.version>2.0.0</jackson.version>
+		<snakeyaml.version>1.11</snakeyaml.version>
+		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
+		<smack.version>3.1.0</smack.version>
 	</properties>
-
-	<!-- <scm> <connection>scm:svn:https://svn.tbm.tudelft.nl/TBM-SK/DSOL-AOS/dsol-aos/</connection> 
-		<url>http://svn.tbm.tudelft.nl/</url> <developerConnection>scm:svn:https://svn.tbm.tudelft.nl/TBM-SK/DSOL-AOS/dsol-aos/</developerConnection> 
-		</scm> -->
-
-	<distributionManagement>
-		<downloadUrl>https://raw.github.com/almende/eve/master/repo</downloadUrl>
-		<repository>
-			<id>eve-github</id> <!-- ${basedir} <url>scm:git:ssh://git@github.com:almende/eve.git</url> -->
-			<url>file:///${basedir}/</url>
-		</repository>
-	</distributionManagement>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.0.0</version>
+			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
-			<version>1.11</version>
+			<version>${snakeyaml.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>6.0</version>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${javax.servlet-api.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>jivesoftware</groupId>
 			<artifactId>smack</artifactId>
-			<version>3.1.0</version>
+			<version>${smack.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -55,147 +51,4 @@
 			<url>https://raw.github.com/almende/eve/master/repo</url>
 		</repository>
 	</repositories>
-
-	<organization>
-		<name>Almende BV</name>
-		<url>http://www.almende.com/</url>
-	</organization>
-
-	<developers>
-		<developer>
-			<name>Jos de Jong</name>
-			<id>josdejong</id>
-			<email>jos@almende.org</email>
-			<organization>Almende BV, the Netherlands</organization>
-			<url>http://www.almende.org/</url>
-			<timezone>1</timezone>
-		</developer>
-	</developers>
-
-	<reporting>
-		<plugins>
-		</plugins>
-	</reporting>
-
-	<build>
-		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-scm</artifactId>
-				<version>2.2</version>
-			</extension>
-			<extension>
-				<groupId>org.apache.maven.scm</groupId>
-				<artifactId>maven-scm-manager-plexus</artifactId>
-				<version>${maven.scm.version}</version>
-			</extension>
-			<extension>
-				<groupId>org.apache.maven.scm</groupId>
-				<artifactId>maven-scm-provider-gitexe</artifactId>
-				<version>${maven.scm.version}</version>
-			</extension>
-			<extension>
-				<groupId>org.apache.maven.scm</groupId>
-				<artifactId>maven-scm-api</artifactId>
-				<version>${maven.scm.version}</version>
-			</extension>
-		</extensions>
-
-		<pluginManagement>
-			<plugins>
-				<!-- Configure the Maven2 Eclipse IDE Integration (m2e) for non-standard 
-					plug-in executions during the compile-test-run life-cycles by the IDE -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<!-- or install the buildhelper in Eclipse :: Window :: Preferences 
-									:: Maven :: Discovery :: Open Catalog -->
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-
-				<!-- Specify version of Eclipse IDE's Maven integration plugin e.g. m2e(clipse), 
-					for Kind=4 errors see http://stackoverflow.com/questions/10564684/how-to-fix-error-updating-maven-project-unsupported-iclasspathentry-kind-4 -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-eclipse-plugin</artifactId>
-					<version>2.9</version>
-				</plugin>
-
-			</plugins>
-		</pluginManagement>
-
-		<plugins>
-			<!-- Make compiler UTF-8/ISO-8859-1 aware, set JVM to 1.6+ -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<encoding>UTF-8</encoding>
-					<compilerArguments>
-						<verbose />
-					</compilerArguments>
-				</configuration>
-			</plugin>
-
-			<!-- Have Eclipse IDE's Maven integration (specified in <pluginManagement/>) 
-				download sources and javadoc -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-eclipse-plugin</artifactId>
-				<configuration>
-					<downloadSources>true</downloadSources>
-					<downloadJavadocs>true</downloadJavadocs>
-				</configuration>
-			</plugin>
-
-			<!-- Make resources UTF-8/ISO-8859-1 aware -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.5</version>
-				<configuration>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-
-			<!-- skip all tests -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12</version>
-				<configuration>
-					<skipTests>true</skipTests>
-					<parallel>methods</parallel>
-					<threadCount>10</threadCount>
-				</configuration>
-			</plugin>
-
-			<!-- Attach sources -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1.2</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-
-	<pluginRepositories>
-	</pluginRepositories>
 </project>
