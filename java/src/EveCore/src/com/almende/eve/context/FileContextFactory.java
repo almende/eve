@@ -122,14 +122,24 @@ public class FileContextFactory extends ContextFactory {
 		String environment = "Production";
 		File file = new File((path != null ? path : "") + "_environment");
 		if (file.exists()){
+			BufferedReader reader = null;
 			try {
-				BufferedReader reader = new BufferedReader(new FileReader(file));
+				reader = new BufferedReader(new FileReader(file));
 				String line = reader.readLine();
 				if (line != null && !"".equals(line)){
 					environment = line;
 				}
 			} catch (Exception e){ 
 				//TODO: How to handle this error? (File not readable, not containing text, etc.)			
+			}
+			finally {
+				if (reader != null) {
+					try {
+						reader.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 		return environment;
