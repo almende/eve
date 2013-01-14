@@ -1,0 +1,17 @@
+# Eve XMPP settings
+
+# communication services
+services:
+- class: XmppService
+  host: openid.almende.org
+  port: 5222
+  service: openid.almende.org
+
+# context settings
+context:
+  class: FileContextFactory
+  path: .eveagents
+
+# scheduler settings
+scheduler:
+  class: RunnableScheduler

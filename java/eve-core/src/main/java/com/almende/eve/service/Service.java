@@ -30,20 +30,22 @@ public abstract class Service {
 	
 	/**
 	 * Send a message to an other agent
-	 * @param url
+	 * @param senderId
+	 * @oaran receiverUrl
 	 * @param request
-	 * @param response
+	 * @response response
 	 */
-	public abstract JSONResponse send (final String sender, final String receiver, 
+	public abstract JSONResponse send (final String senderId, final String receiver, 
 			final JSONRequest request) throws Exception;
 	
 	/**
 	 * Asynchronously Send a message to an other agent
-	 * @param url
+	 * @param senderId
+	 * @oaran receiverUrl
 	 * @param request
 	 * @param callback with a JSONResponse
 	 */
-	public abstract void sendAsync (final String sender, final String receiver, 
+	public abstract void sendAsync (final String senderId, final String receiver, 
 			final JSONRequest request, 
 			final AsyncCallback<JSONResponse> callback) throws Exception;
 	
