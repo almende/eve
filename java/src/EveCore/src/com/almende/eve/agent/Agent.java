@@ -398,7 +398,7 @@ abstract public class Agent implements AgentInterface {
 		// to route the request internally or externally
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
-		JSONResponse response = getAgentFactory().send(this, url, request);
+		JSONResponse response = getAgentFactory().send(getId(), url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -447,7 +447,7 @@ abstract public class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T createAgentProxy(String url, Class<T> agentInterface) {
-		return getAgentFactory().createAgentProxy(this, url, agentInterface);
+		return getAgentFactory().createAgentProxy(getId(), url, agentInterface);
 	}
 	
 	/**
@@ -528,7 +528,7 @@ abstract public class Agent implements AgentInterface {
 			}
 		};
 		
-		getAgentFactory().sendAsync(this, url, request, responseCallback);
+		getAgentFactory().sendAsync(getId(), url, request, responseCallback);
 	}
 
 	/**

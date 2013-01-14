@@ -79,19 +79,20 @@ public class HttpService extends Service {
 	
 	/**
 	 * Send a JSON-RPC request to an agent via HTTP
-	 * @param url         The url of the agent
+	 * @param senderId    Unused in the case of a HttpService
+	 * @param receiverUrl
 	 * @param request
 	 * @return response       
 	 * @throws Exception 
 	 */
 	@Override
-	public JSONResponse send(final String sender, final String receiver, 
+	public JSONResponse send(final String senderId, final String receiverUrl, 
 			final JSONRequest request) throws Exception {
 		JSONResponse response;
 
 		// invoke via http request
 		String req = request.toString();
-		String resp = HttpUtil.post(receiver, req);
+		String resp = HttpUtil.post(receiverUrl, req);
 
 		try {
 			response = new JSONResponse(resp);
@@ -103,14 +104,14 @@ public class HttpService extends Service {
 
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent via HTTP
-	 * @param sender
+	 * @param senderId
 	 * @param receiver
-	 * @param request
+	 * @param receiverUrl
 	 * @return response       
 	 * @throws IOException 
 	 */
 	@Override
-	public void sendAsync(final String sender, final String receiver, 
+	public void sendAsync(final String senderId, final String receiverUrl, 
 			final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) {
 		new Thread(new Runnable () {
@@ -118,7 +119,7 @@ public class HttpService extends Service {
 			public void run() {
 				JSONResponse response;
 				try {
-					response = send(sender, receiver, request);
+					response = send(senderId, receiverUrl, request);
 					callback.onSuccess(response);
 				} catch (Exception e) {
 					callback.onFailure(e);

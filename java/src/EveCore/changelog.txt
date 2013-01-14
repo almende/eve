@@ -2,6 +2,11 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+<not yet released>, version 0.16
+
+- Fixed requiring a sender for all calls via the AgentFactory.
+
+
 2013-01-11, version 0.15
 
 - The send method of the Agent is more generic and no longer only accepts an
