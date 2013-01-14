@@ -7,13 +7,22 @@ public class ClassUtil {
 	 * @param interfaceClass
 	 */
 	public static boolean hasInterface(Class<?> checkClass, Class<?> interfaceClass) {
-		Class<?>[] interfaces = checkClass.getInterfaces();
-		for (Class<?> i : interfaces) {
-			if (i.equals(interfaceClass)) {
-				return true;
+		String name = interfaceClass.getName();
+		Class<?> s = checkClass;
+		while (s != null) {
+			Class<?>[] interfaces = checkClass.getInterfaces();
+			for (Class<?> i : interfaces) {
+				if (i.getName().equals(name)) {
+					return true;
+				}
+				if (hasInterface(checkClass, i)) {
+					return true;
+				}
 			}
+			
+			s = s.getSuperclass();
 		}
-		
+
 		return false;
 	}
 	
@@ -23,12 +32,14 @@ public class ClassUtil {
 	 * @param superClass
 	 */
 	public static boolean hasSuperClass(Class<?> checkClass, Class<?> superClass) {
-		// TODO: replace with return (checkClass instanceof superClass);  ? 
-		Class<?> s = checkClass;
-		while ((s = s.getSuperclass()) != null) {
-			if (s.equals(superClass)) {
+		// TODO: replace with return (checkClass instanceof superClass);  ?
+		String name = superClass.getName();
+		Class<?> s = (checkClass != null) ? checkClass.getSuperclass() : null;
+		while (s != null) {
+			if (s.getName().equals(name)) {
 				return true;
 			}
+			s = s.getSuperclass();
 		}
 		
 		return false;

@@ -5,6 +5,7 @@ http://almende.github.com/eve/
 <not yet released>, version 0.16
 
 - Fixed requiring a sender for all calls via the AgentFactory.
+- Fixed method hasInterface not finding extended interfaces.
 
 
 2013-01-11, version 0.15
