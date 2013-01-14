@@ -122,10 +122,9 @@
 							<scanTarget>src/test/resources</scanTarget>
 							<scanTarget>src/main/resources</scanTarget>
 						</scanTargets>
-						<webAppSourceDirectory>/</webAppSourceDirectory>
 						<webApp>
 							<contextPath>/</contextPath>
-							<descriptor>src/test/webapp/web.xml</descriptor>
+							<descriptor>src/test/webapp/WEB-INF/web.xml</descriptor>
 							<!-- <jettyEnvXml>src/test/webapp/jetty-env.xml</jettyEnvXml> -->
 						</webApp>
 						<!-- <classesDirectory>/Users/jesse/docsync/jetty-documentation/somewhere/else</classesDirectory> -->

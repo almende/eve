@@ -1,23 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<parent>
 		<groupId>com.almende.eve</groupId>
 		<artifactId>eve</artifactId>
 		<version>0.15</version>
 	</parent>
-	
+
 	<artifactId>eve-gae</artifactId>
 	<packaging>jar</packaging>
-	
+
 	<name>EVE Google App Engine</name>
 	<url>http://almende.github.com/eve</url>
-	
+
 	<properties>
 		<twig-persist.version>2.0-beta4</twig-persist.version>
+		<appengine.version>1.7.4</appengine.version>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.almende.eve</groupId>
@@ -28,6 +29,35 @@
 			<groupId>com.google.code.twig</groupId>
 			<artifactId>twig-persist</artifactId>
 			<version>${twig-persist.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.appengine</groupId>
+					<artifactId>appengine-api-1.0-sdk</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.appengine</groupId>
+					<artifactId>appengine-api-labs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.appengine</groupId>
+					<artifactId>appengine-api-stubs</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.appengine</groupId>
+			<artifactId>appengine-api-1.0-sdk</artifactId>
+			<version>${appengine.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.appengine</groupId>
+			<artifactId>appengine-api-labs</artifactId>
+			<version>${appengine.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.appengine</groupId>
+			<artifactId>appengine-api-stubs</artifactId>
+			<version>${appengine.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -37,12 +67,22 @@
 			<id>eve</id>
 			<url>https://raw.github.com/almende/eve/master/repo</url>
 		</repository>
-		<!-- 
-	    <repository>
-    	    <id>twig</id>
-    	    <url>http://mvn.twig-persist.googlecode.com/hg/</url>
-        </repository>
-         -->
+		<repository>
+			<id>twig</id>
+			<url>http://mvn.twig-persist.googlecode.com/hg</url>
+		</repository>
 	</repositories>
-	
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>com.google.appengine</groupId>
+					<artifactId>appengine-maven-plugin</artifactId>
+					<version>${appengine.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
 </project>
