@@ -16,7 +16,7 @@
     </init-param>
     <init-param>
       <param-name>servlet_url</param-name>
-      <param-value>http://localhost:8080/EveCore/testagent/</param-value>
+      <param-value>http://localhost:8080/testagent/</param-value>
     </init-param>
     <init-param>
       <param-name>agentId</param-name>
@@ -42,7 +42,7 @@
     </init-param>
     <init-param>
       <param-name>servlet_url</param-name>
-      <param-value>http://localhost:8080/EveCore/agents/</param-value>
+      <param-value>http://localhost:8080/agents/</param-value>
     </init-param>
   </servlet>
   <servlet-mapping>
