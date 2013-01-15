@@ -94,9 +94,12 @@ intensive tasks.
 
 ## Requests {#requests}
 
-An agent can call an other agent using the methods `send` or `sendAsync`.
+An agent can call an other agent using the methods `send` or `sendAsync`,
+or by creating a proxy to an agent and invoke methods on the proxy.
 
-Synchronous example:
+### Synchronous request {#synchronous_request}
+A synchronous call to an agent is executed using the method `send`,
+providing a url, method, parameters, and return type.
 
     String url = "http://myserver.com/agents/mycalcagent/";
     String method = "eval";
@@ -105,7 +108,9 @@ Synchronous example:
     String result = send(url, method, params, String.class);
     System.out.println("result=" + result);
 
-Asynchronous example:
+### Asynchronous request: {#asynchronous_request}
+An asynchronous request is executed using the method `sendAsync`,
+providing a url, method, parameters, and a callback.
 
     String url = "xmpp:mycalcagent@myxmppserver.com";
     String method = "getDurationHuman";
@@ -123,6 +128,31 @@ Asynchronous example:
             caught.printStackTrace();
         }
     }, String.class);
+
+### Agent Proxy {#proxy}
+
+If there is a Java Interface available of the agent to be invoked, this
+interface can be used to create a proxy to the agent.
+Behind the scenes, the proxy executes a regular `send` request.
+The proxy stays valid as long as the agents url is valid, and the interface
+matches the agents actual features.
+
+The Interface must extend the interface `AgentInterface`. For example:
+
+    import com.almende.eve.agent.AgentInterface;
+    import com.almende.eve.json.annotation.Name;
+
+    public interface CalcAgent extends AgentInterface {
+    	public Double eval(@Name("expr") String expr);
+    }
+
+To create a proxy to an agent using this interface:
+
+    String url = "http://myserver.com/agents/mycalcagent/";
+    CalcAgent calcAgent = getAgentFactory().createAgentProxy(url, CalcAgent.class);
+
+    String result = calcAgent.eval("Sin(0.25 * pi) ^ 2");
+    System.out.println("result=" + result);
 
 
 ## Context {#context}
