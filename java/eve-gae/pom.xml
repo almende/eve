@@ -15,7 +15,7 @@
 	<url>http://almende.github.com/eve</url>
 
 	<properties>
-		<twig-persist.version>2.0-beta4</twig-persist.version>
+		<twig-persist.version>2.0-rc</twig-persist.version>
 		<appengine.version>1.7.4</appengine.version>
 	</properties>
 
@@ -42,7 +42,20 @@
 					<groupId>com.google.appengine</groupId>
 					<artifactId>appengine-api-stubs</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.google.appengine</groupId>
+					<artifactId>appengine-api-stubs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.appengine</groupId>
@@ -76,6 +89,15 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.3</version>
+					<configuration>
+						<archiveClasses>true</archiveClasses>
+						<webXml>src\main\webapp\WEB-INF\web.xml</webXml>
+					</configuration>
+				</plugin>
 				<plugin>
 					<groupId>com.google.appengine</groupId>
 					<artifactId>appengine-maven-plugin</artifactId>
