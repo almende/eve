@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.json.annotation.Name;
+import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

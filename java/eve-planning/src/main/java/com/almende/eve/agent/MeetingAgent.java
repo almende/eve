@@ -80,6 +80,8 @@ import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Issue;
 import com.almende.eve.entity.Issue.TYPE;
@@ -92,8 +94,6 @@ import com.almende.eve.entity.activity.Status;
 import com.almende.eve.entity.calendar.AgentData;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.util.IntervalsUtil;
 import com.almende.util.WeightsUtil;

@@ -9,13 +9,13 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.TaskAgent;
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.calendar.Authorization;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRPCException.CODE;
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.JsonNode;

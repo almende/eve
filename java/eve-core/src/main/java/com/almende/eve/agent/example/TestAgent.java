@@ -32,12 +32,12 @@ import java.util.Map;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.entity.Person;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONRPCException.CODE;
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.service.AsyncCallback;
 import com.almende.eve.service.xmpp.XmppService;

@@ -66,13 +66,13 @@ import org.joda.time.Interval;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.CalendarAgent;
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.calendar.Authorization;
 
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRPCException.CODE;
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.config.Config;
 import com.almende.util.HttpUtil;

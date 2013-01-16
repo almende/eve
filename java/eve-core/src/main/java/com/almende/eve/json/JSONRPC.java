@@ -15,8 +15,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.json.jackson.JOM;
 import com.almende.eve.agent.annotation.Access;
 import com.fasterxml.jackson.core.JsonGenerationException;

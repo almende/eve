@@ -2,8 +2,8 @@ package com.almende.eve.agent;
 
 import java.util.List;
 
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 
 public interface AgentInterface {
 	public String getId();

@@ -1,7 +1,7 @@
 package com.almende.eve.agent;
 
-import com.almende.eve.json.annotation.Name;
-import com.almende.eve.json.annotation.Required;
+import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Required;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
