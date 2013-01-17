@@ -4,7 +4,7 @@
 	
 	<groupId>com.almende.eve</groupId>
 	<artifactId>eve</artifactId>
-	<version>0.16-SNAPSHOT</version>
+	<version>0.16</version>
 	<packaging>pom</packaging>
 
 	<name>EVE core</name>
