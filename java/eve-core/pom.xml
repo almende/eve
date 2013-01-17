@@ -59,7 +59,7 @@
 		<repository>
 			<name>Almende EVE repository</name>
 			<id>eve</id>
-			<url>https://github.com/almende/eve/blob/master/repo</url>
+			<url>https://github.com/almende/eve/raw/master/repo</url>
 		</repository>
 	</repositories>
 	<build>
