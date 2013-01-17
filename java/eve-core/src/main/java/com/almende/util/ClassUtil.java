@@ -10,12 +10,12 @@ public class ClassUtil {
 		String name = interfaceClass.getName();
 		Class<?> s = checkClass;
 		while (s != null) {
-			Class<?>[] interfaces = checkClass.getInterfaces();
+			Class<?>[] interfaces = s.getInterfaces();
 			for (Class<?> i : interfaces) {
 				if (i.getName().equals(name)) {
 					return true;
 				}
-				if (hasInterface(checkClass, i)) {
+				if (hasInterface(s, i)) {
 					return true;
 				}
 			}

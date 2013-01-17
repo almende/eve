@@ -208,7 +208,8 @@ public class AgentFactory {
 	public <T> T createAgentProxy(final String senderId, final String receiverUrl,
 			Class<T> agentInterface) {
 		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
-			throw new IllegalArgumentException("agentInterface must extend AgentInterface");
+			throw new IllegalArgumentException("agentInterface must extend " + 
+					AgentInterface.class.getName());
 		}
 		
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
@@ -615,12 +616,12 @@ public class AgentFactory {
 		if (environmentTransportParams == null) {
 			// TODO: cleanup some day. deprecated since 2013-01-17
 			environmentTransportParams = config.get("environment", getEnvironment(), "services");
-			if (globalTransportParams != null) {
+			if (environmentTransportParams != null) {
 				logger.warning("Property 'services' is deprecated. Use 'transport_services' instead.");
 			}
 		}
-		if (globalTransportParams != null) {
-			allTransportParams.addAll(globalTransportParams);
+		if (environmentTransportParams != null) {
+			allTransportParams.addAll(environmentTransportParams);
 		}
 		
 		int index = 0;

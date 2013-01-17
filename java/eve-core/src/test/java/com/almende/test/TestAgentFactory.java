@@ -12,7 +12,9 @@ public class TestAgentFactory {
 				TestAgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);
+		System.out.println("result=" + res);
 		
+		res = agent.multiply(3.1, 4.2);
 		System.out.println("result=" + res);
 	}
 }

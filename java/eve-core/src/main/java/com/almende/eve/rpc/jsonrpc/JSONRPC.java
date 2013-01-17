@@ -65,8 +65,16 @@ public class JSONRPC {
 		resp.setId(request.getId());
 
 		try {
-			MethodType methodType = getMethod(object, request.getMethod());
+			MethodType methodType = getMethod(object.getClass(), request.getMethod());
+			if (methodType == null) {
+				throw new JSONRPCException(
+						JSONRPCException.CODE.METHOD_NOT_FOUND, 
+						"Method '" + request.getMethod() + "' not found");
+			}
+			
 			Method method = methodType.method;
+			
+			
 			Object[] params = castParams(request.getParams(), methodType.params);
 			Object result = method.invoke(object, params);
 			if (result == null) {
@@ -154,90 +162,95 @@ public class JSONRPC {
 	 * @return
 	 */
 	public static List<Object> describe(Class<?> c, Boolean asJSON) {
-		Map<String, Object> methods = new TreeMap<String, Object>();
-		if (asJSON == null) {
-			asJSON = false;
-		}
-
-		while (c != null && c != Object.class) {
-			for (Method method : c.getDeclaredMethods()) {
-				String methodName = method.getName();
-				boolean available = isAvailable(method);
-				if (available) {
-					ParamType[] params = getParams(method);
-					boolean validParamNames = true;
-					for (ParamType param: params) {
-						if (param.name == null) {
-							validParamNames = false;
-							break;
-						}
-					}
-					
-					// TODO: not so nice 
-					if (!validParamNames) {
-						if (params.length == 1 && params[0].type.equals(ObjectNode.class)) {
-							params[0].name = "params";
-							validParamNames = true;
-						}
-					}
-					
-					// get return type
-					String returnType = typeToString(method.getGenericReturnType());
-					
-					if (validParamNames) {
-						if (asJSON) {
-							// format as JSON
-							List<Object> descParams = new ArrayList<Object>();
-							for(int i = 0; i < params.length; i++){
-								Map<String, Object> paramData = new HashMap<String, Object>();
-								paramData.put("name", params[i].name);
-								paramData.put("type", typeToString(params[i].genericType));
-								paramData.put("required", params[i].required);
-								descParams.add(paramData);
+		try {
+			Map<String, Object> methods = new TreeMap<String, Object>();
+			if (asJSON == null) {
+				asJSON = false;
+			}
+	
+			while (c != null && c != Object.class) {
+				for (Method method : c.getDeclaredMethods()) {
+					String methodName = method.getName();
+					boolean available = isAvailable(method);
+					if (available) {
+						ParamType[] params = getParams(method);
+						boolean validParamNames = true;
+						for (ParamType param: params) {
+							if (param.name == null) {
+								validParamNames = false;
+								break;
 							}
-							
-							Map<String, Object> result = new HashMap<String, Object>(); 
-							result.put("type", returnType);
-							
-							Map<String, Object> desc = new HashMap<String, Object>();
-							desc.put("method", methodName);
-							desc.put("params", descParams);
-							desc.put("result", result);
-							methods.put(methodName, desc);
 						}
-						else {
-							// format as string
-							String p = "";
-							for(int i = 0; i < params.length; i++){
-								if (!p.isEmpty()) {
-									p += ", ";
-								}
-								if (params[i].required) {
-									p += typeToString(params[i].genericType) + " " + params[i].name;
-								}
-								else {
-									p += "[" + typeToString(params[i].genericType) + " " + params[i].name + "]";
-								}
+						
+						// TODO: not so nice 
+						if (!validParamNames) {
+							if (params.length == 1 && params[0].type.equals(ObjectNode.class)) {
+								params[0].name = "params";
+								validParamNames = true;
 							}
-							String desc = returnType + " " + methodName + "(" + p + ")";
-							methods.put(methodName, desc);							
+						}
+						
+						// get return type
+						String returnType = typeToString(method.getGenericReturnType());
+						
+						if (validParamNames) {
+							if (asJSON) {
+								// format as JSON
+								List<Object> descParams = new ArrayList<Object>();
+								for(int i = 0; i < params.length; i++){
+									Map<String, Object> paramData = new HashMap<String, Object>();
+									paramData.put("name", params[i].name);
+									paramData.put("type", typeToString(params[i].genericType));
+									paramData.put("required", params[i].required);
+									descParams.add(paramData);
+								}
+								
+								Map<String, Object> result = new HashMap<String, Object>(); 
+								result.put("type", returnType);
+								
+								Map<String, Object> desc = new HashMap<String, Object>();
+								desc.put("method", methodName);
+								desc.put("params", descParams);
+								desc.put("result", result);
+								methods.put(methodName, desc);
+							}
+							else {
+								// format as string
+								String p = "";
+								for(int i = 0; i < params.length; i++){
+									if (!p.isEmpty()) {
+										p += ", ";
+									}
+									if (params[i].required) {
+										p += typeToString(params[i].genericType) + " " + params[i].name;
+									}
+									else {
+										p += "[" + typeToString(params[i].genericType) + " " + params[i].name + "]";
+									}
+								}
+								String desc = returnType + " " + methodName + "(" + p + ")";
+								methods.put(methodName, desc);							
+							}
 						}
 					}
 				}
+	
+				c = c.getSuperclass();
 			}
-
-			c = c.getSuperclass();
+	
+			// create a sorted array
+			List<Object> sortedMethods = new ArrayList<Object>();
+			TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
+			for (String methodName : methodNames) { 
+			   sortedMethods.add(methods.get(methodName));
+			   // do something
+			}
+			return sortedMethods;
 		}
-
-		// create a sorted array
-		List<Object> sortedMethods = new ArrayList<Object>();
-		TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
-		for (String methodName : methodNames) { 
-		   sortedMethods.add(methods.get(methodName));
-		   // do something
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		
-		return sortedMethods;
 	}
 
 	/**
@@ -302,20 +315,17 @@ public class JSONRPC {
 	
 	/**
 	 * Find a method by name, 
-	 * which is available for JSON-RPC, and has named parameters 
-	 * @param object
+	 * which is available for JSON-RPC, and has named parameters
+	 * @param objectClass
 	 * @param method
-	 * @return meta information on the method
-	 * @throws JSONRPCException 
+	 * @return methodType   meta information on the method, or null if not found
 	 */
-	static private MethodType getMethod(Object object, String method) 
-			throws JSONRPCException {
-		Class<?> c = object.getClass();
+	static private MethodType getMethod(Class<?> objectClass, String method) {
+		Class<?> c = objectClass;
 		while (c != null && c != Object.class) {
 			for (Method m : c.getMethods()) {
 				if (m.getName().equals(method) && isAvailable(m)) {
 					MethodType meta = new MethodType();
-					// meta.name = m.getName();
 					meta.method = m;
 					meta.params = getParams(m);
 					return meta;
@@ -326,9 +336,7 @@ public class JSONRPC {
 			c = c.getSuperclass();
 		}
 		
-		JSONRPCException err = new JSONRPCException(JSONRPCException.CODE.METHOD_NOT_FOUND, 
-				"Method '" + method + "' not found");
-		throw err;
+		return null;
 	}
 
 	/**
@@ -453,6 +461,7 @@ public class JSONRPC {
 
 		ParamType[] params = new ParamType[paramNum];
 		
+		boolean annotationsComplete = true;
 		Annotation[][] paramAnnotations = method.getParameterAnnotations();
 		for(int i = 0; i < paramNum; i++){
 			params[i] = new ParamType();
@@ -466,6 +475,23 @@ public class JSONRPC {
 				}
 				if(annotation instanceof Required){
 					params[i].required = ((Required) annotation).value();
+				}
+			}
+			
+			if (params[i].name == null) {
+				annotationsComplete = false;
+			}
+		}
+
+		if (!annotationsComplete) {
+			// when @Name annotations are missing, 
+			// search for them in the interfaces of the method
+			Class<?>[] interfaces = method.getDeclaringClass().getInterfaces();
+			for (Class<?> i : interfaces) {
+				MethodType m = getMethod(i, method.getName());
+				if (m != null && m.hasNamedParameters()) {
+					params = m.params;
+					break;
 				}
 			}
 		}
@@ -502,8 +528,16 @@ public class JSONRPC {
 	 * Helper class to describe a method
 	 */
 	private static class MethodType {
-		// String name = null;
 		Method method = null;
 		ParamType[] params = null;
+		
+		boolean hasNamedParameters() {
+			for (ParamType param : params) {
+				if (param.name == null) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 }

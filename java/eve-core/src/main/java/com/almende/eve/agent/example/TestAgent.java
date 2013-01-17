@@ -444,7 +444,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
 		
-		Double value = other.add(2.3, 4.5);
+		Double value = other.multiply(2.3, 4.5);
 		return value;
 	}
 

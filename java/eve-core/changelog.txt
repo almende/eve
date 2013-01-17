@@ -5,6 +5,9 @@ http://almende.github.com/eve/
 <not yet released>, version 0.16
 
 - Note: Eve 0.16 is incompatible with 0.15
+- Annotations @Name and @Required do not need to be defined in an agents
+  implementation, when the annotations for the methods are defined in the agents
+  interface.
 - Moved @Name and @Required annotations from json.annotation to 
   eve.agent.annotation.
 - Renamed "services" to "transport". XmppService is now called 

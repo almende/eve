@@ -1,8 +1,8 @@
 # Eve XMPP settings
 
-# communication services
-services:
-- class: XmppService
+# transport services
+transport_services:
+- class: XmppTransportService
   host: openid.almende.org
   port: 5222
   service: openid.almende.org
