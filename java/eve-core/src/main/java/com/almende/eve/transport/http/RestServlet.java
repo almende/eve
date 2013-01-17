@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
 
 
 @SuppressWarnings("serial")

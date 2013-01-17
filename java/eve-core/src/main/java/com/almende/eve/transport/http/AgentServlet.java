@@ -14,10 +14,10 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRPCException;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
 

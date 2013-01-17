@@ -1,7 +1,7 @@
 package com.almende.eve.scheduler;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.json.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
 
 public abstract class Scheduler {
 	public Scheduler (AgentFactory agentFactory, String agentId) {

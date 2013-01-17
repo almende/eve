@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
 
 public abstract class TransportService {
 	public TransportService(AgentFactory agentFactory) {

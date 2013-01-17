@@ -1,4 +1,4 @@
-package com.almende.eve.json;
+package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -17,7 +17,7 @@ import java.util.TreeSet;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.agent.annotation.Access;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;

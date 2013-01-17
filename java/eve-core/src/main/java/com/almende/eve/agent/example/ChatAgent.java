@@ -69,7 +69,7 @@ import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ChatAgent extends Agent {

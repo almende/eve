@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.json.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
 
 public class RunnableScheduler extends Scheduler {
 	// http://docs.oracle.com/javase/1.5.0/docs/api/java/util/concurrent/ScheduledExecutorService.html

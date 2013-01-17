@@ -1,7 +1,7 @@
 /**
  * Singleton Jackson ObjectMapper
  */
-package com.almende.eve.json.jackson;
+package com.almende.eve.rpc.jsonrpc.jackson;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

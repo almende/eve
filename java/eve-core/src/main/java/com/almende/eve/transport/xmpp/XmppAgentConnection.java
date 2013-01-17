@@ -10,10 +10,10 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.util.StringUtils;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.json.JSONRPCException;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;

@@ -24,8 +24,8 @@ import javax.servlet.http.*;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;

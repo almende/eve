@@ -39,14 +39,14 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
+import com.almende.eve.rpc.jsonrpc.JSONRPC;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
-import com.almende.eve.json.JSONRPC;
-import com.almende.eve.json.JSONRPCException;
-import com.almende.eve.json.JSONRequest;
-import com.almende.eve.json.JSONResponse;
-import com.almende.eve.json.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 

@@ -4,7 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.json.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.transport.TransportService;
 

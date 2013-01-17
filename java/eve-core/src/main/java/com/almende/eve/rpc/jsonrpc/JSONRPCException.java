@@ -1,6 +1,6 @@
-package com.almende.eve.json;
+package com.almende.eve.rpc.jsonrpc;
 
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;

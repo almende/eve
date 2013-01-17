@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.json.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
 
 public class LogAgent extends Agent {
 	private static long TIME_TO_LIVE = 20 * 60 * 1000; // milliseconds

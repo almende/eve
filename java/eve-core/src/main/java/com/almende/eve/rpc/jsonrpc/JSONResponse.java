@@ -1,8 +1,8 @@
-package com.almende.eve.json;
+package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
 
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;

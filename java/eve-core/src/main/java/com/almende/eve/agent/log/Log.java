@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 
-import com.almende.eve.json.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
