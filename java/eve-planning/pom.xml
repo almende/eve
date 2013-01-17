@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.almende.eve</groupId>
 		<artifactId>eve</artifactId>
-		<version>0.15</version>
+		<version>0.16</version>
 	</parent>
 	
 	<artifactId>eve-planning</artifactId>
@@ -44,5 +44,5 @@
 			<url>https://raw.github.com/almende/eve/master/repo</url>
 		</repository>
 	</repositories>
-		
+	
 </project>
