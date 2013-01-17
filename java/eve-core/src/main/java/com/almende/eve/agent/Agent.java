@@ -40,7 +40,6 @@ import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.scheduler.Scheduler;
-import com.almende.eve.session.Session;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.json.JSONRPC;
@@ -55,7 +54,6 @@ abstract public class Agent implements AgentInterface {
 	private AgentFactory agentFactory = null;
 	private Context context = null;
 	private Scheduler scheduler = null;
-	private Session session = null; // TODO: remove session, replace with getRequest and getResponse
 	
 	public abstract String getDescription();
 	public abstract String getVersion();
@@ -128,18 +126,6 @@ abstract public class Agent implements AgentInterface {
 		return agentFactory;
 	}
 	
-	@Access(AccessType.UNAVAILABLE)
-	final public void setSession(Session session) {
-		if (session != null) {
-			this.session = session;
-		}
-	}
-
-	@Access(AccessType.UNAVAILABLE)
-	final public Session getSession() {
-		return session;
-	}
-
 	/**
 	 * Clear the agents context, unsubscribe from all subscribed events, 
 	 * cancel all running tasks
