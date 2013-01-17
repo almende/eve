@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.almende.eve</groupId>
 		<artifactId>eve</artifactId>
-		<version>0.16</version>
+		<version>0.16-SNAPSHOT</version>
 	</parent>
 	
 	<artifactId>eve-planning</artifactId>
@@ -17,7 +17,15 @@
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 		<joda-time.version>2.1</joda-time.version>
 	</properties>
-	
+
+	<repositories>
+		<repository>
+			<name>Almende EVE repository</name>
+			<id>eve</id>
+			<url>https://github.com/almende/maven/raw/master/snapshots</url>
+		</repository>
+	</repositories>
+		
 	<dependencies>
 		<dependency>
 			<groupId>com.almende.eve</groupId>
@@ -36,13 +44,5 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<name>Almende EVE repository</name>
-			<id>eve</id>
-			<url>https://github.com/almende/eve/raw/master/repo</url>
-		</repository>
-	</repositories>
 	
 </project>

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.almende.eve</groupId>
 		<artifactId>eve</artifactId>
-		<version>0.16</version>
+		<version>0.16-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>eve-gae</artifactId>
@@ -19,6 +19,18 @@
 		<appengine.version>1.7.4</appengine.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<name>Almende EVE repository</name>
+			<id>eve</id>
+			<url>https://github.com/almende/maven/raw/master/snapshots</url>
+		</repository>
+		<repository>
+			<id>twig</id>
+			<url>http://mvn.twig-persist.googlecode.com/hg</url>
+		</repository>
+	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.almende.eve</groupId>
@@ -73,18 +85,6 @@
 			<version>${appengine.version}</version>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<name>Almende EVE repository</name>
-			<id>eve</id>
-			<url>https://github.com/almende/eve/raw/master/repo</url>
-		</repository>
-		<repository>
-			<id>twig</id>
-			<url>http://mvn.twig-persist.googlecode.com/hg</url>
-		</repository>
-	</repositories>
 
 	<build>
 		<pluginManagement>

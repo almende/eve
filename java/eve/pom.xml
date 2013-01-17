@@ -4,7 +4,7 @@
 	
 	<groupId>com.almende.eve</groupId>
 	<artifactId>eve</artifactId>
-	<version>0.16</version>
+	<version>0.16-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>EVE core</name>
@@ -54,15 +54,16 @@
 	</reporting>
 
 	<distributionManagement>
-		<downloadUrl>https://github.com/almende/eve/raw/master/repo</downloadUrl>
+		<downloadUrl>https://github.com/almende/maven/raw/master</downloadUrl>
 		<repository>
 			<id>eve-github</id> <!-- ${basedir} <url>scm:git:ssh://git@github.com:almende/eve.git</url> -->
-			<url>file:///${basedir}/../../repo/</url>
+			<url>file:///${basedir}/../../../maven</url>
 		</repository>
 	</distributionManagement>
 
 	<build>
 		<extensions>
+		    <!-- 
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-scm</artifactId>
@@ -83,6 +84,7 @@
 				<artifactId>maven-scm-api</artifactId>
 				<version>${maven.scm.version}</version>
 			</extension>
+			 -->
 		</extensions>
 
 		<pluginManagement>
