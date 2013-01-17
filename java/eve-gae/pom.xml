@@ -23,7 +23,7 @@
 		<repository>
 			<name>Almende EVE repository</name>
 			<id>eve</id>
-			<url>https://github.com/almende/maven/raw/master/snapshots</url>
+			<url>https://github.com/almende/maven/raw/master</url>
 		</repository>
 		<repository>
 			<id>twig</id>

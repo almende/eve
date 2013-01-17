@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.almende.eve</groupId>
 		<artifactId>eve</artifactId>
-		<version>0.16</version>
+		<version>0.16-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>eve-core</artifactId>
@@ -23,6 +23,14 @@
 		<maven-eclipse-plugin.version>2.9</maven-eclipse-plugin.version>
 	</properties>
 
+	<repositories>
+		<repository>
+			<name>Almende EVE repository</name>
+			<id>eve</id>
+			<url>https://github.com/almende/maven/raw/master</url>
+		</repository>
+	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -54,14 +62,7 @@
 		<!-- <dependency> <groupId>org.eclipse.jetty</groupId> <artifactId>jetty-webapp</artifactId> 
 			<version>${jetty.version}</version> </dependency> -->
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<name>Almende EVE repository</name>
-			<id>eve</id>
-			<url>https://github.com/almende/eve/raw/master/repo</url>
-		</repository>
-	</repositories>
+	
 	<build>
 		<pluginManagement>
 			<plugins>
