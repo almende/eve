@@ -1,4 +1,4 @@
-package com.almende.eve.service.http;
+package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +22,7 @@ public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private AgentFactory agentFactory = null;
-	private HttpService httpService = null;
+	private HttpTransportService httpTransport = null;
 	private String agentId = null;
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
@@ -34,7 +34,7 @@ public class SingleAgentServlet extends HttpServlet {
 	public void init() {
 		try {
 			initAgentFactory();
-			initHttpService();
+			initHttpTransport();
 			initAgent();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -44,8 +44,8 @@ public class SingleAgentServlet extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
-		String servletUrl = httpService.getServletUrl();
-		String uri = httpService.getDomain(servletUrl) + request.getRequestURI();
+		String servletUrl = httpTransport.getServletUrl();
+		String uri = httpTransport.getDomain(servletUrl) + request.getRequestURI();
 		String resource  = null;
 		if (uri.length() > servletUrl.length()) {
 			resource = uri.substring(servletUrl.length());
@@ -131,10 +131,10 @@ public class SingleAgentServlet extends HttpServlet {
 	 * Register this servlet at the agent factory
 	 * @throws Exception 
 	 */
-	private void initHttpService () throws Exception {
+	private void initHttpTransport () throws Exception {
 		if (agentFactory == null) {
 			throw new Exception(
-					"Cannot initialize HttpService: no AgentFactory initialized.");
+					"Cannot initialize HttpTransport: no AgentFactory initialized.");
 		}
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
@@ -147,14 +147,14 @@ public class SingleAgentServlet extends HttpServlet {
 			servletUrl = getInitParameter("servlet_url");
 		}
 		if (servletUrl == null) {
-			throw new Exception("Cannot initialize HttpService: " +
+			throw new Exception("Cannot initialize HttpTransport: " +
 					"Init Parameter '" + globalParam + "' or '" + envParam + "' " + 
 					"missing in servlet configuration web.xml.");
 		}
 		
-		httpService = new HttpService(agentFactory); 
-		httpService.init(servletUrl);
-		agentFactory.addService(httpService);
+		httpTransport = new HttpTransportService(agentFactory); 
+		httpTransport.init(servletUrl);
+		agentFactory.addTransportService(httpTransport);
 	}
 	
 	/**

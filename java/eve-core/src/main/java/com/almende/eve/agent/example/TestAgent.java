@@ -39,8 +39,8 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONRPCException.CODE;
 import com.almende.eve.json.jackson.JOM;
-import com.almende.eve.service.AsyncCallback;
-import com.almende.eve.service.xmpp.XmppService;
+import com.almende.eve.transport.AsyncCallback;
+import com.almende.eve.transport.xmpp.XmppTransportService;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -408,7 +408,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 			@Name("password") String password) throws Exception {
 		AgentFactory factory = getAgentFactory();
 		
-		XmppService service = (XmppService) factory.getService("xmpp");
+		XmppTransportService service = (XmppTransportService) factory.getTransportService("xmpp");
 		if (service != null) {
 			service.connect(getId(), username, password);
 		}
@@ -419,7 +419,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 	
 	public void xmppDisconnect() throws Exception {
 		AgentFactory factory = getAgentFactory();
-		XmppService service = (XmppService) factory.getService("xmpp");
+		XmppTransportService service = (XmppTransportService) factory.getTransportService("xmpp");
 		if (service != null) {
 			service.disconnect(getId());
 		}

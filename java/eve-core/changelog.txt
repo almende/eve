@@ -4,8 +4,11 @@ http://almende.github.com/eve/
 
 <not yet released>, version 0.16
 
+- Note: Eve 0.16 is incompatible with 0.15
 - Moved @Name and @Required annotations from json.annotation to 
-  eve.agent.annotation .
+  eve.agent.annotation.
+- Renamed "services" to "transport". XmppService is now called 
+  XmppTransportService, HttpService is now called HttpTransportService.
 - Fixed requiring a sender for all calls via the AgentFactory.
 - Fixed method hasInterface not finding extended interfaces.
 

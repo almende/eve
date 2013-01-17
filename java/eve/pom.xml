@@ -54,7 +54,7 @@
 	</reporting>
 
 	<distributionManagement>
-		<downloadUrl>https://raw.github.com/almende/eve/master/repo</downloadUrl>
+		<downloadUrl>https://github.com/almende/eve/blob/master/repo</downloadUrl>
 		<repository>
 			<id>eve-github</id> <!-- ${basedir} <url>scm:git:ssh://git@github.com:almende/eve.git</url> -->
 			<url>file:///${basedir}/../../repo/</url>

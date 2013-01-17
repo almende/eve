@@ -1,4 +1,4 @@
-package com.almende.eve.service;
+package com.almende.eve.transport;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,8 +8,8 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 
-public abstract class Service {
-	public Service(AgentFactory agentFactory) {
+public abstract class TransportService {
+	public TransportService(AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -50,7 +50,7 @@ public abstract class Service {
 			final AsyncCallback<JSONResponse> callback) throws Exception;
 	
 	/**
-	 * Initialize the service with a set of parameters
+	 * Initialize the transport service with a set of parameters
 	 * @param params
 	 */
 	public abstract void init(Map<String, Object> params);

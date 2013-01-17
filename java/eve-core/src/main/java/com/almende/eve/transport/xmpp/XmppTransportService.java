@@ -1,4 +1,4 @@
-package com.almende.eve.service.xmpp;
+package com.almende.eve.transport.xmpp;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -14,12 +14,12 @@ import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.context.Context;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
-import com.almende.eve.service.AsyncCallback;
-import com.almende.eve.service.Service;
-import com.almende.eve.service.SyncCallback;
+import com.almende.eve.transport.AsyncCallback;
+import com.almende.eve.transport.TransportService;
+import com.almende.eve.transport.SyncCallback;
 
-public class XmppService extends Service {	
-	public XmppService(AgentFactory agentFactory) {
+public class XmppTransportService extends TransportService {	
+	public XmppTransportService(AgentFactory agentFactory) {
 		super(agentFactory);
 	}
 

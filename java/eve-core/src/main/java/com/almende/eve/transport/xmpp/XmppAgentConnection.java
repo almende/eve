@@ -1,4 +1,4 @@
-package com.almende.eve.service.xmpp;
+package com.almende.eve.transport.xmpp;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.PacketListener;
@@ -14,8 +14,8 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.json.jackson.JOM;
-import com.almende.eve.service.AsyncCallback;
-import com.almende.eve.service.AsyncCallbackQueue;
+import com.almende.eve.transport.AsyncCallback;
+import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class XmppAgentConnection {

@@ -22,9 +22,9 @@ import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
-import com.almende.eve.service.AsyncCallback;
-import com.almende.eve.service.Service;
-import com.almende.eve.service.http.HttpService;
+import com.almende.eve.transport.AsyncCallback;
+import com.almende.eve.transport.TransportService;
+import com.almende.eve.transport.http.HttpTransportService;
 import com.almende.util.ClassUtil;
 
 /**
@@ -70,7 +70,7 @@ import com.almende.util.ClassUtil;
  */
 public class AgentFactory {
 	public AgentFactory () {
-		addService(new HttpService(this));
+		addTransportService(new HttpTransportService(this));
 		agents = new AgentCache();
 	}
 	
@@ -82,7 +82,7 @@ public class AgentFactory {
 	public AgentFactory(Config config) throws Exception {
 		setConfig(config);
 
-		addService(new HttpService(this));
+		addTransportService(new HttpTransportService(this));
 		agents = new AgentCache(config);
 	}
 	
@@ -198,8 +198,8 @@ public class AgentFactory {
 	/**
 	 * Create an agent proxy from an java interface
 	 * @param senderId        Internal id of the sender agent.
-	 *                        Not required for all services (for example not for
-	 *                        outgoing HTTP requests)
+	 *                        Not required for all transport services 
+	 *                        (for example not for outgoing HTTP requests)
 	 * @param receiverUrl     Url of the receiving agent
 	 * @param agentInterface  A java Interface, extending AgentInterface
 	 * @return
@@ -341,8 +341,8 @@ public class AgentFactory {
 	 * In case of an remote agent, an HTTP Request is sent to the concerning
 	 * agent.
 	 * @param senderId    Internal id of the sender agent
-	 *                    Not required for all services (for example not for
-	 *                    outgoing HTTP requests)
+	 *                    Not required for all transport services 
+	 *                    (for example not for outgoing HTTP requests)
 	 * @param receiverUrl
 	 * @param request
 	 * @return
@@ -356,19 +356,19 @@ public class AgentFactory {
 			return invoke(agentId, request);
 		}
 		else {
-			Service service = null;
+			TransportService service = null;
 			String protocol = null;
 			int separator = receiverUrl.indexOf(":");
 			if (separator != -1) {
 				protocol = receiverUrl.substring(0, separator);
-				service = getService(protocol);
+				service = getTransportService(protocol);
 			}
 			if (service != null) {
 				return service.send(senderId, receiverUrl, request);
 			}
 			else {
 				throw new ProtocolException(
-					"No service configured for protocol '" + protocol + "'.");
+					"No transport service configured for protocol '" + protocol + "'.");
 			}			
 		}
 	}
@@ -376,8 +376,8 @@ public class AgentFactory {
 	/**
 	 * Asynchronously invoke a request on an agent.
 	 * @param senderId    Internal id of the sender agent. 
-	 *                    Not required for all services (for example not for
-	 *                    outgoing HTTP requests)
+	 *                    Not required for all transport services 
+	 *                    (for example not for outgoing HTTP requests)
 	 * @param receiverUrl
 	 * @param request
 	 * @param callback
@@ -402,34 +402,34 @@ public class AgentFactory {
 			}).start();
 		}
 		else {
-			Service service = null;
+			TransportService service = null;
 			String protocol = null;
 			int separator = receiverUrl.indexOf(":");
 			if (separator != -1) {
 				protocol = receiverUrl.substring(0, separator);
-				service = getService(protocol);
+				service = getTransportService(protocol);
 			}
 			if (service != null) {
 				service.sendAsync(senderId, receiverUrl, request, callback);
 			}
 			else {
 				throw new ProtocolException(
-					"No service configured for protocol '" + protocol + "'.");
+					"No transport service configured for protocol '" + protocol + "'.");
 			}
 		}
 	}
 
 	/**
 	 * Get the agentId from given agentUrl. The url can be any protocol.
-	 * If the url matches any of the registered services, an agentId is
-	 * returned.
+	 * If the url matches any of the registered transport services, 
+	 * an agentId is returned.
 	 * This means that the url represents a local agent. It is possible
 	 * that no agent with this id exists.
 	 * @param agentUrl
 	 * @return agentId
 	 */
 	private String getAgentId(String agentUrl) {
-		for (Service service : services) {
+		for (TransportService service : transportServices) {
 			String agentId = service.getAgentId(agentUrl);
 			if (agentId != null) {
 				return agentId;
@@ -456,7 +456,7 @@ public class AgentFactory {
 		this.config = config;
 
 		initContextFactory(config);
-		initServices(config);
+		initTransportServices(config);
 		initScheduler(config);
 	}
 
@@ -580,61 +580,86 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Initialize services for incoming and outgoing messages
+	 * Initialize transport services for incoming and outgoing messages
 	 * (for example http and xmpp services).
 	 * @param config
 	 */
-	private void initServices(Config config) {
+	private void initTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
 			e.printStackTrace();
 			return;
 		}
 		
-		// create a list to hold both global and environment specific services
-		List<Map<String, Object>> allServiceParams = 
+		// create a list to hold both global and environment specific transport
+		List<Map<String, Object>> allTransportParams = 
 				new ArrayList<Map<String, Object>>();
 		
 		// read global service params
-		List<Map<String, Object>> globalServiceParams = 
-				config.get("services");
-		if (globalServiceParams != null) {
-			allServiceParams.addAll(globalServiceParams);
+		List<Map<String, Object>> globalTransportParams = 
+				config.get("transport_services");
+		if (globalTransportParams == null) {
+			// TODO: cleanup some day. deprecated since 2013-01-17
+			globalTransportParams = config.get("services");
+			if (globalTransportParams != null) {
+				logger.warning("Property 'services' is deprecated. Use 'transport_services' instead.");
+			}
+		}
+		if (globalTransportParams != null) {
+			allTransportParams.addAll(globalTransportParams);
 		}
 
 		// read service params for the current environment
-		List<Map<String, Object>> environmentServiceParams = 
-				config.get("environment", getEnvironment(), "services");
-		if (environmentServiceParams != null) {
-			allServiceParams.addAll(environmentServiceParams);
+		List<Map<String, Object>> environmentTransportParams = 
+				config.get("environment", getEnvironment(), "transport_services");
+		if (environmentTransportParams == null) {
+			// TODO: cleanup some day. deprecated since 2013-01-17
+			environmentTransportParams = config.get("environment", getEnvironment(), "services");
+			if (globalTransportParams != null) {
+				logger.warning("Property 'services' is deprecated. Use 'transport_services' instead.");
+			}
+		}
+		if (globalTransportParams != null) {
+			allTransportParams.addAll(globalTransportParams);
 		}
 		
 		int index = 0;
-		for (Map<String, Object> serviceParams : allServiceParams) {
-			String className = (String) serviceParams.get("class");
+		for (Map<String, Object> transportParams : allTransportParams) {
+			String className = (String) transportParams.get("class");
 			try {
 				if (className != null) {
 					// Recognize known classes by their short name,
 					// and replace the short name for the full class path
-					for (String name : SERVICES.keySet()) {
+					
+					// TODO: remove warning some day (added 2013-01-17)
+					if (className.toLowerCase().equals("XmppService".toLowerCase())) {
+						logger.warning("Deprecated class XmppService, use XmppTransportService instead.");
+						className = "XmppTransportService";
+					}
+					if (className.toLowerCase().equals("HttpService".toLowerCase())) {
+						logger.warning("Deprecated class HttpService, use HttpTransportService instead.");
+						className = "HttpTransportService";
+					}
+
+					for (String name : TRANSPORT_SERVICES.keySet()) {
 						if (className.toLowerCase().equals(name.toLowerCase())) {
-							className = SERVICES.get(name);
+							className = TRANSPORT_SERVICES.get(name);
 							break;
 						}
 					}
 					
-					// initialize the service
-					Class<?> serviceClass = Class.forName(className);
-					Service service = (Service) serviceClass
+					// initialize the transport service
+					Class<?> transportClass = Class.forName(className);
+					TransportService transport = (TransportService) transportClass
 							.getConstructor(AgentFactory.class)
 							.newInstance(this);
-					service.init(serviceParams);
+					transport.init(transportParams);
 
 					// register the service with the agent factory
-					addService(service);
+					addTransportService(transport);
 				}
 				else {
-					logger.warning("Cannot load service at index " + index + 
+					logger.warning("Cannot load transport service at index " + index + 
 							": no class defined.");
 				}
 			}
@@ -647,40 +672,40 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Add a new communication service
-	 * @param service
+	 * Add a new transport service
+	 * @param transportService
 	 */
-	public void addService(Service service) {
-		services.add(service);
-		logger.info("Registered service: " + service.toString());
+	public void addTransportService(TransportService transportService) {
+		transportServices.add(transportService);
+		logger.info("Registered transport service: " + transportService.toString());
 	}
 
 	/**
-	 * Remove a registered a communication service
-	 * @param service
+	 * Remove a registered a transport service
+	 * @param transportService
 	 */
-	public void removeService(Service service) {
-		services.remove(service);
-		logger.info("Unregistered service " + service.toString());
+	public void removeTransportService(TransportService transportService) {
+		transportServices.remove(transportService);
+		logger.info("Unregistered transport service " + transportService.toString());
 	}
 
 	/**
-	 * Get all registered communication services
-	 * @return services
+	 * Get all registered transport services
+	 * @return transportService
 	 */
-	public List<Service> getServices() {
-		return services;
+	public List<TransportService> getTransportServices() {
+		return transportServices;
 	}
 	
 	/**
-	 * Get all registered communication services which can handle given protocol
+	 * Get all registered transport services which can handle given protocol
 	 * @param protocol   A protocol, for example "http" or "xmpp"
-	 * @return services
+	 * @return transportService
 	 */
-	public List<Service> getServices(String protocol) {
-		List<Service> filteredServices = new ArrayList<Service> ();
+	public List<TransportService> getTransportServices(String protocol) {
+		List<TransportService> filteredServices = new ArrayList<TransportService> ();
 		
-		for (Service service : services) {
+		for (TransportService service : transportServices) {
 			List<String> protocols = service.getProtocols();
 			if (protocols.contains(protocol)) {
 				filteredServices.add(service);
@@ -691,14 +716,14 @@ public class AgentFactory {
 	}
 	
 	/**
-	 * Get the first registered service which supports given protocol. 
-	 * Returns null when none of the registered services can handle
+	 * Get the first registered transport service which supports given protocol. 
+	 * Returns null when none of the registered transport services can handle
 	 * the protocol.
 	 * @param protocol   A protocol, for example "http" or "xmpp"
 	 * @return service
 	 */
-	public Service getService(String protocol) {
-		List<Service> services = getServices(protocol);
+	public TransportService getTransportService(String protocol) {
+		List<TransportService> services = getTransportServices(protocol);
 		if (services.size() > 0) {
 			return services.get(0);
 		}
@@ -724,7 +749,7 @@ public class AgentFactory {
 	}
 	
 	// Note: the CopyOnWriteArrayList is inefficient but thread safe. 
-	private List<Service> services = new CopyOnWriteArrayList<Service>();
+	private List<TransportService> transportServices = new CopyOnWriteArrayList<TransportService>();
 	private ContextFactory contextFactory = null;
 	private Class<?> schedulerClass = null;
 	private Config config = null;
@@ -747,10 +772,10 @@ public class AgentFactory {
 		SCHEDULERS.put("AppEngineScheduler", "com.almende.eve.scheduler.google.AppEngineScheduler");
     }
 	
-	private final static Map<String, String> SERVICES = new HashMap<String, String>();
+	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();
 	static {
-		SERVICES.put("XmppService", "com.almende.eve.service.xmpp.XmppService");
-		SERVICES.put("HttpService", "com.almende.eve.service.http.HttpService");
+		TRANSPORT_SERVICES.put("XmppTransportService", "com.almende.eve.transport.xmpp.XmppTransportService");
+		TRANSPORT_SERVICES.put("HttpTransportService", "com.almende.eve.transport.http.HttpServiceService");
     }
 
 	private static AgentCache agents;

@@ -1,4 +1,4 @@
-package com.almende.eve.service.http;
+package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,17 +11,17 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.json.JSONResponse;
-import com.almende.eve.service.AsyncCallback;
-import com.almende.eve.service.Service;
+import com.almende.eve.transport.AsyncCallback;
+import com.almende.eve.transport.TransportService;
 import com.almende.util.HttpUtil;
 
-public class HttpService extends Service {
-	public HttpService(AgentFactory agentFactory) {
+public class HttpTransportService extends TransportService {
+	public HttpTransportService(AgentFactory agentFactory) {
 		super(agentFactory);
 	}
 	
 	/**
-	 * Initialize the service with a set of parameters
+	 * Initialize the transport service with a set of parameters
 	 * @param params   Available parameters:
 	 *                 {String} servlet_url
 	 */
@@ -41,8 +41,8 @@ public class HttpService extends Service {
 	}
 	
 	/**
-	 * Set the servlet url for the HTTPService. This determines the mapping
-	 * between an agentId and agentUrl.
+	 * Set the servlet url for the transport service. 
+	 * This determines the mapping between an agentId and agentUrl.
 	 * @param servletUrl
 	 */
 	private void setServletUrl(String servletUrl) {
@@ -58,7 +58,7 @@ public class HttpService extends Service {
 	}
 	
 	/**
-	 * Return the configured servlet url corresponding to this HTTPService.
+	 * Return the configured servlet url corresponding to this transport service.
 	 * The servlet url is loaded from the parameter servlet_url in the
 	 * configuration.
 	 * @return servletUrl
@@ -68,7 +68,7 @@ public class HttpService extends Service {
 	}
 	
 	/**
-	 * Retrieve the protocols supported by the HTTPService. 
+	 * Retrieve the protocols supported by the transport service. 
 	 * This can be "http" or "https", depending on the configuration.
 	 * @return protocols
 	 */
@@ -79,7 +79,7 @@ public class HttpService extends Service {
 	
 	/**
 	 * Send a JSON-RPC request to an agent via HTTP
-	 * @param senderId    Unused in the case of a HttpService
+	 * @param senderId    Unused in the case of a HttpTransport
 	 * @param receiverUrl
 	 * @param request
 	 * @return response       

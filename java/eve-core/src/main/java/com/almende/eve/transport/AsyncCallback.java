@@ -1,4 +1,4 @@
-package com.almende.eve.service;
+package com.almende.eve.transport;
 
 public interface AsyncCallback<T> {
 	public void onSuccess (T result);

@@ -1,4 +1,4 @@
-package com.almende.eve.service.http;
+package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.util.Enumeration;

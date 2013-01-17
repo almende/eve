@@ -1,4 +1,4 @@
-package com.almende.eve.service.http;
+package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,13 +27,13 @@ public class AgentServlet extends HttpServlet {
 	
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	AgentFactory agentFactory = null;
-	HttpService httpService = null;
+	HttpTransportService httpTransport = null;
 	
 	@Override
 	public void init() {
 		try {
 			initAgentFactory();
-			initHttpService();
+			initHttpTransport();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -47,8 +47,8 @@ public class AgentServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException {
 		String uri = req.getRequestURI();
-		String agentId = httpService.getAgentId(uri);
-		String resource = httpService.getAgentResource(uri);
+		String agentId = httpTransport.getAgentId(uri);
+		String resource = httpTransport.getAgentResource(uri);
 
 		// if no agentId is found, return generic information on servlet usage
 		if (agentId == null || agentId.isEmpty()) {
@@ -130,7 +130,7 @@ public class AgentServlet extends HttpServlet {
 			
 			// invoke the agent
 			agentUrl = req.getRequestURI();
-			agentId = httpService.getAgentId(agentUrl);
+			agentId = httpTransport.getAgentId(agentUrl);
 			if (agentId == null || agentId.isEmpty()) {
 				resp.sendError(400, "No agentId found in url.");
 				return;
@@ -166,7 +166,7 @@ public class AgentServlet extends HttpServlet {
 	protected void doPut(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException {
 		String agentUrl = req.getRequestURI();
-		String agentId = httpService.getAgentId(agentUrl);
+		String agentId = httpTransport.getAgentId(agentUrl);
 		String agentClass = req.getParameter("class");
 		
 		if (agentId == null) {
@@ -197,7 +197,7 @@ public class AgentServlet extends HttpServlet {
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException {
 		String agentUrl = req.getRequestURI();
-		String agentId = httpService.getAgentId(agentUrl);
+		String agentId = httpTransport.getAgentId(agentUrl);
 
 		if (agentId == null) {
 			resp.sendError(400, "No agentId found in url.");
@@ -241,10 +241,10 @@ public class AgentServlet extends HttpServlet {
 	 * Register this servlet at the agent factory
 	 * @throws Exception 
 	 */
-	private void initHttpService () throws Exception {
+	private void initHttpTransport () throws Exception {
 		if (agentFactory == null) {
 			throw new Exception(
-					"Cannot initialize HttpService: no AgentFactory initialized.");
+					"Cannot initialize HttpTransport: no AgentFactory initialized.");
 		}
 		
 		// TODO: one servlet must be able to support multiple servlet_urls
@@ -259,14 +259,14 @@ public class AgentServlet extends HttpServlet {
 			servletUrl = getInitParameter("servlet_url");
 		}
 		if (servletUrl == null) {
-			throw new Exception("Cannot initialize HttpService: " +
+			throw new Exception("Cannot initialize HttpTransport: " +
 					"Init Parameter '" + globalParam + "' or '" + envParam + "' " + 
 					"missing in servlet configuration web.xml.");
 		}
 		
-		httpService = new HttpService(agentFactory); 
-		httpService.init(servletUrl);
-		agentFactory.addService(httpService);
+		httpTransport = new HttpTransportService(agentFactory); 
+		httpTransport.init(servletUrl);
+		agentFactory.addTransportService(httpTransport);
 	}
 	
 	/**
@@ -274,7 +274,7 @@ public class AgentServlet extends HttpServlet {
 	 * @return info
 	 */
 	private String getServletDocs() {
-		String servletUrl = httpService.getServletUrl();
+		String servletUrl = httpTransport.getServletUrl();
 		String info = 
 			"EVE AGENTS SERVLET\n" +
 			"\n" +

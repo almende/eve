@@ -40,9 +40,9 @@ import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.scheduler.Scheduler;
-import com.almende.eve.service.AsyncCallback;
-import com.almende.eve.service.Service;
 import com.almende.eve.session.Session;
+import com.almende.eve.transport.AsyncCallback;
+import com.almende.eve.transport.TransportService;
 import com.almende.eve.json.JSONRPC;
 import com.almende.eve.json.JSONRPCException;
 import com.almende.eve.json.JSONRequest;
@@ -541,7 +541,7 @@ abstract public class Agent implements AgentInterface {
 		List<String> urls = new ArrayList<String>();
 		if (agentFactory != null) {
 			String agentId = getId();
-			for (Service service : agentFactory.getServices()) {
+			for (TransportService service : agentFactory.getTransportServices()) {
 				String url = service.getAgentUrl(agentId);
 				if (url != null) {
 					urls.add(url);

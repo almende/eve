@@ -8,7 +8,7 @@
 
   <servlet>
     <servlet-name>SingleAgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.service.http.SingleAgentServlet</servlet-class>
+    <servlet-class>com.almende.eve.transport.http.SingleAgentServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
@@ -34,7 +34,7 @@
 
   <servlet>
     <servlet-name>AgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+    <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>
@@ -52,7 +52,7 @@
 
   <servlet>
     <servlet-name>RESTServlet</servlet-name>
-    <servlet-class>com.almende.eve.service.http.RestServlet</servlet-class>
+    <servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
     <init-param>
       <description>servlet configuration (yaml file)</description> 
       <param-name>config</param-name>

@@ -78,7 +78,7 @@
 		<repository>
 			<name>Almende EVE repository</name>
 			<id>eve</id>
-			<url>https://raw.github.com/almende/eve/master/repo</url>
+			<url>https://github.com/almende/eve/blob/master/repo</url>
 		</repository>
 		<repository>
 			<id>twig</id>

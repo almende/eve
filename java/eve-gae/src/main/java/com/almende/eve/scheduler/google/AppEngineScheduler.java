@@ -6,7 +6,7 @@ import java.net.URL;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.json.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
-import com.almende.eve.service.Service;
+import com.almende.eve.transport.TransportService;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -31,8 +31,8 @@ public class AppEngineScheduler extends Scheduler {
 			//       is not safe
 			//       -> Scheduler should be configured with the servlet_url 
 			//          that it should use specified?
-			Service service = null;
-			for (Service s : agentFactory.getServices("http")) {
+			TransportService service = null;
+			for (TransportService s : agentFactory.getTransportServices("http")) {
 				if (s.getAgentUrl(agentId) != null) {
 					service = s;
 					break;
