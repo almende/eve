@@ -167,7 +167,7 @@ public class JSONRPC {
 			if (asJSON == null) {
 				asJSON = false;
 			}
-	
+
 			while (c != null && c != Object.class) {
 				for (Method method : c.getDeclaredMethods()) {
 					String methodName = method.getName();

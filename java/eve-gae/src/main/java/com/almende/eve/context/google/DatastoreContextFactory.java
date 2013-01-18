@@ -5,11 +5,14 @@ import java.util.Map;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.ContextFactory;
 import com.google.appengine.api.utils.SystemProperty;
+import com.google.code.twig.ObjectDatastoreFactory;
 
 public class DatastoreContextFactory extends ContextFactory {
 	public DatastoreContextFactory (AgentFactory agentFactory, 
 			Map<String, Object> params) {
 		super(agentFactory, params);
+		
+		ObjectDatastoreFactory.register(KeyValue.class);
 	}
 	
 	/**

@@ -30,81 +30,38 @@
 			<url>http://mvn.twig-persist.googlecode.com/hg</url>
 		</repository>
 	</repositories>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.almende.eve</groupId>
 			<artifactId>eve-core</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+	
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-1.0-sdk</artifactId>
+      <version>${appengine.version}</version>
+    </dependency>
+
 		<dependency>
 			<groupId>com.google.code.twig</groupId>
 			<artifactId>twig-persist</artifactId>
 			<version>${twig-persist.version}</version>
 			<exclusions>
 				<exclusion>
-					<groupId>com.google.appengine</groupId>
 					<artifactId>appengine-api-1.0-sdk</artifactId>
+					<groupId>com.google.appengine</groupId>
 				</exclusion>
 				<exclusion>
-					<groupId>com.google.appengine</groupId>
 					<artifactId>appengine-api-labs</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>com.google.appengine</groupId>
-					<artifactId>appengine-api-stubs</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>com.google.appengine</groupId>
-					<artifactId>appengine-api-stubs</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
+					<artifactId>servlet-api</artifactId>
+					<groupId>javax.servlet</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>13.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-api-1.0-sdk</artifactId>
-			<version>${appengine.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-api-labs</artifactId>
-			<version>${appengine.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.appengine</groupId>
-			<artifactId>appengine-api-stubs</artifactId>
-			<version>${appengine.version}</version>
-		</dependency>
 	</dependencies>
-
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-war-plugin</artifactId>
-					<version>2.3</version>
-					<configuration>
-						<archiveClasses>true</archiveClasses>
-						<webXml>src\main\webapp\WEB-INF\web.xml</webXml>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>com.google.appengine</groupId>
-					<artifactId>appengine-maven-plugin</artifactId>
-					<version>${appengine.version}</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
-
 </project>

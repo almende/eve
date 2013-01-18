@@ -232,7 +232,10 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return id;
 	}
 	
-	public void myTask(@Name("message") String message) {
+	public void myTask(@Name("message") String message) throws Exception {
+		ObjectNode params = JOM.createObjectNode();
+		params.put("message", message);
+		trigger("task", params);
 		System.out.println("myTask is executed. Message: " + message);
 	}
 
