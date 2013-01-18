@@ -9,7 +9,7 @@
 	<version>0.17-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>EVE core</name>
+	<name>EVE</name>
 	<url>http://almende.github.com/eve</url>
 
 	<organization>
@@ -46,6 +46,12 @@
 		<maven-surefire-plugin.version>2.12</maven-surefire-plugin.version>
 		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
 	</properties>
+
+   <modules>
+     <module>../eve-core</module>
+     <module>../eve-gae</module>
+     <module>../eve-gae-test</module>
+   </modules>
 
 	<pluginRepositories>
 	</pluginRepositories>

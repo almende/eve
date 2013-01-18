@@ -32,6 +32,8 @@ import java.util.Map;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.annotation.Access;
+import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.entity.Person;
@@ -54,6 +56,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return message;
 	}
 
+	@Access(AccessType.UNAVAILABLE)
 	public void init() {
 		System.out.println("initializing TestAgent/" + getId());
 		super.init();

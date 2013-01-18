@@ -324,6 +324,9 @@ public class JSONRPC {
 		Class<?> c = objectClass;
 		while (c != null && c != Object.class) {
 			for (Method m : c.getMethods()) {
+				// TODO: the method should inherit annotations from overwritten methods
+				// (for example when an agent overrides init(), it should automatically have annotation @Access(AccessType = unavailable)
+				// see http://fusionsoft-online.com/en/java-annotations.html
 				if (m.getName().equals(method) && isAvailable(m)) {
 					MethodType meta = new MethodType();
 					meta.method = m;
