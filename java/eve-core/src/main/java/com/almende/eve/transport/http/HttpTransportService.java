@@ -26,6 +26,7 @@ public class HttpTransportService extends TransportService {
 	 *                 {String} servlet_url
 	 */
 	@Override
+	// TODO: make init private and call from the constructor.
 	public void init(Map<String, Object> params) {
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
@@ -36,6 +37,7 @@ public class HttpTransportService extends TransportService {
 	 * Initialize the service
 	 * @param servletUrl
 	 */
+	// TODO: make init private and call from the constructor.
 	public void init(String servletUrl) {
 		setServletUrl(servletUrl);
 	}

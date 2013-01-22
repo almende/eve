@@ -54,15 +54,16 @@ public class XmppTransportService extends TransportService {
 		return null;
 	}
 	
-
 	/**
 	 * initialize the settings for the xmpp service
 	 * @param params   Available parameters:
 	 *                 {String} host
 	 *                 {Integer} port
 	 *                 {String} serviceName
+	 *                 {String} id
      */
 	@Override
+	// TODO: make init private and call from the constructor.
 	public void init(Map<String, Object> params) {
 		String contextId = null;
 
@@ -83,6 +84,7 @@ public class XmppTransportService extends TransportService {
 	 * @param port
 	 * @param service  service name
      */
+	// TODO: make init private and call from the constructor.
 	public void init(String host, Integer port, String service) {
 		String id = null;
 		init(host, port, service, id);
@@ -95,6 +97,7 @@ public class XmppTransportService extends TransportService {
 	 * @param service  service name
 	 * @param id       context id, to persist the state
      */
+	// TODO: make init private and call from the constructor.
 	public void init(String host, Integer port, String service, String id) {
 		this.host = host;
 		this.port = port;

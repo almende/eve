@@ -22,4 +22,4 @@ context:
 
 # scheduler settings
 scheduler:
-  class: RunnableScheduler
+  class: RunnableSchedulerFactory

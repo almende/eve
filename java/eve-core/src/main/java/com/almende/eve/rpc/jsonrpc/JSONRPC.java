@@ -95,7 +95,10 @@ public class JSONRPC {
 			else {
 				JSONRPCException jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
+				// TODO: return useful, readable stacktrace
+				jsonError.setData(err.getStackTrace());
 				resp.setError(jsonError);
+				err.printStackTrace(); // TODO: cleanup printing stacktrace
 			}
 		}
 		
@@ -431,7 +434,7 @@ public class JSONRPC {
 			if (getName(param) == null) {
 				return false;
 			}
-		}		
+		}
 		return true;
 	}
 	

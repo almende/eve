@@ -107,7 +107,7 @@ abstract public class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	final public Scheduler getScheduler() {
 		if (scheduler == null && agentFactory != null) {
-			scheduler = agentFactory.createScheduler(getId());
+			scheduler = agentFactory.getScheduler(getId());
 		}
 		return scheduler;
 	}
@@ -329,7 +329,7 @@ abstract public class Agent implements AgentInterface {
 			JSONRequest request = new JSONRequest("onTrigger", taskParams);
 			long delay = 0;
 			if (scheduler == null && agentFactory != null) {
-				scheduler = agentFactory.createScheduler(getId());
+				scheduler = agentFactory.getScheduler(getId());
 			}
 			scheduler.createTask(request, delay);
 		}

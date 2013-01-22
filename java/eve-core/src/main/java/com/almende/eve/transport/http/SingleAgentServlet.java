@@ -91,8 +91,7 @@ public class SingleAgentServlet extends HttpServlet {
 			else {
 				jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());				
-
-				err.printStackTrace(); // TODO: remove printing stacktrace?
+				jsonError.setData(err.getStackTrace());
 			}
 			jsonResponse = new JSONResponse(jsonError);
 		}

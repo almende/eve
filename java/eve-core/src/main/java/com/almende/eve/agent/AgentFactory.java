@@ -22,6 +22,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpTransportService;
@@ -456,9 +457,9 @@ public class AgentFactory {
 	private void setConfig(Config config) {
 		this.config = config;
 
-		initContextFactory(config);
-		initTransportServices(config);
+		initContext(config);
 		initScheduler(config);
+		initTransportServices(config);
 	}
 
 	/**
@@ -475,7 +476,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initContextFactory(Config config) {
+	private void initContext(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -555,6 +556,16 @@ public class AgentFactory {
 			throw new IllegalArgumentException(
 				"Config parameter 'scheduler.class' missing in Eve configuration.");
 		}
+
+		// TODO: remove warning some day (added 2013-01-22)
+		if (className.toLowerCase().equals("RunnableScheduler".toLowerCase())) {
+			logger.warning("Deprecated class RunnableScheduler configured. Use RunnableSchedulerFactory instead to configure a scheduler factory.");
+			className = "RunnableSchedulerFactory";
+		}
+		if (className.toLowerCase().equals("AppEngineScheduler".toLowerCase())) {
+			logger.warning("Deprecated class AppEngineScheduler configured. Use AppEngineSchedulerFactory instead to configure a scheduler factory.");
+			className = "AppEngineScheduler";
+		}
 		
 		// Recognize known classes by their short name,
 		// and replace the short name for the full class path
@@ -564,16 +575,30 @@ public class AgentFactory {
 				break;
 			}
 		}
+
+		// read all scheduler params (will be fed to the scheduler factory
+		// on construction)
+		Map<String, Object> params = config.get("environment", getEnvironment(), "scheduler");
+		if (params == null) {
+			params = config.get("scheduler");
+		}
 		
 		try {
 			// get the class
-			schedulerClass = Class.forName(className);
-			if (!ClassUtil.hasSuperClass(schedulerClass, Scheduler.class)) {
+			Class<?> schedulerClass = Class.forName(className);
+			if (!ClassUtil.hasInterface(schedulerClass, SchedulerFactory.class)) {
 				throw new IllegalArgumentException(
 						"Scheduler class " + schedulerClass.getName() + 
-						" must extend " + Scheduler.class.getName());
+						" must implement " + SchedulerFactory.class.getName());
 			}
-			logger.info("Initialized scheduler: " + schedulerClass.getName());
+			
+			// initialize the scheduler factory
+			schedulerFactory = (SchedulerFactory) schedulerClass
+						.getConstructor(AgentFactory.class, Map.class )
+						.newInstance(this, params);
+			
+			logger.info("Initialized scheduler factory: " + 
+					schedulerFactory.getClass().getName());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -736,23 +761,14 @@ public class AgentFactory {
 	 * @param agentId
 	 * @return scheduler
 	 */
-	public Scheduler createScheduler(String agentId) {
-		// instantiate the scheduler
-		Scheduler scheduler = null;
-		try {
-			scheduler = (Scheduler) schedulerClass
-					.getConstructor(AgentFactory.class, String.class )
-					.newInstance(this, agentId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return scheduler;
+	public Scheduler getScheduler(String agentId) {
+		return schedulerFactory.getScheduler(agentId);
 	}
 	
 	// Note: the CopyOnWriteArrayList is inefficient but thread safe. 
 	private List<TransportService> transportServices = new CopyOnWriteArrayList<TransportService>();
 	private ContextFactory contextFactory = null;
-	private Class<?> schedulerClass = null;
+	private SchedulerFactory schedulerFactory = null;
 	private Config config = null;
 
 	private static Map<String, AgentFactory> factories = 
@@ -769,8 +785,8 @@ public class AgentFactory {
 
 	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
 	static {
-		SCHEDULERS.put("RunnableScheduler",  "com.almende.eve.scheduler.RunnableScheduler");
-		SCHEDULERS.put("AppEngineScheduler", "com.almende.eve.scheduler.google.AppEngineScheduler");
+		SCHEDULERS.put("RunnableSchedulerFactory",  "com.almende.eve.scheduler.RunnableSchedulerFactory");
+		SCHEDULERS.put("AppEngineSchedulerFactory", "com.almende.eve.scheduler.google.AppEngineSchedulerFactory");
     }
 	
 	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
@@ -230,6 +231,10 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		JSONRequest request = new JSONRequest("myTask", params);
 		String id = getScheduler().createTask(request, delay);
 		return id;
+	}
+	
+	public Set<String> getTasks() {
+		return getScheduler().getTasks();
 	}
 	
 	public void myTask(@Name("message") String message) throws Exception {
