@@ -17,6 +17,7 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.SyncCallback;
+import com.almende.util.EncryptionUtil;
 
 public class XmppTransportService extends TransportService {	
 	public XmppTransportService(AgentFactory agentFactory) {
@@ -170,7 +171,6 @@ public class XmppTransportService extends TransportService {
 		connectionsById.put(agentId, connection);
 		connectionsByUrl.put(generateUrl(username, host), connection);
 		
-		/* TODO: persist connection (after XMPP certificates are implemented)
 		// persist the parameters for the connection
 		if (context != null) {
 			synchronized (context) {
@@ -181,13 +181,12 @@ public class XmppTransportService extends TransportService {
 					connections = new HashMap<String, Map<String, String>>();
 				}
 				Map<String, String> params = new HashMap<String, String>();
-				params.put("username", username);
-				params.put("password", password);
+				params.put("username", EncryptionUtil.encrypt(username));
+				params.put("password", EncryptionUtil.encrypt(password));
 				connections.put(agentId, params);
 				context.put("connections", connections);
 			}
 		}
-		*/
 	}
 	
 	/**
@@ -281,7 +280,11 @@ public class XmppTransportService extends TransportService {
 					for (String agentId : connections.keySet()) {
 						Map<String, String> params = connections.get(agentId);
 						try {
-							connect(agentId, params.get("username"), params.get("password"));
+							if (params.containsKey("username") && params.containsKey("password")) {
+								String username = EncryptionUtil.decrypt(params.get("username"));
+								String password = EncryptionUtil.decrypt(params.get("password"));
+								connect(agentId, username, password);
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
