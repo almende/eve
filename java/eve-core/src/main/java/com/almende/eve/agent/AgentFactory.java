@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -89,6 +90,7 @@ public class AgentFactory {
 		initContext(config);
 		initTransportServices(config);
 		initScheduler(config);
+		initBootstrap(config);
 
 		addTransportService(new HttpTransportService(this));
 	}
@@ -530,6 +532,33 @@ public class AgentFactory {
 		}		
 	}
 	
+	/**
+	 * Bootstrap agents on system startup.
+	 * This will create the configured agents when they are not yet existing.
+	 * @param config
+	 */
+	private void initBootstrap (Config config) {
+		Map<String, String> agents = config.get("bootstrap", "agents");
+		if (agents != null) {
+			for (Entry<String, String> entry : agents.entrySet()) {
+				String agentId = entry.getKey();
+				String agentClass = entry.getValue();
+				try {
+					Agent agent = getAgent(agentId);
+					if (agent == null) {
+						// agent does not yet exist. create it
+						agent = createAgent(agentClass, agentId);
+						agent.destroy();
+						logger.info("Bootstrap created agent id=" + agentId + 
+								", class=" + agentClass);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	/**
 	 * Set a context factory. The context factory is used to get/create/delete
 	 * an agents context.

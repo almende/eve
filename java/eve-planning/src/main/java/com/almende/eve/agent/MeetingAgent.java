@@ -80,6 +80,8 @@ import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 
+import com.almende.eve.agent.annotation.Access;
+import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
@@ -1412,10 +1414,21 @@ public class MeetingAgent extends Agent {
 	}
 
 	/**
-	 * Clear the stored activity, and remove events from attendees.
+	 * Delete everything of the agent
 	 */
 	@Override
-	public void clear() throws Exception {
+	public void delete() {
+		clear(); 
+		
+		// super class will delete the context
+		super.delete();
+	}
+
+	/**
+	 * Clear the stored activity, and remove events from attendees.
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void clear () {
 		Activity activity = getActivity();
 
 		if (activity != null) {
@@ -1430,11 +1443,8 @@ public class MeetingAgent extends Agent {
 
 		// stop auto update timer (if any)
 		stopAutoUpdate();
-
-		// super class will clear the context
-		super.clear();
 	}
-
+	
 	/**
 	 * Clear an event from given agent
 	 * 

@@ -67,7 +67,7 @@ public class XmppAgentConnection {
 			// set presence
 			Presence presence = new Presence(Presence.Type.available);
 			conn.sendPacket(presence);
-
+			
 			// instantiate a packet listener
 			conn.addPacketListener(new JSONRPCListener(conn, agentFactory, 
 					agentId, callbacks), null);            

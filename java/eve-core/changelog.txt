@@ -4,11 +4,19 @@ http://almende.github.com/eve/
 
 <under construction>, version 0.17
 
+- In the configuration, a set of agents can be configured to be created
+  on system startup when they are not existing.
+- Added methods create and delete to the life cycle of an agent. Create is 
+  called once when the agent is created, and delete is called once when the
+  agent is deleted. The methods can be utilized to perform some custom action
+  on creating or deletion of an agent.
 - All open XMPP Connections are persisted and are automatically reconnected 
   after a server restart.
-- Created a SchedulerFactory to manage and persist scheduled tasks from the 
-  Schedulers of all agents. In the eve.yaml configuration, one has to specify 
-  a SchedulerFactory instead of a Scheduler class.
+- Scheduled tasks are persisted, and are automatically re-scheduled after a
+  system restart.
+- SchedulerFactory is created to manage and persist scheduled tasks. 
+  In the eve.yaml configuration, a SchedulerFactory class must be specified  
+  instead of a Scheduler class.
 - Improved functionality for reading and merging (inherited) annotations.
 
 
