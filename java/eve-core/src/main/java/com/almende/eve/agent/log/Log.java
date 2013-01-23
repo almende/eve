@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 /**
@@ -22,7 +21,7 @@ public class Log implements Serializable {
 	private String event = null;
 	private String params = null;
 
-	public Log(String agentId, String event, ObjectNode params) 
+	public Log(String agentId, String event, Object params) 
 			throws JsonGenerationException, JsonMappingException, IOException {
 		this.setTimestamp(new Date().getTime());
 		this.setAgentId(agentId);
@@ -54,15 +53,15 @@ public class Log implements Serializable {
 		return event;
 	}
 
-	public void setParams(ObjectNode params) 
+	public void setParams(Object params) 
 			throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper mapper = JOM.getInstance();
 		this.params = mapper.writeValueAsString(params);
 	}
 
-	public ObjectNode getParams() 
+	public Object getParams() 
 			throws JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = JOM.getInstance();
-		return mapper.readValue(params, ObjectNode.class);
+		return mapper.readValue(params, Object.class);
 	}
 }

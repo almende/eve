@@ -54,19 +54,36 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AnnotationUtil {
 	private static Map<String, AnnotatedClass> cache = 
 			new ConcurrentHashMap<String, AnnotatedClass>();
+	private static Map<String, AnnotatedClass> cacheIncludingObject = 
+			new ConcurrentHashMap<String, AnnotatedClass>();
+	
+	/**
+	 * Get all annotations of a class, methods, and parameters.
+	 * Returned annotations include all annotations of the classes interfaces
+	 * and super classes (excluding java.lang.Object).
+	 * @param clazz
+	 * @return annotatedClazz
+	 */
+	public static AnnotatedClass get(Class<?> clazz) {
+		final boolean includeObject = false;
+		return get(clazz, includeObject);
+	}
 	
 	/**
 	 * Get all annotations of a class, methods, and parameters.
 	 * Returned annotations include all annotations of the classes interfaces
 	 * and super classes.
 	 * @param clazz
+	 * @param includeObject    If true, methods of java.lang.Object will be 
+	 *                         included in the superclasses too.
 	 * @return annotatedClazz
 	 */
-	public static AnnotatedClass get(Class<?> clazz) {
-		AnnotatedClass annotatedClazz = cache.get(clazz.getName());
+	public static AnnotatedClass get(Class<?> clazz, boolean includeObject) {
+		Map<String, AnnotatedClass> _cache = includeObject ? cacheIncludingObject : cache;
+		AnnotatedClass annotatedClazz = _cache.get(clazz.getName());
 		if (annotatedClazz == null) {
-			annotatedClazz = new AnnotatedClass(clazz);
-			cache.put(clazz.getName(), annotatedClazz);
+			annotatedClazz = new AnnotatedClass(clazz, includeObject);
+			_cache.put(clazz.getName(), annotatedClazz);
 		}		
 		return annotatedClazz;
 	}
@@ -79,20 +96,28 @@ public class AnnotationUtil {
 		private List<Annotation> annotations = new ArrayList<Annotation>();
 		private List<AnnotatedMethod> methods = new ArrayList<AnnotatedMethod>();
 
-		public AnnotatedClass(Class<?> clazz) {
+		/**
+		 * Create a new AnnotatedClass
+		 * @param clazz
+		 * @param includeObject  If true, the methods of super class 
+		 *                       java.lang.Object will be included too.
+		 */
+		public AnnotatedClass(Class<?> clazz, boolean includeObject) {
 			this.clazz = clazz;
-			merge(clazz);
+			merge(clazz, includeObject);
 		}
-		
+
 		/**
 		 * Recursively merge a class into this AnnotatedClass.
 		 * The method loops over all the classess interfaces and superclasses
 		 * Methods with will be merged.
 		 * @param clazz
+		 * @param includeObject     if true, superclass java.lang.Object will
+		 *                          be included too.
 		 */
-		private void merge(Class<?> clazz) {
+		private void merge(Class<?> clazz, boolean includeObject) {
 			Class<?> c = clazz;
-			while (c != null) {
+			while (c != null && (includeObject || c != Object.class)) {
 				// merge the annotations
 				AnnotationUtil.merge(annotations, c.getDeclaredAnnotations());
 				
@@ -101,7 +126,7 @@ public class AnnotationUtil {
 
 				// merge all interfaces and the superclasses of the interfaces
 				for (Class<?> i : c.getInterfaces()) {
-					merge(i);
+					merge(i, includeObject);
 				}
 				
 				// ok now again for the superclass

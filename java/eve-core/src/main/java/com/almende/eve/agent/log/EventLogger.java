@@ -3,7 +3,6 @@ package com.almende.eve.agent.log;
 import java.util.List;
 
 import com.almende.eve.agent.AgentFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class EventLogger {
 	protected EventLogger() {}
@@ -12,7 +11,7 @@ public class EventLogger {
 		this.agentFactory = agentFactory;
 	}
 	
-	public void log(String agentId, String event, ObjectNode params) {
+	public void log(String agentId, String event, Object params) {
 		try {
 			String logAgentId = getLogAgentId(agentId);
 			LogAgent agent = (LogAgent) agentFactory.getAgent(logAgentId);

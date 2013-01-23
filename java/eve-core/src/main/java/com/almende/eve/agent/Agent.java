@@ -47,6 +47,7 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
@@ -287,13 +288,13 @@ abstract public class Agent implements AgentInterface {
 	/**
 	 * Trigger an event
 	 * @param event
-	 * @param params
+	 * @param params   An ObjectNode, Map, or POJO
 	 * @throws Exception 
 	 * @throws JSONRPCException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void trigger(@Name("event") String event, 
-			@Name("params") ObjectNode params) throws Exception {
+			@Name("params") Object params) throws Exception {
 		String url = getFirstUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 
@@ -316,7 +317,13 @@ abstract public class Agent implements AgentInterface {
 		ObjectNode callbackParams = JOM.createObjectNode();
 		callbackParams.put("agent", url);
 		callbackParams.put("event", event);
-		callbackParams.put("params", params);
+		if (params instanceof JsonNode) {
+			callbackParams.put("params", (ObjectNode) params);
+		}
+		else {
+			ObjectNode jsonParams = JOM.getInstance().convertValue(params, ObjectNode.class);
+			callbackParams.put("params", jsonParams);
+		}
 		
 		for (Callback s : subscriptions) {
 			// create a task to send this trigger. 

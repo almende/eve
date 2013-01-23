@@ -24,11 +24,20 @@
  */
 package com.almende.eve.agent.example;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.Name;
 
 public class EchoAgent extends Agent {
-	public Object ping(@Name("message") Object message) {
+	public Object ping(@Name("message") Object message) throws Exception {
+		// trigger event
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("message", message);
+		trigger("ping", params);
+		
+		// return the message itself
 		return message;
 	}
 	
