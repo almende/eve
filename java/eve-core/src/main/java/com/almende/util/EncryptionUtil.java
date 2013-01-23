@@ -29,7 +29,7 @@ import org.jivesoftware.smack.util.Base64;
  */
 public class EncryptionUtil {
 	// master password
-	// FIXME: do not store master password in the code
+	// FIXME: do not store the master password in the code
 	private static final char[] P = ("This is our secret master p......d, " +
 			"which should definetely NOT be stored in the code!").toCharArray();
 	

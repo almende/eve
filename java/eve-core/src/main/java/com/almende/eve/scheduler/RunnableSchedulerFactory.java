@@ -266,12 +266,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		private String agentId = null;
 	}
 
-	private final AgentFactory agentFactory;
+	private AgentFactory agentFactory;
 	private Context context = null;	
 
 	private long count = 0;
-	private final ScheduledExecutorService scheduler = 
-		Executors.newScheduledThreadPool(1);
+	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 	// {agentId: {taskId: task}}
 	private final Map<String, Map<String, Task>> allTasks = 

@@ -564,7 +564,7 @@ public class AgentFactory {
 		}
 		if (className.toLowerCase().equals("AppEngineScheduler".toLowerCase())) {
 			logger.warning("Deprecated class AppEngineScheduler configured. Use AppEngineSchedulerFactory instead to configure a scheduler factory.");
-			className = "AppEngineScheduler";
+			className = "AppEngineSchedulerFactory";
 		}
 		
 		// Recognize known classes by their short name,
