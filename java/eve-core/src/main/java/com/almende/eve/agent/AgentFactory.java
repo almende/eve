@@ -81,10 +81,16 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	public AgentFactory(Config config) throws Exception {
-		setConfig(config);
+		this.config = config;
+
+		// important to initialize in the correct order: cache first, 
+		// then the context and transport services, and lastly scheduler.
+		agents = new AgentCache(config);
+		initContext(config);
+		initTransportServices(config);
+		initScheduler(config);
 
 		addTransportService(new HttpTransportService(this));
-		agents = new AgentCache(config);
 	}
 	
 	/**
@@ -466,19 +472,6 @@ public class AgentFactory {
 	 */
 	public String getEnvironment() {
 		return (contextFactory != null) ? contextFactory.getEnvironment() : null;
-	}
-
-	/**
-	 * Set configuration file
-	 * @param config   A loaded configuration file
-	 * @throws Exception 
-	 */
-	private void setConfig(Config config) {
-		this.config = config;
-
-		initContext(config);
-		initScheduler(config);
-		initTransportServices(config);
 	}
 
 	/**
