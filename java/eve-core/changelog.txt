@@ -17,6 +17,7 @@ http://almende.github.com/eve/
 - SchedulerFactory is created to manage and persist scheduled tasks. 
   In the eve.yaml configuration, a SchedulerFactory class must be specified  
   instead of a Scheduler class.
+- Added validation of an Agents class on agent creation.
 - Improved functionality for reading and merging (inherited) annotations.
 
 

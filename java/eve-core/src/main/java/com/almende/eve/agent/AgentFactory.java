@@ -288,6 +288,13 @@ public class AgentFactory {
 			throw new Exception(
 					"Class " + agentClass + " does not extend class " + Agent.class);
 		}
+
+		// validate the Eve agent and output as warnings
+		List<String> errors = JSONRPC.validate(agentClass);
+		for (String error : errors) {
+			logger.warning("Validation error class: " + agentClass.getName() + 
+					", message: " + error);
+		}
 		
 		// create the context
 		Context context = getContextFactory().create(agentId);
