@@ -181,6 +181,7 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 		@Override 
 		public Set<String> getTasks() {
 			// TODO: implement getTasks
+			logger.severe("getTasks not implemented for Google App Engine");
 			return new HashSet<String>();
 		}
 		

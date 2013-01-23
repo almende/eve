@@ -15,7 +15,6 @@
 
 	<properties>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
-		<joda-time.version>2.1</joda-time.version>
 	</properties>
 
 	<repositories>
@@ -31,11 +30,6 @@
 			<groupId>com.almende.eve</groupId>
 			<artifactId>eve-core</artifactId>
 			<version>${project.parent.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>${joda-time.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
