@@ -188,7 +188,8 @@ public class AgentFactory {
 		agent.setContext(context);
 		agent.init();
 		
-		if (agentClass.isAnnotationPresent(ThreadSafe.class) && agentClass.getAnnotation(ThreadSafe.class).value()){
+		if (agentClass.isAnnotationPresent(ThreadSafe.class) && 
+				agentClass.getAnnotation(ThreadSafe.class).value()){
 			//System.err.println("Agent "+agentId+" is threadSafe, keeping!");
 			agents.put(agentId, agent);
 		}
@@ -284,9 +285,21 @@ public class AgentFactory {
 		Context context = getContextFactory().create(agentId);
 		context.setAgentClass(agentClass);
 		context.destroy();
+
+		// instantiate the agent
+		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		agent.setAgentFactory(this);
+		agent.setContext(context);
+		agent.create();
+		agent.init();
+
+		if (agentClass.isAnnotationPresent(ThreadSafe.class) && 
+				agentClass.getAnnotation(ThreadSafe.class).value()){
+			//System.err.println("Agent "+agentId+" is threadSafe, keeping!");
+			agents.put(agentId, agent);
+		}
 		
-		// get the agent
-		return getAgent(agentId);
+		return agent;
 	}
 	
 	/**
@@ -295,6 +308,12 @@ public class AgentFactory {
 	 * @throws Exception 
 	 */
 	public void deleteAgent(String agentId) throws Exception {
+		// get the agent and execute the delete method
+		Agent agent = getAgent(agentId);
+		agent.destroy();
+		agent.delete();
+		agent = null;
+		
 		getContextFactory().delete(agentId);
 	}
 	

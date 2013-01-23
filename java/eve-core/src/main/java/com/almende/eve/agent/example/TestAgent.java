@@ -55,6 +55,16 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return message;
 	}
 
+	public void create() {
+		System.out.println("creating TestAgent/" + getId());
+		super.create();
+	}
+	
+	public void delete() {
+		System.out.println("deleting TestAgent/" + getId());
+		super.delete();
+	}
+
 	public void init() {
 		System.out.println("initializing TestAgent/" + getId());
 		super.init();

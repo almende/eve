@@ -60,18 +60,57 @@ abstract public class Agent implements AgentInterface {
 	public abstract String getVersion();
 
 	public Agent() {}
+
+	/**
+	 * This method is called once in the life time of an agent, at the moment
+	 * the agent is being created by the AgentFactory.
+	 * It can be overridden and used to perform some action when the agent
+	 * is create, in that case super.create() should be called in 
+	 * the overridden create().
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void create() {}
+
+	/**
+	 * This method is called once in the life time of an agent, at the moment
+	 * the agent is being deleted by the AgentFactory.
+	 * It can be overridden and used to perform some action when the agent
+	 * is deleted, in that case super.delete() should be called in 
+	 * the overridden delete().
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void delete() {
+		// TODO: unsubscribe from all subscriptions 
+		
+		// cancel all scheduled tasks.
+		Scheduler scheduler = getScheduler();
+		for (String taskId : scheduler.getTasks()) {
+			scheduler.cancelTask(taskId);
+		}
+		
+		// remove all keys from the context
+		context.clear();
+		
+		// save the agents class again in the context
+		context.put("class", getClass().getName());		
+	}
 	
 	/**
 	 * This method is called directly after the agent and its context is 
 	 * initiated. 
-	 * It can be used overridden and used to initialize variables for the agent. 
+	 * It can be overridden and used to perform some action when the agent
+	 * is initialized, in that case super.init() should be called in 
+	 * the overridden init().
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void init() {}
 
 	/**
-	 * This method can be called to destory and finalize the context of the 
-	 * agent. 
+	 * This method can is called when the agent is uninitialized, and is 
+	 * needed finalize the context of the agent.
+	 * It can be overridden and used to perform some action when the agent
+	 * is uninitialized, in that case super.destroy() should be called in 
+	 * the overridden destroy().
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void destroy() {
@@ -80,12 +119,17 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	protected void finalize () {
+	protected void finalize() {
 		// ensure the context is cleanup when the agent's method destroy is not
 		// called.
-		destroy();
+		getContext().destroy();
 	}
 	
+	/**
+	 * Set the context of the agent instance. This method is used by the 
+	 * AgentFactory.
+	 * @param context
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void setContext(Context context) {
 		this.context = context;
@@ -130,21 +174,11 @@ abstract public class Agent implements AgentInterface {
 	/**
 	 * Clear the agents context, unsubscribe from all subscribed events, 
 	 * cancel all running tasks
+	 * @Deprecated use delete() instead.
 	 */
+	@Deprecated
 	public void clear() throws Exception {
-		// TODO: unsubscribe from all subscriptions 
-		
-		// cancel all scheduled tasks.
-		Scheduler scheduler = getScheduler();
-		for (String taskId : scheduler.getTasks()) {
-			scheduler.cancelTask(taskId);
-		}
-		
-		// remove all keys from the context
-		context.clear();
-		
-		// save the agents class again in the context
-		context.put("class", getClass().getName());
+		delete();
 	}
 
 	/**
