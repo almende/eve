@@ -4,8 +4,8 @@ http://almende.github.com/eve/
 
 <under construction>, version 0.17
 
-- All open XMPP Connections will be reconnected automatically after a server
-  restart.
+- All open XMPP Connections are persisted and are automatically reconnected 
+  after a server restart.
 - Created a SchedulerFactory to manage and persist scheduled tasks from the 
   Schedulers of all agents. In the eve.yaml configuration, one has to specify 
   a SchedulerFactory instead of a Scheduler class.

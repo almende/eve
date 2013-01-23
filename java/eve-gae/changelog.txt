@@ -1,6 +1,11 @@
 EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
+<under construction>, version 0.17
+
+- Implemented a SchedulerFactory, according to changes in eve-core.
+  The AppEngineScheduler is able to retrieve a list id's of all running tasks.
+
 
 2013-01-17, version 0.16
 

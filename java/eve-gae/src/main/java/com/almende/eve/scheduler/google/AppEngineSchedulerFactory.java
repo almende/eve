@@ -5,93 +5,65 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
+
+import org.joda.time.DateTime;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.context.Context;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.transport.TransportService;
 
+import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
+import com.google.code.twig.ObjectDatastore;
+import com.google.code.twig.ObjectDatastoreFactory;
+import com.google.code.twig.annotation.AnnotationObjectDatastore;
+
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 public class AppEngineSchedulerFactory implements SchedulerFactory {
 	public AppEngineSchedulerFactory (AgentFactory agentFactory, 
 			Map<String, Object> params) {
-		// TODO: constructor
-		this.agentFactory = agentFactory;
-		init(params);
+		init(agentFactory);
 	}
 	
-	public AppEngineSchedulerFactory (AgentFactory agentFactory, String id) {
-		this.agentFactory = agentFactory;
-		init(id);
+	public AppEngineSchedulerFactory (AgentFactory agentFactory) {
+		init(agentFactory);
 	}
 
+	/**
+	 * Initialize the scheduler factory, register classes at the datastore
+	 * factory.
+	 * @param agentFactory
+	 */
+	private void init(AgentFactory agentFactory) {
+		this.agentFactory = agentFactory;
+		ObjectDatastoreFactory.register(AppEngineTask.class);
+	}
+	
+	/**
+	 * Get a scheduler for specified agent
+	 * @param agentId
+	 * @return scheduler
+	 */
 	public AppEngineScheduler getScheduler(String agentId) {
 		return new AppEngineScheduler(agentId);
 	}
 
 	/**
-	 * initialize the settings for the scheduler
-	 * @param params   Available parameters:
-	 *                 {String} id   context id, to persist the running tasks
-     */
-	private void init(Map<String, Object> params) {
-		String contextId = null;
-		if (params != null) {
-			contextId = (String) params.get("id");
-		}
-		init(contextId);
-	}
-	
-	/**
-	 * initialize the settings for the scheduler
-	 * @param id       context id, to persist the running tasks
-     */
-	private void init(String id) {
-		initContext(id);
-		initScheduledTasks();
-	}
-	
-	/**
-	 * Initialize a context for the service, to persist the parameters of all
-	 * open connections.
-	 * @param id
+	 * AppEngineScheduler
+	 * A scheduler for a single agent.
+	 *
 	 */
-	private void initContext (String id) {
-		// set a context for the service, where the service can 
-		// persist its state.
-		if (id == null) {
-			id = ".runnablescheduler";
-			logger.info("No id specified for RunnableSchedulerFactory. " +
-					"Using " + id + " as id.");
-		}
-		try {
-			// TODO: dangerous to use a generic context (can possibly conflict with the id a regular agent)
-			context = agentFactory.getContextFactory().get(id);
-			if (context == null) {
-				context = agentFactory.getContextFactory().create(id);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Initialize scheduled tasks
-	 */
-	private void initScheduledTasks() {
-		// TODO: implement initialization of persisted scheduled tasks
-		
-	}
-	
 	public class AppEngineScheduler implements Scheduler {
+		/**
+		 * constructor
+		 * @param agentId
+		 */
 		private AppEngineScheduler(String agentId) {
 			this.agentId = agentId;
 		}
@@ -122,31 +94,21 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 				}
 				
 				URL uri = new URL(url);
-				String path = uri.getPath();
-				
+				String path = uri.getPath();		
 				Queue queue = QueueFactory.getDefaultQueue();
 				TaskHandle task = queue.add(withUrl(path)
 						.payload(request.toString())
 						.countdownMillis(delay));
 				
-				/* TODO: store the task
-				if (context != null) {
-					Set<String> tasks = (Set<String>) context.get("tasks");
-					if (tasks == null) {
-						tasks = new HashSet<String>();
-					}
-					tasks.add(task.getName());
-					
-					context.put("tasks", tasks);
-				}
-				else {
-					logger.warning("No context initialized. Timers cannot be stored");
-				}
-				*/
+				// store task information
+				DateTime timestamp = DateTime.now().plus(delay);
+				AppEngineTask storedTask = new AppEngineTask(task.getName(), 
+						agentId, timestamp.toString());
+				ObjectDatastore datastore = new AnnotationObjectDatastore();
+				datastore.store(storedTask);
 				
 				return task.getName();			
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -160,36 +122,48 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 		 */
 		@Override
 		public void cancelTask(String id) {
-			/* TODO: store the task
-			if (context != null) {
-				Set<String> tasks = (Set<String>) context.get("tasks");
-				if (tasks != null && tasks.contains(id)) {
-					Queue queue = QueueFactory.getDefaultQueue();
-					queue.deleteTask(id);
-					tasks.remove(id);
-					context.put("tasks", tasks);
-				}
-			}
-			else {
-				logger.warning("No context initialized. Timers cannot be canceled");
-			}
-			*/
+			// stop the task
 			Queue queue = QueueFactory.getDefaultQueue();
 			queue.deleteTask(id);
+			
+			// remove stored task
+			ObjectDatastore datastore = new AnnotationObjectDatastore();
+			AppEngineTask storedTask = datastore.load(AppEngineTask.class, id);
+			if (storedTask != null) {
+				datastore.delete(storedTask);
+			}			
 		}
 		
+		/**
+		 * Get the ids of all currently scheduled tasks
+		 * @return tasksIds
+		 */
 		@Override 
 		public Set<String> getTasks() {
-			// TODO: implement getTasks
-			logger.severe("getTasks not implemented for Google App Engine");
-			return new HashSet<String>();
+			ObjectDatastore datastore = new AnnotationObjectDatastore();
+			QueryResultIterator<AppEngineTask> query = datastore.find()
+					.type(AppEngineTask.class)
+					.addFilter("agentId", FilterOperator.EQUAL, agentId).now();
+			
+			Set<String> taskIds = new HashSet<String>();
+			while (query.hasNext()) {
+				AppEngineTask task = query.next();
+				if (new DateTime(task.getTimestamp()).isAfterNow()) {
+					taskIds.add(task.getTaskId());
+				}
+				else {
+					// clean up expired entry
+					datastore.delete(task);
+				}
+			}
+			
+			return taskIds;
 		}
 		
 		private String agentId = null;
 	}
 	
 	private AgentFactory agentFactory = null;
-	private Context context = null;
 
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	// private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

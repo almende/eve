@@ -134,7 +134,11 @@ abstract public class Agent implements AgentInterface {
 	public void clear() throws Exception {
 		// TODO: unsubscribe from all subscriptions 
 		
-		// TODO: cancel all scheduled tasks.
+		// cancel all scheduled tasks.
+		Scheduler scheduler = getScheduler();
+		for (String taskId : scheduler.getTasks()) {
+			scheduler.cancelTask(taskId);
+		}
 		
 		// remove all keys from the context
 		context.clear();

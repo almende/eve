@@ -1,7 +1,12 @@
 package com.almende.eve.scheduler;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -10,9 +15,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.Context;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Documentation on Scheduling:
@@ -49,7 +60,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
      */
 	private void init(String id) {
 		initContext(id);
-		initScheduledTasks();
+		loadTasks();
 	}
 	
 	/**
@@ -63,7 +74,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		if (id == null) {
 			id = ".runnablescheduler";
 			logger.info("No id specified for RunnableSchedulerFactory. " +
-					"Using " + id + " as id.");
+					"Using '" + id + "' as id.");
 		}
 		try {
 			// TODO: dangerous to use a generic context (can possibly conflict with the id a regular agent)
@@ -75,14 +86,6 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	/**
-	 * Initialize scheduled tasks
-	 */
-	private void initScheduledTasks() {
-		// TODO: implement initialization of persisted scheduled tasks
-		
 	}
 	
 	/**
@@ -103,31 +106,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		long id = count;
 		return Long.toString(id);
 	}
-	/* TODO
-	private void putFuture(String id, ScheduledFuture<?> future) {
-		if (tasks != null && id != null) {
-			tasks.put(id, future);
-		}
-	}
-
-	private void removeFuture(String id) {
-		if (tasks != null && id != null) {
-			tasks.remove(id);
-		}
-	}
 	
-	private boolean isDone(String id) {
-		if (tasks != null && id != null) {
-			ScheduledFuture<?> scheduledFuture = tasks.get(id);
-			
-			if (scheduledFuture != null) {
-				return scheduledFuture.isDone();
-			}
-		}
-		return true;
-	}
-	*/
-	
+	// TODO: make the class Task serializable (and auto-restart when initializing again?)
 	private class Task {
 		/**
 		 * Schedule a task
@@ -136,9 +116,47 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @param delay     The delay in milliseconds
 		 */
 		Task(final String agentId, final JSONRequest request, long delay) {
+			// TODO: throw exceptions when agentId, request are null or delay < 0
 			this.agentId = agentId;
+			this.request = request;
 			
+			start(delay);
+		}
+		
+		
+		/**
+		 * Schedule a task
+		 * @param params    A Map with parameters:
+		 *                  agentId, request (stringified JSONRequest), and
+		 *                  timestamp (ISOdate)
+		 * @throws IOException 
+		 * @throws JSONRPCException 
+		 * @throws JsonMappingException 
+		 * @throws JsonParseException 
+		 */
+		Task(Map<String, String> params) throws JsonParseException, 
+				JsonMappingException, JSONRPCException, IOException {
+			// TODO: throw exceptions when agentId, request are null or delay < 0
+			
+			agentId = params.get("agentId");
+			request = new JSONRequest(params.get("request"));
+			timestamp = new DateTime(params.get("timestamp"));
+			
+			long delay = 0;
+			if (timestamp.isAfterNow()) {
+				delay = new Interval(DateTime.now(), timestamp).toDurationMillis();
+			}
+			
+			start(delay);
+		}
+		
+		/**
+		 * Start task
+		 * @param delay   delay in milliseconds
+		 */
+		private void start(long delay) {
 			// create the task
+			timestamp = DateTime.now().plus(delay);
 			taskId = createTaskId();
 		    future = scheduler.schedule(new Runnable() {
 				@Override
@@ -154,7 +172,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			}, delay, TimeUnit.MILLISECONDS);
 		    
 		    // persist the task
-		    store();
+		    store();			
 		}
 
 		public String getTaskId() {
@@ -184,8 +202,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				}
 			}
 			tasks.put(taskId, this);
-			
-			// TODO: serialize and persist allTasks
+			storeTasks();
 		}
 		
 		/**
@@ -205,13 +222,22 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						}
 					}
 				}
-				
-				// TODO: serialize and persist allTasks
+				storeTasks();
 			}
 		}
 		
-		private String agentId = null;		
+		public Map<String, String> getParams () {
+			Map<String, String> params = new HashMap<String, String>();
+			params.put("agentId", agentId);
+			params.put("request", request.toString());
+			params.put("timestamp", timestamp.toString());
+			return params;
+		}
+		
+		private String agentId = null;
 		private String taskId = null;
+		private JSONRequest request = null;
+		private DateTime timestamp = null;
 		private ScheduledFuture<?> future = null;
 	}
 	
@@ -264,6 +290,59 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		private String agentId = null;
+	}
+
+	/**
+	 * load scheduled, persisted tasks
+	 */
+	private void loadTasks() {
+		int taskCount = 0;
+		int failedTaskCount = 0;
+		
+		try {
+			@SuppressWarnings("unchecked")
+			List<Map<String, String>> serializedTasks = 
+					(List<Map<String, String>>) context.get("tasks");
+			
+			if (serializedTasks != null) {
+				for (Map<String, String> taskParams : serializedTasks) {
+					taskCount++;
+		        	try {
+		        		// start the task
+						new Task(taskParams);
+						// TODO: optimize: when a new Task is created, it will automatically
+						//       store and persist allTasks again. That is inefficient 
+		        	} catch (Exception e) {
+						e.printStackTrace();
+						failedTaskCount++;
+					}	
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		logger.info("Initialized " + taskCount + " tasks" + 
+				((failedTaskCount > 0) ? (" " + failedTaskCount + " tasks failed to start.") : ""));
+	}
+	
+	/**
+	 * Persist all currently running tasks
+	 */
+	private void storeTasks() {
+		List<Map<String, String>> serializedTasks = 
+				new ArrayList<Map<String, String>>();
+		
+		for (Entry<String, Map<String, Task>> allEntry : allTasks.entrySet()) {
+	        Map<String, Task> tasks = allEntry.getValue();
+	        for (Entry<String, Task> entry : tasks.entrySet()) {
+		        Task task = entry.getValue();
+		        serializedTasks.add(task.getParams());
+	        }
+	    }
+		
+		context.put("tasks", serializedTasks);
 	}
 
 	private AgentFactory agentFactory;
