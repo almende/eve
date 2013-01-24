@@ -26,7 +26,7 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
-import com.almende.eve.transport.http.HttpTransportService;
+import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
 
 /**
@@ -72,7 +72,7 @@ import com.almende.util.ClassUtil;
  */
 public class AgentFactory {
 	public AgentFactory () {
-		addTransportService(new HttpTransportService(this));
+		addTransportService(new HttpService(this));
 		agents = new AgentCache();
 	}
 	
@@ -92,7 +92,7 @@ public class AgentFactory {
 		initScheduler(config);
 		initBootstrap(config);
 
-		addTransportService(new HttpTransportService(this));
+		addTransportService(new HttpService(this));
 	}
 	
 	/**
@@ -705,14 +705,14 @@ public class AgentFactory {
 					// Recognize known classes by their short name,
 					// and replace the short name for the full class path
 					
-					// TODO: remove warning some day (added 2013-01-17)
-					if (className.toLowerCase().equals("XmppService".toLowerCase())) {
-						logger.warning("Deprecated class XmppService, use XmppTransportService instead.");
-						className = "XmppTransportService";
+					// TODO: remove deprecation warning some day (added 2013-01-24)
+					if (className.toLowerCase().equals("XmppTransportService".toLowerCase())) {
+						logger.warning("Deprecated class XmppTransportService, use XmppService instead.");
+						className = "XmppService";
 					}
-					if (className.toLowerCase().equals("HttpService".toLowerCase())) {
-						logger.warning("Deprecated class HttpService, use HttpTransportService instead.");
-						className = "HttpTransportService";
+					if (className.toLowerCase().equals("HttpTransportService".toLowerCase())) {
+						logger.warning("Deprecated class HttpTransportService, use HttpService instead.");
+						className = "HttpService";
 					}
 
 					for (String name : TRANSPORT_SERVICES.keySet()) {
@@ -818,12 +818,11 @@ public class AgentFactory {
 	private ContextFactory contextFactory = null;
 	private SchedulerFactory schedulerFactory = null;
 	private Config config = null;
+	private EventLogger eventLogger = new EventLogger(this);
 
 	private static Map<String, AgentFactory> factories = 
 			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
 
-	private EventLogger eventLogger = new EventLogger(this);
-	
 	private final static Map<String, String> CONTEXT_FACTORIES = new HashMap<String, String>();
 	static {
         CONTEXT_FACTORIES.put("FileContextFactory", "com.almende.eve.context.FileContextFactory");
@@ -839,8 +838,8 @@ public class AgentFactory {
 	
 	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();
 	static {
-		TRANSPORT_SERVICES.put("XmppTransportService", "com.almende.eve.transport.xmpp.XmppTransportService");
-		TRANSPORT_SERVICES.put("HttpTransportService", "com.almende.eve.transport.http.HttpServiceService");
+		TRANSPORT_SERVICES.put("XmppService", "com.almende.eve.transport.xmpp.XmppService");
+		TRANSPORT_SERVICES.put("HttpService", "com.almende.eve.transport.http.HttpService");
     }
 
 	private static AgentCache agents;

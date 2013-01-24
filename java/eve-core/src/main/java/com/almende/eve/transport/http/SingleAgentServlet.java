@@ -22,7 +22,7 @@ public class SingleAgentServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	private AgentFactory agentFactory = null;
-	private HttpTransportService httpTransport = null;
+	private HttpService httpTransport = null;
 	private String agentId = null;
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	
@@ -151,7 +151,7 @@ public class SingleAgentServlet extends HttpServlet {
 					"missing in servlet configuration web.xml.");
 		}
 		
-		httpTransport = new HttpTransportService(agentFactory); 
+		httpTransport = new HttpService(agentFactory); 
 		httpTransport.init(servletUrl);
 		agentFactory.addTransportService(httpTransport);
 	}

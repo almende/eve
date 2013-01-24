@@ -15,8 +15,8 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.HttpUtil;
 
-public class HttpTransportService extends TransportService {
-	public HttpTransportService(AgentFactory agentFactory) {
+public class HttpService extends TransportService {
+	public HttpService(AgentFactory agentFactory) {
 		super(agentFactory);
 	}
 	

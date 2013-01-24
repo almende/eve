@@ -41,16 +41,19 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.transport.AsyncCallback;
-import com.almende.eve.transport.xmpp.XmppTransportService;
+import com.almende.eve.transport.xmpp.XmppService;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 // TODO: put TestAgent in a separate unit test project
 public class TestAgent extends Agent implements TestAgentInterface {
-	public String ping(@Name("message") String message) throws Exception {
+	public String ping(@Name("message") String message, 
+			@Name("sender") @Required(false) String sender) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", message);
+		params.put("sender", sender);
+		
 		trigger("message", params);
 		return message;
 	}
@@ -426,7 +429,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 			@Name("password") String password) throws Exception {
 		AgentFactory factory = getAgentFactory();
 		
-		XmppTransportService service = (XmppTransportService) factory.getTransportService("xmpp");
+		XmppService service = (XmppService) factory.getTransportService("xmpp");
 		if (service != null) {
 			service.connect(getId(), username, password);
 		}
@@ -437,7 +440,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 	
 	public void xmppDisconnect() throws Exception {
 		AgentFactory factory = getAgentFactory();
-		XmppTransportService service = (XmppTransportService) factory.getTransportService("xmpp");
+		XmppService service = (XmppService) factory.getTransportService("xmpp");
 		if (service != null) {
 			service.disconnect(getId());
 		}

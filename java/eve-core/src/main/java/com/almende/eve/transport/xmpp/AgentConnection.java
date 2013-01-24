@@ -18,8 +18,8 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class XmppAgentConnection {
-	public XmppAgentConnection (AgentFactory agentFactory) {
+public class AgentConnection {
+	public AgentConnection (AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -193,6 +193,12 @@ public class XmppAgentConnection {
 					else if (isRequest(json)) {
 						// this is a request
 						JSONRequest request = new JSONRequest(json);
+						
+						// append the sender to the request parameters
+						String sender = message.getFrom();
+						request.getParams().put("sender", sender);
+						
+						// invoke the agent
 						response = agentFactory.invoke(agentId, request);
 						// TODO: replace JSONRPC.invoke with agentFactory.invoke(class, id)
 					}
@@ -224,7 +230,6 @@ public class XmppAgentConnection {
 	private String username = null;
 	private XMPPConnection conn = null;
 	private AsyncCallbackQueue<JSONResponse> callbacks = 
-			new AsyncCallbackQueue<JSONResponse>();
-	
+			new AsyncCallbackQueue<JSONResponse>();	
 }
 

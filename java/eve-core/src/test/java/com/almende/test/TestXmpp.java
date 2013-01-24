@@ -6,7 +6,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.example.TestAgent;
 import com.almende.eve.context.FileContextFactory;
-import com.almende.eve.transport.xmpp.XmppTransportService;
+import com.almende.eve.transport.xmpp.XmppService;
 
 public class TestXmpp {
 	public static void main (String[] args) throws Exception {
@@ -25,7 +25,7 @@ public class TestXmpp {
 		String host = "openid.almende.org";
 		int port = 5222;
 		String serviceName = host;
-		XmppTransportService xmppService = new XmppTransportService(factory);
+		XmppService xmppService = new XmppService(factory);
 		xmppService.init(host, port, serviceName);
 		factory.addTransportService(xmppService);
 		

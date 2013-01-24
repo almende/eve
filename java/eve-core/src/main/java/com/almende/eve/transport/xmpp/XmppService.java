@@ -19,8 +19,8 @@ import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.SyncCallback;
 import com.almende.util.EncryptionUtil;
 
-public class XmppTransportService extends TransportService {	
-	public XmppTransportService(AgentFactory agentFactory) {
+public class XmppService extends TransportService {	
+	public XmppService(AgentFactory agentFactory) {
 		super(agentFactory);
 	}
 
@@ -32,7 +32,7 @@ public class XmppTransportService extends TransportService {
 	 */
 	@Override
 	public String getAgentUrl(String agentId) {
-		XmppAgentConnection connection = connectionsById.get(agentId);
+		AgentConnection connection = connectionsById.get(agentId);
 		if (connection != null) {
 			String username = connection.getUsername();
 			return generateUrl(username, host);
@@ -48,7 +48,7 @@ public class XmppTransportService extends TransportService {
 	 */
 	@Override
 	public String getAgentId(String agentUrl) {
-		XmppAgentConnection connection = connectionsByUrl.get(agentUrl);
+		AgentConnection connection = connectionsByUrl.get(agentUrl);
 		if (connection != null) {
 			return connection.getAgentId();
 		}
@@ -164,7 +164,7 @@ public class XmppTransportService extends TransportService {
 		}
 
 		// instantiate open the connection		
-		XmppAgentConnection connection = new XmppAgentConnection(agentFactory);
+		AgentConnection connection = new AgentConnection(agentFactory);
 		connection.connect(agentId, host, port, service, username, password);
 		
 		// register the connection
@@ -194,7 +194,7 @@ public class XmppTransportService extends TransportService {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void disconnect (String agentId) {
-		XmppAgentConnection connection = connectionsById.get(agentId);
+		AgentConnection connection = connectionsById.get(agentId);
 		if (connection != null) {
 			connection.disconnect();
 
@@ -240,7 +240,7 @@ public class XmppTransportService extends TransportService {
 	@Override
 	public void sendAsync(String senderId, String receiver, JSONRequest request,
 			AsyncCallback<JSONResponse> callback) throws Exception {
-		XmppAgentConnection connection = connectionsById.get(senderId);
+		AgentConnection connection = connectionsById.get(senderId);
 		if (connection != null) {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";
@@ -317,10 +317,10 @@ public class XmppTransportService extends TransportService {
 	private String service = null;
 	private Context context = null;	
 	
-	private Map<String, XmppAgentConnection> connectionsById = 
-			new ConcurrentHashMap<String, XmppAgentConnection>();   // agentId as key
-	private Map<String, XmppAgentConnection> connectionsByUrl = 
-			new ConcurrentHashMap<String, XmppAgentConnection>();   // xmpp url as key "xmpp:username@host"
+	private Map<String, AgentConnection> connectionsById = 
+			new ConcurrentHashMap<String, AgentConnection>();   // agentId as key
+	private Map<String, AgentConnection> connectionsByUrl = 
+			new ConcurrentHashMap<String, AgentConnection>();   // xmpp url as key "xmpp:username@host"
 	List<String> protocols = Arrays.asList("xmpp");
 
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());

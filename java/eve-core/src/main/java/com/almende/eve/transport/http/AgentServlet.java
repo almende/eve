@@ -27,7 +27,7 @@ public class AgentServlet extends HttpServlet {
 	
 	private static String RESOURCES = "/com/almende/eve/resources/";
 	AgentFactory agentFactory = null;
-	HttpTransportService httpTransport = null;
+	HttpService httpTransport = null;
 	
 	@Override
 	public void init() {
@@ -127,6 +127,10 @@ public class AgentServlet extends HttpServlet {
 			// retrieve the agent url and the request body
 			body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
+			
+			// add the sender to the request parameters
+			// TODO: retrieve authorized sender information
+			jsonRequest.getParams().put("sender", (String) null);
 			
 			// invoke the agent
 			agentUrl = req.getRequestURI();
@@ -264,7 +268,7 @@ public class AgentServlet extends HttpServlet {
 					"missing in servlet configuration web.xml.");
 		}
 		
-		httpTransport = new HttpTransportService(agentFactory); 
+		httpTransport = new HttpService(agentFactory); 
 		httpTransport.init(servletUrl);
 		agentFactory.addTransportService(httpTransport);
 	}
