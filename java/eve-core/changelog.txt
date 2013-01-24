@@ -14,6 +14,11 @@ http://almende.github.com/eve/
   after a server restart.
 - Scheduled tasks are persisted, and are automatically re-scheduled after a
   system restart.
+- Implemented @Sender parameter annotation, which can be used to retrieve
+  the senders url. Currently only applicable for XMPP. Example usage:
+      public String ping(@Name("text") String text, @Sender String sender) {
+          System.out.println("Ping text: " + text + ", sender: " + sender);
+      }
 - SchedulerFactory is created to manage and persist scheduled tasks. 
   In the eve.yaml configuration, a SchedulerFactory class must be specified  
   instead of a Scheduler class.

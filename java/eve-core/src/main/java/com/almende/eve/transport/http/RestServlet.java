@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
+import com.almende.eve.rpc.SystemParams;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 
@@ -47,12 +48,12 @@ public class RestServlet extends HttpServlet {
 				request.putParam(param, req.getParameter(param));
 			}
 
-			// TODO: get authorized sender url
-			String senderUrl = null;
+			// TODO: provide authorized sender url
+			SystemParams systemParams = null;
 			
 			// invoke the agent
-			JSONResponse response = factory.invoke(senderUrl, agentId, request);
-			
+			JSONResponse response = factory.invoke(agentId, request, systemParams);
+
 			// return response
 			resp.addHeader("Content-Type", "application/json");
 			resp.getWriter().println(response.getResult());

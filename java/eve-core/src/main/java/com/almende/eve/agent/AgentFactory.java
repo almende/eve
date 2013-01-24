@@ -355,20 +355,18 @@ public class AgentFactory {
 	
 	/**
 	 * Invoke a local agent
-	 * @param senderUrl   Url of the request  sender
 	 * @param receiverId  Id of the receiver agent 
 	 * @param request
+	 * @param systemParams
 	 * @return
 	 * @throws Exception
 	 */
 	// TOOD: cleanup this method?
-	public JSONResponse invoke(String senderUrl, String receiverId, 
-			JSONRequest request) throws Exception {
+	public JSONResponse invoke(String receiverId, 
+			JSONRequest request, SystemParams systemParams) throws Exception {
 		Agent receiver = getAgent(receiverId);
 		if (receiver != null) {
-			// build system parameters
-			SystemParams systemParams = new SystemParams();
-			systemParams.put(Sender.class, senderUrl);
+			
 			
 			JSONResponse response = JSONRPC.invoke(receiver, request, systemParams);
 			receiver.destroy();
@@ -397,8 +395,9 @@ public class AgentFactory {
 		String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
 			// local agent, invoke locally
-			String senderUrl = null; // TODO: get url of the sender
-			return invoke(senderUrl, agentId, request);
+			// TODO: provide Sender in systemParams
+			SystemParams systemParams = null;
+			return invoke(agentId, request, systemParams);
 		}
 		else {
 			TransportService service = null;
@@ -409,7 +408,8 @@ public class AgentFactory {
 				service = getTransportService(protocol);
 			}
 			if (service != null) {
-				return service.send(senderId, receiverUrl, request);
+				String senderUrl = service.getAgentUrl(senderId);
+				return service.send(senderUrl, receiverUrl, request);
 			}
 			else {
 				throw new ProtocolException(
@@ -438,8 +438,9 @@ public class AgentFactory {
 				public void run() {
 					JSONResponse response;
 					try {
-						String senderUrl = null; // TODO: get the senderUrl
-						response = invoke(senderUrl, receiverId, request);
+						// TODO: provide Sender in systemParams
+						SystemParams systemParams = null;
+						response = invoke(receiverId, request, systemParams);
 						callback.onSuccess(response);
 					} catch (Exception e) {
 						callback.onFailure(e);

@@ -14,6 +14,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
+import com.almende.eve.rpc.SystemParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -127,10 +128,11 @@ public class AgentServlet extends HttpServlet {
 			// retrieve the agent url and the request body
 			body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
-			
-			// TODO: retrieve authorized senderUrl
-			String senderUrl = null;
-			
+
+			// TODO: append authorized sender url to the request parameters
+			SystemParams systemParams = null;
+
+			// invoke the agent
 			// invoke the agent
 			agentUrl = req.getRequestURI();
 			agentId = httpTransport.getAgentId(agentUrl);
@@ -138,7 +140,7 @@ public class AgentServlet extends HttpServlet {
 				resp.sendError(400, "No agentId found in url.");
 				return;
 			}
-			jsonResponse = agentFactory.invoke(senderUrl, agentId, jsonRequest);
+			jsonResponse = agentFactory.invoke(agentId, jsonRequest, systemParams);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;

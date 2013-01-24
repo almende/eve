@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
+import com.almende.eve.rpc.SystemParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -80,11 +81,11 @@ public class SingleAgentServlet extends HttpServlet {
 			String body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
 			
-			// TODO: get authorized sender url
-			String senderUrl = null;
-			
+			// TODO: append authorized sender url to the request parameters
+			SystemParams systemParams = null;
+
 			// invoke the agent
-			jsonResponse = agentFactory.invoke(senderUrl, agentId, jsonRequest);
+			jsonResponse = agentFactory.invoke(agentId, jsonRequest, systemParams);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;
