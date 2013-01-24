@@ -1,6 +1,7 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -16,6 +17,7 @@ import java.util.TreeSet;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.rpc.SystemParams;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.util.AnnotationUtil;
@@ -31,12 +33,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class JSONRPC {
 	//static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
 
-	// TODO: implement JSONRPC 2.0 Batch
+	// TODO: the integration with SystemParams is quite a mess.
 	
+	// TODO: implement JSONRPC 2.0 Batch
 	/**
 	 * Invoke a method on an object
-	 * @param obj     Request will be invoked on the given object
-	 * @param request A request in JSON-RPC format
+	 * @param obj           Request will be invoked on the given object
+	 * @param request       A request in JSON-RPC format
 	 * @return
 	 * @throws IOException 
 	 * @throws JsonMappingException 
@@ -44,11 +47,27 @@ public class JSONRPC {
 	 */
 	static public String invoke (Object object, String request) 
 			throws JsonGenerationException, JsonMappingException, IOException {
+		return invoke(object, request, null);
+	}
+	
+	/**
+	 * Invoke a method on an object
+	 * @param obj           Request will be invoked on the given object
+	 * @param request       A request in JSON-RPC format
+	 * @param systemParams  Optional system parameters
+	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonGenerationException 
+	 */
+	static public String invoke (Object object, String request,
+			SystemParams systemParams) 
+			throws JsonGenerationException, JsonMappingException, IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
 			jsonRequest = new JSONRequest(request);
-			jsonResponse = invoke(object, jsonRequest);
+			jsonResponse = invoke(object, jsonRequest, systemParams);
 		}
 		catch (JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
@@ -56,19 +75,33 @@ public class JSONRPC {
 		
 		return jsonResponse.toString();
 	}
-
+	
 	/**
 	 * Invoke a method on an object
-	 * @param obj     Request will be invoked on the given object
-	 * @param request A request in JSON-RPC format
+	 * @param sender        Sender url
+	 * @param obj           will be invoked on the given object
+	 * @param systemParams  Optional system parameters
 	 * @return
 	 */
 	static public JSONResponse invoke (Object object, JSONRequest request) {
+		return invoke(object, request, null);
+	}
+	
+	/**
+	 * Invoke a method on an object
+	 * @param obj           Request will be invoked on the given object
+	 * @param request       A request in JSON-RPC format
+	 * @param systemParams  Optional system parameters
+	 * @return
+	 */
+	static public JSONResponse invoke (Object object, JSONRequest request,
+			SystemParams systemParams) {
 		JSONResponse resp = new JSONResponse(); 
 		resp.setId(request.getId());
 
 		try {
-			AnnotatedMethod annotatedMethod = getMethod(object.getClass(), request.getMethod());
+			AnnotatedMethod annotatedMethod = getMethod(object.getClass(), 
+					request.getMethod(), systemParams);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
 						JSONRPCException.CODE.METHOD_NOT_FOUND, 
@@ -77,7 +110,8 @@ public class JSONRPC {
 			
 			Method method = annotatedMethod.getActualMethod();
 			
-			Object[] params = castParams(request.getParams(), annotatedMethod.getParams());
+			Object[] params = castParams(request.getParams(), 
+					annotatedMethod.getParams(), systemParams);
 			Object result = method.invoke(object, params);
 			if (result == null) {
 				result = JOM.createNullNode();
@@ -111,34 +145,55 @@ public class JSONRPC {
 	 * - There are no public methods with equal names<br>
 	 * - The parameters of all public methods have the @Name annotation<br>
 	 * If the class is not valid, an Exception is thrown
-	 * @param c         The class to be verified
-	 * @return errors   A list with validation errors. When no problems are 
-	 *                   found, an empty list is returned 
+	 * @param c            The class to be verified
+	 * @param systemParams 
+	 * @return errors      A list with validation errors. When no problems are 
+	 *                     found, an empty list is returned 
 	 */
-	static public List<String> validate (Class<?> c) {
+	static public List<String> validate (Class<?> c, SystemParams systemParams) {
 		List<String> errors = new ArrayList<String>();
 		Set<String> methodNames = new HashSet<String>();
 		
 		AnnotatedClass ac = AnnotationUtil.get(c);
 		for (AnnotatedMethod method : ac.getMethods()) {
-			boolean available = isAvailable(method);				
+			boolean available = isAvailable(method, systemParams);				
 			if (available) {
 				// The method name may only occur once
 				String name = method.getName();
 				if (methodNames.contains(name)) {
 					errors.add("Public method '" + name + 
 						"' is defined more than once, which is not" + 
-						" allowed for JSON-RPC (Class " + c.getName() + ")");
+						" allowed for JSON-RPC.");
 				}
 				methodNames.add(name);
 				
 				// each of the method parameters must have the @Name annotation
 				List<AnnotatedParam> params = method.getParams();
 				for(int i = 0; i < params.size(); i++){
-					if (getName(params.get(i)) == null) {
+					List<Annotation> matches = new ArrayList<Annotation>();
+					for (Annotation a : params.get(i).getAnnotations()) {
+						if (systemParams.has(a)) {
+							matches.add(a);
+						}
+						else if (a instanceof Name) {
+							matches.add(a);
+						}
+					}
+
+					if (matches.size() == 0) {
 						errors.add("Parameter " + i + " in public method '" + name + 
 							"' is missing the @Name annotation, which is" + 
-							" required for JSON-RPC (Class " + c.getName() + ")");
+							" required for JSON-RPC.");
+					}
+					else if (matches.size() > 1) {
+						String str = "";
+						for (Annotation a : matches) {
+							str += a + " ";
+						}
+						
+						errors.add("Parameter " + i + " in public method '" + name + 
+								"' contains " + matches.size() + " annotations " +
+								"(" + str + "), but only one is allowed.");
 					}
 				}
 			}
@@ -149,13 +204,14 @@ public class JSONRPC {
 
 	/**
 	 * Describe all JSON-RPC methods of given class
-	 * @param c      The class to be described
-	 * @param asJSON If true, the described methods will be in an easy to parse
-	 *                JSON structure. If false, the returned description will
-	 *                be in human readable format.
+	 * @param c            The class to be described
+	 * @param systemParams Optional system parameters.
+	 * @param asJSON       If true, the described methods will be in an easy to 
+	 *                     parse JSON structure. If false, the returned 
+	 *                     description will be in human readable format.
 	 * @return
 	 */
-	public static List<Object> describe(Class<?> c, Boolean asJSON) {
+	public static List<Object> describe(Class<?> c, SystemParams systemParams, Boolean asJSON) {
 		try {
 			Map<String, Object> methods = new TreeMap<String, Object>();
 			if (asJSON == null) {
@@ -164,17 +220,19 @@ public class JSONRPC {
 
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
-				if (isAvailable(method)) {
+				if (isAvailable(method, systemParams)) {
 					if (asJSON) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
 						for(AnnotatedParam param : method.getParams()){
-							
-							Map<String, Object> paramData = new HashMap<String, Object>();
-							paramData.put("name", getName(param));
-							paramData.put("type", typeToString(param.getGenericType()));
-							paramData.put("required", isRequired(param));
-							descParams.add(paramData);
+							if (getSystemAnnotation(param, systemParams) == null) {
+								String name = getName(param);
+								Map<String, Object> paramData = new HashMap<String, Object>();
+								paramData.put("name", name);
+								paramData.put("type", typeToString(param.getGenericType()));
+								paramData.put("required", isRequired(param));
+								descParams.add(paramData);
+							}
 						}
 						
 						Map<String, Object> result = new HashMap<String, Object>(); 
@@ -190,12 +248,15 @@ public class JSONRPC {
 						// format as string
 						String p = "";
 						for(AnnotatedParam param : method.getParams()){
-							if (!p.isEmpty()) {
-								p += ", ";
+							if (getSystemAnnotation(param, systemParams) == null) {
+								String name = getName(param);
+								String type = typeToString(param.getGenericType());
+								if (!p.isEmpty()) {
+									p += ", ";
+								}
+								String ps = type + " " + name;
+								p += isRequired(param) ? ps : ("[" + ps + "]");
 							}
-							String ps = typeToString(param.getGenericType()) + 
-									" " + getName(param);
-							p += isRequired(param) ? ps : ("[" + ps + "]");
 						}
 						String desc = typeToString(method.getGenericReturnType()) + 
 								" " + method.getName() + "(" + p + ")";
@@ -217,7 +278,7 @@ public class JSONRPC {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Get type description from a class. Returns for example "String" or 
 	 * "List<String>".
@@ -283,13 +344,15 @@ public class JSONRPC {
 	 * which is available for JSON-RPC, and has named parameters
 	 * @param objectClass
 	 * @param method
+	 * @param systemParams
 	 * @return methodType   meta information on the method, or null if not found
 	 */
-	static private AnnotatedMethod getMethod(Class<?> objectClass, String method) {
+	static private AnnotatedMethod getMethod(Class<?> objectClass, String method,
+			SystemParams systemParams) {
 		AnnotatedClass annotatedClass = AnnotationUtil.get(objectClass);
 		List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
 		for (AnnotatedMethod m : methods) {
-			if (isAvailable(m)) {
+			if (isAvailable(m, systemParams)) {
 				return m;
 			}
 		}
@@ -303,8 +366,9 @@ public class JSONRPC {
 	 * @return 
 	 * @throws Exception 
 	 */
-	static private Object[] castParams(Object params, List<AnnotatedParam> annotatedParams) 
-			throws Exception {
+	static private Object[] castParams(Object params, 
+			List<AnnotatedParam> annotatedParams, 
+			SystemParams systemParams) throws Exception {
 		ObjectMapper mapper = JOM.getInstance();
 
 		if (annotatedParams.size() == 0) {
@@ -313,48 +377,10 @@ public class JSONRPC {
 		
 		if (params instanceof ObjectNode) {
 			// JSON-RPC 2.0 with named parameters in a JSONObject
-
-			// check whether all method parameters are named
-			boolean hasNamedParams = true;
-			for (AnnotatedParam p : annotatedParams) {
-				if (getName(p) == null) {
-					hasNamedParams = false;
-				}
-			}
-
-			if (hasNamedParams) {
-				ObjectNode paramsObject = (ObjectNode)params;
-				
-				Object[] objects = new Object[annotatedParams.size()];
-				for (int i = 0; i < annotatedParams.size(); i++) {
-					AnnotatedParam p = annotatedParams.get(i);
-					String name = getName(p);
-					if (name == null) {
-						throw new Exception("Name of parameter " + i + " not defined");
-					}
-					if (paramsObject.has(name)) {
-						objects[i] = mapper.convertValue(paramsObject.get(name), p.getType());
-					}
-					else {
-						if (isRequired(p)) {
-							throw new Exception(
-									"Required parameter '" + name + "' missing");
-						}
-						//else if (paramType.getSuperclass() == null) {
-						else if (p.getType().isPrimitive()) {
-							throw new Exception(
-									"Parameter '" + name + "' cannot be both optional and " +
-									"a primitive type (" + p.getType().getSimpleName() + ")");
-						}
-						else {
-							objects[i] = null;
-						}
-					}
-				}
-				return objects;
-			}
-			else if (annotatedParams.size() == 1 && 
-					annotatedParams.get(0).getType().equals(ObjectNode.class)) {
+			
+			if (annotatedParams.size() == 1 && 
+					annotatedParams.get(0).getType().equals(ObjectNode.class) &&
+					annotatedParams.get(0).getAnnotations().size() == 0) {
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];
@@ -362,7 +388,47 @@ public class JSONRPC {
 				return objects;
 			}
 			else {
-				throw new Exception("Names of parameters are undefined");
+				ObjectNode paramsObject = (ObjectNode)params;
+				
+				Object[] objects = new Object[annotatedParams.size()];
+				for (int i = 0; i < annotatedParams.size(); i++) {
+					AnnotatedParam p = annotatedParams.get(i);
+					
+					Annotation a = getSystemAnnotation(p, systemParams);
+					if (a != null) {
+						// this is a systems parameter
+						objects[i] = systemParams.get(a);
+					}
+					else {
+						String name = getName(p);
+						if (name != null) {
+							// this is a named parameter
+							if (paramsObject.has(name)) {
+								objects[i] = mapper.convertValue(paramsObject.get(name), p.getType());
+							}
+							else {
+								if (isRequired(p)) {
+									throw new Exception(
+											"Required parameter '" + name + "' missing");
+								}
+								//else if (paramType.getSuperclass() == null) {
+								else if (p.getType().isPrimitive()) {
+									throw new Exception(
+											"Parameter '" + name + "' cannot be both optional and " +
+											"a primitive type (" + p.getType().getSimpleName() + ")");
+								}
+								else {
+									objects[i] = null;
+								}
+							}
+						}
+						else {
+							// this is a problem
+							throw new Exception("Name of parameter " + i + " not defined");
+						}
+					}
+				}
+				return objects;
 			}
 		}
 		else {
@@ -412,13 +478,14 @@ public class JSONRPC {
 	 * case when it is public, has named parameters, and has no 
 	 * annotation @Access(UNAVAILABLE)
 	 * @param annotatedMethod
+	 * @param systemParams
 	 * @return available
 	 */
-	private static boolean isAvailable(AnnotatedMethod method) {
+	private static boolean isAvailable(AnnotatedMethod method, SystemParams systemParams) {
 		int mod = method.getActualMethod().getModifiers();
 		Access access = method.getAnnotation(Access.class); 
 		return Modifier.isPublic(mod) &&
-				hasNamedParams(method) &&
+				hasNamedParams(method, systemParams) &&
 				(access == null || 
 				(access.value() != AccessType.UNAVAILABLE &&
 				 access.visible()));
@@ -427,11 +494,24 @@ public class JSONRPC {
 	/**
 	 * Test whether a method has named parameters
 	 * @param annotatedMethod
+	 * @param systemParams
 	 * @return hasNamedParams
 	 */
-	private static boolean hasNamedParams(AnnotatedMethod method) {
+	private static boolean hasNamedParams(AnnotatedMethod method, SystemParams systemParams) {
 		for (AnnotatedParam param : method.getParams()) {
-			if (getName(param) == null) {
+			boolean found = false;
+			for (Annotation a : param.getAnnotations()) {
+				if (systemParams.has(a)) {
+					found = true;
+					break;
+				}
+				else if (a instanceof Name) {
+					found = true;
+					break;
+				}
+			}
+			
+			if (!found) {
 				return false;
 			}
 		}
@@ -468,5 +548,23 @@ public class JSONRPC {
 			name = nameAnnotation.value();
 		}
 		return name;
+	}
+	
+
+	/**
+	 * Find a system annotation in the given parameters
+	 * Returns null if no system annotation is not found
+	 * @param param
+	 * @param systemParams
+	 * @return annotation
+	 */
+	private static Annotation getSystemAnnotation(AnnotatedParam param, 
+			SystemParams systemParams) {
+		for (Annotation annotation : param.getAnnotations()) {
+			if (systemParams.has(annotation)) {
+				return annotation;
+			}
+		}
+		return null;
 	}
 }

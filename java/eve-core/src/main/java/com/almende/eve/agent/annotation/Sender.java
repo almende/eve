@@ -1,0 +1,15 @@
+package com.almende.eve.agent.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Annotation to denote a parameter as placeholder for the request sender
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value=ElementType.PARAMETER)
+public @interface Sender {
+	
+}

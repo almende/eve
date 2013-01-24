@@ -39,7 +39,6 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
-import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -399,7 +398,7 @@ abstract public class Agent implements AgentInterface {
 	 */
 	final public List<Object> getMethods(@Name("asJSON") 
 			@Required(false) Boolean asJSON) {
-		return JSONRPC.describe(this.getClass(), asJSON);
+		return getAgentFactory().getMethods(this, asJSON);
 	}
 	
 	/**

@@ -33,6 +33,7 @@ import java.util.Set;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.entity.Person;
@@ -49,7 +50,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 // TODO: put TestAgent in a separate unit test project
 public class TestAgent extends Agent implements TestAgentInterface {
 	public String ping(@Name("message") String message, 
-			@Name("sender") @Required(false) String sender) throws Exception {
+			@Sender String sender) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", message);
 		params.put("sender", sender);

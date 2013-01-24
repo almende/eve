@@ -196,10 +196,9 @@ public class AgentConnection {
 						
 						// append the sender to the request parameters
 						String sender = message.getFrom();
-						request.getParams().put("sender", sender);
 						
 						// invoke the agent
-						response = agentFactory.invoke(agentId, request);
+						response = agentFactory.invoke(sender, agentId, request);
 						// TODO: replace JSONRPC.invoke with agentFactory.invoke(class, id)
 					}
 					else {

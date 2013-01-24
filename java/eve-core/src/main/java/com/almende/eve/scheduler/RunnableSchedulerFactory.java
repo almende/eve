@@ -162,7 +162,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				@Override
 				public void run() {
 					try {
-						agentFactory.invoke(agentId, request);
+						String senderUrl = null; // TODO: provide a senderUrl
+						agentFactory.invoke(senderUrl, agentId, request);
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {

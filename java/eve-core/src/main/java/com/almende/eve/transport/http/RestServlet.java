@@ -47,8 +47,11 @@ public class RestServlet extends HttpServlet {
 				request.putParam(param, req.getParameter(param));
 			}
 
+			// TODO: get authorized sender url
+			String senderUrl = null;
+			
 			// invoke the agent
-			JSONResponse response = factory.invoke(agentId, request);
+			JSONResponse response = factory.invoke(senderUrl, agentId, request);
 			
 			// return response
 			resp.addHeader("Content-Type", "application/json");

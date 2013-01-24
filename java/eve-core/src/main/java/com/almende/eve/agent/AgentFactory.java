@@ -13,11 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
+import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
+import com.almende.eve.rpc.SystemParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -290,7 +292,7 @@ public class AgentFactory {
 		}
 
 		// validate the Eve agent and output as warnings
-		List<String> errors = JSONRPC.validate(agentClass);
+		List<String> errors = JSONRPC.validate(agentClass, eveSystemParams);
 		for (String error : errors) {
 			logger.warning("Validation error class: " + agentClass.getName() + 
 					", message: " + error);
@@ -353,21 +355,27 @@ public class AgentFactory {
 	
 	/**
 	 * Invoke a local agent
-	 * @param agentId
+	 * @param senderUrl   Url of the request  sender
+	 * @param receiverId  Id of the receiver agent 
 	 * @param request
 	 * @return
 	 * @throws Exception
 	 */
 	// TOOD: cleanup this method?
-	public JSONResponse invoke(String agentId, JSONRequest request) throws Exception {
-		Agent agent = getAgent(agentId);
-		if (agent != null) {
-			JSONResponse response = JSONRPC.invoke(agent, request);
-			agent.destroy();
+	public JSONResponse invoke(String senderUrl, String receiverId, 
+			JSONRequest request) throws Exception {
+		Agent receiver = getAgent(receiverId);
+		if (receiver != null) {
+			// build system parameters
+			SystemParams systemParams = new SystemParams();
+			systemParams.put(Sender.class, senderUrl);
+			
+			JSONResponse response = JSONRPC.invoke(receiver, request, systemParams);
+			receiver.destroy();
 			return response;
 		}
 		else {
-			throw new Exception("Agent with id '" + agentId + "' not found");
+			throw new Exception("Agent with id '" + receiverId + "' not found");
 		}
 	}
 
@@ -389,7 +397,8 @@ public class AgentFactory {
 		String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
 			// local agent, invoke locally
-			return invoke(agentId, request);
+			String senderUrl = null; // TODO: get url of the sender
+			return invoke(senderUrl, agentId, request);
 		}
 		else {
 			TransportService service = null;
@@ -422,14 +431,15 @@ public class AgentFactory {
 	public void sendAsync(final String senderId, final String receiverUrl, 
 			final JSONRequest request, 
 			final AsyncCallback<JSONResponse> callback) throws Exception {
-		final String agentId = getAgentId(receiverUrl);
-		if (agentId != null) {
+		final String receiverId = getAgentId(receiverUrl);
+		if (receiverId != null) {
 			new Thread(new Runnable () {
 				@Override
 				public void run() {
 					JSONResponse response;
 					try {
-						response = invoke(agentId, request);
+						String senderUrl = null; // TODO: get the senderUrl
+						response = invoke(senderUrl, receiverId, request);
 						callback.onSuccess(response);
 					} catch (Exception e) {
 						callback.onFailure(e);
@@ -804,6 +814,10 @@ public class AgentFactory {
 		return null;
 	}
 
+	public List<Object> getMethods(Agent agent, boolean asJSON) {
+		return JSONRPC.describe(agent.getClass(), eveSystemParams, asJSON);	
+	}
+	
 	/**
 	 * create a scheduler for an agent
 	 * @param agentId
@@ -842,6 +856,11 @@ public class AgentFactory {
 		TRANSPORT_SERVICES.put("HttpService", "com.almende.eve.transport.http.HttpService");
     }
 
+	private final static SystemParams eveSystemParams = new SystemParams();
+	static {
+		eveSystemParams.put(Sender.class, null);
+	}
+	
 	private static AgentCache agents;
 	
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());

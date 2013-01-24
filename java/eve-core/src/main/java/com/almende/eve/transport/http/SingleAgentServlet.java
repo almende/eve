@@ -80,8 +80,11 @@ public class SingleAgentServlet extends HttpServlet {
 			String body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
 			
+			// TODO: get authorized sender url
+			String senderUrl = null;
+			
 			// invoke the agent
-			jsonResponse = agentFactory.invoke(agentId, jsonRequest);
+			jsonResponse = agentFactory.invoke(senderUrl, agentId, jsonRequest);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;

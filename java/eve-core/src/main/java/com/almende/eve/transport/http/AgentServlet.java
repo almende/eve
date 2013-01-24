@@ -128,9 +128,8 @@ public class AgentServlet extends HttpServlet {
 			body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
 			
-			// add the sender to the request parameters
-			// TODO: retrieve authorized sender information
-			jsonRequest.getParams().put("sender", (String) null);
+			// TODO: retrieve authorized senderUrl
+			String senderUrl = null;
 			
 			// invoke the agent
 			agentUrl = req.getRequestURI();
@@ -139,7 +138,7 @@ public class AgentServlet extends HttpServlet {
 				resp.sendError(400, "No agentId found in url.");
 				return;
 			}
-			jsonResponse = agentFactory.invoke(agentId, jsonRequest);
+			jsonResponse = agentFactory.invoke(senderUrl, agentId, jsonRequest);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;
