@@ -17,7 +17,7 @@ import java.util.TreeSet;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.rpc.SystemParams;
+import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.util.AnnotationUtil;
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class JSONRPC {
 	//static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
 
-	// TODO: the integration with SystemParams is quite a mess.
+	// TODO: the integration with requestParams is quite a mess.
 	
 	// TODO: implement JSONRPC 2.0 Batch
 	/**
@@ -54,20 +54,20 @@ public class JSONRPC {
 	 * Invoke a method on an object
 	 * @param obj           Request will be invoked on the given object
 	 * @param request       A request in JSON-RPC format
-	 * @param systemParams  Optional system parameters
+	 * @param requestParams Optional request parameters
 	 * @return
 	 * @throws IOException 
 	 * @throws JsonMappingException 
 	 * @throws JsonGenerationException 
 	 */
 	static public String invoke (Object object, String request,
-			SystemParams systemParams) 
+			RequestParams requestParams) 
 			throws JsonGenerationException, JsonMappingException, IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
 			jsonRequest = new JSONRequest(request);
-			jsonResponse = invoke(object, jsonRequest, systemParams);
+			jsonResponse = invoke(object, jsonRequest, requestParams);
 		}
 		catch (JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
@@ -80,7 +80,6 @@ public class JSONRPC {
 	 * Invoke a method on an object
 	 * @param sender        Sender url
 	 * @param obj           will be invoked on the given object
-	 * @param systemParams  Optional system parameters
 	 * @return
 	 */
 	static public JSONResponse invoke (Object object, JSONRequest request) {
@@ -91,17 +90,17 @@ public class JSONRPC {
 	 * Invoke a method on an object
 	 * @param obj           Request will be invoked on the given object
 	 * @param request       A request in JSON-RPC format
-	 * @param systemParams  Optional system parameters
+	 * @param requestParams Optional request parameters
 	 * @return
 	 */
 	static public JSONResponse invoke (Object object, JSONRequest request,
-			SystemParams systemParams) {
+			RequestParams requestParams) {
 		JSONResponse resp = new JSONResponse(); 
 		resp.setId(request.getId());
 
 		try {
 			AnnotatedMethod annotatedMethod = getMethod(object.getClass(), 
-					request.getMethod(), systemParams);
+					request.getMethod(), requestParams);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
 						JSONRPCException.CODE.METHOD_NOT_FOUND, 
@@ -111,7 +110,7 @@ public class JSONRPC {
 			Method method = annotatedMethod.getActualMethod();
 			
 			Object[] params = castParams(request.getParams(), 
-					annotatedMethod.getParams(), systemParams);
+					annotatedMethod.getParams(), requestParams);
 			Object result = method.invoke(object, params);
 			if (result == null) {
 				result = JOM.createNullNode();
@@ -145,18 +144,18 @@ public class JSONRPC {
 	 * - There are no public methods with equal names<br>
 	 * - The parameters of all public methods have the @Name annotation<br>
 	 * If the class is not valid, an Exception is thrown
-	 * @param c            The class to be verified
-	 * @param systemParams 
-	 * @return errors      A list with validation errors. When no problems are 
-	 *                     found, an empty list is returned 
+	 * @param c             The class to be verified
+	 * @param requestParams optional request parameters
+	 * @return errors       A list with validation errors. When no problems are 
+	 *                      found, an empty list is returned 
 	 */
-	static public List<String> validate (Class<?> c, SystemParams systemParams) {
+	static public List<String> validate (Class<?> c, RequestParams requestParams) {
 		List<String> errors = new ArrayList<String>();
 		Set<String> methodNames = new HashSet<String>();
 		
 		AnnotatedClass ac = AnnotationUtil.get(c);
 		for (AnnotatedMethod method : ac.getMethods()) {
-			boolean available = isAvailable(method, systemParams);				
+			boolean available = isAvailable(method, requestParams);				
 			if (available) {
 				// The method name may only occur once
 				String name = method.getName();
@@ -172,7 +171,7 @@ public class JSONRPC {
 				for(int i = 0; i < params.size(); i++){
 					List<Annotation> matches = new ArrayList<Annotation>();
 					for (Annotation a : params.get(i).getAnnotations()) {
-						if (systemParams.has(a)) {
+						if (requestParams.has(a)) {
 							matches.add(a);
 						}
 						else if (a instanceof Name) {
@@ -204,14 +203,15 @@ public class JSONRPC {
 
 	/**
 	 * Describe all JSON-RPC methods of given class
-	 * @param c            The class to be described
-	 * @param systemParams Optional system parameters.
-	 * @param asJSON       If true, the described methods will be in an easy to 
-	 *                     parse JSON structure. If false, the returned 
-	 *                     description will be in human readable format.
+	 * @param c             The class to be described
+	 * @param requestParams Optional request parameters.
+	 * @param asJSON        If true, the described methods will be in an easy
+	 *                      to parse JSON structure. If false, the returned 
+	 *                      description will be in human readable format.
 	 * @return
 	 */
-	public static List<Object> describe(Class<?> c, SystemParams systemParams, Boolean asJSON) {
+	public static List<Object> describe(Class<?> c, RequestParams requestParams, 
+			Boolean asJSON) {
 		try {
 			Map<String, Object> methods = new TreeMap<String, Object>();
 			if (asJSON == null) {
@@ -220,12 +220,12 @@ public class JSONRPC {
 
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
-				if (isAvailable(method, systemParams)) {
+				if (isAvailable(method, requestParams)) {
 					if (asJSON) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
 						for(AnnotatedParam param : method.getParams()){
-							if (getSystemAnnotation(param, systemParams) == null) {
+							if (getRequestAnnotation(param, requestParams) == null) {
 								String name = getName(param);
 								Map<String, Object> paramData = new HashMap<String, Object>();
 								paramData.put("name", name);
@@ -248,7 +248,7 @@ public class JSONRPC {
 						// format as string
 						String p = "";
 						for(AnnotatedParam param : method.getParams()){
-							if (getSystemAnnotation(param, systemParams) == null) {
+							if (getRequestAnnotation(param, requestParams) == null) {
 								String name = getName(param);
 								String type = typeToString(param.getGenericType());
 								if (!p.isEmpty()) {
@@ -344,15 +344,15 @@ public class JSONRPC {
 	 * which is available for JSON-RPC, and has named parameters
 	 * @param objectClass
 	 * @param method
-	 * @param systemParams
+	 * @param requestParams
 	 * @return methodType   meta information on the method, or null if not found
 	 */
 	static private AnnotatedMethod getMethod(Class<?> objectClass, String method,
-			SystemParams systemParams) {
+			RequestParams requestParams) {
 		AnnotatedClass annotatedClass = AnnotationUtil.get(objectClass);
 		List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
 		for (AnnotatedMethod m : methods) {
-			if (isAvailable(m, systemParams)) {
+			if (isAvailable(m, requestParams)) {
 				return m;
 			}
 		}
@@ -363,12 +363,13 @@ public class JSONRPC {
 	 * Cast a JSONArray or JSONObject params to the desired paramTypes 
 	 * @param params
 	 * @param paramTypes
+	 * @param requestParams
 	 * @return 
 	 * @throws Exception 
 	 */
 	static private Object[] castParams(Object params, 
 			List<AnnotatedParam> annotatedParams, 
-			SystemParams systemParams) throws Exception {
+			RequestParams requestParams) throws Exception {
 		ObjectMapper mapper = JOM.getInstance();
 
 		if (annotatedParams.size() == 0) {
@@ -394,10 +395,10 @@ public class JSONRPC {
 				for (int i = 0; i < annotatedParams.size(); i++) {
 					AnnotatedParam p = annotatedParams.get(i);
 					
-					Annotation a = getSystemAnnotation(p, systemParams);
+					Annotation a = getRequestAnnotation(p, requestParams);
 					if (a != null) {
 						// this is a systems parameter
-						objects[i] = systemParams.get(a);
+						objects[i] = requestParams.get(a);
 					}
 					else {
 						String name = getName(p);
@@ -478,14 +479,15 @@ public class JSONRPC {
 	 * case when it is public, has named parameters, and has no 
 	 * annotation @Access(UNAVAILABLE)
 	 * @param annotatedMethod
-	 * @param systemParams
+	 * @param requestParams
 	 * @return available
 	 */
-	private static boolean isAvailable(AnnotatedMethod method, SystemParams systemParams) {
+	private static boolean isAvailable(AnnotatedMethod method, 
+			RequestParams requestParams) {
 		int mod = method.getActualMethod().getModifiers();
 		Access access = method.getAnnotation(Access.class); 
 		return Modifier.isPublic(mod) &&
-				hasNamedParams(method, systemParams) &&
+				hasNamedParams(method, requestParams) &&
 				(access == null || 
 				(access.value() != AccessType.UNAVAILABLE &&
 				 access.visible()));
@@ -494,14 +496,15 @@ public class JSONRPC {
 	/**
 	 * Test whether a method has named parameters
 	 * @param annotatedMethod
-	 * @param systemParams
+	 * @param requestParams
 	 * @return hasNamedParams
 	 */
-	private static boolean hasNamedParams(AnnotatedMethod method, SystemParams systemParams) {
+	private static boolean hasNamedParams(AnnotatedMethod method, 
+			RequestParams requestParams) {
 		for (AnnotatedParam param : method.getParams()) {
 			boolean found = false;
 			for (Annotation a : param.getAnnotations()) {
-				if (systemParams.has(a)) {
+				if (requestParams.has(a)) {
 					found = true;
 					break;
 				}
@@ -550,18 +553,17 @@ public class JSONRPC {
 		return name;
 	}
 	
-
 	/**
-	 * Find a system annotation in the given parameters
+	 * Find a request annotation in the given parameters
 	 * Returns null if no system annotation is not found
 	 * @param param
-	 * @param systemParams
+	 * @param requestParams
 	 * @return annotation
 	 */
-	private static Annotation getSystemAnnotation(AnnotatedParam param, 
-			SystemParams systemParams) {
+	private static Annotation getRequestAnnotation(AnnotatedParam param, 
+			RequestParams requestParams) {
 		for (Annotation annotation : param.getAnnotations()) {
-			if (systemParams.has(annotation)) {
+			if (requestParams.has(annotation)) {
 				return annotation;
 			}
 		}

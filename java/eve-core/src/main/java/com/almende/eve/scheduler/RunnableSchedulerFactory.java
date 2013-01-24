@@ -20,7 +20,7 @@ import org.joda.time.Interval;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.Context;
-import com.almende.eve.rpc.SystemParams;
+import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -163,7 +163,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				@Override
 				public void run() {
 					try {
-						SystemParams params = null; // TODO: provide a senderUrl
+						RequestParams params = null; // TODO: provide a senderUrl
 						agentFactory.invoke(agentId, request, params);
 					} catch (Exception e) {
 						e.printStackTrace();

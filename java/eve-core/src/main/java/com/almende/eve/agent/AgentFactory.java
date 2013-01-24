@@ -19,7 +19,7 @@ import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
 import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
-import com.almende.eve.rpc.SystemParams;
+import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -292,7 +292,7 @@ public class AgentFactory {
 		}
 
 		// validate the Eve agent and output as warnings
-		List<String> errors = JSONRPC.validate(agentClass, eveSystemParams);
+		List<String> errors = JSONRPC.validate(agentClass, eveRequestParams);
 		for (String error : errors) {
 			logger.warning("Validation error class: " + agentClass.getName() + 
 					", message: " + error);
@@ -357,18 +357,18 @@ public class AgentFactory {
 	 * Invoke a local agent
 	 * @param receiverId  Id of the receiver agent 
 	 * @param request
-	 * @param systemParams
+	 * @param requestParams
 	 * @return
 	 * @throws Exception
 	 */
 	// TOOD: cleanup this method?
 	public JSONResponse invoke(String receiverId, 
-			JSONRequest request, SystemParams systemParams) throws Exception {
+			JSONRequest request, RequestParams requestParams) throws Exception {
 		Agent receiver = getAgent(receiverId);
 		if (receiver != null) {
 			
 			
-			JSONResponse response = JSONRPC.invoke(receiver, request, systemParams);
+			JSONResponse response = JSONRPC.invoke(receiver, request, requestParams);
 			receiver.destroy();
 			return response;
 		}
@@ -395,9 +395,10 @@ public class AgentFactory {
 		String agentId = getAgentId(receiverUrl);
 		if (agentId != null) {
 			// local agent, invoke locally
-			// TODO: provide Sender in systemParams
-			SystemParams systemParams = null;
-			return invoke(agentId, request, systemParams);
+			// TODO: provide Sender in requestParams
+			RequestParams requestParams = new RequestParams();
+			requestParams.put(Sender.class, null);
+			return invoke(agentId, request, requestParams);
 		}
 		else {
 			TransportService service = null;
@@ -438,9 +439,10 @@ public class AgentFactory {
 				public void run() {
 					JSONResponse response;
 					try {
-						// TODO: provide Sender in systemParams
-						SystemParams systemParams = null;
-						response = invoke(receiverId, request, systemParams);
+						// TODO: provide Sender in requestParams
+						RequestParams requestParams = new RequestParams();
+						requestParams.put(Sender.class, null);
+						response = invoke(receiverId, request, requestParams);
 						callback.onSuccess(response);
 					} catch (Exception e) {
 						callback.onFailure(e);
@@ -816,7 +818,7 @@ public class AgentFactory {
 	}
 
 	public List<Object> getMethods(Agent agent, boolean asJSON) {
-		return JSONRPC.describe(agent.getClass(), eveSystemParams, asJSON);	
+		return JSONRPC.describe(agent.getClass(), eveRequestParams, asJSON);	
 	}
 	
 	/**
@@ -857,9 +859,9 @@ public class AgentFactory {
 		TRANSPORT_SERVICES.put("HttpService", "com.almende.eve.transport.http.HttpService");
     }
 
-	private final static SystemParams eveSystemParams = new SystemParams();
+	private final static RequestParams eveRequestParams = new RequestParams();
 	static {
-		eveSystemParams.put(Sender.class, null);
+		eveRequestParams.put(Sender.class, null);
 	}
 	
 	private static AgentCache agents;

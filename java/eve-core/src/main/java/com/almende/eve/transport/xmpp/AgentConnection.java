@@ -11,7 +11,7 @@ import org.jivesoftware.smack.util.StringUtils;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
-import com.almende.eve.rpc.SystemParams;
+import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -197,7 +197,7 @@ public class AgentConnection {
 						JSONRequest request = new JSONRequest(json);
 						
 						// append the sender to the request parameters
-						SystemParams params = new SystemParams();
+						RequestParams params = new RequestParams();
 						params.put(Sender.class, message.getFrom());
 						
 						// invoke the agent

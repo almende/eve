@@ -4,8 +4,9 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SystemParams {
-	public SystemParams() {
+// TODO: rework the RequestParams class to something more generic
+public class RequestParams {
+	public RequestParams() {
 	}
 	
 	public void put(Class<?> annotationType, Object value) {
