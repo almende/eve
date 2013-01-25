@@ -4,8 +4,8 @@ title: Getting Started
 ---
 
 
-{% assign eve_core_version = '0.15' %}
-{% assign eve_google_appengine_version = '0.15' %}
+{% assign eve_core_version = '0.17' %}
+{% assign eve_gae_version = '0.17' %}
 
 
 # Getting Started
@@ -82,7 +82,7 @@ web servlet.
       (optional, only needed for XMPP support)
     - [snakeyaml-1.10.jar](http://snakeyaml.org)
 
-  - [eve-google-appengine-{{eve_google_appengine_version}}.jar](files/java/eve-google-appengine-{{eve_google_appengine_version}}.jar)
+  - [eve-gae-{{eve_gae_version}}.jar](files/java/eve-gae-{{eve_gae_version}}.jar)
   
     - [twig-persist-2.0-beta4.jar](http://code.google.com/p/twig-persist)
     - [guava-11.0.2.jar](http://code.google.com/p/guava-libraries)
@@ -90,7 +90,7 @@ web servlet.
   If you don't want to download all libraries individually, you can download the
   zip files 
   [eve-core-{{eve_core_version}}-bundle.zip](files/java/eve-core-{{eve_core_version}}-bundle.zip) and 
-  [eve-google-appengine-{{eve_google_appengine_version}}-bundle.zip](files/java/eve-google-appengine-{{eve_google_appengine_version}}-bundle.zip)
+  [eve-gae-{{eve_gae_version}}-bundle.zip](files/java/eve-gae-{{eve_gae_version}}-bundle.zip)
   containing all dependent libraries. 
   
 - Right-click the added jars in Eclipse, and click Build Path, "Add to Build Path". 

@@ -131,13 +131,13 @@ providing a url, method, parameters, and a callback.
 
 ### Agent Proxy {#proxy}
 
-If there is a Java Interface available of the agent to be invoked, this
+If there is a Java interface available of the agent to be invoked, this
 interface can be used to create a proxy to the agent.
 Behind the scenes, the proxy executes a regular `send` request.
 The proxy stays valid as long as the agents url is valid, and the interface
 matches the agents actual features.
 
-The Interface must extend the interface `AgentInterface`. For example:
+The interface must extend the interface `AgentInterface`. For example:
 
     import com.almende.eve.agent.AgentInterface;
     import com.almende.eve.json.annotation.Name;

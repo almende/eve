@@ -2,6 +2,49 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+2012-01-25, version 0.17
+
+- In the configuration, a set of agents can be configured to be created
+  on system startup when they are not existing.
+- Added methods create and delete to the life cycle of an agent. Create is 
+  called once when the agent is created, and delete is called once when the
+  agent is deleted. The methods can be utilized to perform some custom action
+  on creating or deletion of an agent.
+- All open XMPP Connections are persisted and are automatically reconnected 
+  after a server restart.
+- Scheduled tasks are persisted, and are automatically re-scheduled after a
+  system restart.
+- Implemented @Sender parameter annotation, which can be used to retrieve
+  the senders url. Currently only applicable for XMPP. Example usage:
+      public String ping(@Name("text") String text, @Sender String sender) {
+          System.out.println("Ping text: " + text + ", sender: " + sender);
+      }
+- SchedulerFactory is created to manage and persist scheduled tasks. 
+  In the eve.yaml configuration, a SchedulerFactory class must be specified  
+  instead of a Scheduler class.
+- Added validation of an Agents class on agent creation.
+- Improved functionality for reading and merging (inherited) annotations.
+- Renamed a number of classes:
+  - XmppTransportService -> XmppService
+  - HttpTransportService -> HttpService
+
+
+2013-01-17, version 0.16
+
+- Note: Eve 0.16 is incompatible with 0.15
+- Annotations @Name and @Required do not need to be defined in an agents
+  implementation, when the annotations for the methods are defined in the agents
+  interface.
+- Moved @Name and @Required annotations from json.annotation to 
+  eve.agent.annotation.
+- Renamed "services" to "transport". XmppService is now called 
+  XmppTransportService, HttpService is now called HttpTransportService.
+- Moved JSONRPC classes to com.almende.eve.rpc.jsonrpc.
+- Removed Session objects.
+- Fixed requiring a sender for all calls via the AgentFactory.
+- Fixed method hasInterface not finding extended interfaces.
+
+
 2013-01-11, version 0.15
 
 - The send method of the Agent is more generic and no longer only accepts an
