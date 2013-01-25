@@ -2,7 +2,7 @@ EVE CORE
 http://almende.github.com/eve/
 
 
-<under construction>, version 0.17
+2012-01-25, version 0.17
 
 - In the configuration, a set of agents can be configured to be created
   on system startup when they are not existing.
