@@ -297,6 +297,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	/**
 	 * load scheduled, persisted tasks
 	 */
+	// TODO: storing all running tasks in one context file is quite a bottleneck and not scalable!
 	private void loadTasks() {
 		int taskCount = 0;
 		int failedTaskCount = 0;
@@ -317,7 +318,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		        	} catch (Exception e) {
 						e.printStackTrace();
 						failedTaskCount++;
-					}	
+					}
 				}
 			}
 		}

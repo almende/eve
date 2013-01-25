@@ -495,6 +495,62 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		Double value = other.add(2.3, null);
 		return value;
 	}
+	
+	public ArrayNode getUrlsOfGloria() throws Exception {
+		String url = "xmpp:gloria@openid.almende.org";
+		/* async works fine
+		sendAsync(url, "getUrls", JOM.createObjectNode(), new AsyncCallback<ArrayNode>() {
+			@Override
+			public void onSuccess(ArrayNode result) {
+				System.out.println("gloria's urls=" + urls);
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+				exception.printStackTrace();
+			}
+		}, ArrayNode.class);
+		*/
+		ArrayNode urls = send(url, "getUrls", JOM.createObjectNode(), ArrayNode.class);
+		System.out.println("gloria's urls=" + urls);
+		return urls;
+	}
+	
+	public void getUrlsOfMerlinAsync() throws Exception {
+		String url = "xmpp:merlin@openid.almende.org";
+		sendAsync(url, "getUrls", JOM.createObjectNode(), new AsyncCallback<ArrayNode>() {
+			@Override
+			public void onSuccess(ArrayNode urls) {
+				System.out.println("merlins urls=" + urls);
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+				exception.printStackTrace();
+			}
+		}, ArrayNode.class);
+	}
+
+	public ArrayNode getUrlsOfMerlin() throws Exception {
+		String url = "xmpp:merlin@openid.almende.org";
+		ArrayNode urls = send(url, "getUrls", JOM.createObjectNode(), ArrayNode.class);
+		System.out.println("merlins urls=" + urls);
+		return urls;
+	}
+	
+	public ArrayNode getUrlsOfJos() throws Exception {
+		String url = "xmpp:jos@openid.almende.org";
+		ArrayNode urls = send(url, "getUrls", JOM.createObjectNode(), ArrayNode.class);
+		System.out.println("jos's urls=" + urls);
+		return urls;
+	}
+		
+	public ArrayNode getListOfMerlin() throws Exception {
+		String url = "xmpp:merlin@openid.almende.org";
+		ArrayNode list = send(url, "list", JOM.createObjectNode(), ArrayNode.class);
+		System.out.println("merlins list=" + list);
+		return list;
+	}
 
 	@Override
 	public String getVersion() {

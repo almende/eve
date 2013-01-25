@@ -409,8 +409,7 @@ public class AgentFactory {
 				service = getTransportService(protocol);
 			}
 			if (service != null) {
-				String senderUrl = service.getAgentUrl(senderId);
-				return service.send(senderUrl, receiverUrl, request);
+				return service.send(senderId, receiverUrl, request);
 			}
 			else {
 				throw new ProtocolException(

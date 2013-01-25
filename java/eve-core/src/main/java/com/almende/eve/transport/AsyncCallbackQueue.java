@@ -29,6 +29,10 @@ public class AsyncCallbackQueue<T> {
 	 */
 	public synchronized void push(final String id, 
 			AsyncCallback<T> callback) throws Exception {
+		if (queue.containsKey(id)) {
+			throw new Exception("Callback with id '" + id + "' already in queue");
+		}
+		
 		final AsyncCallbackQueue<T> me = this;
 		CallbackHandler handler = new CallbackHandler();
 		handler.callback = callback;
@@ -43,9 +47,6 @@ public class AsyncCallbackQueue<T> {
 			}
         };
 		timer.schedule(handler.timeout, TIMEOUT);
-		if (queue.containsKey(id)) {
-			throw new Exception("Callback with id '" + id + "' already in queue");
-		}
 		queue.put(id, handler);
 	}
 

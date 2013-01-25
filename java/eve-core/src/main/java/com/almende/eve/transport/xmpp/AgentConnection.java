@@ -2,6 +2,7 @@ package com.almende.eve.transport.xmpp;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.PacketListener;
+import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
@@ -66,9 +67,12 @@ public class AgentConnection {
 			// login
 			conn.login(username, password);
 
-			// set presence
+			// set presence to available
 			Presence presence = new Presence(Presence.Type.available);
 			conn.sendPacket(presence);
+			
+			// set acceptance to all
+			conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 			
 			// instantiate a packet listener
 			conn.addPacketListener(new JSONRPCListener(conn, agentFactory, 
@@ -112,6 +116,8 @@ public class AgentConnection {
 			
 			// queue the response callback
 			callbacks.push(id, callback);
+			
+			// System.out.println("send username=" + username + ", request=" + request); // TODO: cleanup
 			
 			// send the message
 			Message reply = new Message();
@@ -172,6 +178,8 @@ public class AgentConnection {
 		public void processPacket(Packet packet) {
 			Message message = (Message)packet;
 			String body = message.getBody();
+			// System.out.println("recieve from=" + message.getFrom() + " to=" + message.getTo() + " body=" + body); // TODO: cleanup
+			
 			if (body != null && body.startsWith("{") || body.trim().startsWith("{")) {
 				// the body contains a JSON object
 				ObjectNode json = null;
@@ -188,8 +196,11 @@ public class AgentConnection {
 							callback.onSuccess(new JSONResponse(body));
 						}
 						else {
-							// TODO: is it needed to send this error back?
+							/*
+							// TODO: is it needed to send this error back? 
+							// can possibly result in weird loops?
 							throw new Exception("Callback with id '" + id + "' not found");
+							*/
 						}
 					}
 					else if (isRequest(json)) {

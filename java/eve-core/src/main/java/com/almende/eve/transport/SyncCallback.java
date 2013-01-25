@@ -3,17 +3,20 @@ package com.almende.eve.transport;
 public class SyncCallback<T> implements AsyncCallback<T> {
 	private T response = null;
 	private Exception exception = null;
+	private boolean done = false;
 	
 	@Override
 	public synchronized void onSuccess(T response) {
 		this.response = response;
-		this.notifyAll();
+		done = true;
+		notifyAll();
 	}
 	
 	@Override
 	public synchronized void onFailure(Exception exception) {
 		this.exception = exception;
-		this.notifyAll();
+		done = true;
+		notifyAll();
 	}
 	
 	/**
@@ -24,7 +27,10 @@ public class SyncCallback<T> implements AsyncCallback<T> {
 	 * @throws Exception
 	 */
 	public synchronized T get() throws Exception {
-		this.wait();
+		while (!done) {
+			wait();
+		}
+		
 		if (exception != null) {
 			throw exception;
 		}
