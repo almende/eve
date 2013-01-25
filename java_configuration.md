@@ -158,7 +158,7 @@ Description of the available properties:
                 <li><code>MemoryContextFactory</code>.
                     Located in eve-core.jar.</li>
                 <li><code>DatastoreContextFactory</code>.
-                    Located in eve-google-appengine.jar.
+                    Located in eve-gae.jar.
                     Only applicable when the application is deployed on Google App Engine.
                 </li>
             </ul>
@@ -193,7 +193,7 @@ Description of the available properties:
                     Located in eve-core.jar.
                     Not applicable when deployed on Google App Engine.</li>
                 <li><code>AppEngineScheduler</code>.
-                    Located in eve-google-appengine.jar.
+                    Located in eve-gae.jar.
                     Only applicable when the application is deployed on
                     Google App Engine.</li>
             </ul>
@@ -281,7 +281,7 @@ This section gives a number of examples of different Eve setups:
 
 An Eve setup running on
 [Google App Engine](https://developers.google.com/appengine/) requires the
-libraries `eve-core.jar` and `eve-google-appengine.jar`.
+libraries `eve-core.jar` and `eve-gae.jar`.
 There are two environments available:
 
 - `Development`, which is used when running an App Engine project locally in

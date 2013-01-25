@@ -76,16 +76,16 @@ web servlet.
     - [jackson-core-2.0.0.jar](http://jackson.codehaus.org)
     - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org)
     - [joda-time-2.1.jar](http://joda-time.sourceforge.net/)
-    - [smack.jar](http://www.igniterealtime.org/projects/smack/)
+    - [smack-3.1.0.jar](http://www.igniterealtime.org/projects/smack/)
       (optional, only needed for XMPP support)
-    - [smackx.jar](http://www.igniterealtime.org/projects/smack/)
+    - [smackx-3.1.0.jar](http://www.igniterealtime.org/projects/smack/)
       (optional, only needed for XMPP support)
-    - [snakeyaml-1.10.jar](http://snakeyaml.org)
+    - [snakeyaml-1.11.jar](http://snakeyaml.org)
 
   - [eve-gae-{{eve_gae_version}}.jar](files/java/eve-gae-{{eve_gae_version}}.jar)
   
-    - [twig-persist-2.0-beta4.jar](http://code.google.com/p/twig-persist)
-    - [guava-11.0.2.jar](http://code.google.com/p/guava-libraries)
+    - [twig-persist-2.0-rc.jar](http://code.google.com/p/twig-persist)
+    - [guava-10.0.jar](http://code.google.com/p/guava-libraries)
   
   If you don't want to download all libraries individually, you can download the
   zip files 

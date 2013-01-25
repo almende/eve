@@ -61,12 +61,13 @@ They can be downloaded at the
     jackson-core-2.0.0.jar, 
     jackson-annotations-2.0.0.jar,
     joda-time-2.1.jar,
-    snakeyaml-1.10.jar. Optional (needed for XMPP support): smack.jar, smackx.jar.
+    snakeyaml-1.11.jar. Optional (needed for XMPP support):
+    smack-3.1.0.jar, smackx-3.1.0.jar.
     Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
   *
   
-- **eve-google-appengine.jar**  
+- **eve-gae.jar**
   Library needed for hosting Eve agents on Google App Engine.
   This libary contains platform dependent functionallity:
    a persistent context for the agents (DatastoreContext), 
@@ -74,8 +75,8 @@ They can be downloaded at the
 
   *Dependencies: 
     eve-core.jar,
-    twig-persist-2.0-beta4.jar,
-    guava-11.0.2.jar.
+    twig-persist-2.0-rc.jar,
+    guava-10.0.jar.
     Also depending on the Google App Engine libraries, which are automatically
     included when the project is set up as a GAE project.
   *
