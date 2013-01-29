@@ -151,7 +151,7 @@ public class AgentServlet extends HttpServlet {
 			else {
 				jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
-				jsonError.setData(err.getStackTrace());
+				jsonError.setData(err);
 			}
 			jsonResponse = new JSONResponse(jsonError);
 		}

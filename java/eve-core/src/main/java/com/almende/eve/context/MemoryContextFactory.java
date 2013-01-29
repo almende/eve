@@ -48,7 +48,7 @@ public class MemoryContextFactory extends ContextFactory {
 	 * @param agentId
 	 */
 	@Override
-	public void delete(String agentId) throws Exception {
+	public void delete(String agentId) {
 		contexts.remove(agentId);
 	}
 

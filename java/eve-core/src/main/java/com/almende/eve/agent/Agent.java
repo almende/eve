@@ -396,8 +396,8 @@ abstract public class Agent implements AgentInterface {
 	 * Get all available methods of this agent
 	 * @return
 	 */
-	final public List<Object> getMethods(@Name("asJSON") 
-			@Required(false) Boolean asJSON) {
+	final public List<Object> getMethods(
+			@Name("asJSON") @Required(false) Boolean asJSON) {
 		return getAgentFactory().getMethods(this, asJSON);
 	}
 	

@@ -129,7 +129,7 @@ public class JSONRPC {
 				JSONRPCException jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
 				// TODO: return useful, readable stacktrace
-				jsonError.setData(err.getStackTrace());
+				jsonError.setData(err);
 				resp.setError(jsonError);
 				err.printStackTrace(); // TODO: cleanup printing stacktrace
 			}
@@ -327,16 +327,16 @@ public class JSONRPC {
 	}
 	
 	/**
-	 * Try to retrieve the message description of an error
+	 * Retrieve a description of an error
 	 * @param error
-	 * @return message  String with the error description, or null if not found.
+	 * @return message  String with the error description of the cause
 	 */
 	static private String getMessage(Throwable error) {
-		String message = error.getMessage();
-		if (message == null && error.getCause() != null) {
-			message = error.getCause().getMessage();
+		Throwable cause = error;
+		while (cause.getCause() != null) {
+			cause = cause.getCause();
 		}
-		return message;
+		return cause.toString();
 	}
 
 	/**

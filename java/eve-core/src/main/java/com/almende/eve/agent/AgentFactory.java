@@ -351,13 +351,34 @@ public class AgentFactory {
 	 * @throws Exception 
 	 */
 	public void deleteAgent(String agentId) throws Exception {
-		// get the agent and execute the delete method
-		Agent agent = getAgent(agentId);
-		agent.destroy();
-		agent.delete();
-		agent = null;
+		Exception e = null;
 		
-		getContextFactory().delete(agentId);
+		try {
+			// get the agent and execute the delete method
+			Agent agent = getAgent(agentId);
+			agent.destroy();
+			agent.delete();
+			agent = null;
+		}
+		catch (Exception err) {
+			e = err;
+		}
+
+		try {
+			// delete the context, even if the agent.destroy or agent.delete
+			// failed.
+			getContextFactory().delete(agentId);
+		}
+		catch (Exception err) {
+			if (e == null) {
+				e = err;
+			}
+		}
+		
+		// rethrow the first exception
+		if (e != null) {
+			throw e;
+		}
 	}
 	
 	/**
@@ -392,8 +413,6 @@ public class AgentFactory {
 			JSONRequest request, RequestParams requestParams) throws Exception {
 		Agent receiver = getAgent(receiverId);
 		if (receiver != null) {
-			
-			
 			JSONResponse response = JSONRPC.invoke(receiver, request, requestParams);
 			receiver.destroy();
 			return response;
@@ -842,7 +861,7 @@ public class AgentFactory {
 		return null;
 	}
 
-	public List<Object> getMethods(Agent agent, boolean asJSON) {
+	public List<Object> getMethods(Agent agent, Boolean asJSON) {
 		return JSONRPC.describe(agent.getClass(), eveRequestParams, asJSON);	
 	}
 	

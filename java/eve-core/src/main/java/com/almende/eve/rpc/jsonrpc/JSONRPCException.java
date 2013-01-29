@@ -99,7 +99,7 @@ public class JSONRPCException extends Exception {
 		setData(data);
 	}
 	
-	private void init(CODE code, String description) {
+	private void init(CODE code, String message) {
 		switch (code) {
 			case UNKNOWN_ERROR: setCode (-32000); setMessage("Unknown error"); break;
 			case PARSE_ERROR: setCode (-32700); setMessage("Parse error"); break;
@@ -110,10 +110,8 @@ public class JSONRPCException extends Exception {
 			case NOT_FOUND: setCode(404); setMessage("Not found"); break;
 		}
 		
-		if (description != null) {
-			ObjectNode data = JOM.createObjectNode();
-			data.put("description", description);
-			setData(data);
+		if (message != null) {
+			error.put("message", message);
 		}
 	}
 		
