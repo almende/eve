@@ -86,13 +86,19 @@ public class AgentFactory {
 	public AgentFactory(Config config) throws Exception {
 		this.config = config;
 
-		// important to initialize in the correct order: cache first, 
-		// then the context and transport services, and lastly scheduler.
-		agents = new AgentCache(config);
-		initContext(config);
-		initTransportServices(config);
-		initScheduler(config);
-		initBootstrap(config);
+		if (config != null) {
+			// important to initialize in the correct order: cache first, 
+			// then the context and transport services, and lastly scheduler.
+			agents = new AgentCache(config);
+			
+			initContext(config);
+			initTransportServices(config);
+			initScheduler(config);
+			initBootstrap(config);
+		}
+		else {
+			agents = new AgentCache();
+		}
 
 		addTransportService(new HttpService(this));
 	}
@@ -121,6 +127,15 @@ public class AgentFactory {
 	
 	/**
 	 * Create a shared AgentFactory instance with the default namespace "default"
+	 * @return factory
+	 */
+	public static synchronized AgentFactory createInstance() 
+			throws Exception{
+		return createInstance(null, null);
+	}
+	
+	/**
+	 * Create a shared AgentFactory instance with the default namespace "default"
 	 * @param config
 	 * @return factory
 	 */
@@ -131,10 +146,21 @@ public class AgentFactory {
 
 	/**
 	 * Create a shared AgentFactory instance with a specific namespace
-	 * @param namespace    If null, "default" namespace will be loaded.
-	 * @param config
+	 * @param namespace
 	 * @return factory
-	 * @throws Exception 
+	 */
+	public static synchronized AgentFactory createInstance(String namespace) 
+			throws Exception {
+		return createInstance(namespace, null);
+	}
+	
+	/**
+	 * Create a shared AgentFactory instance with a specific namespace
+	 * @param namespace    If null, "default" namespace will be loaded.
+	 * @param config       If null, a non-configured AgentFactory will be
+	 *                     created.
+	 * @return factory
+	 * @throws Exception
 	 */
 	public static synchronized AgentFactory createInstance(String namespace, 
 			Config config) throws Exception {

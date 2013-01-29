@@ -47,11 +47,13 @@
 		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
 	</properties>
 
+  <!-- TODO: create a separate project for building all projects
   <modules>
     <module>../eve-core</module>
     <module>../eve-gae</module>
     <module>../eve-gae-test</module>
   </modules>
+  -->
 
 	<pluginRepositories>
 	</pluginRepositories>
