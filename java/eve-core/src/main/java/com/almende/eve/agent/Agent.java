@@ -332,6 +332,7 @@ abstract public class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	final public void trigger(@Name("event") String event, 
 			@Name("params") Object params) throws Exception {
+		// TODO: user first url is very dangerous! can cause a mismatch
 		String url = getFirstUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 

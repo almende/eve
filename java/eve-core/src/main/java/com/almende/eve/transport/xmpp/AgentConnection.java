@@ -43,6 +43,13 @@ public class AgentConnection {
 	}
 	
 	/**
+	 * Get the resource of the connection. Returns null if no resource is set
+	 * @return resource
+	 */
+	public String getResource() {
+		return resource;
+	}
+	/**
 	 * Login and connect the agent to the messaging service
 	 * @param agentId
 	 * @param host
@@ -50,12 +57,15 @@ public class AgentConnection {
 	 * @param serviceName
 	 * @param username
 	 * @param password
+	 * @param resource    optional
 	 * @throws Exception 
 	 */
 	public void connect(String agentId, String host, Integer port, 
-			String serviceName, String username, String password) throws Exception {
+			String serviceName, String username, String password, 
+			String resource) throws Exception {
 		this.agentId = agentId;
 		this.username = username;
+		this.resource = resource;
 		
 		try {
 			// configure and connect
@@ -65,7 +75,12 @@ public class AgentConnection {
 			conn.connect();
 
 			// login
-			conn.login(username, password);
+			if (resource == null) {
+				conn.login(username, password);
+			}
+			else {
+				conn.login(username, password, resource);
+			}
 
 			// set presence to available
 			Presence presence = new Presence(Presence.Type.available);
@@ -241,6 +256,7 @@ public class AgentConnection {
 	private AgentFactory agentFactory = null;
 	private String agentId = null;
 	private String username = null;
+	private String resource = null;
 	private XMPPConnection conn = null;
 	private AsyncCallbackQueue<JSONResponse> callbacks = 
 			new AsyncCallbackQueue<JSONResponse>();	

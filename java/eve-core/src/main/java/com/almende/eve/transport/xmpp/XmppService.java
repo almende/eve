@@ -1,6 +1,5 @@
 package com.almende.eve.transport.xmpp;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +33,8 @@ public class XmppService extends TransportService {
 	public String getAgentUrl(String agentId) {
 		AgentConnection connection = connectionsById.get(agentId);
 		if (connection != null) {
-			String username = connection.getUsername();
-			return generateUrl(username, host);
+			return generateUrl(connection.getUsername(), host, 
+					connection.getResource());
 		}
 		return null;
 	}
@@ -141,6 +140,22 @@ public class XmppService extends TransportService {
 	public List<String> getProtocols() {
 		return protocols;
 	}
+
+	/**
+	 * Connect to the configured messaging service (such as XMPP). The service
+	 * must be configured in the Eve configuration
+	 * @param agentUrl
+	 * @param username
+	 * @param password
+	 * @param resource
+	 * @throws Exception 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public void connect (String agentId, String username, String password) 
+			throws Exception {
+		String resource = null;
+		connect(agentId, username, password, resource);
+	}
 	
 	/**
 	 * Connect to the configured messaging service (such as XMPP). The service
@@ -148,28 +163,32 @@ public class XmppService extends TransportService {
 	 * @param agentUrl
 	 * @param username
 	 * @param password
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws SecurityException 
-	 * @throws IllegalArgumentException 
+	 * @param resource
+	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void connect (String agentId, String username, String password) 
-			throws Exception {
-		String url = generateUrl(username, host);
-		if (connectionsByUrl.containsKey(url)) {
-			throw new Exception("Connection for url '" + url + "' is already open.");
+	final public void connect (String agentId, String username, String password, 
+			String resource) throws Exception {
+		String agentUrl = generateUrl(username, host, resource);
+		if (connectionsByUrl.containsKey(agentUrl)) {
+			throw new Exception("Connection for url '" + agentUrl + "' is already open. " +
+					"Close this connection first.");
+		}
+		if (connectionsById.containsKey(agentId)) {
+			AgentConnection c = connectionsById.get(agentId);
+			String url = generateUrl(c.getUsername(), host, c.getResource());
+			throw new Exception("Agent with id '" + agentId + "' already has " +
+					"an open xmpp connection (" + url + "). " +
+					"Close this connection first.");
 		}
 
 		// instantiate open the connection		
 		AgentConnection connection = new AgentConnection(agentFactory);
-		connection.connect(agentId, host, port, service, username, password);
+		connection.connect(agentId, host, port, service, username, password, resource);
 		
 		// register the connection
 		connectionsById.put(agentId, connection);
-		connectionsByUrl.put(generateUrl(username, host), connection);
+		connectionsByUrl.put(agentUrl, connection);
 		
 		// persist the parameters for the connection
 		if (context != null) {
@@ -183,6 +202,7 @@ public class XmppService extends TransportService {
 				Map<String, String> params = new HashMap<String, String>();
 				params.put("username", EncryptionUtil.encrypt(username));
 				params.put("password", EncryptionUtil.encrypt(password));
+				params.put("resource", (resource != null) ? EncryptionUtil.encrypt(resource) : null);
 				connections.put(agentId, params);
 				context.put("connections", connections);
 			}
@@ -191,6 +211,7 @@ public class XmppService extends TransportService {
 	
 	/**
 	 * Disconnect the agent from the connected messaging service (if any)
+	 * @param agentId
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void disconnect (String agentId) {
@@ -198,9 +219,10 @@ public class XmppService extends TransportService {
 		if (connection != null) {
 			connection.disconnect();
 
-			String url = generateUrl(connection.getUsername(), host);
+			String agentUrl = generateUrl(connection.getUsername(), host, 
+					connection.getResource());
 			connectionsById.remove(agentId);
-			connectionsByUrl.remove(url);
+			connectionsByUrl.remove(agentUrl);
 
 			// remove the connection parameters from the persisted state
 			if (context != null) {
@@ -259,10 +281,17 @@ public class XmppService extends TransportService {
 
 	/**
 	 * Get the url of an xmpp connection "xmpp:username@host" 
+	 * @param username
+	 * @param host
+	 * @param resource     optional
 	 * @return url
 	 */
-	private static String generateUrl(String username, String host) {
-		return "xmpp:" + username + "@" + host; 
+	private static String generateUrl(String username, String host, String resource) {
+		String url = "xmpp:" + username + "@" + host;
+		if (resource != null) {
+			url += "/" + resource;
+		}
+		return url;
 	}
 
 	/**
@@ -283,7 +312,8 @@ public class XmppService extends TransportService {
 							if (params.containsKey("username") && params.containsKey("password")) {
 								String username = EncryptionUtil.decrypt(params.get("username"));
 								String password = EncryptionUtil.decrypt(params.get("password"));
-								connect(agentId, username, password);
+								String resource = EncryptionUtil.decrypt(params.get("resource"));
+								connect(agentId, username, password, resource);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
