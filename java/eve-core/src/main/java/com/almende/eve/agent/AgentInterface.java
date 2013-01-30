@@ -6,19 +6,79 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 
 public interface AgentInterface {
+	/**
+	 * Retrieve the agents id
+	 * @return id
+	 */
 	public String getId();
+	
+	/**
+	 * Retrieve the agents type (its simple class name)
+	 * @return version
+	 */
 	public String getType();
+	
+	/**
+	 * Retrieve the agents version number
+	 * @return version
+	 */
 	public String getVersion();
+	
+	/**
+	 * Retrieve a description of the agents functionality
+	 * @return description
+	 */
 	public String getDescription();
+	
+	/**
+	 * Retrieve an array with the agents urls (can be one or multiple), and 
+	 * depends on the configured transport services.
+	 * @return urls
+	 */
 	public List<String> getUrls();
 
+	/**
+	 * Retrieve a list with all the available methods.
+	 * @param asJSON   If true, result is in a JSON format easily parsable by
+	 *                 a machine. If false (default), the returned list
+	 *                 contains human readable strings.
+	 * @return methods
+	 */
 	public List<Object> getMethods(
 			@Name("asJSON") @Required(false) Boolean asJSON);
 	
+	/**
+	 * Subscribe to an event. The provided callback url and method will be 
+	 * invoked when the event is triggered. The callback method is called
+	 * with parameters:
+	 * - {String} subscriptionId  The id of the subscription
+	 * - {String} event           Name of the triggered event
+	 * - {String} agent           Url of the triggered agent
+	 * - {Object} params          Event specific parameters.
+	 * See also Agent.trigger(event, params).
+	 * @param event
+	 * @param callbackUrl
+	 * @param callbackMethod
+	 * @return subscriptionId
+	 */
 	public String onSubscribe (
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod);
+	
+	/**
+	 * Let an other agent unsubscribe from one of this agents events
+	 * - If subscriptionId is provided, the subscription with this id will be
+	 *   deleted
+	 * - If the parameter callbackUrl and optionally event and/or callbackMethod,
+	 *   all subscriptions with matching parameters will be deleted. 
+	 *   (if only  callbackUrl is provided, all subscriptions from this agent 
+	 *   will be deleted).
+	 * @param subscriptionId
+	 * @param event
+	 * @param callbackUrl
+	 * @param callbackMethod
+	 */
 	public void onUnsubscribe (
 			@Required(false) @Name("subscriptionId") String subscriptionId, 
 			@Required(false) @Name("event") String event, 
