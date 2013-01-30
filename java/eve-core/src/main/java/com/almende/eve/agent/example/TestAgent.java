@@ -277,40 +277,51 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		System.out.println(res);
 		return res;
 	}
-	public void subscribeToAgent(@Required(false) @Name("url") String url) throws Exception {
+	
+	public String subscribeToAgent(@Required(false) @Name("url") String url) throws Exception {
 		if (url == null) {
-				url = "http://localhost:8080/EveCore/agents/testagent/2/";
+				url = "http://localhost:8080/agents/testagent2/";
 		}
 		String event = "dataChanged";
 		String callback = "onEvent";
-		subscribe(url, event, callback);
+		return subscribe(url, event, callback);
 	}
 
-	public void unsubscribeFromAgent(@Required(false) @Name("url") String url) throws Exception {
+	public void unsubscribeFromAgent(@Required(false) @Name("url") String url,
+			@Name("subscriptionId") String subscriptionId) throws Exception {
 		if (url == null) {
-			url = "http://localhost:8080/EveCore/agents/testagent/2/";
+			url = "http://localhost:8080/agents/testagent2/";
 		}
-		String event = "dataChanged";
-		String callback = "onEvent";
-		unsubscribe(url, event, callback);
+		//String event = "dataChanged";
+		//String callback = "onEvent";
+		unsubscribe(url, subscriptionId);
 	}
 	
 	public void triggerDataChanged() throws Exception {
 		trigger("dataChanged", null);
 	}
 	
-	public Object getAllSubscriptions() {
-		return getContext().get("subscriptions");
+	public Object getEverything() {
+		return getContext();
 	}
 	
 	public void onEvent(
-	        @Name("agent") String agent,
-	        @Name("event") String event, 
+			@Required(false) @Name("subscriptionId") String subscriptionId,
+			@Required(false) @Name("agent") String agent,
+	        @Required(false) @Name("event") String event, 
 	        @Required(false) @Name("params") ObjectNode params) throws Exception {
 	    System.out.println("onEvent " +
+	    		"subscriptionId=" + subscriptionId + ", " +
 	            "agent=" + agent + ", " +
 	            "event=" + event + ", " +
 	            "params=" + ((params != null) ? params.toString() : null));
+	    
+	    ObjectNode data = JOM.createObjectNode();
+	    data.put("subscriptionId", subscriptionId);
+	    data.put("agent", agent);
+	    data.put("event", event);
+	    data.put("params", params);
+	    trigger ("onEvent", data);
 	}
 
 	private String privateMethod() {

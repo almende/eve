@@ -443,7 +443,8 @@ public class AgentFactory {
 			// TODO: provide Sender in requestParams
 			RequestParams requestParams = new RequestParams();
 			requestParams.put(Sender.class, null);
-			return invoke(agentId, request, requestParams);
+			JSONResponse response = invoke(agentId, request, requestParams);
+			return response;
 		}
 		else {
 			TransportService service = null;
@@ -454,7 +455,8 @@ public class AgentFactory {
 				service = getTransportService(protocol);
 			}
 			if (service != null) {
-				return service.send(senderId, receiverUrl, request);
+				JSONResponse response = service.send(senderId, receiverUrl, request);
+				return response;
 			}
 			else {
 				throw new ProtocolException(

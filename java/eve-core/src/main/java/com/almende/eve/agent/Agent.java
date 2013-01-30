@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.almende.eve.agent.annotation.Access;
@@ -223,54 +224,93 @@ abstract public class Agent implements AgentInterface {
 	 * @param event
 	 * @param callbackUrl
 	 * @param callbackMethod
+	 * @return subscriptionId
 	 */
-	final public void onSubscribe (
+	final public String onSubscribe (
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod) {
 		List<Callback> subscriptions = getSubscriptions(event);
-		for (Callback s : subscriptions) {
-			if (s.url == null || s.method == null){
-//				System.err.println("Error: callback has empty fields!");
+		for (Callback subscription : subscriptions) {
+			if (subscription.url == null || subscription.method == null){
 				continue;
 			}
-			if (s.url.equals(callbackUrl) && 
-					s.method.equals(callbackMethod)) {
+			if (subscription.url.equals(callbackUrl) && 
+					subscription.method.equals(callbackMethod)) {
 				// The callback already exists. do not duplicate it
-				return;
+				return subscription.id;
 			}
 		}
 		
 		// the callback does not yet exist. create it and store it
-		Callback callback = new Callback(callbackUrl, callbackMethod);
+		String subscriptionId = UUID.randomUUID().toString();
+		Callback callback = new Callback(subscriptionId, callbackUrl, callbackMethod);
 		subscriptions.add(callback);
 		
 		// store the subscriptions
 		putSubscriptions(event, subscriptions);
+		
+		return subscriptionId;
 	}
 	
 	/**
 	 * Let an other agent unsubscribe from one of this agents events
+	 * - If subscriptionId is provided, the subscription with this id will be
+	 *   deleted
+	 * - If the parameter callbackUrl and optionally event and/or callbackMethod,
+	 *   all subscriptions with matching parameters will be deleted. 
+	 *   (if only  callbackUrl is provided, all subscriptions from this agent 
+	 *   will be deleted).
+	 * @param subscriptionId
 	 * @param event
 	 * @param callbackUrl
+	 * @param callbackMethod
 	 */
 	final public void onUnsubscribe(
-			@Name("event") String event, 
-			@Name("callbackUrl") String callbackUrl,
-			@Name("callbackMethod") String callbackMethod) {
-		List<Callback> subscriptions = getSubscriptions(event);
-		if (subscriptions != null) {
-			for (Callback subscription : subscriptions) {
-				if (subscription.url.equals(callbackUrl) && 
-						subscription.method.equals(callbackMethod)) {
-					// callback is found
-					// remove it and store the subscriptions again
-					subscriptions.remove(subscription);
-					putSubscriptions(event, subscriptions);
-					return;
+			@Required(false) @Name("subscriptionId") String subscriptionId,
+			@Required(false) @Name("event") String event, 
+			@Required(false) @Name("callbackUrl") String callbackUrl,
+			@Required(false) @Name("callbackMethod") String callbackMethod) {
+		@SuppressWarnings("unchecked")
+		Map<String, List<Callback> > allSubscriptions = 
+				(Map<String, List<Callback> >) context.get("subscriptions");
+		if (allSubscriptions == null) {
+			return;
+		}
+		
+		for (Entry<String, List<Callback>> entry : allSubscriptions.entrySet()) {
+			String subscriptionEvent = entry.getKey();
+			List<Callback> subscriptions = entry.getValue();
+			if (subscriptions != null) {
+				int i = 0;
+				while (i < subscriptions.size()) {
+					Callback subscription = subscriptions.get(i);
+					boolean matched = false;
+					if (subscriptionId != null && subscriptionId.equals(subscription.id)) {
+						// callback with given subscriptionId is found
+						matched = true;
+					}
+					else if (callbackUrl != null && callbackUrl.equals(subscription.url)){
+						if ((callbackMethod == null || callbackMethod.equals(subscription.method)) &&
+								(event == null || event.equals(subscriptionEvent))) {
+							// callback with matching properties is found
+							matched = true;
+						}
+					}
+					
+					if (matched) {
+						subscriptions.remove(i);
+					}
+					else {
+						i++;
+					}
 				}
 			}
+			// TODO: cleanup event list when empty
 		}
+		
+		// store context again
+		context.put("subscriptions", allSubscriptions);
 	}
 	
 	/**
@@ -296,20 +336,38 @@ abstract public class Agent implements AgentInterface {
 	 * @param url
 	 * @param event
 	 * @param callbackMethod
+	 * @return subscriptionId
 	 * @throws Exception
 	 */
-	protected void subscribe(String url, String event, String callbackMethod) 
+	protected String subscribe(String url, String event, String callbackMethod) 
 			throws Exception {
 		String method = "onSubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
 		params.put("callbackUrl", getFirstUrl());
 		params.put("callbackMethod", callbackMethod);
-		send(url, method, params);
+		// TODO: store the agents subscriptions locally
+		return send(url, method, params, String.class);
 	}
 
 	/**
 	 * Unsubscribe from an other agents event
+	 * @param url
+	 * @param subscriptionId
+	 * @throws Exception
+	 */
+	protected void unsubscribe(String url, String subscriptionId) throws Exception {
+		String method = "onUnsubscribe";
+		ObjectNode params = JOM.createObjectNode();
+		params.put("subscriptionId", subscriptionId);
+		send(url, method, params);
+	}
+	
+	/**
+	 * Unsubscribe from an other agents event
+	 * @param url
+	 * @param event
+	 * @param callbackMethod
 	 * @throws Exception
 	 */
 	protected void unsubscribe(String url, String event, String callbackMethod) 
@@ -321,7 +379,7 @@ abstract public class Agent implements AgentInterface {
 		params.put("callbackMethod", callbackMethod);
 		send(url, method, params);
 	}
-	
+
 	/**
 	 * Trigger an event
 	 * @param event
@@ -363,20 +421,19 @@ abstract public class Agent implements AgentInterface {
 			callbackParams.put("params", jsonParams);
 		}
 		
-		for (Callback s : subscriptions) {
+		for (Callback subscription : subscriptions) {
 			// create a task to send this trigger. 
 			// This way, it is sent asynchronously and cannot block this
 			// trigger method
+			callbackParams.put("subscriptionId", subscription.id); // TODO: test if changing subscriptionId works with multiple tasks
+
 			ObjectNode taskParams = JOM.createObjectNode();
-			taskParams.put("url", s.url);
-			taskParams.put("method", s.method);
+			taskParams.put("url", subscription.url);
+			taskParams.put("method", subscription.method);
 			taskParams.put("params", callbackParams);
 			JSONRequest request = new JSONRequest("onTrigger", taskParams);
 			long delay = 0;
-			if (scheduler == null && agentFactory != null) {
-				scheduler = agentFactory.getScheduler(getId());
-			}
-			scheduler.createTask(request, delay);
+			getScheduler().createTask(request, delay);
 		}
 	}
 

@@ -171,7 +171,7 @@ public class JSONRPC {
 				for(int i = 0; i < params.size(); i++){
 					List<Annotation> matches = new ArrayList<Annotation>();
 					for (Annotation a : params.get(i).getAnnotations()) {
-						if (requestParams.has(a)) {
+						if (requestParams != null && requestParams.has(a)) {
 							matches.add(a);
 						}
 						else if (a instanceof Name) {
@@ -504,7 +504,7 @@ public class JSONRPC {
 		for (AnnotatedParam param : method.getParams()) {
 			boolean found = false;
 			for (Annotation a : param.getAnnotations()) {
-				if (requestParams.has(a)) {
+				if (requestParams != null && requestParams.has(a)) {
 					found = true;
 					break;
 				}
@@ -563,7 +563,7 @@ public class JSONRPC {
 	private static Annotation getRequestAnnotation(AnnotatedParam param, 
 			RequestParams requestParams) {
 		for (Annotation annotation : param.getAnnotations()) {
-			if (requestParams.has(annotation)) {
+			if (requestParams != null && requestParams.has(annotation)) {
 				return annotation;
 			}
 		}

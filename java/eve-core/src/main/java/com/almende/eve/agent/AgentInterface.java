@@ -15,12 +15,13 @@ public interface AgentInterface {
 	public List<Object> getMethods(
 			@Name("asJSON") @Required(false) Boolean asJSON);
 	
-	public void onSubscribe (
+	public String onSubscribe (
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
 			@Name("callbackMethod") String callbackMethod);
 	public void onUnsubscribe (
-			@Name("event") String event, 
-			@Name("callbackUrl") String callbackUrl, 
-			@Name("callbackMethod") String callbackMethod);
+			@Required(false) @Name("subscriptionId") String subscriptionId, 
+			@Required(false) @Name("event") String event, 
+			@Required(false) @Name("callbackUrl") String callbackUrl, 
+			@Required(false) @Name("callbackMethod") String callbackMethod);
 }

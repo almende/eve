@@ -163,7 +163,7 @@ public class XmppService extends TransportService {
 	 * @param agentUrl
 	 * @param username
 	 * @param password
-	 * @param resource
+	 * @param resource  (optional)
 	 * @throws Exception 
 	 */
 	@Access(AccessType.UNAVAILABLE)
@@ -312,7 +312,10 @@ public class XmppService extends TransportService {
 							if (params.containsKey("username") && params.containsKey("password")) {
 								String username = EncryptionUtil.decrypt(params.get("username"));
 								String password = EncryptionUtil.decrypt(params.get("password"));
-								String resource = EncryptionUtil.decrypt(params.get("resource"));
+								String resource = null;
+								if (params.containsKey("resource")) {
+									resource = EncryptionUtil.decrypt(params.get("resource"));
+								}
 								connect(agentId, username, password, resource);
 							}
 						} catch (Exception e) {

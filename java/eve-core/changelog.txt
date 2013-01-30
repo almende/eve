@@ -5,7 +5,9 @@ http://almende.github.com/eve/
 <under construction>, version 0.18
 
 - Implemented support for a resource name for xmpp connections.
-- Minor bug fixes in the XmppService.
+- Implemented subscriptionId for subscriptions, which can be used to uniquely
+  identify any subscription. 
+- Minor bug fixes in the XmppService and RunnableScheduler.
 
 
 2012-01-25, version 0.17
