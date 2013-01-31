@@ -274,6 +274,7 @@ public class XmppService extends TransportService {
 			connection.send(fullUsername, request, callback);
 		}
 		else {
+			// TODO: use an anonymous xmpp connection when the sender agent has no xmpp connection.
 			throw new Exception("Cannot send an xmpp request, " +
 					"agent is has no xmpp connection.");
 		}

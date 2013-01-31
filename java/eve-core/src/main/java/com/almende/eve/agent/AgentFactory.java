@@ -91,9 +91,9 @@ public class AgentFactory {
 			// then the context and transport services, and lastly scheduler.
 			agents = new AgentCache(config);
 			
-			initContext(config);
+			initContextFactory(config);
 			initTransportServices(config);
-			initScheduler(config);
+			initSchedulerFactory(config);
 			initBootstrap(config);
 		}
 		else {
@@ -556,7 +556,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initContext(Config config) {
+	private void initContextFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -651,7 +651,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initScheduler(Config config) {
+	private void initSchedulerFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -700,9 +700,11 @@ public class AgentFactory {
 			}
 			
 			// initialize the scheduler factory
-			schedulerFactory = (SchedulerFactory) schedulerClass
+			SchedulerFactory schedulerFactory = (SchedulerFactory) schedulerClass
 						.getConstructor(AgentFactory.class, Map.class )
 						.newInstance(this, params);
+
+			setSchedulerFactory(schedulerFactory);
 			
 			logger.info("Initialized scheduler factory: " + 
 					schedulerFactory.getClass().getName());
@@ -866,7 +868,16 @@ public class AgentFactory {
 	public List<Object> getMethods(Agent agent, Boolean asJSON) {
 		return JSONRPC.describe(agent.getClass(), eveRequestParams, asJSON);	
 	}
-	
+
+	/**
+	 * Set a context factory. The context factory is used to get/create/delete
+	 * an agents context.
+	 * @param contextFactory
+	 */
+	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
+		this.schedulerFactory = schedulerFactory;
+	}
+
 	/**
 	 * create a scheduler for an agent
 	 * @param agentId
