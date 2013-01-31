@@ -309,12 +309,15 @@ public class XmppService extends TransportService {
 					for (String agentId : connections.keySet()) {
 						Map<String, String> params = connections.get(agentId);
 						try {
-							if (params.containsKey("username") && params.containsKey("password")) {
-								String username = EncryptionUtil.decrypt(params.get("username"));
-								String password = EncryptionUtil.decrypt(params.get("password"));
+							String encryptedUsername = params.get("username");
+							String encryptedPassword = params.get("password");
+							String encryptedResource = params.get("resource");
+							if (encryptedUsername != null && encryptedPassword != null) {
+								String username = EncryptionUtil.decrypt(encryptedUsername);
+								String password = EncryptionUtil.decrypt(encryptedPassword);
 								String resource = null;
-								if (params.containsKey("resource")) {
-									resource = EncryptionUtil.decrypt(params.get("resource"));
+								if (encryptedResource != null) {
+									resource = EncryptionUtil.decrypt(encryptedResource);
 								}
 								connect(agentId, username, password, resource);
 							}
