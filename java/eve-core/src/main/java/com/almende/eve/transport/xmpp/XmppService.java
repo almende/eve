@@ -202,7 +202,9 @@ public class XmppService extends TransportService {
 				Map<String, String> params = new HashMap<String, String>();
 				params.put("username", EncryptionUtil.encrypt(username));
 				params.put("password", EncryptionUtil.encrypt(password));
-				params.put("resource", (resource != null) ? EncryptionUtil.encrypt(resource) : null);
+				if (resource != null && !resource.isEmpty()) {
+					params.put("resource", EncryptionUtil.encrypt(resource));
+				}
 				connections.put(agentId, params);
 				context.put("connections", connections);
 			}
@@ -289,7 +291,7 @@ public class XmppService extends TransportService {
 	 */
 	private static String generateUrl(String username, String host, String resource) {
 		String url = "xmpp:" + username + "@" + host;
-		if (resource != null) {
+		if (resource != null && !resource.isEmpty()) {
 			url += "/" + resource;
 		}
 		return url;
