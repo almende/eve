@@ -22,7 +22,7 @@ public class AndroidContextFactory extends ContextFactory {
 
 		public AndroidContextFactory (AgentFactory agentFactory, Map<String, Object> params) {
 			super(agentFactory, params);
-			appCtx = (params != null) ? (Context) params.get("appContext") : null;
+			appCtx = (params != null) ? (Context) params.get("AppContext") : null;
 		}
 		
 		

@@ -65,6 +65,8 @@ public class AndroidContext extends com.almende.eve.context.Context {
 				ObjectInput in = new ObjectInputStream(fis);
 				properties.clear();
 				properties.putAll((Map<String, Object>) in.readObject());
+				//Always provide a copy of the AppContext in the properties
+				properties.put("AppContext", appCtx);
 				fis.close();
 				in.close();
 				return true;
