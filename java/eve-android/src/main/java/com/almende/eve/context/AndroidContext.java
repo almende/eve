@@ -42,6 +42,9 @@ public class AndroidContext extends com.almende.eve.context.Context {
 			try {
 				FileOutputStream fos = appCtx.openFileOutput(filename, Context.MODE_PRIVATE);
 				ObjectOutput out = new ObjectOutputStream(fos);
+				try {
+					properties.remove("AppContext");
+				} catch (Exception e){};
 				out.writeObject(properties);
 				out.close();
 				fos.close();
