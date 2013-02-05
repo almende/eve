@@ -20,8 +20,9 @@ import com.almende.eve.context.ContextFactory;
 public class AndroidContextFactory extends ContextFactory {
 		private Context appCtx;
 
-		public AndroidContextFactory (AgentFactory agentFactory, Map<String, Object> params) {
+		public AndroidContextFactory (AgentFactory agentFactory, Map<String, Object> params) throws Exception {
 			super(agentFactory, params);
+			if (params == null || !params.containsKey("AppContext")) throw new Exception("AppContext parameter is required!");
 			appCtx = (params != null) ? (Context) params.get("AppContext") : null;
 		}
 		
