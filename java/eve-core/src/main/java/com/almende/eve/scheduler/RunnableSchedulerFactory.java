@@ -33,6 +33,19 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  * 	   http://www.javapractices.com/topic/TopicAction.do?Id=54
  */
 public class RunnableSchedulerFactory implements SchedulerFactory {
+	
+	private AgentFactory agentFactory;
+	private Context context = null;	
+
+	private long count = 0;
+	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
+
+	// {agentId: {taskId: task}}
+	private final Map<String, Map<String, Task>> allTasks = 
+			new ConcurrentHashMap<String, Map<String, Task>>(); 
+
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	
 	public RunnableSchedulerFactory (AgentFactory agentFactory, Map<String, Object> params) {
 		this.agentFactory = agentFactory;
 		init(params);
@@ -351,15 +364,5 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		context.put("tasks", serializedTasks);
 	}
 
-	private AgentFactory agentFactory;
-	private Context context = null;	
 
-	private long count = 0;
-	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-	// {agentId: {taskId: task}}
-	private final Map<String, Map<String, Task>> allTasks = 
-			new ConcurrentHashMap<String, Map<String, Task>>(); 
-
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }
