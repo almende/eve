@@ -14,8 +14,8 @@
 	<url>http://almende.github.com/eve</url>
 
 	<properties>
-    <jackson.version>2.0.0</jackson.version>
-    <joda-time.version>2.1</joda-time.version>
+		<jackson.version>2.0.0</jackson.version>
+		<joda-time.version>2.1</joda-time.version>
 		<snakeyaml.version>1.11</snakeyaml.version>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 		<smack.version>3.1.0</smack.version>
@@ -31,18 +31,18 @@
 			<url>https://raw.github.com/almende/maven/master/</url>
 		</repository>
 	</repositories>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-    <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>${joda-time.version}</version>
-    </dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>${joda-time.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
@@ -54,11 +54,11 @@
 			<version>${javax.servlet-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
-    <dependency>
-      <groupId>jivesoftware</groupId>
-      <artifactId>smackx</artifactId>
-      <version>${smack.version}</version>
-    </dependency>
+		<dependency>
+			<groupId>jivesoftware</groupId>
+			<artifactId>smackx</artifactId>
+			<version>${smack.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty-maven-plugin</artifactId>
@@ -68,7 +68,7 @@
 		<!-- <dependency> <groupId>org.eclipse.jetty</groupId> <artifactId>jetty-webapp</artifactId> 
 			<version>${jetty.version}</version> </dependency> -->
 	</dependencies>
-	
+
 	<build>
 		<pluginManagement>
 			<plugins>

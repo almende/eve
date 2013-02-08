@@ -37,6 +37,7 @@
 	</developers>
 
 	<properties>
+		<skipTests>true</skipTests>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.scm.version>1.8.1</maven.scm.version>
 		<wagon-scm.version>2.2</wagon-scm.version>
@@ -45,6 +46,7 @@
 		<maven-resources-plugin.version>2.5</maven-resources-plugin.version>
 		<maven-surefire-plugin.version>2.12</maven-surefire-plugin.version>
 		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
+		<junit.version>4.11</junit.version>
 	</properties>
 
   <!-- TODO: create a separate project for building all projects
@@ -54,6 +56,15 @@
     <module>../eve-gae-test</module>
   </modules>
   -->
+
+	<dependencies>
+                <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>${junit.version}</version>
+                        <scope>test</scope>
+                </dependency>
+        </dependencies>
 
 	<pluginRepositories>
 	</pluginRepositories>
@@ -147,7 +158,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
-					<skipTests>true</skipTests>
+					<skipTests>${skipTests}</skipTests>
 					<parallel>methods</parallel>
 					<threadCount>10</threadCount>
 				</configuration>

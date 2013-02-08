@@ -1,10 +1,16 @@
 package com.almende.test;
 
+import junit.framework.TestCase;
+
+import org.junit.Test;
+
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.example.TestAgentInterface;
 
-public class TestAgentFactory {
-	public static void main (String[] args) throws Exception {
+public class TestAgentFactory extends TestCase {
+
+	@Test
+	public void testAgentCall() {
 		AgentFactory factory = new AgentFactory();
 		
 		TestAgentInterface agent = factory.createAgentProxy(null, 
@@ -12,9 +18,10 @@ public class TestAgentFactory {
 				TestAgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);
-		System.out.println("result=" + res);
+		assertEquals(new Double(7.3),res);
 		
 		res = agent.multiply(3.1, 4.2);
-		System.out.println("result=" + res);
+		assertEquals(new Double(13.02),res);
+		
 	}
 }
