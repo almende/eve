@@ -15,7 +15,7 @@ An agent can be accessed via a servlet or via an xmpp server
 The Java code of a basic Eve agent looks as follows:
 
     import com.almende.eve.agent.Agent;
-    import com.almende.eve.json.annotation.Name;
+    import com.almende.eve.agent.annotation.Name;
 
     public class HelloWorldAgent extends Agent {
         public String welcome(@Name("name") String name) {
@@ -76,20 +76,64 @@ and Java objects such as a Contact or Person class.
         // ...
     }
 
-## Instances {#instances}
+There is a special annotation to retrieve the url of the sender, `@Sender`.
+This url can for example be used for authorization purposes.
+The sender url is currently only provided when communication via XMPP,
+not via HTTP. In the case of HTTP, the @Sender parameter will be null.
 
-Eve agents themselves are stateless. Every request, a new instance of the agent 
-is loaded in memory, and destroyed again when done. Variables in the agents
-class are not persisted. Instead, an agent can store its state using its 
-[context](#context).
+    public String echo (@Name("message") String message, @Sender String senderUrl) {
+        if (sender != null) {
+            return "Hello " + senderUrl + ", you said: " + message;
+        }
+        else {
+            return "Who are you?";
+        }
+    }
 
-As the agents are stateless, it is possible to have multiple instances 
-of the same agent running simultaneously. The amount of work which can be done
-by one agent is thus not limited to the limitations of one physical server,
-but can be scaled endlessly over more instances running on different servers
-in the cloud. 
-One interesting use for this is parallel processing of computationally 
-intensive tasks.
+
+## Life cycle {#life_cycle}
+
+Eve agents are stateless.
+An agent can have multiple instances running simultaneously.
+The agents have a [shared context](#context) where they can persist data.
+The amount of work which can be done by one agent is thus not limited to the
+limitations of one physical server, but can be scaled endlessly over multiple
+instances running on different servers in the cloud.
+
+An Eve agent has the following life cycle events:
+create, init, invoke, destroy, and delete.
+
+### Create and Delete
+
+Once in its lifetime, an agent is created via the AgentFactory.
+On creation of the agent, the method `create()` is called once.
+This method can be overridden to perform setup tasks for the agent.
+
+At the end of its life an agent is deleted via the AgentFactory.
+Before deletion, the method `delete()` is called once, which can be overridden
+to cleanup the agent.
+
+### Init and Destroy
+
+When an agent is loaded into memory, it is instantiated.
+On instantiation, the method `init()` is called, which can be overridden.
+Similarly, when an agents instance is destroyed, the method `destroy()` is
+called, which can be overridden too.
+
+Initialization and destruction of an agents instances is managed by the
+AgentFactory. Depending on cache settings, agents may be kept in memory,
+or may be destroyed at any time. An agent can also be instantiated multiple
+times.
+It is possible that for every incoming request a new instance of the agent
+is loaded in memory, and destroyed again when done.
+Therefore, it is important to design the agents in a robust, stateless manner.
+
+### Invoke
+
+During its life, an agent can be invoked by externals.
+All methods of the agent which have named parameters and are public can be
+invoked by external agent or system.
+See also the sections [Methods](#methods) and  [Requests](#requests).
 
 
 ## Requests {#requests}
@@ -140,7 +184,7 @@ matches the agents actual features.
 The interface must extend the interface `AgentInterface`. For example:
 
     import com.almende.eve.agent.AgentInterface;
-    import com.almende.eve.json.annotation.Name;
+    import com.almende.eve.agent.annotation.Name;
 
     public interface CalcAgent extends AgentInterface {
     	public Double eval(@Name("expr") String expr);

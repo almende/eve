@@ -7,7 +7,7 @@ title: Configuration
 # Configuration
 
 Eve needs a configuration file containing settings for persistency of the agents
-context, settings for communication services such as HTTP and XMPP, and other
+context, settings for transport services such as HTTP and XMPP, and other
 environment settings. The servlet used to host the Eve agents points to an Eve
 configuration file, as explained on the page [Services](java_services.html).
 
@@ -27,7 +27,7 @@ file: **war/WEB-INF/eve.yaml**
       Production:
         auth_google_servlet_url: http://my_server.com/auth/google
 
-    # environment independent communication services
+    # environment independent transport services
     services:
     - class: XmppService
       host: my_xmpp_server.com
@@ -40,7 +40,14 @@ file: **war/WEB-INF/eve.yaml**
 
     # scheduler settings (for tasks)
     scheduler:
-      class: RunnableScheduler
+      class: RunnableSchedulerFactory
+
+    # bootstrap agents
+    # agents will be automatically created on system startup (if not existing)
+    bootstrap:
+      agents:
+        calc1: com.almende.eve.agent.example.CalcAgent
+        echo1: com.almende.eve.agent.example.EchoAgent
 
     # Google API access
     google:
@@ -56,6 +63,14 @@ Description of the available properties:
         <th>Description</th>
     </tr>
 
+    <tr>
+        <td>bootstrap.agents</td>
+        <td>
+            A map with ids as keys, and class paths as value.
+            Allows to configure a set of agents to be created automatically
+            on system startup if not existing.
+        </td>
+    </tr>
     <tr>
         <td>environment.Development<br>
             environment.Production<br>
@@ -75,7 +90,7 @@ Description of the available properties:
     <tr>
         <td>services</td>
         <td>
-        To communicate with Eve agents, one or multiple communication services
+        To communicate with Eve agents, one or multiple transport services
         can be configured. An agent will get an url for each of the configured
         services, which can be retrieved via <code>getUrls</code>.
 
@@ -189,10 +204,10 @@ Description of the available properties:
             The following context factories are available:
 
             <ul>
-                <li><code>RunnableScheduler</code>.
+                <li><code>RunnableSchedulerFactory</code>.
                     Located in eve-core.jar.
                     Not applicable when deployed on Google App Engine.</li>
-                <li><code>AppEngineScheduler</code>.
+                <li><code>AppEngineSchedulerFactory</code>.
                     Located in eve-gae.jar.
                     Only applicable when the application is deployed on
                     Google App Engine.</li>
@@ -291,7 +306,7 @@ There are two environments available:
 There is one context available on Google App Engine: `DatastoreContext`,
 which uses Google Datastore to persist the state of the agents. The Datastore
 context does not need any additional configuration.
-There is one scheduler available: `AppEngineScheduler`.
+There is one scheduler available: `AppEngineSchedulerFactory`.
 
 Example file: **war/WEB-INF/web.inf**
 
@@ -308,7 +323,7 @@ Example file: **war/WEB-INF/web.inf**
 
         <servlet>
             <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
             <init-param>
                 <param-name>config</param-name>
                 <param-value>eve.yaml</param-value>
@@ -338,7 +353,7 @@ Example file: **war/WEB-INF/eve.yaml**
 
     # scheduler settings (for tasks)
     scheduler:
-      class: AppEngineScheduler
+      class: AppEngineSchedulerFactory
 
 
 
@@ -352,7 +367,7 @@ context available for storing the agents state: `FileContext` and
 `MemoryContext`.
 In case of `FileContext`, each agent stores its state in a single file
 in the configured path.
-There is one scheduler available: `RunnableScheduler`.
+There is one scheduler available: `RunnableSchedulerFactory`.
 
 
 Example file: **war/WEB-INF/web.inf**
@@ -370,7 +385,7 @@ Example file: **war/WEB-INF/web.inf**
 
         <servlet>
             <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
             <init-param>
                 <param-name>config</param-name>
                 <param-value>eve.yaml</param-value>
@@ -404,7 +419,7 @@ Example file: **war/WEB-INF/eve.yaml**
 
     # scheduler settings (for tasks)
     scheduler:
-      class: RunnableScheduler
+      class: RunnableSchedulerFactory
 
 
 ### Eve Planning configuration {#eve_planning_configuration}
@@ -437,7 +452,7 @@ Example file: **war/WEB-INF/web.inf**
 
         <servlet>
             <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
             <init-param>
                 <param-name>config</param-name>
                 <param-value>eve.yaml</param-value>

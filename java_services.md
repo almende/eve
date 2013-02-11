@@ -6,8 +6,8 @@ title: Services
 
 # Services
 
-Eve agents can be accessed via communication services.
-Eve supports two services: HttpService and XmppService.
+Eve agents can be accessed via various transport services.
+Eve has two built-in transport services: HttpService and XmppService.
 
 - [HttpService](#HttpService) exposes agents via a regular Java servlet.
   Agents can be invoked by sending a HTTP POST request to this servlet.
@@ -15,7 +15,7 @@ Eve supports two services: HttpService and XmppService.
   The agents can be invoked via XMPP.
 
 A single Eve application can have multiple XmppServices and HttpServices configured.
-This allows exposure of the agents via multiple communication services at the
+This allows exposure of the agents via multiple transport services at the
 same time. An agent can be accessible via both XMPP and HTTP at the same time.
 
 
@@ -38,7 +38,7 @@ the Java project, inside the &lt;web-app&gt; tag:
 
     <servlet>
         <servlet-name>AgentServlet</servlet-name>
-        <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+        <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
         <init-param>
             <param-name>config</param-name>
             <param-value>eve.yaml</param-value>
@@ -128,7 +128,7 @@ Create a file eve.yaml and insert the following text:
 
     # scheduler settings (for tasks)
     scheduler:
-      class: AppEngineScheduler
+      class: AppEngineSchedulerFactory
 
 The configuration contains:
 
@@ -234,7 +234,7 @@ file name **eve.yaml**.
 
     # scheduler settings (for tasks)
     scheduler:
-      class: RunnableScheduler
+      class: RunnableSchedulerFactory
 
 ### Usage
 

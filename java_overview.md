@@ -42,20 +42,21 @@ The libraries are explained in detail on the page
 [Libraries](java_libraries.html).
 
 
-## Hosting {#hosting}
+## Services {#services}
 
-In Java, Eve agents are hosted via a web servlet. 
-Eve comes with two ready-made servlets, one for hosting a single agent, and 
-one for hosting multiple agents and agent classes.
-It is possible to create a custom servlet when necessary.
+Eve agents can be accessed via various transport services.
+Eve supports two services: HttpService and XmppService.
 
-The web servlets can be configured to host a number of agent classes, and to 
-offer a specific type of persistent context and a scheduler for the agents. 
-The type of context and scheduler depends on the platform where the web servlet
-is hosted. That can be a java server such as Tomcat, or a cloud solution
-such as Google App Engine.
+- HttpService exposes agents via a regular Java servlet.
+  Agents can be invoked by sending a HTTP POST request to this servlet.
+- XmppService allows to connect agents to an XMPP server.
+  The agents can be invoked via XMPP.
 
-More on hosting is explained at the page [Hosting](java_hosting.html).
+A single Eve application can have multiple XmppServices and HttpServices configured.
+This allows exposure of the agents via multiple transport services at the same time.
+An agent can be accessible via both XMPP and HTTP at the same time.
+
+More on services is explained at the page [Services](java_services.html).
 
 
 ## Agents {#agents}

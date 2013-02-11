@@ -101,7 +101,7 @@ web servlet.
 
       <servlet>
         <servlet-name>AgentServlet</servlet-name>
-        <servlet-class>com.almende.eve.service.http.AgentServlet</servlet-class>
+        <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
         <init-param>
           <param-name>config</param-name>
           <param-value>eve.yaml</param-value>
@@ -144,7 +144,7 @@ web servlet.
 
       # scheduler settings (for tasks)
       scheduler:
-        class: AppEngineScheduler
+        class: AppEngineSchedulerFactory
 
   The configuration is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
   It contains:
@@ -248,15 +248,14 @@ your agent class in the eve.properties file.
       package com.mycompany.myproject;
       
       import com.almende.eve.agent.Agent;
-      import com.almende.eve.json.annotation.Name;
-      
+      import com.almende.eve.agent.annotation.Name;
+
       public class MyFirstAgent extends Agent {
           public String echo (@Name("message") String message) {
               return message;  
           }
           
-          public double add (@Name("a") double a, 
-                  @Name("b") double b) {
+          public double add (@Name("a") double a, @Name("b") double b) {
               return a + b;  
           }
           
