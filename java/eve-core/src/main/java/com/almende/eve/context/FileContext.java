@@ -9,6 +9,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.nio.channels.FileLock;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,11 +52,18 @@ public class FileContext extends Context {
 	private boolean write() {
 		try {
 			FileOutputStream fos = new FileOutputStream(filename);
-			ObjectOutput out = new ObjectOutputStream(fos);   
-			out.writeObject(properties);
-			out.close();
-			fos.close();
-			return true;
+			FileLock fl = fos.getChannel().lock();//block until lock is acquired.
+		    if(fl != null) {
+		    	ObjectOutput out = new ObjectOutputStream(fos);
+		    	out.writeObject(properties);
+				fl.release();
+		    	out.close();
+		    } else {
+		    	System.err.println("Warning, couldn't get file lock for writing!");
+		    }
+		    fos.close();
+			return (fl != null);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -77,12 +85,13 @@ public class FileContext extends Context {
 				ObjectInput in = new ObjectInputStream(fis);
 				properties.clear();
 				properties.putAll((Map<String, Object>) in.readObject());
-				fis.close();
 				in.close();
+				fis.close();
+				return true;
 			}
-			return true;
 		} catch (FileNotFoundException e) {
-			// no need to give an error, we suppose this is a new agent
+			//FIXME! Comment can't be right! no need to give an error, we suppose this is a new agent
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -111,6 +120,7 @@ public class FileContext extends Context {
 		synchronized(properties){
 			read();
 			properties.clear();
+			write();
 		}
 	}
 
