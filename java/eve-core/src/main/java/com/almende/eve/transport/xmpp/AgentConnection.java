@@ -8,7 +8,6 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.util.StringUtils;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
@@ -22,6 +21,14 @@ import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AgentConnection {
+	private AgentFactory agentFactory = null;
+	private String agentId = null;
+	private String username = null;
+	private String resource = null;
+	private XMPPConnection conn = null;
+	private AsyncCallbackQueue<JSONResponse> callbacks = 
+			new AsyncCallbackQueue<JSONResponse>();	
+	
 	public AgentConnection (AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
 	}
@@ -198,7 +205,6 @@ public class AgentConnection {
 			if (body != null && body.startsWith("{") || body.trim().startsWith("{")) {
 				// the body contains a JSON object
 				ObjectNode json = null;
-				JSONResponse response = null;					
 				try {
 					json = JOM.getInstance().readValue(body, ObjectNode.class);
 					if (isResponse(json)) {
@@ -220,15 +226,9 @@ public class AgentConnection {
 					}
 					else if (isRequest(json)) {
 						// this is a request
+						String senderUrl = message.getFrom();
 						JSONRequest request = new JSONRequest(json);
-						
-						// append the sender to the request parameters
-						RequestParams params = new RequestParams();
-						params.put(Sender.class, message.getFrom());
-						
-						// invoke the agent
-						response = agentFactory.invoke(agentId, request, params);
-						// TODO: replace JSONRPC.invoke with agentFactory.invoke(class, id)
+						invoke(senderUrl, request);
 					}
 					else {
 						throw new Exception("Request does not contain a valid JSON-RPC request or response");
@@ -238,27 +238,53 @@ public class AgentConnection {
 					// generate JSON error response
 					JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
-					response = new JSONResponse(jsonError);
-				}
-
-				// send a response (when needed)
-				if (response != null) {
-					String from = StringUtils.parseBareAddress(message.getFrom());
+					JSONResponse response = new JSONResponse(jsonError);
+					
+					// send exception as response
 					Message reply = new Message();
-					reply.setTo(from);
+					reply.setTo(message.getFrom());
 					reply.setBody(response.toString());
 					conn.sendPacket(reply);
 				}
 			}
 		}
-	}
+	
+		/**
+		 * Invoke a JSON-RPC request
+		 * Invocation is done in a separate thread to prevent blocking the
+		 * single threaded XMPP PacketListener (which can cause deadlocks).
+		 * @param senderUrl
+		 * @param request
+		 */
+		private void invoke (final String senderUrl, final JSONRequest request) {
+			new Thread(new Runnable () {
+				@Override
+				public void run() {
+					JSONResponse response;
+					try {
+						// append the sender to the request parameters
+						RequestParams params = new RequestParams();
+						params.put(Sender.class, senderUrl);
 
-	private AgentFactory agentFactory = null;
-	private String agentId = null;
-	private String username = null;
-	private String resource = null;
-	private XMPPConnection conn = null;
-	private AsyncCallbackQueue<JSONResponse> callbacks = 
-			new AsyncCallbackQueue<JSONResponse>();	
+						// invoke the agent
+						response = agentFactory.invoke(agentId, request, params);
+					} catch (Exception err) {
+						// generate JSON error response
+						JSONRPCException jsonError = new JSONRPCException(
+								JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
+						response = new JSONResponse(jsonError);
+					}
+					
+					if (response != null) {
+						//String from = StringUtils.parseBareAddress(senderUrl);
+						Message reply = new Message();
+						reply.setTo(senderUrl);
+						reply.setBody(response.toString());
+						conn.sendPacket(reply);
+					}
+				}
+			}).start();		
+		}
+	}
 }
 
