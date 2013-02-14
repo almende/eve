@@ -7,8 +7,12 @@
  * @param {Element} elem HTML DOM Textarea element
  */
 function resize (elem) {
+    var scrollTop = document.body.scrollTop;
+
     elem.style.height = 'auto';
     elem.style.height = (elem.scrollHeight + 20) + 'px';
+
+    document.body.scrollTop = scrollTop;  // restore the scroll top
 }
 
 /**
@@ -110,60 +114,6 @@ function Ctrl() {
     this.formatDate = function(date) {
         var d = new Date(date);
         return d.toISOString ? d.toISOString() : d.toString();
-    };
-
-    /**
-     * Send an JSON-RPC request.
-     * The request is built up from the current values in the form,
-     * and the field result in the response is filled in in the field #result
-     */
-    this.sendForm = function () {
-        var self = this;
-        try {
-            var request = {};
-            request.id = 1;
-            request.method = this.method.method;
-            request.params = {};
-            for (var i = 0; i < this.method.params.length; i++) {
-                var param = this.method.params[i];
-                if (param.required || (param.value && param.value.length > 0) ) {
-                    if (param.type.toLowerCase() == 'string') {
-                        request.params[param.name] = param.value;
-                    }
-                    else {
-                        request.params[param.name] = JSON.parse(param.value);
-                    }
-                }
-            }
-
-            var start = +new Date();
-            this.formStatus = 'sending...';
-            this.send(self.url, request, function (response) {
-                var end = +new Date();
-                var diff = (end - start);
-                self.formStatus = 'ready in ' + diff + ' ms';
-
-                if (response.error) {
-                    self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
-                }
-                else {
-                    if (response.result instanceof Object) {
-                        self.result = JSON.stringify(response.result, null, 2) || '';
-                    }
-                    else {
-                        self.result = response.result || '';
-                    }
-                }
-                self.$root.$eval();
-                resize($('#result').get(0));
-            }, function (err) {
-                self.formStatus = 'failed. Error: ' + JSON.stringify(err);
-                self.$root.$eval();
-            });
-        }
-        catch (err) {
-            self.formStatus = 'Error: ' + err;
-        }
     };
 
     /**
@@ -370,7 +320,7 @@ function Ctrl() {
                         // update method select box
                         setTimeout(function () {
                             $(".chzn-select").chosen();
-                        }, 0);
+                        }, 15);
                     }
                 }
             }

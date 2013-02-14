@@ -1,7 +1,7 @@
 body {
     color: #4D4D4D;
     max-width: 720px;
-    padding: 0 20px;
+    padding: 0 20px 100px 20px;
 }
 body, td, th, pre {
     font-family: arial, sans serif;
@@ -20,6 +20,9 @@ table {
     background-color: #F5F5F5;
     border: 1px solid #E5E5E5;
     border-radius: 3px;
+}
+select {
+    width: 250px;
 }
 textarea {
     height: 120px;

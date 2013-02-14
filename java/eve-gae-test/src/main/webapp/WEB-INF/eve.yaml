@@ -7,5 +7,5 @@ context:
 
 # scheduler settings
 scheduler:
-  class: AppEngineSchedulerFactory
+  class: GaeSchedulerFactory
 

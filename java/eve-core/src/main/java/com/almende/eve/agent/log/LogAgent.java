@@ -43,7 +43,7 @@ public class LogAgent extends Agent {
 		// reset the time to live for the agent. It will stay alive when
 		// regularly requested for logs
 		setTimeToLive(TIME_TO_LIVE);
-		
+
 		return output;
 	}
 

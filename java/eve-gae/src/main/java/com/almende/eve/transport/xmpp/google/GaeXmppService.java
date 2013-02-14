@@ -30,7 +30,6 @@ public class GaeXmppService extends TransportService {
 				host = appId + ".appspotchat.com";
 			}
 		}
-		host = "wjosdejong.appspotchat.com"; // TODO: cleanup
 	}
 
 	/**

@@ -915,7 +915,7 @@ public class AgentFactory {
 	static {
 		SCHEDULERS.put("RunnableSchedulerFactory",  "com.almende.eve.scheduler.RunnableSchedulerFactory");
 		SCHEDULERS.put("GaeSchedulerFactory", "com.almende.eve.scheduler.google.GaeSchedulerFactory");
-    }
+	}
 	
 	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();
 	static {
