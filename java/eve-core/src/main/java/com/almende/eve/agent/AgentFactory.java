@@ -192,6 +192,9 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	public Agent getAgent(String agentId) throws Exception {
+		if (agentId == null) {
+			return null;
+		}
 		
 		//Check if agent is instantiated already, returning if it is:
 		Agent agent = agents.get(agentId);
@@ -670,8 +673,12 @@ public class AgentFactory {
 			className = "RunnableSchedulerFactory";
 		}
 		if (className.toLowerCase().equals("AppEngineScheduler".toLowerCase())) {
-			logger.warning("Deprecated class AppEngineScheduler configured. Use AppEngineSchedulerFactory instead to configure a scheduler factory.");
-			className = "AppEngineSchedulerFactory";
+			logger.warning("Deprecated class AppEngineScheduler configured. Use GaeSchedulerFactory instead to configure a scheduler factory.");
+			className = "GaeSchedulerFactory";
+		}
+		if (className.toLowerCase().equals("AppEngineSchedulerFactory".toLowerCase())) {
+			logger.warning("Deprecated class AppEngineSchedulerFactory configured. Use GaeSchedulerFactory instead to configure a scheduler factory.");
+			className = "GaeSchedulerFactory";
 		}
 		
 		// Recognize known classes by their short name,
@@ -907,7 +914,7 @@ public class AgentFactory {
 	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
 	static {
 		SCHEDULERS.put("RunnableSchedulerFactory",  "com.almende.eve.scheduler.RunnableSchedulerFactory");
-		SCHEDULERS.put("AppEngineSchedulerFactory", "com.almende.eve.scheduler.google.AppEngineSchedulerFactory");
+		SCHEDULERS.put("GaeSchedulerFactory", "com.almende.eve.scheduler.google.GaeSchedulerFactory");
     }
 	
 	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();

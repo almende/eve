@@ -25,13 +25,13 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
-public class AppEngineSchedulerFactory implements SchedulerFactory {
-	public AppEngineSchedulerFactory (AgentFactory agentFactory, 
+public class GaeSchedulerFactory implements SchedulerFactory {
+	public GaeSchedulerFactory (AgentFactory agentFactory, 
 			Map<String, Object> params) {
 		init(agentFactory);
 	}
 	
-	public AppEngineSchedulerFactory (AgentFactory agentFactory) {
+	public GaeSchedulerFactory (AgentFactory agentFactory) {
 		init(agentFactory);
 	}
 
@@ -42,7 +42,7 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 	 */
 	private void init(AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
-		ObjectDatastoreFactory.register(AppEngineTask.class);
+		ObjectDatastoreFactory.register(GaeTask.class);
 	}
 	
 	/**
@@ -102,7 +102,7 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 				
 				// store task information
 				DateTime timestamp = DateTime.now().plus(delay);
-				AppEngineTask storedTask = new AppEngineTask(task.getName(), 
+				GaeTask storedTask = new GaeTask(task.getName(), 
 						agentId, timestamp.toString());
 				ObjectDatastore datastore = new AnnotationObjectDatastore();
 				datastore.store(storedTask);
@@ -128,7 +128,7 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 			
 			// remove stored task
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			AppEngineTask storedTask = datastore.load(AppEngineTask.class, id);
+			GaeTask storedTask = datastore.load(GaeTask.class, id);
 			if (storedTask != null) {
 				datastore.delete(storedTask);
 			}			
@@ -141,13 +141,13 @@ public class AppEngineSchedulerFactory implements SchedulerFactory {
 		@Override 
 		public Set<String> getTasks() {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			QueryResultIterator<AppEngineTask> query = datastore.find()
-					.type(AppEngineTask.class)
+			QueryResultIterator<GaeTask> query = datastore.find()
+					.type(GaeTask.class)
 					.addFilter("agentId", FilterOperator.EQUAL, agentId).now();
 			
 			Set<String> taskIds = new HashSet<String>();
 			while (query.hasNext()) {
-				AppEngineTask task = query.next();
+				GaeTask task = query.next();
 				if (new DateTime(task.getTimestamp()).isAfterNow()) {
 					taskIds.add(task.getTaskId());
 				}

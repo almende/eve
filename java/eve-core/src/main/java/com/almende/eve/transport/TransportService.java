@@ -49,6 +49,12 @@ public abstract class TransportService {
 			final JSONRequest request, 
 			final AsyncCallback<JSONResponse> callback) throws Exception;
 	
+	/*
+	// TODO: implement new send async method
+	public abstract void sendAsync (final String senderId, final String receiver, 
+			final JSONRequest request, final String callback) throws Exception;
+	*/
+	
 	/**
 	 * Initialize the transport service with a set of parameters
 	 * @param params

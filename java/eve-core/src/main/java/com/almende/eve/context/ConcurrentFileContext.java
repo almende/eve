@@ -60,7 +60,6 @@ public class ConcurrentFileContext extends Context {
 		this.filename = filename;
 	}
 
-	@SuppressWarnings("resource")
 	private void openFile() throws Exception {
 		File file = new File(this.filename);
 		channel = new RandomAccessFile(file, "rw").getChannel();

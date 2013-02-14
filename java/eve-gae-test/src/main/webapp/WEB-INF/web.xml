@@ -13,7 +13,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <servlet-name>AgentServlet</servlet-name>
     <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
     <init-param>
-      <description>servlet configuration (yaml file)</description> 
+      <description>eve agent factory configuration (yaml file)</description> 
       <param-name>config</param-name>
       <param-value>eve.yaml</param-value>
     </init-param>
@@ -24,11 +24,27 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     <init-param>
       <param-name>environment.Production.servlet_url</param-name>
       <param-value>http://eveagents.appspot.com/agents</param-value>
-    </init-param>    
+    </init-param>
+    <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
     <servlet-name>AgentServlet</servlet-name>
     <url-pattern>/agents/*</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>XmppServlet</servlet-name>
+    <servlet-class>com.almende.eve.transport.xmpp.google.GaeXmppServlet</servlet-class>
+    <init-param>
+      <description>eve agent factory configuration (yaml file)</description> 
+      <param-name>config</param-name>
+      <param-value>eve.yaml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>XmppServlet</servlet-name>
+    <url-pattern>/_ah/xmpp/message/chat/</url-pattern>
+  </servlet-mapping>
+  
 </web-app>

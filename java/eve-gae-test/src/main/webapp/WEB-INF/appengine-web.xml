@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-  <application></application>
-  <version></version>
+  <application>wjosdejong</application>
+  <version>evexmpp</version>
 
   <!--
     By default, App Engine sends requests serially to a given web server.
@@ -29,4 +29,13 @@
     http://code.google.com/appengine/docs/java/config/appconfig.html#Enabling_Sessions
   -->
 
+  <inbound-services>
+    <service>xmpp_message</service>
+    <!-- 
+    <service>xmpp_presence</service>
+    <service>xmpp_subscribe</service>
+    <service>xmpp_error</service>
+     -->
+  </inbound-services>
+  
 </appengine-web-app>

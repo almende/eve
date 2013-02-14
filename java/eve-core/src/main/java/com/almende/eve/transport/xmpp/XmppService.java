@@ -360,7 +360,7 @@ public class XmppService extends TransportService {
 			new ConcurrentHashMap<String, AgentConnection>();   // agentId as key
 	private Map<String, AgentConnection> connectionsByUrl = 
 			new ConcurrentHashMap<String, AgentConnection>();   // xmpp url as key "xmpp:username@host"
-	List<String> protocols = Arrays.asList("xmpp");
+	private static List<String> protocols = Arrays.asList("xmpp");
 
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

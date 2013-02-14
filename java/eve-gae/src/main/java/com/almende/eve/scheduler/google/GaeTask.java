@@ -5,10 +5,10 @@ import com.google.code.twig.annotation.Id;
 /**
  * Helper class to persist and search all running tasks.
  */
-public class AppEngineTask {
-	public AppEngineTask () {}
+public class GaeTask {
+	public GaeTask () {}
 	
-	public AppEngineTask (String taskId, String agentId, String timestamp) {
+	public GaeTask (String taskId, String agentId, String timestamp) {
 		this.taskId = taskId;
 		this.agentId = agentId;
 		this.timestamp = timestamp;

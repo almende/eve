@@ -17,6 +17,7 @@
 	<properties>
 		<twig-persist.version>2.0-rc</twig-persist.version>
 		<appengine.version>1.7.4</appengine.version>
+		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 	</properties>
 
 	<repositories>
@@ -37,12 +38,19 @@
 			<artifactId>eve-core</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-	
-    <dependency>
-      <groupId>com.google.appengine</groupId>
-      <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>${appengine.version}</version>
-    </dependency>
+
+		<dependency>
+			<groupId>com.google.appengine</groupId>
+			<artifactId>appengine-api-1.0-sdk</artifactId>
+			<version>${appengine.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${javax.servlet-api.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>com.google.code.twig</groupId>
