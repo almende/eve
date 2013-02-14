@@ -2,6 +2,10 @@
  * Javascript for Agent web interface
  */
 
+
+var myApp = angular.module('controller', ['ngResource']);
+
+
 /**
  * Adjust the height of given textarea to match its contents
  * @param {Element} elem HTML DOM Textarea element
@@ -16,48 +20,47 @@ function resize (elem) {
 }
 
 /**
- * @constructor Ctrl
+ * @constructor Controller
  * Angular JS controller to control the page
  */
-function Ctrl() {
-    var scope = this;
-
+function Controller($scope, $resource) {
     var loadingText = '...';
     var url = document.location.href;
     var lastSlash = url.lastIndexOf('/');
-    this.url         = url.substring(0, lastSlash + 1);
-    this.urls        = loadingText;
-    this.title       = loadingText;
-    this.version     = loadingText;
-    this.description = loadingText;
-    this.type        = loadingText;
-    this.id          = loadingText;
+    $scope.url         = url.substring(0, lastSlash + 1);
+    $scope.urls        = loadingText;
+    $scope.title       = loadingText;
+    $scope.version     = loadingText;
+    $scope.description = loadingText;
+    $scope.type        = loadingText;
+    $scope.id          = loadingText;
+    $scope.mode = 'form';
 
     // form
-    this.methods = [{}];
-    this.method = this.methods[0];
-    this.result = '';
-    this.formStatus = '';
+    $scope.methods = [{}];
+    $scope.method = $scope.methods[0];
+    $scope.result = '';
+    $scope.formStatus = '';
 
     // json rpc
-    this.request = undefined;
-    this.response = undefined;
-    this.rpcStatus = '';
+    $scope.request = undefined;
+    $scope.response = undefined;
+    $scope.rpcStatus = '';
 
     // event logs
-    this.lastTimestamp = 0;
-    this.pollingInterval = 10000;  // polling interval in milliseconds
-    this.logs = [];
-    this.enableEvents = true;
+    $scope.lastTimestamp = 0;
+    $scope.pollingInterval = 10000;  // polling interval in milliseconds
+    $scope.logs = [];
+    $scope.enableEvents = true;
 
     /**
      * Change the currently selected method
      */
-    this.setMethod = function () {
-        for (var i = 0; i < this.methods.length; i++) {
-            var method = this.methods[i];
-            if (method.method == this.methodName) {
-                this.method = method;
+    $scope.setMethod = function () {
+        for (var i = 0; i < $scope.methods.length; i++) {
+            var method = $scope.methods[i];
+            if (method.method == $scope.methodName) {
+                $scope.method = method;
                 break;
             }
         }
@@ -75,7 +78,7 @@ function Ctrl() {
      * @param {function} errback  Optional callback function in case of
      *                            an error
      */
-    this.send = function (url, request, callback, errback) {
+    $scope.send = function (url, request, callback, errback) {
         $.ajax({
             'type': 'POST',
             'url': url,
@@ -100,7 +103,7 @@ function Ctrl() {
      * @param {String} type   The name of a type
      * @return {boolean}      True if primitive, else false
      */
-    this.isPrimitiveType = function (type) {
+    $scope.isPrimitiveType = function (type) {
         var primitives = ['string', 'char', 'long', 'double', 'int',
             'number', 'float', 'byte', 'short', 'boolean'];
         return (primitives.indexOf(type.toLowerCase()) != -1);
@@ -111,7 +114,7 @@ function Ctrl() {
      * @param {Date | Number} date
      * @return {String} formattedDate
      */
-    this.formatDate = function(date) {
+    $scope.formatDate = function(date) {
         var d = new Date(date);
         return d.toISOString ? d.toISOString() : d.toString();
     };
@@ -121,15 +124,14 @@ function Ctrl() {
      * The request is built up from the current values in the form,
      * and the field result in the response is filled in in the field #result
      */
-    this.sendForm = function () {
-        var self = this;
+    $scope.sendForm = function () {
         try {
             var request = {};
             request.id = 1;
-            request.method = this.method.method;
+            request.method = $scope.method.method;
             request.params = {};
-            for (var i = 0; i < this.method.params.length; i++) {
-                var param = this.method.params[i];
+            for (var i = 0; i < $scope.method.params.length; i++) {
+                var param = $scope.method.params[i];
                 if (param.required || (param.value && param.value.length > 0) ) {
                     if (param.type.toLowerCase() == 'string') {
                         request.params[param.name] = param.value;
@@ -141,32 +143,32 @@ function Ctrl() {
             }
 
             var start = +new Date();
-            this.formStatus = 'sending...';
-            this.send(self.url, request, function (response) {
+            $scope.formStatus = 'sending...';
+            $scope.send($scope.url, request, function (response) {
                 var end = +new Date();
                 var diff = (end - start);
-                self.formStatus = 'ready in ' + diff + ' ms';
+                $scope.formStatus = 'ready in ' + diff + ' ms';
 
                 if (response.error) {
-                    self.result = 'Error: ' + JSON.stringify(response.error, null, 2);
+                    $scope.result = 'Error: ' + JSON.stringify(response.error, null, 2);
                 }
                 else {
                     if (response.result instanceof Object) {
-                        self.result = JSON.stringify(response.result, null, 2) || '';
+                        $scope.result = JSON.stringify(response.result, null, 2) || '';
                     }
                     else {
-                        self.result = (response.result != undefined) ? String(response.result) : '';
+                        $scope.result = (response.result != undefined) ? String(response.result) : '';
                     }
                 }
-                self.$root.$eval();
+                $scope.$apply();
                 resize($('#result').get(0));
             }, function (err) {
-                self.formStatus = 'failed. Error: ' + JSON.stringify(err);
-                self.$root.$eval();
+                $scope.formStatus = 'failed. Error: ' + JSON.stringify(err);
+                $scope.$apply();
             });
         }
         catch (err) {
-            self.formStatus = 'Error: ' + err;
+            $scope.formStatus = 'Error: ' + err;
         }
     };
 
@@ -175,91 +177,91 @@ function Ctrl() {
      * The request is read from the field #request, and the response is
      * filled in in the field #response
      */
-    this.sendJsonRpc = function() {
-        var self = this;
+    $scope.sendJsonRpc = function() {
+        var $scope = $scope;
         try {
-            var request = JSON.parse(this.request);
-            this.request = JSON.stringify(request, null, 2);
-            self.$root.$eval();
+            var request = JSON.parse($scope.request);
+            $scope.request = JSON.stringify(request, null, 2);
+            $scope.$apply();
             resize($('#request').get(0));
 
-            this.rpcStatus = 'sending...';
+            $scope.rpcStatus = 'sending...';
             var start = +new Date();
-            this.send(self.url, request, function (response) {
+            $scope.send($scope.url, request, function (response) {
                 var end = +new Date();
                 var diff = (end - start);
-                self.response = JSON.stringify(response, null, 2);
-                self.rpcStatus = 'ready in ' + diff + ' ms';
-                self.$root.$eval();
+                $scope.response = JSON.stringify(response, null, 2);
+                $scope.rpcStatus = 'ready in ' + diff + ' ms';
+                $scope.$apply();
                 resize($('#response').get(0));
             }, function (err) {
-                self.rpcStatus = 'failed. Error: ' + JSON.stringify(err);
-                self.$root.$eval();
+                $scope.rpcStatus = 'failed. Error: ' + JSON.stringify(err);
+                $scope.$apply();
             });
         }
         catch (err) {
-            self.rpcStatus = 'Error: ' + err;
+            $scope.rpcStatus = 'Error: ' + err;
         }
     };
 
     /**
      * Store the setting enableEvents
      */
-    this.updateEnableEvents = function () {
-        if (this.enableEvents == true) {
+    $scope.updateEnableEvents = function () {
+        if ($scope.enableEvents == true) {
             // enableEvents==true is the default setting, do not store it
             delete localStorage['enableEvents'];
-            this.startMonitoringEvents();
+            $scope.startMonitoringEvents();
         }
         else {
             localStorage['enableEvents'] = false;
-            this.stopMonitoringEvents();
-            this.clearEvents();
+            $scope.stopMonitoringEvents();
+            $scope.clearEvents();
         }
     };
 
     /**
      * Start monitoring the events of the agent
      */
-    this.startMonitoringEvents = function () {
-        scope.updateEvents();
+    $scope.startMonitoringEvents = function () {
+        $scope.updateEvents();
     };
 
     /**
      * Stop monitoring the events of the agent
      */
-    this.stopMonitoringEvents = function () {
-        if (scope.updateEventsTimer) {
-            clearTimeout(scope.updateEventsTimer);
-            delete scope.updateEventsTimer;
+    $scope.stopMonitoringEvents = function () {
+        if ($scope.updateEventsTimer) {
+            clearTimeout($scope.updateEventsTimer);
+            delete $scope.updateEventsTimer;
         }
     };
 
     /**
      * Retrieve the latest event logs, and set a timeout for the next update
      */
-    this.updateEvents = function () {
-        scope.stopMonitoringEvents();
+    $scope.updateEvents = function () {
+        $scope.stopMonitoringEvents();
 
         $.ajax({
             'type': 'GET',
-            'url': "events?since=" + scope.lastTimestamp,
+            'url': "events?since=" + $scope.lastTimestamp,
             'contentType': 'application/json',
             'success': function (newLogs) {
                 while (newLogs && newLogs.length) {
                     var newLog = newLogs.shift();
-                    scope.lastTimestamp = newLog.timestamp;
-                    scope.logs.push(newLog);
+                    $scope.lastTimestamp = newLog.timestamp;
+                    $scope.logs.push(newLog);
                 }
-                scope.lastUpdate = (new Date()).toISOString();
-                scope.$root.$eval();
+                $scope.lastUpdate = (new Date()).toISOString();
+                $scope.$apply();
 
                 // set a new timeout
-                scope.updateEventsTimer = setTimeout(scope.updateEvents, scope.pollingInterval);
+                $scope.updateEventsTimer = setTimeout($scope.updateEvents, $scope.pollingInterval);
             },
             'error': function (err) {
                 // set a new timeout
-                scope.updateEventsTimer = setTimeout(scope.updateEvents, scope.pollingInterval);
+                $scope.updateEventsTimer = setTimeout($scope.updateEvents, $scope.pollingInterval);
             }
         });
     };
@@ -267,20 +269,18 @@ function Ctrl() {
     /**
      * Clear the list with events
      */
-    this.clearEvents = function () {
-        scope.logs = [];
+    $scope.clearEvents = function () {
+        $scope.logs = [];
     };
 
     /**
      * Load information and data from the agent via JSON-RPC calls.
      * Retrieve the methods, type, id, description, etc.
      */
-    this.load = function () {
-        var self = this;
-
+    $scope.load = function () {
         // read settings from local storage
         if (localStorage['enableEvents'] != undefined) {
-            this.enableEvents = localStorage['enableEvents'];
+            $scope.enableEvents = localStorage['enableEvents'];
         }
 
         var reqs = [
@@ -288,21 +288,21 @@ function Ctrl() {
                 'method': 'getUrls',
                 'field': 'urls',
                 'callback': function () {
-                    self.updateEnableEvents();
+                    $scope.updateEnableEvents();
                 }
             },
             {
                 'method': 'getType',
                 'field': 'type',
                 'callback': function () {
-                    document.title = (self.type || 'Agent') + ' ' + (self.id || '');
+                    document.title = ($scope.type || 'Agent') + ' ' + ($scope.id || '');
                 }
             },
             {
                 'method': 'getId',
                 'field': 'id',
                 'callback': function () {
-                    document.title = (self.type || 'Agent') + ' ' + (self.id || '');
+                    document.title = ($scope.type || 'Agent') + ' ' + ($scope.id || '');
                 }
             },
             {'method': 'getDescription', 'field': 'description'},
@@ -312,10 +312,10 @@ function Ctrl() {
                 'field': 'methods',
                 'params': {'asJSON': true},
                 'callback': function () {
-                    if (self && self.methods && self.methods[0]) {
-                        self.methodName = self.methods[0].method;
-                        self.setMethod();
-                        self.$root.$eval();
+                    if ($scope && $scope.methods && $scope.methods[0]) {
+                        $scope.methodName = $scope.methods[0].method;
+                        $scope.setMethod();
+                        $scope.$apply();
 
                         // update method select box
                         setTimeout(function () {
@@ -331,12 +331,12 @@ function Ctrl() {
         var decrement = function () {
             left--;
             if (left > 0) {
-                self.progress = Math.round((total - left) / total * 100) + '%';
+                $scope.progress = Math.round((total - left) / total * 100) + '%';
             }
             else {
-                self.loading = false;
+                $scope.loading = false;
             }
-            self.$root.$eval();
+            $scope.$apply();
         };
         for (var i = 0; i < reqs.length; i++) {
             (function (req) {
@@ -345,15 +345,15 @@ function Ctrl() {
                     "method": req.method,
                     "params": req.params || {}
                 };
-                self.send(self.url, request, function(response) {
-                    self[req.field] = response.result;
+                $scope.send($scope.url, request, function(response) {
+                    $scope[req.field] = response.result;
                     if (response.error) {
-                        //self.error = JSON.stringify(response.error, null, 2);
+                        //$scope.error = JSON.stringify(response.error, null, 2);
                         var err = response.error;
-                        self.error = 'Error ' + err.code + ': ' + err.message +
+                        $scope.error = 'Error ' + err.code + ': ' + err.message +
                             ((err.data && err.data.description) ? ', ' + err.data.description : '');
                     }
-                    self.$root.$eval();
+                    $scope.$apply();
                     if (req.callback) {
                         req.callback(response.result);
                     }
@@ -374,8 +374,8 @@ function Ctrl() {
             "asJSON": false
         }
     };
-    this.request = JSON.stringify(defaultRequest, null, 2);
+    $scope.request = JSON.stringify(defaultRequest, null, 2);
 
-    this.loading = true;
-    this.load();
+    $scope.loading = true;
+    $scope.load();
 }
