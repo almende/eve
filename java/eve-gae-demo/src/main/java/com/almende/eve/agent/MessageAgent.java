@@ -40,14 +40,14 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * 
  * Example usage:
  * Open the web pages of the following agents in your browser:
- *     http://localhost:8888/agents/messageagent/1/
- *     http://localhost:8888/agents/messageagent/2/
- *     http://localhost:8888/agents/messageagent/3/
+ *     http://localhost:8080/agents/messageagent1/
+ *     http://localhost:8080/agents/messageagent2/
+ *     http://localhost:8080/agents/messageagent3/
  * 
  * Send the following JSON-RPC request using a REST Client or via the web page
  * of this agent
  *   url: 
- *       http://localhost:8888/agents/messageagent/1/
+ *       http://localhost:8080/agents/messageagent1/
  *   message: 
  *       {
  *         "id": 1,
@@ -56,8 +56,8 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  *           "message": {
  *             "description": "Test message",
  *             "to": [
- *               "http://localhost:8888/agents/messageagent/2/",
- *               "http://localhost:8888/agents/messageagent/3/"
+ *               "http://localhost:8080/agents/messageagent2/",
+ *               "http://localhost:8080/agents/messageagent3/"
  *             ]
  *           }
  *         }
@@ -81,7 +81,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  *     </queue-entries>
  * 
  * @author jos
- * @date 2012-07-25
+ * @date 2013-02-15
  */
 public class MessageAgent extends Agent {
 	@Override
