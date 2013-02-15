@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
+
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+
+	<servlet>
+		<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<description>eve agent factory configuration (yaml file)</description>
+			<param-name>config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+		<init-param>
+			<param-name>environment.Development.servlet_url</param-name>
+			<param-value>http://localhost:8080/agents</param-value>
+		</init-param>
+		<init-param>
+			<param-name>environment.Production.servlet_url</param-name>
+			<param-value>http://eveagents.appspot.com/agents</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>XmppServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.xmpp.google.GaeXmppServlet</servlet-class>
+		<init-param>
+			<description>eve agent factory configuration (yaml file)</description>
+			<param-name>config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>XmppServlet</servlet-name>
+		<url-pattern>/_ah/xmpp/message/chat/</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>RestServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>RestServlet</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>AuthServlet</servlet-name>
+		<servlet-class>com.almende.eve.auth.google.AuthServlet</servlet-class>
+		<init-param>
+			<description>servlet configuration (yaml file)</description>
+			<param-name>config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AuthServlet</servlet-name>
+		<url-pattern>/auth/google</url-pattern>
+	</servlet-mapping>
+
+</web-app>

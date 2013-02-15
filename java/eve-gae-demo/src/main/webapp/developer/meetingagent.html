@@ -1,0 +1,270 @@
+<html>
+<head>
+    <title>MeetingAgent analysis</title>
+
+    <link rel="stylesheet" type="text/css" href="lib/timeline/timeline.css">
+
+    <style type="text/css">
+        body {
+            font-family: arial, sans-serif;
+            font-size: 11pt;
+            color: #4d4d4d;
+        }
+
+        div.timeline-event-content {
+            margin: 0;
+        }
+
+        input[type=text] {
+            border: 1px solid lightgray;
+            padding: 3px;
+        }
+
+        #agent {
+            width: 400px;
+        }
+
+        div.inner {
+            text-align: center;
+        }
+
+        #timeline, #solutionsTimeline {
+            margin-left: 150px;
+        }
+
+    </style>
+
+    <script type="text/javascript" src="lib/timeline/timeline-min.js"></script>
+    <script type="text/javascript" src='lib/jquery-1.7.2.min.js'></script>
+
+    <script>
+        var timeline = null;
+        var mergedTimeline = null;
+        var solutionsTimeline = null;
+        var intervals = null;
+
+        var options = {
+            "height": "auto",
+            "groupsWidth": "150px"
+        };
+
+        function drawTimeline(datasets) {
+            var data = [];
+
+            if (datasets && datasets.infeasible) {
+                for (var i = 0; i < datasets.infeasible.length; i++) {
+                    var interval = datasets.infeasible[i];
+                    var content = '<div style="color: red;">infeasible</div>';
+                    data.push({
+                        'start': new Date(interval.start),
+                        'end': new Date(interval.end),
+                        'content': content
+                    });
+                }
+            }
+
+            if (datasets && datasets.preferred) {
+                for (var i = 0; i < datasets.preferred.length; i++) {
+                    var interval = datasets.preferred[i];
+                    var weight = Math.round(interval.weight * 1000) / 1000;
+                    var content = weight;
+                    data.push({
+                        'start': new Date(interval.start),
+                        'end': new Date(interval.end),
+                        'content': content
+                    });
+                }
+            }
+
+            timeline.draw(data, options);
+        }
+
+        function onRangeChange() {
+            var range = timeline.getVisibleChartRange();
+            if (mergedTimeline) {
+                mergedTimeline.setVisibleChartRange(range.start, range.end);
+            }
+            if (solutionsTimeline) {
+                solutionsTimeline.setVisibleChartRange(range.start, range.end);
+            }
+        }
+
+        function drawMergedTimeline(datasets) {
+            var data = [];
+
+            if (datasets && datasets.mergedInfeasible) {
+                for (var i = 0; i < datasets.mergedInfeasible.length; i++) {
+                    var interval = datasets.mergedInfeasible[i];
+                    var content = 'infeasible';
+                    data.push({
+                        'start': new Date(interval.start),
+                        'end': new Date(interval.end),
+                        'content': content,
+                        'group': 'infeasible'
+                    });
+                }
+            }
+            if (datasets && datasets.mergedPreferred) {
+                for (var i = 0; i < datasets.mergedPreferred.length; i++) {
+                    var interval = datasets.mergedPreferred[i];
+                    var weight = Math.round(interval.weight * 1000) / 1000;
+                    var content = '<div class="inner" style="height: ' + (30 + 10 * weight) + 'px;">' + weight + '</div>';
+                    data.push({
+                        'start': new Date(interval.start),
+                        'end': new Date(interval.end),
+                        'content': content,
+                        'group': 'preference'
+                    });
+                }
+            }
+
+            mergedTimeline.draw(data, options);
+        }
+
+        function onRangeChangeMerged() {
+            var range = mergedTimeline.getVisibleChartRange();
+            if (timeline) {
+                timeline.setVisibleChartRange(range.start, range.end);
+            }
+            if (solutionsTimeline) {
+                solutionsTimeline.setVisibleChartRange(range.start, range.end);
+            }
+        }
+
+        function drawSolutionsTimeline(datasets) {
+            var data = [];
+
+            if (datasets && datasets.solutions) {
+                for (var i = 0; i < datasets.solutions.length; i++) {
+                    var interval = datasets.solutions[i];
+                    var weight = Math.round(interval.weight * 1000) / 1000;
+                    var content = weight;
+                    data.push({
+                        'start': new Date(interval.start),
+                        'end': new Date(interval.end),
+                        'content': content
+                    });
+                }
+            }
+
+            solutionsTimeline.draw(data, options);
+        }
+
+        function onRangeChangeSolutions() {
+            var range = solutionsTimeline.getVisibleChartRange();
+            if (timeline) {
+                timeline.setVisibleChartRange(range.start, range.end);
+            }
+            if (mergedTimeline) {
+                mergedTimeline.setVisibleChartRange(range.start, range.end);
+            }
+        }
+
+
+        function loadData () {
+            var url = document.getElementById('agent').value;
+
+            jsonrpc({
+                "url": url,
+                "method": "getIntervals",
+                "params": {},
+                "success": function (resp) {
+                    intervals = resp; // put in global variable, for easy testing
+                    console.log(intervals);
+                    drawTimeline(resp);
+                    drawMergedTimeline(resp);
+                    drawSolutionsTimeline(resp);
+                    onRangeChange();
+                },
+                "error": function (err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        function loadPage () {
+            var container = document.getElementById('timeline');
+            timeline = new links.Timeline(container);
+            links.events.addListener(timeline, 'rangechange', onRangeChange);
+            timeline.draw();
+
+            var mergedContainer = document.getElementById('mergedTimeline');
+            mergedTimeline = new links.Timeline(mergedContainer);
+            links.events.addListener(mergedTimeline, 'rangechange', onRangeChangeMerged);
+            mergedTimeline.draw();
+
+            var solutionsContainer = document.getElementById('solutionsTimeline');
+            solutionsTimeline = new links.Timeline(solutionsContainer);
+            links.events.addListener(solutionsTimeline, 'rangechange', onRangeChangeSolutions);
+            solutionsTimeline.draw();
+       }
+
+        /**
+         * Send a JSON-RPC 2.0 call to an agent
+         * @param {Object} params  Object containing fields:<br>
+         *                         - {String} url,<br>
+         *                         - {String} method,<br>
+         *                         - {Object} [params],<br>
+         *                         - {function} [success],<br>
+         *                         - {function} [error]<br>
+         */
+        function jsonrpc(params) {
+            if (!params.url) {
+                throw Error('url missing');
+            }
+            if (!params.method) {
+                throw Error('method missing');
+            }
+            var req = {
+                'id': 1,
+                'method': params.method,
+                'params': params.params || {}
+            };
+            var success = params.success || function (result) {
+                console.log('result', result);
+            };
+            var error = params.error || function (err) {
+                console.log('error', err);
+            };
+
+            $.ajax({
+                'type': 'POST',
+                'url': params.url,
+                'contentType': 'application/json',
+                'data': JSON.stringify(req),
+                'success': function (resp) {
+                    if (resp.error) {
+                        error(resp.error);
+                    }
+                    else {
+                        success(resp.result);
+                    }
+                },
+                'error': function (err) {
+                    error(err);
+                }
+            });
+        }
+
+    </script>
+
+</head>
+
+<body onload="loadPage();">
+    <p>
+        MeetingAgent
+        <input id="agent" type="text" value="http://localhost:8888/agents/meetingagent/1/" />
+        <button id="load" onclick="loadData()">load</button>
+    </p>
+
+    <h3>Individual intervals</h3>
+    <div id="timeline"></div>
+
+    <h3>Merged intervals</h3>
+    <div id="mergedTimeline"></div>
+
+    <h3>Solutions</h3>
+    <div id="solutionsTimeline"></div>
+
+</body>
+</html>
