@@ -13,6 +13,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.transport.TransportService;
+import com.almende.util.TwigUtil;
 
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
@@ -20,7 +21,6 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.code.twig.ObjectDatastore;
-import com.google.code.twig.ObjectDatastoreFactory;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
@@ -43,12 +43,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	private void init(AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
 		
-		// TODO: use some nicer way to register a class only once (instead of just catching the exception)
-		try {
-			ObjectDatastoreFactory.register(GaeTask.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		TwigUtil.register(GaeTask.class);
 	}
 	
 	/**

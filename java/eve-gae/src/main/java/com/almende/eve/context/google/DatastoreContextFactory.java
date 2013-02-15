@@ -4,20 +4,15 @@ import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.context.ContextFactory;
+import com.almende.util.TwigUtil;
 import com.google.appengine.api.utils.SystemProperty;
-import com.google.code.twig.ObjectDatastoreFactory;
 
 public class DatastoreContextFactory extends ContextFactory {
 	public DatastoreContextFactory (AgentFactory agentFactory, 
 			Map<String, Object> params) {
 		super(agentFactory, params);
 		
-		// TODO: use some nicer way to register a class only once (instead of just catching the exception)
-		try {
-			ObjectDatastoreFactory.register(KeyValue.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		TwigUtil.register(KeyValue.class);
 	}
 	
 	/**
