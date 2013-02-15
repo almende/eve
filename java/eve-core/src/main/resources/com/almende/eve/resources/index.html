@@ -23,12 +23,8 @@
     {{error}}
 </div>
 
-<div ng-show="loading && !error">
-    loading... {{progress}}
-</div>
-
-<div ng-hide="loading">
-    <h1>{{type}} {{id}}</h1>
+<div>
+    <h1>{{type || ''}} {{id}}</h1>
 
     <h2>Info</h2>
     <p>General information about me.</p>
@@ -36,17 +32,21 @@
     <table>
         <tr><th>Urls</th><td>
             <div ng-repeat="url in urls">{{url}}</div>
+            <div ng-show="!urls">...</div>
         </td></tr>
-        <tr><th>Type</th><td>{{type}}</td></tr>
-        <tr><th>Id</th><td>{{id}}</td></tr>
-        <tr><th>Version</th><td>{{version}}</td></tr>
-        <tr><th>Description</th><td>{{description}}</td></tr>
+        <tr><th>Type</th><td>{{type || '...'}}</td></tr>
+        <tr><th>Id</th><td>{{id || '...'}}</td></tr>
+        <tr><th>Version</th><td>{{version || '...'}}</td></tr>
+        <tr><th>Description</th><td>{{description || '...'}}</td></tr>
     </table>
 
     <h2>Methods</h2>
     <p>Talk to me via a form or via JSON-RPC requests.</p>
 
-    <table>
+    <table ng-show="!methods">
+        <tr><td>Loading methods...</td></tr>
+    </table>
+    <table ng-show="methods">
         <tr>
             <th>Mode</th>
             <td colspan="4">
@@ -65,6 +65,7 @@
                 -->
 
                 <select data-placeholder="Select a method"
+                        id = "methods"
                         class="chzn-select"
                         ng-model="methodName"
                         ng-change="setMethod()">

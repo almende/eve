@@ -3,8 +3,7 @@
  */
 
 
-var myApp = angular.module('controller', ['ngResource']);
-
+angular.module('controller', ['ngResource']);
 
 /**
  * Adjust the height of given textarea to match its contents
@@ -25,20 +24,25 @@ function resize (elem) {
  */
 function Controller($scope, $resource) {
     var loadingText = '...';
-    var url = document.location.href;
-    var lastSlash = url.lastIndexOf('/');
-    $scope.url         = url.substring(0, lastSlash + 1);
-    $scope.urls        = loadingText;
-    $scope.title       = loadingText;
-    $scope.version     = loadingText;
-    $scope.description = loadingText;
-    $scope.type        = loadingText;
-    $scope.id          = loadingText;
+    var href = document.location.pathname;
+    var lastSlash = href.lastIndexOf('/');
+    var url = href.substring(0, lastSlash + 1);
+    var urlParts = url.split('/');
+    urlParts.pop(); // remove last empty entry
+    var id = urlParts.pop();
+    document.title = id;
+
+    $scope.url         = url;
+    $scope.id          = id;
+    $scope.urls        = undefined;
+    $scope.version     = undefined;
+    $scope.description = undefined;
+    $scope.type        = undefined;
     $scope.mode = 'form';
 
     // form
-    $scope.methods = [{}];
-    $scope.method = $scope.methods[0];
+    $scope.methods = undefined;
+    $scope.method = undefined;
     $scope.result = '';
     $scope.formStatus = '';
 
@@ -53,6 +57,37 @@ function Controller($scope, $resource) {
     $scope.logs = [];
     $scope.enableEvents = true;
 
+    // define a RESTful resource
+    var agent = $resource(url + ':resource', {}, {
+        'post': {method: 'POST'},
+        'events': {method: 'GET', params: {resource: 'events'}, isArray: true}
+    });
+
+    /**
+     * Send a json rpc message
+     * @param {String} method
+     * @param {Object} params
+     * @param {function} callback   called with parameters err, result
+     */
+    function send (method, params, callback) {
+        var request = {
+            'id': 1,
+            'method': method,
+            'params': params || {}
+        };
+        agent.post({}, request, function(response) {
+            if (response.error) {
+                var err = response.error;
+                $scope.error = 'Error ' + err.code + ': ' + err.message +
+                    ((err.data && err.data.description) ? ', ' + err.data.description : '');
+            }
+            callback(response.error, response.result);
+        }, function (err) {
+            callback(err, undefined);
+            console.log(err);
+        });
+    }
+
     /**
      * Change the currently selected method
      */
@@ -64,36 +99,6 @@ function Controller($scope, $resource) {
                 break;
             }
         }
-    };
-
-    /**
-     * Send a JSON-RPC request
-     * @param {String} url        Url where to send the request
-     * @param {JSON} request      A JSON-RPC 2.0 request, like
-     *                            {"id":1,"method":"add","params":{"a":2,"b":3}}
-     * @param {function} callback A callback method. The callback will be
-     *                            called with a JSON-RPC response as
-     *                            first argument (of type JSON), for example
-     *                            {"jsonrpc":"2.0","id":1,"result":5}
-     * @param {function} errback  Optional callback function in case of
-     *                            an error
-     */
-    $scope.send = function (url, request, callback, errback) {
-        $.ajax({
-            'type': 'POST',
-            'url': url,
-            'contentType': 'application/json',
-            'data': JSON.stringify(request),
-            'success': callback,
-            'error': function (err) {
-                if (errback) {
-                    errback(err);
-                }
-                else {
-                    console.log(err);
-                }
-            }
-        });
     };
 
     /**
@@ -144,7 +149,7 @@ function Controller($scope, $resource) {
 
             var start = +new Date();
             $scope.formStatus = 'sending...';
-            $scope.send($scope.url, request, function (response) {
+            agent.post({}, request, function (response) {
                 var end = +new Date();
                 var diff = (end - start);
                 $scope.formStatus = 'ready in ' + diff + ' ms';
@@ -160,16 +165,27 @@ function Controller($scope, $resource) {
                         $scope.result = (response.result != undefined) ? String(response.result) : '';
                     }
                 }
-                $scope.$apply();
-                resize($('#result').get(0));
+
+                $scope.resize(document.getElementById('result'));
             }, function (err) {
                 $scope.formStatus = 'failed. Error: ' + JSON.stringify(err);
-                $scope.$apply();
+                $scope.result = '';
             });
         }
         catch (err) {
             $scope.formStatus = 'Error: ' + err;
+            $scope.result = '';
         }
+    };
+
+    /**
+     * Resize given element after a delay of 0ms
+     * @param elem
+     */
+    $scope.resize = function (elem) {
+        setTimeout(function () {
+            resize(elem);
+        }, 0);
     };
 
     /**
@@ -178,29 +194,29 @@ function Controller($scope, $resource) {
      * filled in in the field #response
      */
     $scope.sendJsonRpc = function() {
-        var $scope = $scope;
         try {
             var request = JSON.parse($scope.request);
             $scope.request = JSON.stringify(request, null, 2);
-            $scope.$apply();
-            resize($('#request').get(0));
+            resize(document.getElementById('request'));
 
             $scope.rpcStatus = 'sending...';
             var start = +new Date();
-            $scope.send($scope.url, request, function (response) {
+            agent.post({}, request, function (response) {
                 var end = +new Date();
                 var diff = (end - start);
                 $scope.response = JSON.stringify(response, null, 2);
                 $scope.rpcStatus = 'ready in ' + diff + ' ms';
-                $scope.$apply();
-                resize($('#response').get(0));
+
+                $scope.resize(document.getElementById('response'));
             }, function (err) {
                 $scope.rpcStatus = 'failed. Error: ' + JSON.stringify(err);
-                $scope.$apply();
+                $scope.response = '';
+
             });
         }
         catch (err) {
             $scope.rpcStatus = 'Error: ' + err;
+            $scope.response = ''
         }
     };
 
@@ -243,26 +259,21 @@ function Controller($scope, $resource) {
     $scope.updateEvents = function () {
         $scope.stopMonitoringEvents();
 
-        $.ajax({
-            'type': 'GET',
-            'url': "events?since=" + $scope.lastTimestamp,
-            'contentType': 'application/json',
-            'success': function (newLogs) {
-                while (newLogs && newLogs.length) {
-                    var newLog = newLogs.shift();
-                    $scope.lastTimestamp = newLog.timestamp;
-                    $scope.logs.push(newLog);
-                }
-                $scope.lastUpdate = (new Date()).toISOString();
-                $scope.$apply();
-
-                // set a new timeout
-                $scope.updateEventsTimer = setTimeout($scope.updateEvents, $scope.pollingInterval);
-            },
-            'error': function (err) {
-                // set a new timeout
-                $scope.updateEventsTimer = setTimeout($scope.updateEvents, $scope.pollingInterval);
+        agent.events({since: $scope.lastTimestamp}, undefined, function (newLogs) {
+            while (newLogs && newLogs.length) {
+                var newLog = newLogs.shift();
+                $scope.lastTimestamp = newLog.timestamp;
+                $scope.logs.push(newLog);
             }
+            $scope.lastUpdate = (new Date()).toISOString();
+
+            // set a new timeout
+            $scope.updateEventsTimer = setTimeout($scope.updateEvents, $scope.pollingInterval);
+        }, function (err) {
+            console.log(err);
+
+            // set a new timeout
+            $scope.updateEventsTimer = setTimeout($scope.updateEvents, $scope.pollingInterval);
         });
     };
 
@@ -282,88 +293,49 @@ function Controller($scope, $resource) {
         if (localStorage['enableEvents'] != undefined) {
             $scope.enableEvents = localStorage['enableEvents'];
         }
+        $scope.updateEnableEvents();
 
-        var reqs = [
-            {
-                'method': 'getUrls',
-                'field': 'urls',
-                'callback': function () {
-                    $scope.updateEnableEvents();
-                }
-            },
-            {
-                'method': 'getType',
-                'field': 'type',
-                'callback': function () {
-                    document.title = ($scope.type || 'Agent') + ' ' + ($scope.id || '');
-                }
-            },
-            {
-                'method': 'getId',
-                'field': 'id',
-                'callback': function () {
-                    document.title = ($scope.type || 'Agent') + ' ' + ($scope.id || '');
-                }
-            },
-            {'method': 'getDescription', 'field': 'description'},
-            {'method': 'getVersion', 'field': 'version'},
-            {
-                'method': 'getMethods',
-                'field': 'methods',
-                'params': {'asJSON': true},
-                'callback': function () {
-                    if ($scope && $scope.methods && $scope.methods[0]) {
-                        $scope.methodName = $scope.methods[0].method;
-                        $scope.setMethod();
-                        $scope.$apply();
+        // get urls
+        send ('getUrls', {}, function (err, result) {
+            if (!err) {
+                $scope.urls = result;
+            }
+        });
 
-                        // update method select box
-                        setTimeout(function () {
-                            $(".chzn-select").chosen();
-                        }, 15);
-                    }
-                }
+        // get type
+        send ('getType', {}, function (err, result) {
+            if (!err) {
+                $scope.type = result;
             }
-        ];
+        });
 
-        var total = reqs.length;
-        var left = total;
-        var decrement = function () {
-            left--;
-            if (left > 0) {
-                $scope.progress = Math.round((total - left) / total * 100) + '%';
+        // get description
+        send ('getDescription', {}, function (err, result) {
+            if (!err) {
+                $scope.description = result;
             }
-            else {
-                $scope.loading = false;
+        });
+
+        // get version
+        send ('getVersion', {}, function (err, result) {
+            if (!err) {
+                $scope.version = result;
             }
-            $scope.$apply();
-        };
-        for (var i = 0; i < reqs.length; i++) {
-            (function (req) {
-                var request = {
-                    "id":1,
-                    "method": req.method,
-                    "params": req.params || {}
-                };
-                $scope.send($scope.url, request, function(response) {
-                    $scope[req.field] = response.result;
-                    if (response.error) {
-                        //$scope.error = JSON.stringify(response.error, null, 2);
-                        var err = response.error;
-                        $scope.error = 'Error ' + err.code + ': ' + err.message +
-                            ((err.data && err.data.description) ? ', ' + err.data.description : '');
-                    }
-                    $scope.$apply();
-                    if (req.callback) {
-                        req.callback(response.result);
-                    }
-                    decrement();
-                }, function (err) {
-                    decrement();
-                    console.log(err);
-                });
-            })(reqs[i]);
-        }
+        });
+
+        // get methods
+        send ('getMethods', {'asJSON': true}, function (err, result) {
+            if (!err) {
+                $scope.methods = result;
+                $scope.methodName = $scope.methods[0].method;
+                $scope.setMethod();
+
+                // update method select box
+                setTimeout(function () {
+                    new Chosen(document.getElementById('methods'));
+                }, 15);
+            }
+        });
     };
 
     // fill in an initial JSON-RPC request
