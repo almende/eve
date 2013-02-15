@@ -1,7 +1,7 @@
 /**
- * Test OAuth 2.0 with Google API
+ * AuthServlet for Google OAuth 2.0
  * 
- * Jos de Jong, 2012-05-31
+ * Jos de Jong, 2013-02-15
  * 
  * Used libraries:
  *     jackson-annotations-2.0.0.jar
@@ -11,7 +11,7 @@
  * Documentation:
  *     https://developers.google.com/accounts/docs/OAuth2WebServer
  */
-package com.almende.eve.servlet.google;
+package com.almende.eve.auth.google;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.http.*;
 
@@ -32,8 +33,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 @SuppressWarnings("serial")
-public class GoogleAuth extends HttpServlet {
-	//private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+public class AuthServlet extends HttpServlet {
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	// Specify the correct client id and secret for web applications
 	// Create them at the Google API console: https://code.google.com/apis/console/
@@ -42,7 +43,6 @@ public class GoogleAuth extends HttpServlet {
 	String REDIRECT_URI = null; 
 	
 	// hard coded uri's
-	private String AGENTS_URL = "http://localhost:8888/agents/id"; // TODO: do not hardcode
 	private String AGENTS_METHOD = "setAuthorization";
 	private String OAUTH_URI  = "https://accounts.google.com/o/oauth2";
 	private String CONFIG_FILENAME = "/WEB-INF/eve.yaml";
@@ -72,13 +72,29 @@ public class GoogleAuth extends HttpServlet {
 				throw new Exception("Parameter 'google.client_secret' missing in config");
 			}
 
+			logger.info("CLIENT_ID=" + CLIENT_ID); // TDOO: cleanup
+			logger.info("CLIENT_SECRET=" + CLIENT_SECRET); // TDOO: cleanup
+			
 			// first read the servlet url from the current environment settings,
 			// if not available, read it from the global settings.
 			String environment = getEnvironment(config); 
-			REDIRECT_URI = config.get("environment", environment, "auth_google_servlet_url");
+			REDIRECT_URI = config.get("environment", environment, "google_auth_servlet_url");
 			if (REDIRECT_URI == null) {
-				REDIRECT_URI = config.get("auth_google_servlet_url");
+				REDIRECT_URI = config.get("google_auth_servlet_url");
 			}
+			
+			// TODO: cleanup deprecated parameter some day (deprecated since 2013-02-15)
+			if (REDIRECT_URI == null) {
+				REDIRECT_URI = config.get("environment", environment, "auth_google_servlet_url");
+				if (REDIRECT_URI == null) {
+					REDIRECT_URI = config.get("auth_google_servlet_url");
+				}
+				if (REDIRECT_URI != null) {
+					logger.warning("Parameter 'auth_google_servlet_url' is deprecated. " +
+							"Use 'google_auth_servlet_url' instead.");
+				}
+			}
+
 			if (REDIRECT_URI == null) {
 				String path = "environment." + environment + ".auth_google_servlet_url";
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
@@ -254,12 +270,15 @@ public class GoogleAuth extends HttpServlet {
 			"}" +
 			"</script>" +
 			"<table>" +
-			"<tr><td>Agent url</td><td><input type='text' id='agentUrl' value='" + 
-				AGENTS_URL + "' style='width: 400px;'/></td></tr>" + 
+			"<tr><td>Agent url</td><td><input type='text' id='agentUrl' value=''" + 
+				" style='width: 400px;'/></td></tr>" + 
 				"<tr><td>Agent method</td><td><input type='text' id='agentMethod' value='" + 
 				AGENTS_METHOD + "' style='width: 400px;'/></td></tr>" +
 			"<tr><td><button onclick='auth();'>Authorize</button></td></tr>" +
-			"</table>"
+			"</table>" + 
+			"<script type='text/javascript'>" +
+			"  document.getElementById('agentUrl').value = document.location.origin + '/agents/agentid/';" +
+			"</script>"
 		);		
 	}
 	
