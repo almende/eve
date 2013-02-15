@@ -27,6 +27,10 @@ public class GaeXmppService extends TransportService {
 		if (env != null) {
 			String appId = env.getAppId();
 			if (appId != null) {
+				if (appId.startsWith("s~")) {
+					// ids of apps with high replication have a "s~" prefix
+					appId = appId.substring(2);
+				}
 				host = appId + ".appspotchat.com";
 			}
 		}

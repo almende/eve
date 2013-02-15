@@ -42,7 +42,13 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	 */
 	private void init(AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
-		ObjectDatastoreFactory.register(GaeTask.class);
+		
+		// TODO: use some nicer way to register a class only once (instead of just catching the exception)
+		try {
+			ObjectDatastoreFactory.register(GaeTask.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
