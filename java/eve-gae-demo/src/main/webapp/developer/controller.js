@@ -9,8 +9,8 @@ function Ctrl() {
     scope.ORIGIN = window.location.protocol + '//' + window.location.host + '/';
     scope.AUTH_SERVLET = scope.ORIGIN + 'auth/google';
     scope.AGENTS_URI = scope.ORIGIN + 'agents/';    
-    scope.CALENDAR_AGENT_URI = scope.AGENTS_URI + 'googlecalendaragent/';
-    scope.MEETING_AGENT_URI = scope.AGENTS_URI + 'meetingagent/';
+    //scope.CALENDAR_AGENT_URI = scope.AGENTS_URI + 'googlecalendaragent/'; // TODO: cleanup
+    //scope.MEETING_AGENT_URI = scope.AGENTS_URI + 'meetingagent/'; // TODO: cleanup
     scope.CALLBACK_URI = window.location.href;
 
     // lists with agents
@@ -32,7 +32,7 @@ function Ctrl() {
     scope.authorize = function (agent) {
         // redirect to a url to authorize this agent
         window.location.href = scope.AUTH_SERVLET +
-            '?agentUrl=' + scope.CALENDAR_AGENT_URI + agent.id +
+            '?agentUrl=' + scope.AGENTS_URI + agent.id +
             '&agentMethod=setAuthorization' +
             '&applicationCallback=' + scope.CALLBACK_URI;
     };
@@ -55,7 +55,7 @@ function Ctrl() {
      */
     scope.deleteCalendarAgent = function (agent) {
         jsonrpc({
-            'url': scope.CALENDAR_AGENT_URI + agent.id,
+            'url': scope.AGENTS_URI + agent.id,
             'method': 'clear',
             'params': {},
             'success': function (resp) {
@@ -73,7 +73,7 @@ function Ctrl() {
         if (!agent || agent.id == undefined || agent.id == '') {
             return;
         }
-        var url = scope.CALENDAR_AGENT_URI + agent.id;
+        var url = scope.AGENTS_URI + agent.id;
 
         // retrieve email
         var emailUpdateSeq = agent.emailUpdateSeq ? agent.emailUpdateSeq + 1 : 1;
@@ -158,7 +158,7 @@ function Ctrl() {
         scope.activityHtmlToJson(agent.activity);
 
         jsonrpc({
-            'url': scope.MEETING_AGENT_URI + agent.id,
+            'url': scope.AGENTS_URI + agent.id,
             'method': 'updateActivity',
             'params': {
                 'activity': agent.activity
@@ -193,7 +193,7 @@ function Ctrl() {
         scope.activityHtmlToJson(agent.activity);
 
         jsonrpc({
-            'url': scope.MEETING_AGENT_URI + agent.id,
+            'url': scope.AGENTS_URI + agent.id,
             'method': 'clear',
             'success': function () {
                 delete agent.updating;
@@ -220,7 +220,7 @@ function Ctrl() {
         agent.updateSeq = updateSeq;
         agent.updating = true;
         jsonrpc({
-            'url': scope.MEETING_AGENT_URI + agent.id,
+            'url': scope.AGENTS_URI + agent.id,
             'method': 'getActivity',
             'params': {},
             'success': function (activity) {
@@ -260,7 +260,7 @@ function Ctrl() {
             var attendees = activity.constraints.attendees;
             $.each(attendees, function (index, attendee) {
                 if (attendee.id) {
-                    attendee.agent = scope.CALENDAR_AGENT_URI + attendee.id + '/';
+                    attendee.agent = scope.AGENTS_URI + attendee.id + '/';
                 }
             });
         }
@@ -287,7 +287,7 @@ function Ctrl() {
             var attendees = activity.constraints.attendees;
             $.each(attendees, function (index, attendee) {
                 if (attendee.agent) {
-                    var start = scope.CALENDAR_AGENT_URI.length;
+                    var start = scope.AGENTS_URI.length;
                     attendee.id = attendee.agent.substring(start, attendee.agent.length);
                     if (attendee.id[attendee.id.length-1] == '/') {
                         attendee.id = attendee.id.substring(0, attendee.id.length - 1);

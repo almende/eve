@@ -47,7 +47,7 @@
                        placeholder="id" ng:change="getCalendarAgent(agent)"/>
             </td>
             <td>
-                <a href="{{CALENDAR_AGENT_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
+                <a href="{{AGENTS_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
             </td>
             <td>
                 <span ng:hide="agent.usernameUpdating">{{agent.username}}</span>
@@ -103,7 +103,7 @@
                        ng:change="getMeetingAgent(agent)" />
             </td>
             <td>
-                <a href="{{MEETING_AGENT_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
+                <a href="{{AGENTS_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
             </td>
             <td>
                 <input name="agent.activity.summary" type="text"

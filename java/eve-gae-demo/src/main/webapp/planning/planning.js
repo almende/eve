@@ -6,10 +6,10 @@ function Planning($scope) {
     // constants
     var ORIGIN = window.location.protocol + '//' + window.location.host + '/';
     var AUTH_SERVLET = ORIGIN + 'auth/google';
-    var AGENTS_SERVLET = ORIGIN + 'agents/';
-    var PERSONAL_AGENT_URI = AGENTS_SERVLET + 'googlecalendaragent/';
-    var MEETING_AGENT_URI = AGENTS_SERVLET + 'meetingagent/';
-    var DIRECTORY_AGENT_URI = AGENTS_SERVLET + 'directoryagent/1/';
+    var AGENT_SERVLET = ORIGIN + 'agents/';
+    //var PERSONAL_AGENT_URI = AGENT_SERVLET + 'googlecalendaragent/'; // TODO: cleanup
+    //var MEETING_AGENT_URI = AGENT_SERVLET + 'meetingagent/'; // TODO: cleanup
+    var DIRECTORY_AGENT_URI = AGENT_SERVLET + 'directoryagent1/';
     var CALLBACK_URI = window.location.href;
 
     var SECOND = 1000;
@@ -261,7 +261,7 @@ function Planning($scope) {
 
     $scope.createEvent = function () {
         var uuid = UUID.randomUUID();
-        var agent = MEETING_AGENT_URI + uuid + '/';
+        var agent = AGENT_SERVLET + uuid + '/';
         var activity = {
             'agent': agent,
             'summary': 'new event',
@@ -412,7 +412,7 @@ function Planning($scope) {
         $scope.usernameChanged = false;
 
         if ($scope.username && $scope.username.length > 0) {
-            $scope.personalAgent = PERSONAL_AGENT_URI + $scope.username + '/';
+            $scope.personalAgent = AGENT_SERVLET + $scope.username + '/';
         }
         else {
             delete $scope.personalAgent;
