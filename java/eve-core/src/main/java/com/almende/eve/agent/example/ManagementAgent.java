@@ -8,47 +8,47 @@ import com.almende.eve.agent.annotation.Name;
 public class ManagementAgent extends Agent {
 	/**
 	 * Create a new agent. Will throw an exception if the agent already exists
-	 * @param agentId
-	 * @param agentClass
+	 * @param id
+	 * @param type
 	 * @return urls
 	 * @throws Exception
 	 */
-	public List<String> create(@Name("id") String agentId,
-			@Name("class") String agentClass) throws Exception {
-		Agent agent = getAgentFactory().createAgent(agentClass, agentId);
+	public List<String> create(@Name("id") String id,
+			@Name("type") String type) throws Exception {
+		Agent agent = getAgentFactory().createAgent(type, id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
 	/**
 	 * Delete an agent
-	 * @param agentId
+	 * @param id
 	 * @return
 	 * @throws Exception
 	 */
-	public void delete(@Name("id") String agentId) throws Exception {
-		getAgentFactory().deleteAgent(agentId);
+	public void delete(@Name("id") String id) throws Exception {
+		getAgentFactory().deleteAgent(id);
 	}
 
 	/**
 	 * Retrieve an agents urls. If the agent does not exist, 
 	 * null will be returned.
-	 * @param agentId
+	 * @param id
 	 * @return urls
 	 * @throws Exception
 	 */
-	public List<String> get(@Name("id") String agentId) throws Exception {
-		Agent agent = getAgentFactory().getAgent(agentId);
+	public List<String> get(@Name("id") String id) throws Exception {
+		Agent agent = getAgentFactory().getAgent(id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
 	/**
 	 * Test if an agent exists
-	 * @param agentId
+	 * @param id
 	 * @return exists
 	 * @throws Exception
 	 */
-	public boolean exists(@Name("id") String agentId) throws Exception {
-		Agent agent = getAgentFactory().getAgent(agentId);
+	public boolean exists(@Name("id") String id) throws Exception {
+		Agent agent = getAgentFactory().getAgent(id);
 		return (agent != null);
 	}
 

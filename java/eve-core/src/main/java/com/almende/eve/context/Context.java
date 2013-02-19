@@ -20,6 +20,10 @@ import java.util.Map;
  * @author jos
  */
 public abstract class Context implements Map<String, Object> {
+	public static String KEY_AGENT_TYPE = "_type"; // key name for agent type
+
+	protected String agentId = null;
+
 	/**
 	 * The implemented classes must have a public constructor
 	 */
@@ -42,23 +46,31 @@ public abstract class Context implements Map<String, Object> {
 	}
 	
 	/**
-	 * Get the configured agents class.
-	 * @return agentClass
+	 * Set the configured agents class.
+	 * @return agentType
 	 */
-	public synchronized void setAgentClass(Class<?> agentClass) {
+	public synchronized void setAgentType(Class<?> agentType) {
 		// TODO: dangerous to use a generic context parameter to store the agent class, can be accidentally overwritten 
-		put("class", agentClass.getName());
+		put(KEY_AGENT_TYPE, agentType.getName());
 	}
 	
 	/**
-	 * Get the configured agents class.
-	 * @return agentClass
+	 * Get the configured agents type (the full class path).
+	 * @return type
 	 * @throws ClassNotFoundException 
 	 */
-	public synchronized Class<?> getAgentClass() throws ClassNotFoundException {
-		String agentClass = (String) get("class");
-		if (agentClass != null) {
-			return Class.forName(agentClass);
+	public synchronized Class<?> getAgentType() throws ClassNotFoundException {
+		String agentType = (String) get(KEY_AGENT_TYPE);
+		if (agentType == null) {
+			// try deprecated "class"
+			agentType = (String) get("class");
+			if (agentType != null) {
+				put(KEY_AGENT_TYPE, agentType);
+				remove("class");
+			}
+		}
+		if (agentType != null) {
+			return Class.forName(agentType);
 		}
 		else {
 			return null;
@@ -68,7 +80,4 @@ public abstract class Context implements Map<String, Object> {
 	// init and destroy methods
 	public abstract void init();     // executed once after the agent is instantiated
 	public abstract void destroy();  // executed once before the agent is destroyed
-	
-	protected String agentId = null;
-	//protected AgentFactory agentFactory = null;
 }

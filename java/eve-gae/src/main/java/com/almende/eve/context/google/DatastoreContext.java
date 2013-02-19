@@ -32,7 +32,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
  *     DatastoreContext context = 
- *     	   new DatastoreContext(factory, "agentClass", "agentId");<br>
+ *     	   new DatastoreContext(factory, "agentType", "agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 

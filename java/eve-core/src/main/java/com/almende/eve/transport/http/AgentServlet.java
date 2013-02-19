@@ -55,6 +55,7 @@ public class AgentServlet extends HttpServlet {
 		// if no agentId is found, return generic information on servlet usage
 		if (agentId == null || agentId.isEmpty()) {
 			resp.getWriter().write(getServletDocs());
+			resp.setContentType("text/plain");
 			return;
 		}
 		
@@ -164,8 +165,8 @@ public class AgentServlet extends HttpServlet {
 
 	/**
 	 * Create a new agent
-	 * Usage: PUT /servlet/{agentId}?class={agentClass}
-	 *        Where agentClass is the full class path of the agent.
+	 * Usage: PUT /servlet/{agentId}?type={agentType}
+	 *        Where agentType is the full class path of the agent.
 	 *        Returns a list with the urls of the created agent.
 	 */
 	@Override
@@ -173,19 +174,24 @@ public class AgentServlet extends HttpServlet {
 			throws ServletException, IOException {
 		String agentUrl = req.getRequestURI();
 		String agentId = httpTransport.getAgentId(agentUrl);
-		String agentClass = req.getParameter("class");
+		String agentType = req.getParameter("type");
+		if (agentType == null) {
+			// TODO: class is deprecated since 2013-02-19. Remove this some day
+			agentType = req.getParameter("class");
+			logger.warning("Query parameter 'class' is deprecated. Use 'type' instead.");
+		}
 		
 		if (agentId == null) {
 			resp.sendError(400, "No agentId found in url.");
 			return;
 		}
-		if (agentClass == null || agentClass.isEmpty()) {
+		if (agentType == null || agentType.isEmpty()) {
 			resp.sendError(400, "Query parameter 'class' missing in url.");
 			return;
 		}
 		
 		try {
-			Agent agent = agentFactory.createAgent(agentClass, agentId);
+			Agent agent = agentFactory.createAgent(agentType, agentId);
 			for (String url : agent.getUrls()) {
 				resp.getWriter().println(url);
 			}
@@ -309,9 +315,9 @@ public class AgentServlet extends HttpServlet {
 			"    A 404 error will be returned when the agent does not exist.\n" +
 			"\n" +
 			
-			"PUT " + servletUrl + "{agentId}?class={agentClass}\n" +
+			"PUT " + servletUrl + "{agentId}?type={agentType}\n" +
 			"\n" +
-			"    Create an agent. agentId can be any string. agentClass must\n" +
+			"    Create an agent. agentId can be any string. agentType must\n" +
 			"    be a full java class path of an Agent. A 500 error will be\n" +
 			"    thrown when an agent with this id already exists.\n" +
 			"\n" +

@@ -177,13 +177,13 @@ public class SingleAgentServlet extends HttpServlet {
 		// create the agent if it does not yet exist
 		Agent agent = agentFactory.getAgent(agentId);
 		if (agent == null) {
-			String agentClass = getInitParameter("agentClass");
+			String agentType = getInitParameter("agentType");
 			if (agentId == null) {
 				throw new Exception("Cannot create agent: " +
 						"Init Parameter 'agentClass' missing in servlet configuration web.xml.");
 			}
 			
-			agent = agentFactory.createAgent(agentClass, agentId);
+			agent = agentFactory.createAgent(agentType, agentId);
 			logger.info("Agent created: " + agent.toString());
 		}
 

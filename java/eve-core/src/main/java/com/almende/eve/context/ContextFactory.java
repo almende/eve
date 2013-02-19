@@ -49,7 +49,7 @@ public abstract class ContextFactory {
 	@Override
 	public String toString() {
 		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("class", this.getClass().getName());
+		data.put("type", this.getClass().getName());
 		return data.toString();
 	}
 	

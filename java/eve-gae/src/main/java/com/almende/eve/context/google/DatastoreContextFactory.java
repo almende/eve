@@ -3,6 +3,7 @@ package com.almende.eve.context.google;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.context.Context;
 import com.almende.eve.context.ContextFactory;
 import com.almende.util.TwigUtil;
 import com.google.appengine.api.utils.SystemProperty;
@@ -25,7 +26,7 @@ public class DatastoreContextFactory extends ContextFactory {
 	public DatastoreContext get(String agentId) {
 		DatastoreContext context = new DatastoreContext(agentId);
 		// TODO: how to really check if the context exists in the datastore?
-		if (context.get("class") != null) {
+		if (context.get(Context.KEY_AGENT_TYPE) != null) {
 			return context;
 		}
 		return null;

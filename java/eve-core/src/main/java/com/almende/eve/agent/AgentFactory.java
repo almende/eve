@@ -61,7 +61,7 @@ import com.almende.util.ClassUtil;
  *     response = factory.send(senderId, receiverUrl, request);
  *     
  *     // create a new agent
- *     Agent agent = factory.createAgent(agentClass, agentId);
+ *     Agent agent = factory.createAgent(agentType, agentId);
  *     String desc = agent.getDescription(); // use the agent
  *     agent.destroy(); // neatly shutdown the agents context
  *     
@@ -214,21 +214,21 @@ public class AgentFactory {
 		context.init();
 		
 		// read the agents class name from context
-		Class<?> agentClass = context.getAgentClass();
-		if (agentClass == null) {
+		Class<?> agentType = context.getAgentType();
+		if (agentType == null) {
 			throw new Exception("Cannot instantiate agent. " +
 					"Class information missing in the agents context " +
 					"(agentId='" + agentId + "')");
 		}
 		
 		// instantiate the agent
-		agent = (Agent) agentClass.getConstructor().newInstance();
+		agent = (Agent) agentType.getConstructor().newInstance();
 		agent.setAgentFactory(this);
 		agent.setContext(context);
 		agent.init();
 		
-		if (agentClass.isAnnotationPresent(ThreadSafe.class) && 
-				agentClass.getAnnotation(ThreadSafe.class).value()){
+		if (agentType.isAnnotationPresent(ThreadSafe.class) && 
+				agentType.getAnnotation(ThreadSafe.class).value()){
 			//System.err.println("Agent "+agentId+" is threadSafe, keeping!");
 			agents.put(agentId, agent);
 		}
@@ -294,13 +294,13 @@ public class AgentFactory {
 	 * Before deleting the agent, the method agent.destroy() must be executed
 	 * to neatly shutdown the instantiated context.
 	 * 
-	 * @param agentClass  full class path
+	 * @param agentType  full class path
 	 * @param agentId
 	 * @return
 	 * @throws Exception
 	 */
-	public Agent createAgent(String agentClass, String agentId) throws Exception {
-		return (Agent) createAgent(Class.forName(agentClass), agentId);
+	public Agent createAgent(String agentType, String agentId) throws Exception {
+		return (Agent) createAgent(Class.forName(agentType), agentId);
 	}
 	
 	/**
@@ -309,38 +309,38 @@ public class AgentFactory {
 	 * Before deleting the agent, the method agent.destroy() must be executed
 	 * to neatly shutdown the instantiated context.
 	 * 
-	 * @param agentClass
+	 * @param agentType
 	 * @param agentId
 	 * @return
 	 * @throws Exception
 	 */
-	public Agent createAgent(Class<?> agentClass, String agentId) throws Exception {
-		if (!ClassUtil.hasSuperClass(agentClass, Agent.class)) {
+	public Agent createAgent(Class<?> agentType, String agentId) throws Exception {
+		if (!ClassUtil.hasSuperClass(agentType, Agent.class)) {
 			throw new Exception(
-					"Class " + agentClass + " does not extend class " + Agent.class);
+					"Class " + agentType + " does not extend class " + Agent.class);
 		}
 
 		// validate the Eve agent and output as warnings
-		List<String> errors = JSONRPC.validate(agentClass, eveRequestParams);
+		List<String> errors = JSONRPC.validate(agentType, eveRequestParams);
 		for (String error : errors) {
-			logger.warning("Validation error class: " + agentClass.getName() + 
+			logger.warning("Validation error class: " + agentType.getName() + 
 					", message: " + error);
 		}
 		
 		// create the context
 		Context context = getContextFactory().create(agentId);
-		context.setAgentClass(agentClass);
+		context.setAgentType(agentType);
 		context.destroy();
 
 		// instantiate the agent
-		Agent agent = (Agent) agentClass.getConstructor().newInstance();
+		Agent agent = (Agent) agentType.getConstructor().newInstance();
 		agent.setAgentFactory(this);
 		agent.setContext(context);
 		agent.create();
 		agent.init();
 
-		if (agentClass.isAnnotationPresent(ThreadSafe.class) && 
-				agentClass.getAnnotation(ThreadSafe.class).value()){
+		if (agentType.isAnnotationPresent(ThreadSafe.class) && 
+				agentType.getAnnotation(ThreadSafe.class).value()){
 			//System.err.println("Agent "+agentId+" is threadSafe, keeping!");
 			agents.put(agentId, agent);
 		}
@@ -611,15 +611,15 @@ public class AgentFactory {
 		if (agents != null) {
 			for (Entry<String, String> entry : agents.entrySet()) {
 				String agentId = entry.getKey();
-				String agentClass = entry.getValue();
+				String agentType = entry.getValue();
 				try {
 					Agent agent = getAgent(agentId);
 					if (agent == null) {
 						// agent does not yet exist. create it
-						agent = createAgent(agentClass, agentId);
+						agent = createAgent(agentType, agentId);
 						agent.destroy();
 						logger.info("Bootstrap created agent id=" + agentId + 
-								", class=" + agentClass);
+								", type=" + agentType);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

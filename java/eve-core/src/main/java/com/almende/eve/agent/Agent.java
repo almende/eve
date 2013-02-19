@@ -89,10 +89,11 @@ abstract public class Agent implements AgentInterface {
 		}
 		
 		// remove all keys from the context
+		// Note: the context itself will be deleted by the AgentFactory
 		context.clear();
 		
 		// save the agents class again in the context
-		context.put("class", getClass().getName());		
+		context.put(Context.KEY_AGENT_TYPE, getClass().getName());		
 	}
 	
 	/**
