@@ -1,79 +1,115 @@
+
+
+angular.module('controller', ['ngResource']);
+
+
 /**
  * Angular JS controller to control the page
- * @constructor Ctrl
+ * @constructor Controller
  */
-function Ctrl() {
-    var scope = this;
-
+function Controller($scope, $resource) {
     // constants
-    scope.ORIGIN = window.location.protocol + '//' + window.location.host + '/';
-    scope.AUTH_SERVLET = scope.ORIGIN + 'auth/google';
-    scope.AGENTS_URI = scope.ORIGIN + 'agents/';    
-    //scope.CALENDAR_AGENT_URI = scope.AGENTS_URI + 'googlecalendaragent/'; // TODO: cleanup
-    //scope.MEETING_AGENT_URI = scope.AGENTS_URI + 'meetingagent/'; // TODO: cleanup
-    scope.CALLBACK_URI = window.location.href;
+    $scope.ORIGIN = window.location.protocol + '//' + window.location.host + '/';
+    $scope.AUTH_SERVLET = $scope.ORIGIN + 'auth/google';
+    $scope.AGENT_SERVLET = $scope.ORIGIN + 'agents/';
+    $scope.MANAGEMENT_AGENT = $scope.AGENT_SERVLET + 'management/';
+    $scope.CALLBACK_URI = window.location.href;
+    $scope.CALENDARAGENT_TYPE = 'com.almende.eve.agent.google.GoogleCalendarAgent';
+    $scope.MEETINGAGENT_TYPE = 'com.almende.eve.agent.MeetingAgent';
 
     // lists with agents
-    scope.calendarAgents = [{}];
-    scope.meetingAgents = [{}];
+    $scope.calendarAgents = [];
+    $scope.meetingAgents = [];
 
-    /**
-     * Add a calendar agent
-     */
-    scope.addCalendarAgent = function () {
-        scope.calendarAgents.push({});
-        scope.save();
-    };
+    $scope.newCalendarAgentId = '';
 
     /**
      * Authorize a calendar agent with the users Google Calendar
      * @param {Object} agent
      */
-    scope.authorize = function (agent) {
+    $scope.authorize = function (agent) {
         // redirect to a url to authorize this agent
-        window.location.href = scope.AUTH_SERVLET +
-            '?agentUrl=' + scope.AGENTS_URI + agent.id +
+        window.location.href = $scope.AUTH_SERVLET +
+            '?agentUrl=' + $scope.AGENT_SERVLET + agent.id +
             '&agentMethod=setAuthorization' +
-            '&applicationCallback=' + scope.CALLBACK_URI;
+            '&applicationCallback=' + $scope.CALLBACK_URI;
     };
 
     /**
-     * remove a calendar agent from the list. The agent itself will not be deleted
-     * @param {Object} agent
+     * Create a new calendar agent
      */
-    scope.removeCalendarAgent = function (agent) {
-        var index = scope.calendarAgents.indexOf(agent);
-        if (index != -1) {
-            scope.calendarAgents.splice(index, 1);
+    $scope.createCalendarAgent = function () {
+        var id = $scope.newCalendarAgentId;
+        if (!id) {
+            alert('Error: no id for the new CalendarAgent filled in');
+            return;
         }
-        scope.save();
+
+        jsonrpc({
+            'url': $scope.MANAGEMENT_AGENT,
+            'method': 'create',
+            'params': {
+                'id': id,
+                'type': $scope.CALENDARAGENT_TYPE
+            },
+            'success': function () {
+                $scope.getCalendarAgents();
+                $scope.$apply();
+            }
+        });
     };
 
     /**
      * Delete a calendar agent and remove it from the list.
      * @param {Object} agent
      */
-    scope.deleteCalendarAgent = function (agent) {
+    $scope.deleteCalendarAgent = function (agent) {
+        if (!confirm('Do you really want to delete CalendarAgent "' + agent.id + '"?')) {
+            return;
+        }
+
         jsonrpc({
-            'url': scope.AGENTS_URI + agent.id,
-            'method': 'clear',
-            'params': {},
-            'success': function (resp) {
-                scope.removeCalendarAgent(agent);
-                scope.$root.$eval();
+            'url': $scope.MANAGEMENT_AGENT,
+            'method': 'delete',
+            'params': {
+                'id': agent.id
+            },
+            'success': function () {
+                $scope.getCalendarAgents();
+                $scope.$apply();
             }
         });
     };
 
     /**
-     * Get the email from the calendar agent
+     * Get all calendar agents
+     */
+    $scope.getCalendarAgents = function () {
+        jsonrpc({
+            'url': $scope.MANAGEMENT_AGENT,
+            'method': 'list',
+            'params': {
+                'type': $scope.CALENDARAGENT_TYPE
+            },
+            'success': function (resp) {
+                $scope.calendarAgents = resp;
+                $scope.calendarAgents.forEach(function (agent) {
+                    $scope.getCalendarAgent(agent);
+                });
+                $scope.$apply();
+            }
+        });
+    };
+
+    /**
+     * Get the email and username from the calendar agent
      * @param agent
      */
-    scope.getCalendarAgent = function (agent) {
+    $scope.getCalendarAgent = function (agent) {
         if (!agent || agent.id == undefined || agent.id == '') {
             return;
         }
-        var url = scope.AGENTS_URI + agent.id;
+        var url = $scope.AGENT_SERVLET + agent.id;
 
         // retrieve email
         var emailUpdateSeq = agent.emailUpdateSeq ? agent.emailUpdateSeq + 1 : 1;
@@ -87,15 +123,15 @@ function Ctrl() {
                 if (emailUpdateSeq == agent.emailUpdateSeq) {
                     delete agent.emailUpdating;
                     agent.email = email;
-                    scope.$root.$eval();
-                    scope.save();
+                    $scope.$apply();
+                    $scope.save();
                 }
             },
             'error': function (err) {
                 if (emailUpdateSeq == agent.emailUpdateSeq) {
                     delete agent.emailUpdating;
-                    scope.$root.$eval();
-                    scope.save();
+                    $scope.$apply();
+                    $scope.save();
                     console.log('error', err);
                 }
             }
@@ -113,15 +149,15 @@ function Ctrl() {
                 if (usernameUpdateSeq == agent.usernameUpdateSeq) {
                     delete agent.usernameUpdating;
                     agent.username = username;
-                    scope.$root.$eval();
-                    scope.save();
+                    $scope.$apply();
+                    $scope.save();
                 }
             },
             'error': function (err) {
                 if (usernameUpdateSeq == agent.usernameUpdateSeq) {
                     delete agent.usernameUpdating;
-                    scope.$root.$eval();
-                    scope.save();
+                    $scope.$apply();
+                    $scope.save();
                     console.log('error', err);
                 }
             }
@@ -129,36 +165,40 @@ function Ctrl() {
     };
 
     /**
-     * Add a meeting agent
+     * Create a new meeting agent
      */
-    scope.addMeetingAgent = function () {
-        scope.meetingAgents.push({});
-        scope.save();
-    };
-
-    /**
-     * Remove a meeting agent
-     * @param {Object} agent
-     */
-    scope.removeMeetingAgent = function (agent) {
-        var index = scope.meetingAgents.indexOf(agent);
-        if (index != -1) {
-            scope.meetingAgents.splice(index, 1);
+    $scope.createMeetingAgent = function () {
+        var id = $scope.newMeetingAgentId;
+        if (!id) {
+            alert('Error: no id for the new MeetingAgent filled in');
+            return;
         }
-        scope.save();
+
+        jsonrpc({
+            'url': $scope.MANAGEMENT_AGENT,
+            'method': 'create',
+            'params': {
+                'id': id,
+                'type': $scope.MEETINGAGENT_TYPE
+            },
+            'success': function () {
+                $scope.getMeetingAgents();
+                $scope.$apply();
+            }
+        });
     };
 
     /**
      * Update the meeting agent. The agent will synchronize
      */
-    scope.updateMeetingAgent = function (agent) {
+    $scope.updateMeetingAgent = function (agent) {
         agent.updating = true;
 
         // pre-process the activity
-        scope.activityHtmlToJson(agent.activity);
+        $scope.activityHtmlToJson(agent.activity);
 
         jsonrpc({
-            'url': scope.AGENTS_URI + agent.id,
+            'url': $scope.AGENT_SERVLET + agent.id,
             'method': 'updateActivity',
             'params': {
                 'activity': agent.activity
@@ -167,17 +207,17 @@ function Ctrl() {
                 delete agent.updating;
 
                 // post process the activity
-                scope.activityJsonToHtml(activity);
+                $scope.activityJsonToHtml(activity);
 
                 agent.activity = activity;
 
-                scope.$root.$eval();
-                scope.save();
+                $scope.$apply();
+                $scope.save();
             },
             'error': function (err) {
                 delete agent.updating;
-                scope.$root.$eval();
-                scope.save();
+                $scope.$apply();
+                $scope.save();
                 console.log('error', err);
             }
         });
@@ -186,25 +226,41 @@ function Ctrl() {
     /**
      * Delete the meeting agent.
      */
-    scope.deleteMeetingAgent = function (agent) {
+    $scope.deleteMeetingAgent = function (agent) {
+        if (!confirm('Do you really want to delete MeetingAgent "' + agent.id + '"?')) {
+            return;
+        }
+
         agent.updating = true;
-
-        // pre-process the activity
-        scope.activityHtmlToJson(agent.activity);
-
         jsonrpc({
-            'url': scope.AGENTS_URI + agent.id,
-            'method': 'clear',
-            'success': function () {
-                delete agent.updating;
-                scope.removeMeetingAgent(agent);
-                scope.$root.$eval();
+            'url': $scope.MANAGEMENT_AGENT,
+            'method': 'delete',
+            'params': {
+                'id': agent.id
             },
-            'error': function (err) {
-                delete agent.updating;
-                scope.removeMeetingAgent(agent);
-                scope.$root.$eval();
-                console.log('error', err);
+            'success': function () {
+                $scope.getMeetingAgents();
+                $scope.$apply();
+            }
+        });
+    };
+
+    /**
+     * Get all calendar agents
+     */
+    $scope.getMeetingAgents = function () {
+        jsonrpc({
+            'url': $scope.MANAGEMENT_AGENT,
+            'method': 'list',
+            'params': {
+                'type': $scope.MEETINGAGENT_TYPE
+            },
+            'success': function (resp) {
+                $scope.meetingAgents = resp;
+                $scope.meetingAgents.forEach(function (agent) {
+                    $scope.getMeetingAgent(agent);
+                });
+                $scope.$apply();
             }
         });
     };
@@ -213,14 +269,14 @@ function Ctrl() {
      * Retrieve the current planned activity of the meeting agent
      * @param {Object} agent
      */
-    scope.getMeetingAgent = function (agent) {
+    $scope.getMeetingAgent = function (agent) {
         // keep track on the updateSeq, to prevent simultaneous update requests
         // coming back in the wrong order.
         var updateSeq = agent.updateSeq ? agent.updateSeq + 1 : 1;
         agent.updateSeq = updateSeq;
         agent.updating = true;
         jsonrpc({
-            'url': scope.AGENTS_URI + agent.id,
+            'url': $scope.AGENT_SERVLET + agent.id,
             'method': 'getActivity',
             'params': {},
             'success': function (activity) {
@@ -228,18 +284,18 @@ function Ctrl() {
                     delete agent.updating;
 
                     // post process the activity
-                    scope.activityJsonToHtml(activity);
+                    $scope.activityJsonToHtml(activity);
                     agent.activity = activity;
 
-                    scope.$root.$eval();
-                    scope.save();
+                    $scope.$apply();
+                    $scope.save();
                 }
             },
             'error': function (err) {
                 if (updateSeq == agent.updateSeq) {
                     delete agent.updating;
-                    scope.$root.$eval();
-                    scope.save();
+                    $scope.$apply();
+                    $scope.save();
                     console.log('error', err);
                 }
             }
@@ -250,7 +306,7 @@ function Ctrl() {
      * update all attendee urls from the id's
      * @param {Object} activity
      */
-    scope.activityHtmlToJson = function (activity) {
+    $scope.activityHtmlToJson = function (activity) {
         if (!activity.constraints) {
             activity.constraints = {};
         }
@@ -260,7 +316,7 @@ function Ctrl() {
             var attendees = activity.constraints.attendees;
             $.each(attendees, function (index, attendee) {
                 if (attendee.id) {
-                    attendee.agent = scope.AGENTS_URI + attendee.id + '/';
+                    attendee.agent = $scope.AGENT_SERVLET + attendee.id + '/';
                 }
             });
         }
@@ -277,7 +333,7 @@ function Ctrl() {
      * update all attendee ids from the urls
      * @param {Object} activity
      */
-    scope.activityJsonToHtml = function (activity) {
+    $scope.activityJsonToHtml = function (activity) {
         if (!activity) {
             return;
         }
@@ -287,7 +343,7 @@ function Ctrl() {
             var attendees = activity.constraints.attendees;
             $.each(attendees, function (index, attendee) {
                 if (attendee.agent) {
-                    var start = scope.AGENTS_URI.length;
+                    var start = $scope.AGENT_SERVLET.length;
                     attendee.id = attendee.agent.substring(start, attendee.agent.length);
                     if (attendee.id[attendee.id.length-1] == '/') {
                         attendee.id = attendee.id.substring(0, attendee.id.length - 1);
@@ -312,18 +368,36 @@ function Ctrl() {
     /**
      * Format a string containing a datetime
      * @param {String} dateTime
-     * @return {Date}
+     * @return {String} formattedDateTime
      */
-    scope.formatDateTime = function (dateTime) {
+    $scope.formatDateTime = function (dateTime) {
         var d = new Date(dateTime);
         return d.toLocaleDateString() + ', ' + d.toLocaleTimeString();
+    };
+
+    /**
+     * Build an agents url from its id
+     * @param {Object} agent
+     * @return {String} url
+     */
+    $scope.getUrl = function(agent) {
+        return $scope.AGENT_SERVLET + agent.id + '/';
+    };
+
+    /**
+     * Built the analysis url for a meeting agent
+     * @param {Object} agent
+     * @return {String}
+     */
+    $scope.getAnalysisUrl = function (agent) {
+        return 'meetingagent.html?url=' + encodeURIComponent($scope.getUrl(agent));
     };
 
     /**
      * Add an attendee to an agent
      * @param agent
      */
-    scope.addAttendee = function (agent) {
+    $scope.addAttendee = function (agent) {
         if (!agent.activity) {
             agent.activity ={};
         }
@@ -334,7 +408,7 @@ function Ctrl() {
             agent.activity.constraints.attendees = [];
         }
         agent.activity.constraints.attendees.push({});
-        scope.save();
+        $scope.save();
     };
 
     /**
@@ -342,7 +416,7 @@ function Ctrl() {
      * @param agent
      * @param attendee
      */
-    scope.removeAttendee = function (agent, attendee) {
+    $scope.removeAttendee = function (agent, attendee) {
         if (!agent.activity || ! agent.activity.constraints ||
                 !agent.activity.constraints.attendees) {
             return;
@@ -351,26 +425,26 @@ function Ctrl() {
         if (index != -1) {
             agent.activity.constraints.attendees.splice(index, 1);
         }
-        scope.setUpdated(agent);
-        scope.save();
+        $scope.setUpdated(agent);
+        $scope.save();
     };
 
     /**
      * Change the parameter optional of an attendee
+     * @param agent
      * @param attendee
-     * @param optional
      */
-    scope.toggleAttendeeOptional = function (agent, attendee) {
+    $scope.toggleAttendeeOptional = function (agent, attendee) {
         attendee.optional = attendee.optional ? false : true;
-        scope.setUpdated(agent);
-        scope.save();
+        $scope.setUpdated(agent);
+        $scope.save();
     };
 
     /**
      * Set a meeting agent as updated
      * @param {Object} agent
      */
-    scope.setUpdated = function (agent) {
+    $scope.setUpdated = function (agent) {
         if (!agent.activity) {
             agent.activity = {};
         }
@@ -378,56 +452,41 @@ function Ctrl() {
             agent.activity.status = {};
         }
         agent.activity.status.updated = new Date();
-        scope.save();
+        $scope.save();
     };
 
     /**
      * retrieve the emails from all listed calendar agents, and the status
      * of all meetingAgents
      */
-    scope.refreshAll = function () {
-        $.each(scope.calendarAgents, function(index, agent) {
-            scope.getCalendarAgent(agent);
+    $scope.refreshAll = function () {
+        $.each($scope.calendarAgents, function(index, agent) {
+            $scope.getCalendarAgent(agent);
         });
 
-        $.each(scope.meetingAgents, function(index, agent) {
-            scope.getMeetingAgent(agent);
-        });
-    };
-
-    /**
-     * update the status of all MeetingAgents
-     */
-    scope.refreshAllMeetingAgents = function () {
-        $.each(scope.meetingAgents, function(index, agent) {
-            scope.getMeetingAgent(agent);
+        $.each($scope.meetingAgents, function(index, agent) {
+            $scope.getMeetingAgent(agent);
         });
     };
 
     /**
      * Load agents from local storage
      */
-    scope.load = function() {
-        var calendarAgents = localStorage['calendarAgents'];
-        if (calendarAgents) {
-            scope.calendarAgents = JSON.parse(calendarAgents);
-        }
-        var meetingAgents = localStorage['meetingAgents'];
-        if (meetingAgents) {
-            scope.meetingAgents = JSON.parse(meetingAgents);
-        }
+    $scope.load = function() {
+        $scope.getCalendarAgents();
+        $scope.getMeetingAgents();
     };
 
     /**
      * Save agents to local storage
      */
-    scope.save = function () {
-        localStorage['calendarAgents'] = JSON.stringify(scope.calendarAgents);
-        localStorage['meetingAgents'] = JSON.stringify(scope.meetingAgents);
+    $scope.save = function () {
+        localStorage['calendarAgents'] = JSON.stringify($scope.calendarAgents);
+        localStorage['meetingAgents'] = JSON.stringify($scope.meetingAgents);
     };
 
-    scope.load();
-    scope.refreshAll();
+    $scope.load();
+    $scope.refreshAll();
 }
 
 /**

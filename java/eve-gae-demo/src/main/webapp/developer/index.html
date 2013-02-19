@@ -1,16 +1,17 @@
 <!doctype html>
-<html xmlns:ng="http://angularjs.org">
+<html ng-app="controller">
 <head>
     <title>Eve Planning Demo</title>
 
     <link type="text/css" rel="stylesheet" href="style.css">
 
     <script src='lib/jquery-1.7.2.min.js'></script>
-    <script src="lib/angular-0.9.19.min.js" ng:autobind></script>
+    <script src="lib/angular-1.0.4.min.js"></script>
+    <script src="lib/angular-resource-1.0.4.min.js"></script>
     <script src="controller.js" type="text/javascript" ></script>
 
 </head>
-<body ng:controller="Ctrl">
+<body ng-controller="Controller">
 <div id="container">
     <h1>Eve Planning Demo</h1>
     <p>
@@ -29,6 +30,11 @@
         To delete an agent permanently, click "Delete".
     </p>
 
+    <p>
+        <button ng-click="getCalendarAgents()"
+                title="Reload all calendar agents.">Refresh</button>
+    </p>
+
     <table>
         <tr>
             <th>Id</th>
@@ -36,52 +42,63 @@
             <th>Username</th>
             <th>Email</th>
             <th>Actions</th>
-            <td class="noborder">
-                <a href="" class="add" ng:click="addCalendarAgent()" title="Add an agent">&plus;</a>
-            </td>
         </tr>
-        <tr ng:repeat="agent in calendarAgents">
+        <tr ng-repeat="agent in calendarAgents">
             <td>
-                <input type="text" name="agent.id"
-                       title="Id of the CalendarAgent"
-                       placeholder="id" ng:change="getCalendarAgent(agent)"/>
+                <input type="text"
+                       ng-model="agent.id"
+                       title="Id of the calendar agent"
+                       placeholder="id" />
             </td>
             <td>
-                <a href="{{AGENTS_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
+                <a href="{{getUrl(agent)}}" target="_blank">
+                    {{agent.id}}
+                </a>
             </td>
             <td>
-                <span ng:hide="agent.usernameUpdating">{{agent.username}}</span>
-                <span ng:show="agent.usernameUpdating" class="loading">loading...</span>
+                <span ng-hide="agent.usernameUpdating">{{agent.username}}</span>
+                <span ng-show="agent.usernameUpdating" class="loading">loading...</span>
             </td>
             <td>
-                <span ng:hide="agent.emailUpdating">{{agent.email}}</span>
-                <span ng:show="agent.emailUpdating" class="loading">loading...</span>
-                <button ng:click="authorize(agent)"
-                        ng:hide="agent.email || agent.emailUpdating"
+                <span ng-hide="agent.emailUpdating">{{agent.email}}</span>
+                <span ng-show="agent.emailUpdating" class="loading">loading...</span>
+                <button ng-click="authorize(agent)"
+                        ng-hide="agent.email || agent.emailUpdating"
                         title="Give this agent access to Google Calendar">
                     Authorize</button>
             </td>
             <td>
-                <button ng:click="deleteCalendarAgent(agent)"
-                        title="Delete the agent and remove it from the list">
+                <button ng-click="deleteCalendarAgent(agent)"
+                        title="Delete the calendar agent">
                     Delete</button>
             </td>
-            <td class="noborder">
-                <a href="" class="remove" ng:click="removeCalendarAgent(agent)"
-                   title="Remove the agent from this list. The agent will not be deleted">&times;</a>
+        </tr>
+        <tr>
+            <td>
+                <input type="text"
+                       ng-model="newCalendarAgentId"
+                       title="Id for the new calendar agent"
+                       placeholder="id">
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <button ng-click="createCalendarAgent()"
+                        title="Create a new calendar agent">Create</button>
             </td>
         </tr>
     </table>
 
-    <h2>Meeting Agents</h2>
 
+    <h2>Meeting Agents</h2>
     <p>
         Meeting agents can dynamically plan a meeting for one or multiple attendees.
     </p>
 
     <p>
-        <button ng:click="refreshAllMeetingAgents()"
-                title="Refresh the state of all MeetingAgents.">Refresh All</button>
+        <button ng-click="getMeetingAgents()"
+                title="Reload all meeting agents.">Refresh</button>
     </p>
 
     <table>
@@ -92,75 +109,74 @@
             <th>Constraints</th>
             <th>Status</th>
             <th>Actions</th>
-            <td class="noborder">
-                <a href="" class="add" ng:click="addMeetingAgent()" title="Add an agent">&plus;</a>
-            </td>
         </tr>
-        <tr ng:repeat="agent in meetingAgents">
+        <tr ng-repeat="agent in meetingAgents">
             <td>
-                <input name="agent.id" type="text" placeholder="id"
+                <input ng-model="agent.id" type="text" placeholder="id"
                        title="Id of the MeetingAgent"
-                       ng:change="getMeetingAgent(agent)" />
+                       ng-change="getMeetingAgent(agent)" />
             </td>
             <td>
-                <a href="{{AGENTS_URI + agent.id + '/'}}" target="_blank">{{agent.id}}</a>
+                <a href="{{getUrl(agent)}}" target="_blank">
+                    {{agent.id}}
+                </a>
             </td>
             <td>
-                <input name="agent.activity.summary" type="text"
+                <input ng-model="agent.activity.summary" type="text"
                        title="Summary, description of the meeting"
-                       placeholder="summary" ng:change="setUpdated(agent)" />
+                       placeholder="summary" ng-change="setUpdated(agent)" />
             </td>
             <td>
                 <table>
                     <tr>
                         <td class="noborder">Location</td>
                         <td class="noborder">
-                            <input name="agent.activity.constraints.location.summary"
+                            <input ng-model="agent.activity.constraints.location.summary"
                                    type="text"
                                    title="Location for the meeting"
                                    placeholder="location"
-                                   ng:change="setUpdated(agent)" />
+                                   ng-change="setUpdated(agent)" />
                         </td>
                     </tr>
                     <tr>
                         <td class="noborder">Duration (min)</td>
                         <td class="noborder">
-                            <input name="agent.activity.constraints.time.durationMinutes"
+                            <input ng-model="agent.activity.constraints.time.durationMinutes"
                                    type="text"
                                    title="Duration in minutes"
                                    placeholder="duration (min)" value="60"
-                                   ng:change="setUpdated(agent)" />
+                                   ng-change="setUpdated(agent)" />
                         </td>
                     </tr>
                     <tr>
                         <td class="noborder">Attendees</td>
                         <td class="noborder">
                             <table>
-                                <tr ng:repeat="attendee in agent.activity.constraints.attendees">
+                                <tr ng-repeat="attendee in agent.activity.constraints.attendees">
                                     <!-- TODO: create an angular widget for the attendee.agent url -->
                                     <td class="noborder middle">
                                         <a href=""
-                                           ng:click="toggleAttendeeOptional(agent, attendee)"
-                                           ng:show="!attendee.optional"
+                                           ng-click="toggleAttendeeOptional(agent, attendee)"
+                                           ng-show="!attendee.optional"
                                            class="optional"
                                            title="Presence is required">&#x25C9;</a>
                                         <a href=""
-                                           ng:click="toggleAttendeeOptional(agent, attendee)"
-                                           ng:show="attendee.optional"
+                                           ng-click="toggleAttendeeOptional(agent, attendee)"
+                                           ng-show="attendee.optional"
                                            class="optional"
                                            title="Presence is optional">&#x25CC;</a>
                                     </td>
 
                                     <td class="noborder middle">
-                                        <input name="attendee.id" type="text"
+                                        <input ng-model="attendee.id" type="text"
                                                title="Enter the id of the Attendees CalendarAgent"
-                                               placeholder="id" ng:change="setUpdated(agent)" />
+                                               placeholder="id" ng-change="setUpdated(agent)" />
                                     </td>
 
                                     <td class="noborder middle">
-                                        <select name="attendee.responseStatus"
+                                        <select ng-model="attendee.responseStatus"
                                                 title="response status"
-                                                ng:change="setUpdated(agent)">
+                                                ng-change="setUpdated(agent)">
                                             <option value="accepted">accepted</option>
                                             <option value="tentative">tentative</option>
                                             <option value="declined">declined</option>
@@ -169,7 +185,7 @@
                                     </td>
 
                                     <td class="noborder middle">
-                                        <a href="" class="remove" ng:click="removeAttendee(agent, attendee)"
+                                        <a href="" class="remove" ng-click="removeAttendee(agent, attendee)"
                                            title="Remove Attendee">&times;</a>
                                     </td>
                                 </tr>
@@ -178,7 +194,7 @@
                                     <td class="noborder middle"></td>
                                     <td class="noborder middle"></td>
                                     <td class="noborder middle">
-                                        <a href="" class="add" ng:click="addAttendee(agent)"
+                                        <a href="" class="add" ng-click="addAttendee(agent)"
                                            title="Add an attendee">&plus;</a>
                                     </td>
                                 </tr>
@@ -188,43 +204,53 @@
                 </table>
             </td>
             <td style="min-width:260px">
-                <span ng:show="!agent.updating">
-                    <span ng:show="agent.activity.status.start">
+                <span ng-show="!agent.updating">
+                    <span ng-show="agent.activity.status.start">
                         Start: {{ formatDateTime(agent.activity.status.start) }}
                         <br>
                     </span>
-                    <span ng:show="agent.activity.status.end">
+                    <span ng-show="agent.activity.status.end">
                         End: {{ formatDateTime(agent.activity.status.end) }}
                         <br>
                     </span>
-                    <span ng:show="agent.activity.status.activityStatus">
+                    <span ng-show="agent.activity.status.activityStatus">
                         Status: {{ agent.activity.status.activityStatus }}
                         <br>
                     </span>
+                    <span>
+                        <a href="{{getAnalysisUrl(agent)}}" target="_blank">show analysis</a>
+                    </span>
                 </span>
-                <span ng:show="agent.updating" class="loading">loading...</span>
+                <span ng-show="agent.updating" class="loading">loading...</span>
             </td>
             <td>
-                <button ng:click="updateMeetingAgent(agent)"
-                        disabled="{{agent.updating}}"
+                <button ng-click="updateMeetingAgent(agent)"
+                        ng-disabled="{{agent.updating}}"
                         title="Let the MeetingAgent perform an update: synchronize the event">
                     Update</button>
-                <button ng:click="deleteMeetingAgent(agent)"
-                        disabled="{{agent.updating}}"
-                        title="Delete the meeting agent. All created calendar events will be removed.">
+                <button ng-click="deleteMeetingAgent(agent)"
+                        ng-disabled="{{agent.updating}}"
+                        title="Delete the meeting agent. The created calendar events will be removed.">
                     Delete</button>
-                    
-                <!-- TODO: implement delete
-                <button ng:click="deleteCalendarAgent(agent)"
-                        title="Delete the agent and remove it from the list">
-                    Delete</button>
-                -->
-            </td>
-            <td class="noborder">
-                <a href="" class="remove" ng:click="removeMeetingAgent(agent)"
-                   title="Remove the agent from this list. The agent will not be deleted">&times;</a>
             </td>
         </tr>
+        <tr>
+            <td>
+                <input type="text"
+                       ng-model="newMeetingAgentId"
+                       title="Id for the new meeting agent"
+                       placeholder="id">
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <button ng-click="createMeetingAgent()"
+                        title="Create a new meeting agent">Create</button>
+            </td>
+        </tr>
+
     </table>
 </div>
 </body>

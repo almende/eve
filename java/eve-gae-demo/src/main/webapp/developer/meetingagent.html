@@ -20,7 +20,7 @@
             padding: 3px;
         }
 
-        #agent {
+        #url {
             width: 400px;
         }
 
@@ -36,6 +36,7 @@
 
     <script type="text/javascript" src="lib/timeline/timeline-min.js"></script>
     <script type="text/javascript" src='lib/jquery-1.7.2.min.js'></script>
+    <script type="text/javascript" src='lib/queryparams.js'></script>
 
     <script>
         var timeline = null;
@@ -161,9 +162,7 @@
         }
 
 
-        function loadData () {
-            var url = document.getElementById('agent').value;
-
+        function loadData (url) {
             jsonrpc({
                 "url": url,
                 "method": "getIntervals",
@@ -251,11 +250,12 @@
 </head>
 
 <body onload="loadPage();">
-    <p>
+    <form action="meetingagent.html" method="get">
         MeetingAgent
-        <input id="agent" type="text" value="http://localhost:8888/agents/meetingagent/1/" />
-        <button id="load" onclick="loadData()">load</button>
-    </p>
+        <input id="url" name="url" type="text" value="http://server/agents/meetingagent1/" />
+        <input type="submit" value="load" />
+    </form>
+
 
     <h3>Individual intervals</h3>
     <div id="timeline"></div>
@@ -266,5 +266,17 @@
     <h3>Solutions</h3>
     <div id="solutionsTimeline"></div>
 
+    <script type="text/javascript">
+        var queryParams = new QueryParams();
+        var url = queryParams.getValue('url');
+        if (url) {
+            document.getElementById('url').value = url;
+            loadData(url);
+        }
+        else {
+            document.getElementById('url').value = document.location.origin +
+                    '/agents/meetingagent1/'
+        }
+    </script>
 </body>
 </html>
