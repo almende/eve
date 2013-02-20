@@ -88,7 +88,7 @@ public class AgentFactory {
 	static {
         STATE_FACTORIES.put("FileStateFactory", "com.almende.eve.state.FileStateFactory");
         STATE_FACTORIES.put("MemoryStateFactory", "com.almende.eve.state.MemoryStateFactory");
-        STATE_FACTORIES.put("DatastoreContextFactory", "com.almende.eve.state.google.DatastoreContextFactory");
+        STATE_FACTORIES.put("DatastoreStateFactory", "com.almende.eve.state.google.DatastoreStateFactory");
     }
 
 	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
@@ -613,6 +613,11 @@ public class AgentFactory {
 				logger.warning("Use of config parameter 'context' is deprecated, please use 'state' instead.");
 				configName="context";
 			}
+		}
+		
+		if ("FileContextFactory".equals(className)){
+			logger.warning("Use of Classname FileContextFactory is deprecated, please use 'FileStateFactory' instead.");
+			className="FileStateFactory";
 		}
 		
 		// Recognize known classes by their short name,
