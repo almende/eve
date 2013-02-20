@@ -8,19 +8,19 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @class MemoryState
  * 
- * A context for an Eve Agent, which stores the data in memory.
+ * A state for an Eve Agent, which stores the data in memory.
  * (After a restart of the application, the data will be gone!)
  * 
- * The context provides general information for the agent (about itself,
+ * The state provides general information for the agent (about itself,
  * the environment, and the system configuration), and the agent can store its 
- * state in the context. 
- * The context extends a standard Java Map.
+ * state in the state. 
+ * The state extends a standard Java Map.
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
  *     FileState state = new State("agentId");<br>
- *     context.put("key", "value");<br>
- *     System.out.println(context.get("key")); // "value"<br>
+ *     state.put("key", "value");<br>
+ *     System.out.println(state.get("key")); // "value"<br>
  * 
  * @author jos
  */

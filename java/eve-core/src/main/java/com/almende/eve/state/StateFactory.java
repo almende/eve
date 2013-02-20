@@ -13,28 +13,28 @@ public abstract class StateFactory {
 	}
 	
 	/**
-	 * Get context with given id. Returns null if not found
+	 * Get state with given id. Returns null if not found
 	 * @param agentId
-	 * @return context
+	 * @return state
 	 */
 	public abstract State get(String agentId);
 	
 	/**
-	 * Create a context with given id. Will throw an exception when already
+	 * Create a state with given id. Will throw an exception when already
 	 * existing.
 	 * @param agentId
-	 * @return context
+	 * @return state
 	 */
 	public abstract State create(String agentId) throws Exception;
 	
 	/**
-	 * Delete a context. If the context does not exist, nothing will happen.
+	 * Delete a state. If the state does not exist, nothing will happen.
 	 * @param agentId
 	 */
 	public abstract void delete(String agentId) throws Exception;
 	
 	/**
-	 * Test if a context with given id exists.
+	 * Test if a state with given id exists.
 	 * @param agentId
 	 * @return exists
 	 */

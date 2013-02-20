@@ -12,7 +12,7 @@ public class LogAgent extends Agent {
 	
 	public void log(Log log) {
 		@SuppressWarnings("unchecked")
-		// TODO: use a database instead of the context - when you register
+		// TODO: use a database instead of the state - when you register
 		//       more and more logs this will be very unreliable.
 		List<Log> logs = (List<Log>) getState().get("logs");
 		if (logs == null) {

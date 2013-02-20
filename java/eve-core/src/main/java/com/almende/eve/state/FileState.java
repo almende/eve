@@ -7,19 +7,19 @@ import java.util.Set;
 /**
  * @class FileState
  * 
- * A context for an Eve Agent, which stores the data on disk.
+ * A persistent state for an Eve Agent, which stores the data on disk.
  * Data is stored in the path provided by the configuration file.
  * 
- * The context provides general information for the agent (about itself,
- * the environment, and the system configuration), and the agent can store its 
- * state in the context. 
- * The context extends a standard Java Map.
+ * The state provides general information for the agent (about itself,
+ * the environment, and the system configuration), and the agent can store 
+ * persistent data in the state. 
+ * The state extends a standard Java Map.
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
  *     State state = new State("agentId");<br>
- *     context.put("key", "value");<br>
- *     System.out.println(context.get("key")); // "value"<br>
+ *     state.put("key", "value");<br>
+ *     System.out.println(state.get("key")); // "value"<br>
  * 
  * @author jos
  */

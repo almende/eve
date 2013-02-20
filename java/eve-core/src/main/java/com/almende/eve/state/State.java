@@ -5,17 +5,17 @@ import java.util.Map;
 /**
  * @class State
  * 
- * An interface for a context for Eve agents.
- * The context provides general information for the agent (about itself,
- * the environment, and the system configuration), and the agent can store its 
- * state in the context. 
- * The context extends a standard Java Map.
+ * An interface for a state for Eve agents.
+ * The state provides general information for the agent (about itself,
+ * the environment, and the system configuration), and the agent can store 
+ * persistent data in the state. 
+ * The state extends a standard Java Map.
  * 
  * Usage:<br>
  *     AgentFactory factory = AgentFactory(config);<br>
  *     State state = new State("agentId");<br>
- *     context.put("key", "value");<br>
- *     System.out.println(context.get("key")); // "value"<br>
+ *     state.put("key", "value");<br>
+ *     System.out.println(state.get("key")); // "value"<br>
  * 
  * @author jos
  */
@@ -50,7 +50,7 @@ public abstract class State implements Map<String, Object> {
 	 * @return agentType
 	 */
 	public synchronized void setAgentType(Class<?> agentType) {
-		// TODO: dangerous to use a generic context parameter to store the agent class, can be accidentally overwritten 
+		// TODO: dangerous to use a generic state parameter to store the agent class, can be accidentally overwritten 
 		put(KEY_AGENT_TYPE, agentType.getName());
 	}
 	

@@ -38,7 +38,7 @@ import com.almende.util.ClassUtil;
  * 
  * An AgentFactory must be instantiated with a valid Eve configuration file.
  * This configuration is needed to load the configured agent classes and 
- * instantiate a context for each agent.
+ * instantiate a state for each agent.
  * 
  * Example usage:
  *     // generic constructor
@@ -63,12 +63,12 @@ import com.almende.util.ClassUtil;
  *     // create a new agent
  *     Agent agent = factory.createAgent(agentType, agentId);
  *     String desc = agent.getDescription(); // use the agent
- *     agent.destroy(); // neatly shutdown the agents context
+ *     agent.destroy(); // neatly shutdown the agents state
  *     
  *     // instantiate an existing agent
  *     Agent agent = factory.getAgent(agentId);
  *     String desc = agent.getDescription(); // use the agent
- *     agent.destroy(); // neatly shutdown the agents context
+ *     agent.destroy(); // neatly shutdown the agents state
  * 
  * @author jos
  */
@@ -224,7 +224,7 @@ public class AgentFactory {
 	 * Get an agent by its id. Returns null if the agent does not exist
 	 * 
 	 * Before deleting the agent, the method agent.destroy() must be executed
-	 * to neatly shutdown the instantiated context.
+	 * to neatly shutdown the instantiated state.
 	 * 
 	 * @param agentId
 	 * @return agent
@@ -331,7 +331,7 @@ public class AgentFactory {
 	 * Create an agent.
 	 * 
 	 * Before deleting the agent, the method agent.destroy() must be executed
-	 * to neatly shutdown the instantiated context.
+	 * to neatly shutdown the instantiated state.
 	 * 
 	 * @param agentType  full class path
 	 * @param agentId
@@ -346,7 +346,7 @@ public class AgentFactory {
 	 * Create an agent.
 	 * 
 	 * Before deleting the agent, the method agent.destroy() must be executed
-	 * to neatly shutdown the instantiated context.
+	 * to neatly shutdown the instantiated state.
 	 * 
 	 * @param agentType
 	 * @param agentId
@@ -407,7 +407,7 @@ public class AgentFactory {
 		}
 
 		try {
-			// delete the context, even if the agent.destroy or agent.delete
+			// delete the state, even if the agent.destroy or agent.delete
 			// failed.
 			getStateFactory().delete(agentId);
 		}
@@ -615,9 +615,18 @@ public class AgentFactory {
 			}
 		}
 		
+		// TODO: deprecated since "2013-02-20"
 		if ("FileContextFactory".equals(className)){
 			logger.warning("Use of Classname FileContextFactory is deprecated, please use 'FileStateFactory' instead.");
 			className="FileStateFactory";
+		}
+		if ("MemoryContextFactory".equals(className)){
+			logger.warning("Use of Classname MemoryContextFactory is deprecated, please use 'MemoryStateFactory' instead.");
+			className="MemoryStateFactory";
+		}
+		if ("DatastoreContextFactory".equals(className)){
+			logger.warning("Use of Classname DatastoreContextFactory is deprecated, please use 'DatastoreStateFactory' instead.");
+			className="DatastoreStateFactory";
 		}
 		
 		// Recognize known classes by their short name,
@@ -638,7 +647,7 @@ public class AgentFactory {
 						" must extend " + State.class.getName());
 			}
 	
-			// instantiate the context factory
+			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
 			StateFactory stateFactory = (StateFactory) stateClass
 					.getConstructor(AgentFactory.class, Map.class )
@@ -680,7 +689,7 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Set a state factory. The context factory is used to get/create/delete
+	 * Set a state factory. The state factory is used to get/create/delete
 	 * an agents state.
 	 * @param stateFactory
 	 */

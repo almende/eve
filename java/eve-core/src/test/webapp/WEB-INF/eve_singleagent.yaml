@@ -1,8 +1,8 @@
 # Eve singleagent settings
 
 # The context for reading and writing persistent data
-context:
-  class: FileContextFactory
+state:
+  class: FileStateFactory
   path: .eveagents
   
 # scheduler settings

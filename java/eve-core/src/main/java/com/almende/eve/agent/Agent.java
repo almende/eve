@@ -136,11 +136,18 @@ abstract public class Agent implements AgentInterface {
 		this.state = state;
 	}
 
+	/**
+	 * Get the agents state. The state contains methods get, put, etc. to
+	 * write properties into a persistent state.
+	 * @param state
+	 * @deprecated  Use getState() instead.
+	 */
+	@Deprecated
 	@Access(AccessType.UNAVAILABLE)
-	final public void setContext(State state) {
-		this.setState(state);
+	final public State getContext() {
+		return state;
 	}
-	
+
 	/**
 	 * Get the agents state. The state contains methods get, put, etc. to
 	 * write properties into a persistent state.
@@ -148,11 +155,6 @@ abstract public class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public State getState() {
-		return state;
-	}
-
-	@Access(AccessType.UNAVAILABLE)
-	final public State getContext() {
 		return getState();
 	}
 	

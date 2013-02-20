@@ -159,7 +159,7 @@ public class ChatAgent extends Agent {
 		List<String> type = new ArrayList<String>();
 		List<String> otherConnections = send(url, "getConnections", type.getClass());
 
-		// get my own connections from the context
+		// get my own connections from the state
 		String urlSelf = getMyUrl();
 		List<String> connections = (List<String>) getState().get("connections"); 
 		if (connections == null) {	

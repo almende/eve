@@ -19,8 +19,8 @@ public class TestXmpp {
 		
 		// instantiate an agent factory (without config file)
 		AgentFactory factory = new AgentFactory();
-		FileStateFactory contextFactory = new FileStateFactory(factory, ".eveagents");
-		factory.setStateFactory(contextFactory);
+		FileStateFactory stateFactory = new FileStateFactory(factory, ".eveagents");
+		factory.setStateFactory(stateFactory);
 		//String host = "ec2-54-246-112-19.eu-west-1.compute.amazonaws.com";
 		String host = "openid.almende.org";
 		int port = 5222;

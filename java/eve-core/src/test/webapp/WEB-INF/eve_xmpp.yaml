@@ -7,9 +7,9 @@ transport_services:
   port: 5222
   service: openid.almende.org
 
-# context settings
-context:
-  class: FileContextFactory
+# state settings
+state:
+  class: FileStateFactory
   path: .eveagents
 
 # scheduler settings

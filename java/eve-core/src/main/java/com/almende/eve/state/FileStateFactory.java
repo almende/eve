@@ -32,7 +32,7 @@ public class FileStateFactory extends StateFactory {
 		if (path == null) {
 			path = ".eveagents";
 			logger.warning(
-				"Config parameter 'context.path' missing in Eve " +
+				"Config parameter 'state.path' missing in Eve " +
 				"configuration. Using the default path '" + path + "'");
 		}
 		if (!path.endsWith("/")) path += "/";
@@ -53,9 +53,9 @@ public class FileStateFactory extends StateFactory {
 	}
 	
 	/**
-	 * Get context with given id. Will return null if not found
+	 * Get state with given id. Will return null if not found
 	 * @param agentId
-	 * @return context
+	 * @return state
 	 */
 	@Override
 	public FileState get(String agentId) {
@@ -66,30 +66,30 @@ public class FileStateFactory extends StateFactory {
 	}
 
 	/**
-	 * Create a context with given id. Will throw an exception when already.
+	 * Create a state with given id. Will throw an exception when already.
 	 * existing.
 	 * @param agentId
-	 * @return context
+	 * @return state
 	 */
 	@Override
 	public synchronized FileState create(String agentId) throws Exception {
 		if (exists(agentId)) {
-			throw new Exception("Cannot create context, " + 
-					"context with id '" + agentId + "' already exists.");
+			throw new Exception("Cannot create state, " + 
+					"state with id '" + agentId + "' already exists.");
 		}
 		
 		// store the new (empty) file
-		// TODO: it is not so nice solution to create an empty file to mark the context as created.		
+		// TODO: it is not so nice solution to create an empty file to mark the state as created.		
 		String filename = getFilename(agentId);
 		File file = new File(filename);
 		file.createNewFile();
 		
-		// instantiate the context
+		// instantiate the state
 		return new ConcurrentFileState(agentId, filename);
 	}
 	
 	/**
-	 * Delete a context. If the context does not exist, nothing will happen.
+	 * Delete a state. If the state does not exist, nothing will happen.
 	 * @param agentId
 	 */
 	@Override
@@ -101,7 +101,7 @@ public class FileStateFactory extends StateFactory {
 	}
 
 	/**
-	 * Test if a context with given agentId exists
+	 * Test if a state with given agentId exists
 	 * @param agentId
 	 */
 	@Override
@@ -112,7 +112,7 @@ public class FileStateFactory extends StateFactory {
 
 	/**
 	 * Get the current environment. 
-	 * In case of a file context, it tries to read the environment name from a 
+	 * In case of a file state, it tries to read the environment name from a 
 	 * file called "_environment", on error/non-existence this will return "Production".
 	 * 
 	 * @return environment

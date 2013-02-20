@@ -14,10 +14,10 @@ transport_services:
   port: 5222
   service: openid.almende.org
 
-# context settings
-# the context is used to persist the agents state.
-context:
-  class: FileContextFactory
+# state settings
+# the state is used to persist the agents state.
+state:
+  class: FileStateFactory
   path: .eveagents
 
 # scheduler settings

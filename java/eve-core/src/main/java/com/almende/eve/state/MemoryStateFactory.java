@@ -19,9 +19,9 @@ public class MemoryStateFactory extends StateFactory {
 	}
 
 	/**
-	 * Get context with given id. Will return null if not found
+	 * Get state with given id. Will return null if not found
 	 * @param agentId
-	 * @return context
+	 * @return state
 	 */
 	@Override
 	public MemoryState get(String agentId) {
@@ -32,13 +32,13 @@ public class MemoryStateFactory extends StateFactory {
 	 * Create a state with given id. Will throw an exception when already.
 	 * existing.
 	 * @param agentId
-	 * @return context
+	 * @return state
 	 */
 	@Override
 	public synchronized MemoryState create(String agentId) throws Exception {
 		if (states.containsKey(agentId)) {
-			throw new Exception("Cannot create context, " + 
-					"context with id '" + agentId + "' already exists.");
+			throw new Exception("Cannot create state, " + 
+					"state with id '" + agentId + "' already exists.");
 		}
 		
 		MemoryState state = new MemoryState(agentId); 
@@ -48,7 +48,7 @@ public class MemoryStateFactory extends StateFactory {
 	}
 	
 	/**
-	 * Delete a state. If the context does not exist, nothing will happen.
+	 * Delete a state. If the state does not exist, nothing will happen.
 	 * @param agentId
 	 */
 	@Override
@@ -68,7 +68,7 @@ public class MemoryStateFactory extends StateFactory {
 
 	/**
 	 * Get the current environment, "Production" or "Development". 
-	 * In case of a memory context, this will always return "Production".
+	 * In case of a memory state, this will always return "Production".
 	 * @return environment
 	 */
 	@Override

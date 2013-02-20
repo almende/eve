@@ -25,12 +25,12 @@ import java.util.logging.Logger;
 /**
  * @class FileState
  * 
- *        A context for an Eve Agent, which stores the data on disk. Data is
- *        stored in the path provided by the configuration file.
+ *        A persistent state for an Eve Agent, which stores the data on disk. 
+ *        Data is stored in the path provided by the configuration file.
  * 
- *        The context provides general information for the agent (about itself,
+ *        The state provides general information for the agent (about itself,
  *        the environment, and the system configuration), and the agent can
- *        store its state in the context. The context extends a standard Java
+ *        store its state in the state. The state extends a standard Java
  *        Map.
  * 
  *        All operations on this FileState are thread-safe. It also provides two
@@ -39,9 +39,9 @@ import java.util.logging.Logger;
  *        Usage:<br>
  *        AgentFactory factory = new AgentFactory(config);<br>
  *        ConcurrentFileState state = new
- *        ConcurrentFileState("agentId",".eveagents");<br>
- *        context.put("key", "value");<br>
- *        System.out.println(context.get("key")); // "value"<br>
+ *            ConcurrentFileState("agentId",".eveagents");<br>
+ *        state.put("key", "value");<br>
+ *        System.out.println(state.get("key")); // "value"<br>
  * 
  * @author jos
  * @author ludo
