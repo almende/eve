@@ -25,24 +25,16 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
-public class GaeSchedulerFactory implements SchedulerFactory {
-	public GaeSchedulerFactory (AgentFactory agentFactory, 
-			Map<String, Object> params) {
-		init(agentFactory);
+public class GaeSchedulerFactory extends SchedulerFactory {
+	/**
+	 * This constructor is called when constructed by the AgentFactory
+	 * @param params
+	 */
+	public GaeSchedulerFactory (Map<String, Object> params) {
+		TwigUtil.register(GaeTask.class);
 	}
 	
-	public GaeSchedulerFactory (AgentFactory agentFactory) {
-		init(agentFactory);
-	}
-
-	/**
-	 * Initialize the scheduler factory, register classes at the datastore
-	 * factory.
-	 * @param agentFactory
-	 */
-	private void init(AgentFactory agentFactory) {
-		this.agentFactory = agentFactory;
-		
+	public GaeSchedulerFactory () {
 		TwigUtil.register(GaeTask.class);
 	}
 	
@@ -165,6 +157,12 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	}
 	
 	private AgentFactory agentFactory = null;
+
+	@Override
+	public void bootstrap() {
+		// TODO Auto-generated method stub
+		
+	}
 
 	// private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

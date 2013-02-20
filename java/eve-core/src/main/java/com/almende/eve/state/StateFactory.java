@@ -6,9 +6,23 @@ import java.util.Map;
 import com.almende.eve.agent.AgentFactory;
 
 public abstract class StateFactory {
-	protected StateFactory () {}
+	protected AgentFactory agentFactory = null;	protected StateFactory () {}
 	
-	public StateFactory (AgentFactory agentFactory, Map<String, Object> params) {
+	public StateFactory (Map<String, Object> params) {}
+
+	/**
+	 * Perform bootstrap tasks. bootstrap is called by the AgentFactory
+	 * after the agentfactory is fully initialized.
+	 */
+	public abstract void bootstrap();
+
+	/**
+	 * Set the agent factory for this transport service.
+	 * This method is called by the AgentFactory itself when the TransportService
+	 * is added to the agentFactory using addTransportService
+	 * @param agentFactory
+	 */
+	public final void setAgentFactory(AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -52,6 +66,4 @@ public abstract class StateFactory {
 		data.put("type", this.getClass().getName());
 		return data.toString();
 	}
-	
-	protected AgentFactory agentFactory = null;
 }

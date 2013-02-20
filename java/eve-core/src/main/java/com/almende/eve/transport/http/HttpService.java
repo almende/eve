@@ -16,31 +16,41 @@ import com.almende.eve.transport.TransportService;
 import com.almende.util.HttpUtil;
 
 public class HttpService extends TransportService {
-	public HttpService(AgentFactory agentFactory) {
-		super(agentFactory);
-	}
+	protected String servletUrl = null;
+	protected List<String> protocols = Arrays.asList("http", "https");
+	//protected List<String> protocols = new ArrayList<String>();
+	
+	public HttpService() {}
 	
 	/**
-	 * Initialize the transport service with a set of parameters
+	 * Construct an HttpService
+	 * This constructor is called when the TransportService is constructed
+	 * by the AgentFactory
+	 * @param agentFactory
 	 * @param params   Available parameters:
 	 *                 {String} servlet_url
 	 */
-	@Override
-	// TODO: make init private and call from the constructor.
-	public void init(Map<String, Object> params) {
+	public HttpService(AgentFactory agentFactory, Map<String, Object> params) {
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}
 	}
 	
 	/**
-	 * Initialize the service
+	 * Construct an HttpService
 	 * @param servletUrl
 	 */
-	// TODO: make init private and call from the constructor.
-	public void init(String servletUrl) {
+	public HttpService(String servletUrl) {
 		setServletUrl(servletUrl);
 	}
+	
+	/**
+	 * Bootstrap the transport service
+	 * This method is called by the AgentFactory after it is fully initialized 
+	 * @param agentFactory
+	 */
+	@Override
+	public void bootstrap() {}
 	
 	/**
 	 * Set the servlet url for the transport service. 
@@ -236,8 +246,4 @@ public class HttpService extends TransportService {
 		data.put("protocols", protocols);
 		return data.toString();
 	}
-	
-	protected String servletUrl = null;
-	protected List<String> protocols = Arrays.asList("http", "https");
-	//protected List<String> protocols = new ArrayList<String>();
 }

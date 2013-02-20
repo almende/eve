@@ -163,7 +163,7 @@ public class GaeXmppServlet extends HttpServlet {
 					"Cannot initialize GaeXmppService: no AgentFactory initialized.");
 		}
 
-		xmppService = new GaeXmppService(agentFactory); 
+		xmppService = new GaeXmppService(); 
 		agentFactory.addTransportService(xmppService);
 	}
 }

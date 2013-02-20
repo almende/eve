@@ -149,7 +149,7 @@ public class SingleAgentServlet extends HttpServlet {
 		String servletUrl = getInitParameter(envParam);
 		if (servletUrl == null) {
 			// if no environment specific servlet_url is defined, read the global servlet_url
-			servletUrl = getInitParameter("servlet_url");
+			servletUrl = getInitParameter(globalParam);
 		}
 		if (servletUrl == null) {
 			throw new Exception("Cannot initialize HttpTransport: " +
@@ -157,8 +157,7 @@ public class SingleAgentServlet extends HttpServlet {
 					"missing in servlet configuration web.xml.");
 		}
 		
-		httpTransport = new HttpService(agentFactory); 
-		httpTransport.init(servletUrl);
+		httpTransport = new HttpService(servletUrl); 
 		agentFactory.addTransportService(httpTransport);
 	}
 	

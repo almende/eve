@@ -113,16 +113,28 @@ public class AgentFactory {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
 	public AgentFactory () {
-		addTransportService(new HttpService(this));
+		addTransportService(new HttpService());
 		agents = new AgentCache();
 	}
 	
 	/**
 	 * Construct an AgentFactory and initialize the configuration
 	 * @param config
-	 * @throws Exception
 	 */
 	public AgentFactory(Config config) throws Exception {
+		this(config, null);
+	}
+	
+	/**
+	 * Construct an AgentFactory and initialize the configuration
+	 * @param config
+	 * @param bootstrap    If true or undefined (default), all services
+	 *                     are bootstrapped on creation of the factory.
+	 *                     When true, one has to perform the initialize action
+	 *                     by itself later on.
+     * @throws Exception
+	 */
+	public AgentFactory(Config config, Boolean bootstrap) throws Exception {
 		this.config = config;
 
 		if (config != null) {
@@ -130,16 +142,19 @@ public class AgentFactory {
 			// then the state and transport services, and lastly scheduler.
 			agents = new AgentCache(config);
 			
-			initStateFactory(config);
-			initTransportServices(config);
-			initSchedulerFactory(config);
-			initBootstrap(config);
+			loadStateFactory(config);
+			loadTransportServices(config);
+			loadSchedulerFactory(config);
 		}
 		else {
 			agents = new AgentCache();
 		}
 
-		addTransportService(new HttpService(this));
+		addTransportService(new HttpService());
+		
+		if (bootstrap == null || bootstrap == true) {
+			bootstrap();
+		}
 	}
 	
 	/**
@@ -170,7 +185,7 @@ public class AgentFactory {
 	 */
 	public static synchronized AgentFactory createInstance() 
 			throws Exception{
-		return createInstance(null, null);
+		return createInstance(null, null, null);
 	}
 	
 	/**
@@ -180,7 +195,21 @@ public class AgentFactory {
 	 */
 	public static synchronized AgentFactory createInstance(Config config) 
 			throws Exception{
-		return createInstance(null, config);
+		return createInstance(null, config, null);
+	}
+	
+	/**
+	 * Create a shared AgentFactory instance with the default namespace "default"
+	 * @param config
+	 * @param bootstrap    If true or undefined (default), all services
+	 *                     are bootstrapped on creation of the factory.
+	 *                     When true, one has to perform the initialize action
+	 *                     by itself later on.
+	 * @return factory
+	 */
+	public static synchronized AgentFactory createInstance(Config config, 
+			Boolean bootstrap) throws Exception{
+		return createInstance(null, config, bootstrap);
 	}
 
 	/**
@@ -190,7 +219,18 @@ public class AgentFactory {
 	 */
 	public static synchronized AgentFactory createInstance(String namespace) 
 			throws Exception {
-		return createInstance(namespace, null);
+		return createInstance(namespace, null, null);
+	}
+	/**
+	 * Create a shared AgentFactory instance with a specific namespace
+	 * @param namespace
+	 * @param config       If null, a non-configured AgentFactory will be
+	 *                     created.
+	 * @return factory
+	 */
+	public static synchronized AgentFactory createInstance(String namespace, 
+			Config config) throws Exception {
+		return createInstance(namespace, config, null);
 	}
 	
 	/**
@@ -198,11 +238,15 @@ public class AgentFactory {
 	 * @param namespace    If null, "default" namespace will be loaded.
 	 * @param config       If null, a non-configured AgentFactory will be
 	 *                     created.
+	 * @param bootstrap    If true or undefined (default), all services
+	 *                     are bootstrapped on creation of the factory.
+	 *                     When true, one has to perform the initialize action
+	 *                     by itself later on.
 	 * @return factory
 	 * @throws Exception
 	 */
 	public static synchronized AgentFactory createInstance(String namespace, 
-			Config config) throws Exception {
+			Config config, Boolean bootstrap) throws Exception {
 		if (namespace == null) {
 			namespace = "default";
 		}
@@ -214,7 +258,7 @@ public class AgentFactory {
 					"Use getInstance instead to get the existing shared instance.");
 		}
 		
-		AgentFactory factory = new AgentFactory(config);
+		AgentFactory factory = new AgentFactory(config, bootstrap);
 		factories.put(namespace, factory);
 		
 		return factory;
@@ -593,12 +637,30 @@ public class AgentFactory {
 	}
 	
 	/**
+	 * Bootstrap all transport services, the scheduler, and agent creation.
+	 * This will restore open connections and scheduled tasks after a system
+	 * restart
+	 */
+	public void bootstrap() {
+		// bootstrap all transport services
+		for (TransportService transport : transportServices) {
+			transport.bootstrap();
+		}
+		
+		// bootstrap the scheduler
+		schedulerFactory.bootstrap();
+		
+		// bootstrap agent creation
+		bootstrapAgents();
+	}
+	
+	/**
 	 * Initialize the state factory. The class is read from the provided 
 	 * configuration file.
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initStateFactory(Config config) {
+	private void loadStateFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -650,8 +712,8 @@ public class AgentFactory {
 			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
 			StateFactory stateFactory = (StateFactory) stateClass
-					.getConstructor(AgentFactory.class, Map.class )
-					.newInstance(this, params);
+					.getConstructor(Map.class )
+					.newInstance(params);
 
 			setStateFactory(stateFactory);
 			logger.info("Initialized state factory: " + stateFactory.toString());
@@ -666,7 +728,7 @@ public class AgentFactory {
 	 * This will create the configured agents when they are not yet existing.
 	 * @param config
 	 */
-	private void initBootstrap (Config config) {
+	private void bootstrapAgents () {
 		Map<String, String> agents = config.get("bootstrap", "agents");
 		if (agents != null) {
 			for (Entry<String, String> entry : agents.entrySet()) {
@@ -694,6 +756,7 @@ public class AgentFactory {
 	 * @param stateFactory
 	 */
 	public void setStateFactory(StateFactory stateFactory) {
+		stateFactory.setAgentFactory(this);
 		this.stateFactory = stateFactory;
 	}
 
@@ -714,7 +777,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initSchedulerFactory(Config config) {
+	private void loadSchedulerFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -760,7 +823,7 @@ public class AgentFactory {
 		try {
 			// get the class
 			Class<?> schedulerClass = Class.forName(className);
-			if (!ClassUtil.hasInterface(schedulerClass, SchedulerFactory.class)) {
+			if (!ClassUtil.hasSuperClass(schedulerClass, SchedulerFactory.class)) {
 				throw new IllegalArgumentException(
 						"Scheduler class " + schedulerClass.getName() + 
 						" must implement " + SchedulerFactory.class.getName());
@@ -768,8 +831,8 @@ public class AgentFactory {
 			
 			// initialize the scheduler factory
 			SchedulerFactory schedulerFactory = (SchedulerFactory) schedulerClass
-						.getConstructor(AgentFactory.class, Map.class )
-						.newInstance(this, params);
+						.getConstructor(Map.class )
+						.newInstance(params);
 
 			setSchedulerFactory(schedulerFactory);
 			
@@ -786,7 +849,7 @@ public class AgentFactory {
 	 * (for example http and xmpp services).
 	 * @param config
 	 */
-	private void initTransportServices(Config config) {
+	private void loadTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
 			e.printStackTrace();
@@ -853,9 +916,8 @@ public class AgentFactory {
 					// initialize the transport service
 					Class<?> transportClass = Class.forName(className);
 					TransportService transport = (TransportService) transportClass
-							.getConstructor(AgentFactory.class)
-							.newInstance(this);
-					transport.init(transportParams);
+							.getConstructor(Map.class)
+							.newInstance(transportParams);
 
 					// register the service with the agent factory
 					addTransportService(transport);
@@ -878,6 +940,7 @@ public class AgentFactory {
 	 * @param transportService
 	 */
 	public void addTransportService(TransportService transportService) {
+		transportService.setAgentFactory(this);
 		transportServices.add(transportService);
 		logger.info("Registered transport service: " + transportService.toString());
 	}
@@ -942,6 +1005,7 @@ public class AgentFactory {
 	 * @param schedulerFactory
 	 */
 	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
+		schedulerFactory.setAgentFactory(this);
 		this.schedulerFactory = schedulerFactory;
 	}
 

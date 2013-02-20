@@ -9,9 +9,17 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 
 public abstract class TransportService {
-	public TransportService(AgentFactory agentFactory) {
-		this.agentFactory = agentFactory;
-	}
+	protected AgentFactory agentFactory = null;
+
+	public TransportService() {}
+	
+	/**
+	 * Construct a TransportService from a set of parameters
+	 * This constructor is called when the TransportService is constructed
+	 * by the AgentFactory
+	 * @param params
+	 */
+	public TransportService(Map<String, Object> params) {}
 	
 	/**
 	 * Get the url of an agent from its id.
@@ -56,10 +64,21 @@ public abstract class TransportService {
 	*/
 	
 	/**
-	 * Initialize the transport service with a set of parameters
-	 * @param params
+	 * Set the agent factory for this transport service.
+	 * This method is called by the AgentFactory itself when the TransportService
+	 * is added to the agentFactory using addTransportService
+	 * @param agentFactory
 	 */
-	public abstract void init(Map<String, Object> params);
+	public final void setAgentFactory(AgentFactory agentFactory) {
+		this.agentFactory = agentFactory;
+	}
+	
+	/**
+	 * Bootstrap the transport service
+	 * This method is called by the AgentFactory after it is fully initialized 
+	 * @param agentFactory
+	 */
+	public abstract void bootstrap();
 	
 	/**
 	 * Get the protocols supported by this service
@@ -73,7 +92,5 @@ public abstract class TransportService {
 		data.put("class", this.getClass().getName());
 		return data.toString();
 	}
-	
-	protected AgentFactory agentFactory = null;
 }
 

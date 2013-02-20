@@ -8,21 +8,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.AgentFactory;
-
 public class FileStateFactory extends StateFactory {
-	public FileStateFactory (AgentFactory agentFactory, Map<String, Object> params) {
-		super(agentFactory, params);
+	public FileStateFactory (Map<String, Object> params) {
+		super(params);
 		
 		// built the path where the agents will be stored
 		String newPath = (params != null) ? (String) params.get("path") : null;
 		setPath(newPath);
 	}
 	
-	public FileStateFactory (AgentFactory agentFactory, String path) {
-		super(agentFactory, null);
+	public FileStateFactory (String path) {
+		super(null);
 		setPath(path);
 	}
+	
+	/**
+	 * Perform bootstrap tasks. bootstrap is called by the AgentFactory
+	 * after the agentfactory is fully initialized.
+	 */
+	@Override
+	public void bootstrap() {}
 	
 	/**
 	 * Set the path where the agents data will be stored

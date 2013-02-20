@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -19,10 +18,10 @@ import com.almende.eve.transport.SyncCallback;
 import com.almende.util.EncryptionUtil;
 
 public class XmppService extends TransportService {	
-	
 	private String host = null;
 	private Integer port = null;
 	private String service = null;
+	private String stateId = null;	
 	private State state = null;	
 	
 	private Map<String, AgentConnection> connectionsById = 
@@ -30,13 +29,58 @@ public class XmppService extends TransportService {
 	private Map<String, AgentConnection> connectionsByUrl = 
 			new ConcurrentHashMap<String, AgentConnection>();   // xmpp url as key "xmpp:username@host"
 	private static List<String> protocols = Arrays.asList("xmpp");
-
+	
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
-	public XmppService(AgentFactory agentFactory) {
-		super(agentFactory);
+	public XmppService() {}
+	
+	/**
+	 * Construct an XmppService
+	 * This constructor is called when the TransportService is constructed
+	 * by the AgentFactory
+	 * @param params   Available parameters:
+	 *                 {String} host
+	 *                 {Integer} port
+	 *                 {String} serviceName
+	 *                 {String} id
+	 */
+	public XmppService(Map<String, Object> params) {
+		if (params != null) {
+			host = (String) params.get("host");
+			port = (Integer) params.get("port");
+			service = (String) params.get("service");
+			stateId = (String) params.get("id");
+		}
 	}
-
+	
+	/**
+	 * initialize the settings for the xmpp service
+	 * @param host
+	 * @param port
+	 * @param service  service name
+	 * @param id       state id, to persist the state
+     */
+	public XmppService(String host, Integer port, 
+			String service, String id) {
+		this.host = host;
+		this.port = port;
+		this.service = service;
+		this.stateId = id;
+	}
+	
+	/**
+	 * initialize the settings for the xmpp service
+	 * @param host
+	 * @param port
+	 * @param service  service name
+     */
+	public XmppService(String host, Integer port, 
+			String service) {
+		this.host = host;
+		this.port = port;
+		this.service = service;
+	}
+	
 	/**
 	 * Get the url of an agent from its id.
 	 * If no agent with given id is connected via XMPP, null is returned.
@@ -69,56 +113,14 @@ public class XmppService extends TransportService {
 	}
 	
 	/**
-	 * initialize the settings for the xmpp service
-	 * @param params   Available parameters:
-	 *                 {String} host
-	 *                 {Integer} port
-	 *                 {String} serviceName
-	 *                 {String} id
-     */
+	 * Bootstrap the transport service
+	 * This methods is called by the AgentFactory after it is fully initialized 
+	 * @param agentFactory
+	 */
 	@Override
-	// TODO: make init private and call from the constructor.
-	public void init(Map<String, Object> params) {
-		String stateId = null;
-
-		if (params != null) {
-			host = (String) params.get("host");
-			port = (Integer) params.get("port");
-			service = (String) params.get("service");
-			stateId = (String) params.get("id");
-		}
-		
-		initState(stateId);
-		initConnections();
-	}
-
-	/**
-	 * initialize the settings for the xmpp service
-	 * @param host
-	 * @param port
-	 * @param service  service name
-     */
-	// TODO: make init private and call from the constructor.
-	public void init(String host, Integer port, String service) {
-		String id = null;
-		init(host, port, service, id);
-	}
-
-	/**
-	 * initialize the settings for the xmpp service
-	 * @param host
-	 * @param port
-	 * @param service  service name
-	 * @param id       state id, to persist the state
-     */
-	// TODO: make init private and call from the constructor.
-	public void init(String host, Integer port, String service, String id) {
-		this.host = host;
-		this.port = port;
-		this.service = service;
-		
-		initState(id);
-		initConnections();
+	public void bootstrap() {
+		loadState();
+		loadConnections();
 	}
 	
 	/**
@@ -126,7 +128,7 @@ public class XmppService extends TransportService {
 	 * open connections.
 	 * @param stateId
 	 */
-	private void initState (String stateId) {
+	private void loadState () {
 		// set a state for the service, where the service can 
 		// persist its state.
 		if (stateId == null) {
@@ -312,9 +314,9 @@ public class XmppService extends TransportService {
 	}
 
 	/**
-	 * initialize all connections stored in the services state
+	 * open all connections stored in the services state
 	 */
-	private void initConnections() {
+	private void loadConnections() {
 		if (state != null) {
 			synchronized (state) {
 				@SuppressWarnings("unchecked")

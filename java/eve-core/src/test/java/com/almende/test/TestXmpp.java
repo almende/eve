@@ -19,14 +19,13 @@ public class TestXmpp {
 		
 		// instantiate an agent factory (without config file)
 		AgentFactory factory = new AgentFactory();
-		FileStateFactory stateFactory = new FileStateFactory(factory, ".eveagents");
+		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		factory.setStateFactory(stateFactory);
 		//String host = "ec2-54-246-112-19.eu-west-1.compute.amazonaws.com";
 		String host = "openid.almende.org";
 		int port = 5222;
 		String serviceName = host;
-		XmppService xmppService = new XmppService(factory);
-		xmppService.init(host, port, serviceName);
+		XmppService xmppService = new XmppService(host, port, serviceName);
 		factory.addTransportService(xmppService);
 		
 		// instantiate an agent and connect it to a messenger service

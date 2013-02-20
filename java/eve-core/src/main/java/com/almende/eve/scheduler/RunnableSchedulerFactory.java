@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
-import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -32,10 +31,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  * 	   http://docs.oracle.com/javase/1.5.0/docs/api/java/util/concurrent/ScheduledExecutorService.html
  * 	   http://www.javapractices.com/topic/TopicAction.do?Id=54
  */
-public class RunnableSchedulerFactory implements SchedulerFactory {
-	
-	private AgentFactory agentFactory;
+public class RunnableSchedulerFactory extends SchedulerFactory {
 	private State state = null;	
+	private String stateId = null;
 
 	private long count = 0;
 	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
@@ -46,14 +44,12 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
-	public RunnableSchedulerFactory (AgentFactory agentFactory, Map<String, Object> params) {
-		this.agentFactory = agentFactory;
+	public RunnableSchedulerFactory (Map<String, Object> params) {
 		init(params);
 	}
 	
-	public RunnableSchedulerFactory (AgentFactory agentFactory, String id) {
-		this.agentFactory = agentFactory;
-		init(id);
+	public RunnableSchedulerFactory (String id) {
+		stateId = id;
 	}
 
 	/**
@@ -62,19 +58,18 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 *                 {String} id   state id, to persist the running tasks
      */
 	private void init(Map<String, Object> params) {
-		String stateId = null;
 		if (params != null) {
 			stateId = (String) params.get("id");
 		}
-		init(stateId);
 	}
 
 	/**
-	 * initialize the settings for the scheduler
-	 * @param id       state id, to persist the running tasks
-     */
-	private void init(String id) {
-		initState(id);
+	 * Perform bootstrap tasks. bootstrap is called by the AgentFactory
+	 * after the agentfactory is fully initialized.
+	 */
+	@Override
+	public void bootstrap() {
+		loadState();
 		loadTasks();
 	}
 	
@@ -83,19 +78,19 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * open connections.
 	 * @param id
 	 */
-	private void initState (String id) {
+	private void loadState () {
 		// set a state for the service, where the service can 
 		// persist its state.
-		if (id == null) {
-			id = "_runnablescheduler";
+		if (stateId == null) {
+			stateId = "_runnablescheduler";
 			logger.info("No id specified for RunnableSchedulerFactory. " +
-					"Using '" + id + "' as id.");
+					"Using '" + stateId + "' as id.");
 		}
 		try {
 			// TODO: dangerous to use a generic state (can possibly conflict with the id a regular agent)
-			state = agentFactory.getStateFactory().get(id);
+			state = agentFactory.getStateFactory().get(stateId);
 			if (state == null) {
-				state = agentFactory.getStateFactory().create(id);
+				state = agentFactory.getStateFactory().create(stateId);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -363,6 +358,4 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		
 		state.put("tasks", serializedTasks);
 	}
-
-
 }
