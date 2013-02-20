@@ -57,8 +57,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -68,13 +68,12 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.CalendarAgent;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.context.Context;
+import com.almende.eve.config.Config;
 import com.almende.eve.entity.calendar.Authorization;
-
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.config.Config;
+import com.almende.eve.state.State;
 import com.almende.util.HttpUtil;
 import com.almende.util.IntervalsUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,7 +104,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			@Name("token_type") String token_type,
 			@Name("expires_in") Integer expires_in,
 			@Name("refresh_token") String refresh_token) throws IOException {
-		Context context = getContext();
+		State state = getState();
 		
 		// retrieve user information
 		String url = "https://www.googleapis.com/oauth2/v1/userinfo";
@@ -121,10 +120,10 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 		Authorization auth = new Authorization(access_token, token_type, 
 				expires_at, refresh_token);
 		
-		// store the tokens in the context
-		context.put("auth", auth);
-		context.put("email", email);
-		context.put("name", name);
+		// store the tokens in the state
+		state.put("auth", auth);
+		state.put("email", email);
+		state.put("name", name);
 	}
 	
 	/**
@@ -186,10 +185,10 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public void delete() {
-		Context context = getContext();
-		context.remove("auth");
-		context.remove("email");
-		context.remove("name");
+		State state = getState();
+		state.remove("auth");
+		state.remove("email");
+		state.remove("name");
 
 		super.delete();
 	}
@@ -200,7 +199,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public String getUsername() {
-		return (String) getContext().get("name");
+		return (String) getState().get("name");
 	}
 	
 	/**
@@ -209,7 +208,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public String getEmail() {
-		return (String) getContext().get("email");
+		return (String) getState().get("email");
 	}
 	
 	/**
@@ -241,13 +240,13 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception
 	 */
 	private Authorization getAuthorization() throws Exception {
-		Authorization auth = (Authorization) getContext().get("auth");
+		Authorization auth = (Authorization) getState().get("auth");
 
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
 		if (expires_at != null && expires_at.isBeforeNow()) {
 			refreshAuthorization(auth);
-			getContext().put("auth", auth);
+			getState().put("auth", auth);
 		}
 		
 		return auth;
@@ -370,7 +369,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getContext().get("email");
+			calendarId = (String) getState().get("email");
 		}
 		
 		// built url with query parameters
@@ -585,7 +584,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getContext().get("email");
+			calendarId = (String) getState().get("email");
 		}
 
 		// built url
@@ -633,7 +632,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getContext().get("email");
+			calendarId = (String) getState().get("email");
 		}
 
 		// built url
@@ -725,7 +724,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getContext().get("email");
+			calendarId = (String) getState().get("email");
 		}
 
 		// convert from Eve to Google event
@@ -772,7 +771,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getContext().get("email");
+			calendarId = (String) getState().get("email");
 		}
 
 		// built url

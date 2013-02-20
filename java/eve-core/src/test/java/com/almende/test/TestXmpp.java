@@ -5,7 +5,7 @@ import java.util.Scanner;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.example.TestAgent;
-import com.almende.eve.context.FileContextFactory;
+import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.xmpp.XmppService;
 
 public class TestXmpp {
@@ -19,8 +19,8 @@ public class TestXmpp {
 		
 		// instantiate an agent factory (without config file)
 		AgentFactory factory = new AgentFactory();
-		FileContextFactory contextFactory = new FileContextFactory(factory, ".eveagents");
-		factory.setContextFactory(contextFactory);
+		FileStateFactory contextFactory = new FileStateFactory(factory, ".eveagents");
+		factory.setStateFactory(contextFactory);
 		//String host = "ec2-54-246-112-19.eu-west-1.compute.amazonaws.com";
 		String host = "openid.almende.org";
 		int port = 5222;

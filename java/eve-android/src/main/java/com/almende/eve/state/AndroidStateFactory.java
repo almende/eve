@@ -1,4 +1,4 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 
 
@@ -15,12 +15,12 @@ import java.util.Map;
 import android.content.Context;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.context.ContextFactory;
+import com.almende.eve.state.StateFactory;
 
-public class AndroidContextFactory extends ContextFactory {
+public class AndroidStateFactory extends StateFactory {
 		private Context appCtx;
 
-		public AndroidContextFactory (AgentFactory agentFactory, Map<String, Object> params) throws Exception {
+		public AndroidStateFactory (AgentFactory agentFactory, Map<String, Object> params) throws Exception {
 			super(agentFactory, params);
 			if (params == null || !params.containsKey("AppContext")) throw new Exception("AppContext parameter is required!");
 			appCtx = (params != null) ? (Context) params.get("AppContext") : null;
@@ -28,40 +28,40 @@ public class AndroidContextFactory extends ContextFactory {
 		
 		
 		/**
-		 * Get context with given id. Will return null if not found
+		 * Get state with given id. Will return null if not found
 		 * @param agentId
-		 * @return context
+		 * @return state
 		 */
 		@Override
-		public AndroidContext get(String agentId) {
+		public AndroidState get(String agentId) {
 			if (exists(agentId)) {
-				return new AndroidContext(agentId, appCtx);
+				return new AndroidState(agentId, appCtx);
 			}
 			return null;
 		}
 
 		/**
-		 * Create a context with given id. Will throw an exception when already.
+		 * Create a state with given id. Will throw an exception when already.
 		 * existing.
 		 * @param agentId
-		 * @return context
+		 * @return state
 		 */
 		@Override
-		public synchronized AndroidContext create(String agentId) throws Exception {
+		public synchronized AndroidState create(String agentId) throws Exception {
 			if (exists(agentId)) {
-				throw new Exception("Cannot create context, " + 
-						"context with id '" + agentId + "' already exists.");
+				throw new Exception("Cannot create state, " + 
+						"state with id '" + agentId + "' already exists.");
 			}
 			
 			FileOutputStream fos = appCtx.openFileOutput(agentId, Context.MODE_PRIVATE);
 			fos.close();
 			
 			// instantiate the context
-			return new AndroidContext(agentId, appCtx);
+			return new AndroidState(agentId, appCtx);
 		}
 		
 		/**
-		 * Delete a context. If the context does not exist, nothing will happen.
+		 * Delete a state. If the context does not exist, nothing will happen.
 		 * @param agentId
 		 */
 		@Override
@@ -72,7 +72,7 @@ public class AndroidContextFactory extends ContextFactory {
 		}
 
 		/**
-		 * Test if a context with given agentId exists
+		 * Test if a state with given agentId exists
 		 * @param agentId
 		 */
 		@Override

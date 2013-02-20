@@ -84,7 +84,6 @@ import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.context.Context;
 import com.almende.eve.entity.Issue;
 import com.almende.eve.entity.Issue.TYPE;
 import com.almende.eve.entity.Weight;
@@ -97,6 +96,7 @@ import com.almende.eve.entity.calendar.AgentData;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.State;
 import com.almende.util.IntervalsUtil;
 import com.almende.util.WeightsUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -183,7 +183,7 @@ public class MeetingAgent extends Agent {
 	 */
 	public Activity updateActivity(@Name("activity") Activity updatedActivity)
 			throws Exception {
-		Activity activity = (Activity) getContext().get("activity");
+		Activity activity = (Activity) getState().get("activity");
 		if (activity == null) {
 			activity = new Activity();
 		}
@@ -217,12 +217,12 @@ public class MeetingAgent extends Agent {
 			clearAttendee(attendee);
 		}
 
-		getContext().put("activity", activity);
+		getState().put("activity", activity);
 
 		// update all attendees, start timer to regularly check
 		update();
 
-		return (Activity) getContext().get("activity");
+		return (Activity) getState().get("activity");
 	}
 
 	/**
@@ -231,7 +231,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public String getSummary() {
-		Activity activity = (Activity) getContext().get("activity");
+		Activity activity = (Activity) getState().get("activity");
 		return (activity != null) ? activity.getSummary() : null;
 	}
 
@@ -241,7 +241,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public Activity getActivity() {
-		return (Activity) getContext().get("activity");
+		return (Activity) getState().get("activity");
 	}
 
 	/**
@@ -251,7 +251,7 @@ public class MeetingAgent extends Agent {
 	 * @return changed    Returns true if the activity is changed
 	 */
 	private boolean applyConstraints() {
-		Activity activity = (Activity) getContext().get("activity");
+		Activity activity = (Activity) getState().get("activity");
 		boolean changed = false;
 		if (activity == null) {
 			return false;
@@ -302,7 +302,7 @@ public class MeetingAgent extends Agent {
 		
 		if (changed) {
 			// store the updated activity
-			getContext().put("activity", activity);
+			getState().put("activity", activity);
 		}
 		return changed;
 	}
@@ -312,7 +312,7 @@ public class MeetingAgent extends Agent {
 	 */
 	private boolean syncEvents() {
 		logger.info("syncEvents started");
-		Activity activity = (Activity) getContext().get("activity");
+		Activity activity = (Activity) getState().get("activity");
 
 		boolean changed = false;
 		if (activity != null) {
@@ -330,7 +330,7 @@ public class MeetingAgent extends Agent {
 				}
 			}
 
-			activity = (Activity) getContext().get("activity");
+			activity = (Activity) getState().get("activity");
 			String updatedAfter = activity.withStatus().getUpdated();
 
 			changed = !updatedBefore.equals(updatedAfter);
@@ -390,14 +390,14 @@ public class MeetingAgent extends Agent {
 			if (activity.withStatus().getActivityStatus() != Status.ACTIVITY_STATUS.error) {
 				// store status of a activity as "planned"
 				activity.withStatus().setActivityStatus(Status.ACTIVITY_STATUS.planned);
-				getContext().put("activity", activity);
+				getState().put("activity", activity);
 			}
 
 			startAutoUpdate();
 		} else {
 			// store status of a activity as "executed"
 			activity.withStatus().setActivityStatus(Status.ACTIVITY_STATUS.executed);
-			getContext().put("activity", activity);
+			getState().put("activity", activity);
 
 			logger.info("The activity is over, my work is done. Goodbye world.");
 		}
@@ -433,8 +433,8 @@ public class MeetingAgent extends Agent {
 	 */
 	private boolean scheduleActivity() {
 		logger.info("scheduleActivity started"); // TODO: cleanup
-		Context context = getContext();
-		Activity activity = (Activity) context.get("activity");
+		State state = getState();
+		Activity activity = (Activity) state.get("activity");
 		if (activity == null) {
 			return false;
 		}
@@ -466,7 +466,7 @@ public class MeetingAgent extends Agent {
 				status.setEnd(solution.getEnd().toString());
 				status.setActivityStatus(Status.ACTIVITY_STATUS.planned);
 				status.setUpdated(DateTime.now().toString());
-				context.put("activity", activity);
+				state.put("activity", activity);
 				logger.info("Activity replanned at " + solution.toString()); // TODO: cleanup logging
 				try {
 					// TODO: cleanup
@@ -503,7 +503,7 @@ public class MeetingAgent extends Agent {
 				status.setEnd(null);
 				status.setActivityStatus(Status.ACTIVITY_STATUS.error);
 				status.setUpdated(DateTime.now().toString());
-				context.put("activity", activity);
+				state.put("activity", activity);
 				logger.info(issue.getMessage()); // TODO: cleanup logging
 				return true;
 			}
@@ -525,23 +525,23 @@ public class MeetingAgent extends Agent {
 	private List<Weight> calculateSolutions() {
 		logger.info("calculateSolutions started"); // TODO: cleanup
 		
-		Context context = getContext();
+		State state = getState();
 		List<Weight> solutions = new ArrayList<Weight>();
 		
 		// get the activity
-		Activity activity = (Activity) context.get("activity");
+		Activity activity = (Activity) state.get("activity");
 		if (activity == null) {
 			return solutions;
 		}
 		
 		// get infeasible intervals
-		List<Interval> infeasible = (List<Interval>) context.get("infeasible");
+		List<Interval> infeasible = (List<Interval>) state.get("infeasible");
 		if (infeasible == null) {
 			infeasible = new ArrayList<Interval>();
 		}
 		
 		// get preferred intervals
-		List<Weight> preferred = (List<Weight>) context.get("preferred");
+		List<Weight> preferred = (List<Weight>) state.get("preferred");
 		if (preferred == null) {
 			preferred = new ArrayList<Weight>();
 		}
@@ -655,7 +655,7 @@ public class MeetingAgent extends Agent {
 	 * @throws JsonParseException
 	 */
 	public void startAutoUpdate() {
-		Context context = getContext();
+		State state = getState();
 		Activity activity = getActivity();
 		
 		// determine the interval (1 hour by default)
@@ -683,7 +683,7 @@ public class MeetingAgent extends Agent {
 		// schedule an update task and store the task id
 		JSONRequest request = new JSONRequest("update", null);
 		String task = getScheduler().createTask(request, interval);
-		context.put("updateTask", task);
+		state.put("updateTask", task);
 
 		logger.info("Auto update started. Interval = " + interval
 				+ " milliseconds");
@@ -693,12 +693,12 @@ public class MeetingAgent extends Agent {
 	 * Stop automatic updating
 	 */
 	public void stopAutoUpdate() {
-		Context context = getContext();
+		State state = getState();
 
-		String task = (String) context.get("updateTask");
+		String task = (String) state.get("updateTask");
 		if (task != null) {
 			getScheduler().cancelTask(task);
-			context.remove("updateTask");
+			state.remove("updateTask");
 		}
 
 		logger.info("Auto update stopped");
@@ -799,7 +799,7 @@ public class MeetingAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<Issue> getIssues() {
-		List<Issue> issues = (List<Issue>) getContext().get("issues");
+		List<Issue> issues = (List<Issue>) getState().get("issues");
 		if (issues == null) {
 			issues = new ArrayList<Issue>();
 		}
@@ -810,7 +810,7 @@ public class MeetingAgent extends Agent {
 	 * Remove all issues
 	 */
 	private void clearIssues() {
-		getContext().remove("issues");
+		getState().remove("issues");
 	}
 	
 	/**
@@ -821,7 +821,7 @@ public class MeetingAgent extends Agent {
 	private void addIssue(Issue issue) {
 		List<Issue> issues = getIssues();
 		issues.add(issue);
-		getContext().put("issues", issues);
+		getState().put("issues", issues);
 		
 		// trigger an error event
 		try {
@@ -855,7 +855,7 @@ public class MeetingAgent extends Agent {
 	}
 	
 	/**
-	 * Retrieve the data of a single calendar agent from the context
+	 * Retrieve the data of a single calendar agent from the state
 	 * 
 	 * @param agentUrl
 	 * @return data returns the calendar data. If not available, a new, empty
@@ -865,7 +865,7 @@ public class MeetingAgent extends Agent {
 	@SuppressWarnings("unchecked")
 	private AgentData getAgentData(String agentUrl) {
 		Map<String, AgentData> calendarAgents = 
-				(Map<String, AgentData>) getContext().get("calendarAgents");
+				(Map<String, AgentData>) getState().get("calendarAgents");
 
 		if (calendarAgents != null && calendarAgents.containsKey(agentUrl)) {
 			return calendarAgents.get(agentUrl);
@@ -874,42 +874,42 @@ public class MeetingAgent extends Agent {
 	}
 
 	/**
-	 * Put data for a calendar agent into the context
+	 * Put data for a calendar agent into the state
 	 * 
 	 * @param agentUrl
 	 * @param data
 	 */
 	@SuppressWarnings("unchecked")
 	private void putAgentData(String agentUrl, AgentData data) {
-		Context context = getContext();
+		State state = getState();
 		Map<String, AgentData> calendarAgents = 
-				(Map<String, AgentData>) context.get("calendarAgents");
+				(Map<String, AgentData>) state.get("calendarAgents");
 		if (calendarAgents == null) {
 			calendarAgents = new HashMap<String, AgentData>();
 		}
 
 		calendarAgents.put(agentUrl, data);
-		context.put("calendarAgents", calendarAgents);
+		state.put("calendarAgents", calendarAgents);
 	}
 
 	/**
-	 * Remove a calendar agent data from the context
+	 * Remove a calendar agent data from the state
 	 * @param agent
 	 * @param data
 	 */
 	@SuppressWarnings("unchecked")
 	private void removeAgentData(String agent) {
-		Context context = getContext();
-		Map<String, AgentData> calendarAgents = (Map<String, AgentData>) context
+		State state = getState();
+		Map<String, AgentData> calendarAgents = (Map<String, AgentData>) state
 				.get("calendarAgents");
 		if (calendarAgents != null && calendarAgents.containsKey(agent)) {
 			calendarAgents.remove(agent);
-			context.put("calendarAgents", calendarAgents);
+			state.put("calendarAgents", calendarAgents);
 		}
 	}
 
 	/**
-	 * Retrieve the busy intervals of a calendar agent from the context
+	 * Retrieve the busy intervals of a calendar agent from the state
 	 * @param agent
 	 * @return busy returns busy intervals, or null if not available
 	 */
@@ -919,7 +919,7 @@ public class MeetingAgent extends Agent {
 	}
 
 	/**
-	 * Put the busy intervals for a calendar agent into the context
+	 * Put the busy intervals for a calendar agent into the state
 	 * @param agent
 	 * @param busy
 	 */
@@ -947,10 +947,10 @@ public class MeetingAgent extends Agent {
 					// event was deleted by the user.
 
 					//e.printStackTrace();
-					Activity activity = (Activity) getContext().get("activity");
+					Activity activity = (Activity) getState().get("activity");
 					Attendee attendee = activity.withConstraints().withAttendee(agent);
 					attendee.setResponseStatus(RESPONSE_STATUS.declined);
-					getContext().put("activity", activity);
+					getState().put("activity", activity);
 					
 					clearAttendee(agent); // TODO: seems not to work
 				} else {
@@ -984,7 +984,7 @@ public class MeetingAgent extends Agent {
 	// TODO: the method syncEvent has grown to large. split it up
 	private void syncEvent(@Name("agent") String agent) {
 		logger.info("syncEvent started for agent " + agent);
-		Context context = getContext();
+		State state = getState();
 
 		// retrieve event from calendar agent
 		ObjectNode event = getEvent(agent);
@@ -994,7 +994,7 @@ public class MeetingAgent extends Agent {
 		Activity eventActivity = convertEventToActivity(event);
 		
 		// verify all kind of stuff
-		Activity activity = (Activity) context.get("activity");
+		Activity activity = (Activity) state.get("activity");
 		if (activity == null) {
 			return; // oops no activity at all
 		}
@@ -1102,7 +1102,7 @@ public class MeetingAgent extends Agent {
 			
 			// update the activity
 			activity.merge(eventActivity);
-			context.put("activity", activity);
+			state.put("activity", activity);
 
 			// update the agent data
 			agentData.eventId = event.get("id").asText();
@@ -1225,9 +1225,9 @@ public class MeetingAgent extends Agent {
 
 		// order and store the aggregated lists with intervals
 		IntervalsUtil.order(infeasibleIntervals);
-		getContext().put("infeasible", infeasibleIntervals);
+		getState().put("infeasible", infeasibleIntervals);
 		WeightsUtil.order(preferredIntervals);
-		getContext().put("preferred", preferredIntervals);
+		getState().put("preferred", preferredIntervals);
 	}
 	
 	/**
@@ -1302,8 +1302,8 @@ public class MeetingAgent extends Agent {
 	public ObjectNode getIntervals() {
 		ObjectNode intervals = JOM.createObjectNode();
 
-		List<Interval> infeasible = (List<Interval>) getContext().get("infeasible");
-		List<Weight> preferred = (List<Weight>) getContext().get("preferred");
+		List<Interval> infeasible = (List<Interval>) getState().get("infeasible");
+		List<Weight> preferred = (List<Weight>) getState().get("preferred");
 		List<Weight> solutions = calculateSolutions(); 
 
 		// merge the intervals
@@ -1413,7 +1413,7 @@ public class MeetingAgent extends Agent {
 				busy.add(new Interval(new DateTime(start), new DateTime(end)));
 			}
 
-			// store the interval in the context
+			// store the interval in the state
 			putAgentBusy(agent, busy);
 
 		} catch (JSONRPCException e) {
@@ -1432,7 +1432,7 @@ public class MeetingAgent extends Agent {
 	public void delete() {
 		clear(); 
 		
-		// super class will delete the context
+		// super class will delete the state
 		super.delete();
 	}
 

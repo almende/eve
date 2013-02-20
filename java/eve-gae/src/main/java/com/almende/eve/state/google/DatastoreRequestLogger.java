@@ -1,7 +1,7 @@
-package com.almende.eve.context.google;
+package com.almende.eve.state.google;
 
-import com.almende.eve.context.log.RequestLogger;
-import com.almende.eve.context.log.AgentDetailRecord;
+import com.almende.eve.state.log.AgentDetailRecord;
+import com.almende.eve.state.log.RequestLogger;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 

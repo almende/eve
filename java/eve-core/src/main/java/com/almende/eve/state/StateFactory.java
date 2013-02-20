@@ -1,14 +1,14 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
 
-public abstract class ContextFactory {
-	protected ContextFactory () {}
+public abstract class StateFactory {
+	protected StateFactory () {}
 	
-	public ContextFactory (AgentFactory agentFactory, Map<String, Object> params) {
+	public StateFactory (AgentFactory agentFactory, Map<String, Object> params) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -17,7 +17,7 @@ public abstract class ContextFactory {
 	 * @param agentId
 	 * @return context
 	 */
-	public abstract Context get(String agentId);
+	public abstract State get(String agentId);
 	
 	/**
 	 * Create a context with given id. Will throw an exception when already
@@ -25,7 +25,7 @@ public abstract class ContextFactory {
 	 * @param agentId
 	 * @return context
 	 */
-	public abstract Context create(String agentId) throws Exception;
+	public abstract State create(String agentId) throws Exception;
 	
 	/**
 	 * Delete a context. If the context does not exist, nothing will happen.

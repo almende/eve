@@ -14,7 +14,7 @@ public class LogAgent extends Agent {
 		@SuppressWarnings("unchecked")
 		// TODO: use a database instead of the context - when you register
 		//       more and more logs this will be very unreliable.
-		List<Log> logs = (List<Log>) getContext().get("logs");
+		List<Log> logs = (List<Log>) getState().get("logs");
 		if (logs == null) {
 			logs = new ArrayList<Log>();
 		}
@@ -22,12 +22,12 @@ public class LogAgent extends Agent {
 		
 		// TODO: limit to a maximum number and age of the logs?
 		
-		getContext().put("logs", logs);
+		getState().put("logs", logs);
 	}
 	
 	public List<Log> getLogs(Long since) throws Exception {
 		@SuppressWarnings("unchecked")
-		List<Log> logs = (List<Log>) getContext().get("logs");
+		List<Log> logs = (List<Log>) getState().get("logs");
 
 		// TODO: use a database for the logs. It is very inefficient to
 		//       retrieve them all and then filter them.
@@ -51,11 +51,11 @@ public class LogAgent extends Agent {
 	 * Remove existing time to live
 	 */
 	public void cancelTimeToLive() {
-		String timeoutId = (String) getContext().get("timeoutId");
+		String timeoutId = (String) getState().get("timeoutId");
 		if (timeoutId != null) {
 			getScheduler().cancelTask(timeoutId);
 		}
-		getContext().remove("timeoutId");
+		getState().remove("timeoutId");
 	}
 	
 	/**
@@ -74,7 +74,7 @@ public class LogAgent extends Agent {
 		// create a new timeout
 		JSONRequest request = new JSONRequest("killMe", null);
 		String timeoutId = getScheduler().createTask(request, interval);
-		getContext().put("timeoutId", timeoutId);
+		getState().put("timeoutId", timeoutId);
 	}
 
 	/**

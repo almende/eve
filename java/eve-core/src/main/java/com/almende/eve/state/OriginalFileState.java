@@ -1,4 +1,4 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @class FileContext
+ * @class FileState
  * 
  * A context for an Eve Agent, which stores the data on disk.
  * Data is stored in the path provided by the configuration file.
@@ -29,17 +29,17 @@ import java.util.Set;
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
- *     Context context = new Context("agentId");<br>
+ *     State state = new State("agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  */
 // TODO: create an in memory cache and reduce the number of reads/writes
-public class FileContext extends Context {
-	protected FileContext() {}
+public class OriginalFileState extends FileState {
+	protected OriginalFileState() {}
 
-	public FileContext(String agentId, String filename) {
+	public OriginalFileState(String agentId, String filename) {
 		super(agentId);
 		this.filename = filename;
 	}

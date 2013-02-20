@@ -1,9 +1,9 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 import java.util.Map;
 
 /**
- * @class Context
+ * @class State
  * 
  * An interface for a context for Eve agents.
  * The context provides general information for the agent (about itself,
@@ -13,13 +13,13 @@ import java.util.Map;
  * 
  * Usage:<br>
  *     AgentFactory factory = AgentFactory(config);<br>
- *     Context context = new Context("agentId");<br>
+ *     State state = new State("agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  */
-public abstract class Context implements Map<String, Object> {
+public abstract class State implements Map<String, Object> {
 	public static String KEY_AGENT_TYPE = "_type"; // key name for agent type
 
 	protected String agentId = null;
@@ -27,13 +27,13 @@ public abstract class Context implements Map<String, Object> {
 	/**
 	 * The implemented classes must have a public constructor
 	 */
-	public Context () {}
+	public State () {}
 
 	/**
 	 * The implemented classes must have this public constructor with
 	 * parameters agentFactory, and agentId
 	 */
-	public Context (String agentId) {
+	public State (String agentId) {
 		this.agentId = agentId;
 	}
 

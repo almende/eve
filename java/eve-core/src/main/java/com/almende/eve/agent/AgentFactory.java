@@ -17,8 +17,6 @@ import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
-import com.almende.eve.context.Context;
-import com.almende.eve.context.ContextFactory;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -26,6 +24,8 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
+import com.almende.eve.state.State;
+import com.almende.eve.state.StateFactory;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
@@ -33,7 +33,7 @@ import com.almende.util.ClassUtil;
 
 /**
  * The AgentFactory is a factory to instantiate and invoke Eve Agents within the 
- * configured context. The AgentFactory can invoke local as well as remote 
+ * configured state. The AgentFactory can invoke local as well as remote 
  * agents.
  * 
  * An AgentFactory must be instantiated with a valid Eve configuration file.
@@ -73,6 +73,45 @@ import com.almende.util.ClassUtil;
  * @author jos
  */
 public class AgentFactory {
+	
+	// Note: the CopyOnWriteArrayList is inefficient but thread safe. 
+	private List<TransportService> transportServices = new CopyOnWriteArrayList<TransportService>();
+	private StateFactory stateFactory = null;
+	private SchedulerFactory schedulerFactory = null;
+	private Config config = null;
+	private EventLogger eventLogger = new EventLogger(this);
+
+	private static Map<String, AgentFactory> factories = 
+			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
+
+	private final static Map<String, String> STATE_FACTORIES = new HashMap<String, String>();
+	static {
+        STATE_FACTORIES.put("FileStateFactory", "com.almende.eve.state.FileStateFactory");
+        STATE_FACTORIES.put("MemoryStateFactory", "com.almende.eve.state.MemoryStateFactory");
+        STATE_FACTORIES.put("DatastoreStateFactory", "com.almende.eve.state.google.DatastoreStateFactory");
+    }
+
+	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
+	static {
+		SCHEDULERS.put("RunnableSchedulerFactory",  "com.almende.eve.scheduler.RunnableSchedulerFactory");
+		SCHEDULERS.put("GaeSchedulerFactory", "com.almende.eve.scheduler.google.GaeSchedulerFactory");
+	}
+	
+	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();
+	static {
+		TRANSPORT_SERVICES.put("XmppService", "com.almende.eve.transport.xmpp.XmppService");
+		TRANSPORT_SERVICES.put("HttpService", "com.almende.eve.transport.http.HttpService");
+    }
+
+	private final static RequestParams eveRequestParams = new RequestParams();
+	static {
+		eveRequestParams.put(Sender.class, null);
+	}
+	
+	private static AgentCache agents;
+	
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	
 	public AgentFactory () {
 		addTransportService(new HttpService(this));
 		agents = new AgentCache();
@@ -88,10 +127,10 @@ public class AgentFactory {
 
 		if (config != null) {
 			// important to initialize in the correct order: cache first, 
-			// then the context and transport services, and lastly scheduler.
+			// then the state and transport services, and lastly scheduler.
 			agents = new AgentCache(config);
 			
-			initContextFactory(config);
+			initStateFactory(config);
 			initTransportServices(config);
 			initSchedulerFactory(config);
 			initBootstrap(config);
@@ -204,27 +243,27 @@ public class AgentFactory {
 		}
 		//No agent found, normal initialization:
 		
-		// load the context
-		Context context = null; 
-		context = getContextFactory().get(agentId);
-		if (context == null) {
+		// load the State
+		State state = null; 
+		state = getStateFactory().get(agentId);
+		if (state == null) {
 			// agent does not exist
 			return null;
 		}
-		context.init();
+		state.init();
 		
-		// read the agents class name from context
-		Class<?> agentType = context.getAgentType();
+		// read the agents class name from state
+		Class<?> agentType = state.getAgentType();
 		if (agentType == null) {
 			throw new Exception("Cannot instantiate agent. " +
-					"Class information missing in the agents context " +
+					"Class information missing in the agents state " +
 					"(agentId='" + agentId + "')");
 		}
 		
 		// instantiate the agent
 		agent = (Agent) agentType.getConstructor().newInstance();
 		agent.setAgentFactory(this);
-		agent.setContext(context);
+		agent.setState(state);
 		agent.init();
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class) && 
@@ -327,15 +366,15 @@ public class AgentFactory {
 					", message: " + error);
 		}
 		
-		// create the context
-		Context context = getContextFactory().create(agentId);
-		context.setAgentType(agentType);
-		context.destroy();
+		// create the state
+		State state = getStateFactory().create(agentId);
+		state.setAgentType(agentType);
+		state.destroy();
 
 		// instantiate the agent
 		Agent agent = (Agent) agentType.getConstructor().newInstance();
 		agent.setAgentFactory(this);
-		agent.setContext(context);
+		agent.setState(state);
 		agent.create();
 		agent.init();
 
@@ -370,7 +409,7 @@ public class AgentFactory {
 		try {
 			// delete the context, even if the agent.destroy or agent.delete
 			// failed.
-			getContextFactory().delete(agentId);
+			getStateFactory().delete(agentId);
 		}
 		catch (Exception err) {
 			if (e == null) {
@@ -391,7 +430,7 @@ public class AgentFactory {
 	 * @throws Exception 
 	 */
 	public boolean hasAgent(String agentId) throws Exception {
-		return getContextFactory().exists(agentId);
+		return getStateFactory().exists(agentId);
 	}
 
 	/**
@@ -537,12 +576,12 @@ public class AgentFactory {
 	}
 	
 	/**
-	 * Retrieve the current environment, using the configured Context.
+	 * Retrieve the current environment, using the configured State.
 	 * Available values: "Production", "Development"
 	 * @return environment
 	 */
 	public String getEnvironment() {
-		return (contextFactory != null) ? contextFactory.getEnvironment() : null;
+		return (stateFactory != null) ? stateFactory.getEnvironment() : null;
 	}
 
 	/**
@@ -554,47 +593,59 @@ public class AgentFactory {
 	}
 	
 	/**
-	 * Initialize the context factory. The class is read from the provided 
+	 * Initialize the state factory. The class is read from the provided 
 	 * configuration file.
 	 * @param config
 	 * @throws Exception
 	 */
-	private void initContextFactory(Config config) {
+	private void initStateFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
-		String className = config.get("context", "class");
+		String className = config.get("state", "class");
+		String configName = "state";
 		if (className == null) {
-			throw new IllegalArgumentException(
-				"Config parameter 'context.class' missing in Eve configuration.");
+			className = config.get("context", "class");
+			if (className == null) {
+				throw new IllegalArgumentException(
+						"Config parameter 'state.class' missing in Eve configuration.");
+			} else {
+				logger.warning("Use of config parameter 'context' is deprecated, please use 'state' instead.");
+				configName="context";
+			}
+		}
+		
+		if ("FileContextFactory".equals(className)){
+			logger.warning("Use of Classname FileContextFactory is deprecated, please use 'FileStateFactory' instead.");
+			className="FileStateFactory";
 		}
 		
 		// Recognize known classes by their short name,
 		// and replace the short name for the full class path
-		for (String name : CONTEXT_FACTORIES.keySet()) {
+		for (String name : STATE_FACTORIES.keySet()) {
 			if (className.toLowerCase().equals(name.toLowerCase())) {
-				className = CONTEXT_FACTORIES.get(name);
+				className = STATE_FACTORIES.get(name);
 				break;
 			}
 		}
 		
 		try {
 			// get the class
-			Class<?> contextClass = Class.forName(className);
-			if (!ClassUtil.hasSuperClass(contextClass, ContextFactory.class)) {
+			Class<?> stateClass = Class.forName(className);
+			if (!ClassUtil.hasSuperClass(stateClass, StateFactory.class)) {
 				throw new IllegalArgumentException(
-						"Context factory class " + contextClass.getName() + 
-						" must extend " + Context.class.getName());
+						"State factory class " + stateClass.getName() + 
+						" must extend " + State.class.getName());
 			}
 	
 			// instantiate the context factory
-			Map<String, Object> params = config.get("context");
-			ContextFactory contextFactory = (ContextFactory) contextClass
+			Map<String, Object> params = config.get(configName);
+			StateFactory stateFactory = (StateFactory) stateClass
 					.getConstructor(AgentFactory.class, Map.class )
 					.newInstance(this, params);
 
-			setContextFactory(contextFactory);
-			logger.info("Initialized context factory: " + contextFactory.toString());
+			setStateFactory(stateFactory);
+			logger.info("Initialized state factory: " + stateFactory.toString());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -629,23 +680,23 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Set a context factory. The context factory is used to get/create/delete
-	 * an agents context.
-	 * @param contextFactory
+	 * Set a state factory. The context factory is used to get/create/delete
+	 * an agents state.
+	 * @param stateFactory
 	 */
-	public void setContextFactory(ContextFactory contextFactory) {
-		this.contextFactory = contextFactory;
+	public void setStateFactory(StateFactory stateFactory) {
+		this.stateFactory = stateFactory;
 	}
 
 	/**
-	 * Get the configured context factory.
-	 * @return contextFactory
+	 * Get the configured state factory.
+	 * @return stateFactory
 	 */
-	public ContextFactory getContextFactory() throws Exception {
-		if (contextFactory == null) {
-			throw new Exception("No context factory initialized.");
+	public StateFactory getStateFactory() throws Exception {
+		if (stateFactory == null) {
+			throw new Exception("No state factory initialized.");
 		}
-		return contextFactory;
+		return stateFactory;
 	}
 
 	/**
@@ -877,9 +928,9 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Set a context factory. The context factory is used to get/create/delete
-	 * an agents context.
-	 * @param contextFactory
+	 * Set a scheduler factory. The scheduler factory is used to get/create/delete
+	 * an agents scheduler.
+	 * @param schedulerFactory
 	 */
 	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
 		this.schedulerFactory = schedulerFactory;
@@ -893,42 +944,5 @@ public class AgentFactory {
 	public Scheduler getScheduler(String agentId) {
 		return schedulerFactory.getScheduler(agentId);
 	}
-	
-	// Note: the CopyOnWriteArrayList is inefficient but thread safe. 
-	private List<TransportService> transportServices = new CopyOnWriteArrayList<TransportService>();
-	private ContextFactory contextFactory = null;
-	private SchedulerFactory schedulerFactory = null;
-	private Config config = null;
-	private EventLogger eventLogger = new EventLogger(this);
 
-	private static Map<String, AgentFactory> factories = 
-			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
-
-	private final static Map<String, String> CONTEXT_FACTORIES = new HashMap<String, String>();
-	static {
-        CONTEXT_FACTORIES.put("FileContextFactory", "com.almende.eve.context.FileContextFactory");
-        CONTEXT_FACTORIES.put("MemoryContextFactory", "com.almende.eve.context.MemoryContextFactory");
-        CONTEXT_FACTORIES.put("DatastoreContextFactory", "com.almende.eve.context.google.DatastoreContextFactory");
-    }
-
-	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
-	static {
-		SCHEDULERS.put("RunnableSchedulerFactory",  "com.almende.eve.scheduler.RunnableSchedulerFactory");
-		SCHEDULERS.put("GaeSchedulerFactory", "com.almende.eve.scheduler.google.GaeSchedulerFactory");
-	}
-	
-	private final static Map<String, String> TRANSPORT_SERVICES = new HashMap<String, String>();
-	static {
-		TRANSPORT_SERVICES.put("XmppService", "com.almende.eve.transport.xmpp.XmppService");
-		TRANSPORT_SERVICES.put("HttpService", "com.almende.eve.transport.http.HttpService");
-    }
-
-	private final static RequestParams eveRequestParams = new RequestParams();
-	static {
-		eveRequestParams.put(Sender.class, null);
-	}
-	
-	private static AgentCache agents;
-	
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

@@ -10,15 +10,29 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.context.Context;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.SyncCallback;
 import com.almende.util.EncryptionUtil;
 
 public class XmppService extends TransportService {	
+	
+	private String host = null;
+	private Integer port = null;
+	private String service = null;
+	private State state = null;	
+	
+	private Map<String, AgentConnection> connectionsById = 
+			new ConcurrentHashMap<String, AgentConnection>();   // agentId as key
+	private Map<String, AgentConnection> connectionsByUrl = 
+			new ConcurrentHashMap<String, AgentConnection>();   // xmpp url as key "xmpp:username@host"
+	private static List<String> protocols = Arrays.asList("xmpp");
+
+	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	
 	public XmppService(AgentFactory agentFactory) {
 		super(agentFactory);
 	}
@@ -65,16 +79,16 @@ public class XmppService extends TransportService {
 	@Override
 	// TODO: make init private and call from the constructor.
 	public void init(Map<String, Object> params) {
-		String contextId = null;
+		String stateId = null;
 
 		if (params != null) {
 			host = (String) params.get("host");
 			port = (Integer) params.get("port");
 			service = (String) params.get("service");
-			contextId = (String) params.get("id");
+			stateId = (String) params.get("id");
 		}
 		
-		initContext(contextId);
+		initState(stateId);
 		initConnections();
 	}
 
@@ -95,7 +109,7 @@ public class XmppService extends TransportService {
 	 * @param host
 	 * @param port
 	 * @param service  service name
-	 * @param id       context id, to persist the state
+	 * @param id       state id, to persist the state
      */
 	// TODO: make init private and call from the constructor.
 	public void init(String host, Integer port, String service, String id) {
@@ -103,27 +117,27 @@ public class XmppService extends TransportService {
 		this.port = port;
 		this.service = service;
 		
-		initContext(id);
+		initState(id);
 		initConnections();
 	}
 	
 	/**
-	 * Initialize a context for the service, to persist the parameters of all
+	 * Initialize a state for the service, to persist the parameters of all
 	 * open connections.
-	 * @param contextId
+	 * @param stateId
 	 */
-	private void initContext (String contextId) {
-		// set a context for the service, where the service can 
+	private void initState (String stateId) {
+		// set a state for the service, where the service can 
 		// persist its state.
-		if (contextId == null) {
-			contextId = ".xmppservice";
-			logger.info("No id specified for XmppService. Using " + contextId + " as id.");
+		if (stateId == null) {
+			stateId = ".xmppservice";
+			logger.info("No id specified for XmppService. Using " + stateId + " as id.");
 		}
 		try {
-			// TODO: dangerous to use a generic context (can possibly conflict with the id a regular agent)
-			context = agentFactory.getContextFactory().get(contextId);
-			if (context == null) {
-				context = agentFactory.getContextFactory().create(contextId);
+			// TODO: dangerous to use a generic state (can possibly conflict with the id a regular agent)
+			state = agentFactory.getStateFactory().get(stateId);
+			if (state == null) {
+				state = agentFactory.getStateFactory().create(stateId);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -191,11 +205,11 @@ public class XmppService extends TransportService {
 		connectionsByUrl.put(agentUrl, connection);
 		
 		// persist the parameters for the connection
-		if (context != null) {
-			synchronized (context) {
+		if (state != null) {
+			synchronized (state) {
 				@SuppressWarnings("unchecked")
 				Map<String, Map<String, String>> connections = 
-						(Map<String, Map<String, String>>)context.get("connections");
+						(Map<String, Map<String, String>>)state.get("connections");
 				if (connections == null) {
 					connections = new HashMap<String, Map<String, String>>();
 				}
@@ -206,7 +220,7 @@ public class XmppService extends TransportService {
 					params.put("resource", EncryptionUtil.encrypt(resource));
 				}
 				connections.put(agentId, params);
-				context.put("connections", connections);
+				state.put("connections", connections);
 			}
 		}
 	}
@@ -227,14 +241,14 @@ public class XmppService extends TransportService {
 			connectionsByUrl.remove(agentUrl);
 
 			// remove the connection parameters from the persisted state
-			if (context != null) {
-				synchronized (context) {
+			if (state != null) {
+				synchronized (state) {
 					@SuppressWarnings("unchecked")
 					Map<String, Map<String, String>> connections = 
-							(Map<String, Map<String, String>>)context.get("connections");
+							(Map<String, Map<String, String>>)state.get("connections");
 					if (connections != null && connections.containsKey(agentId)) {
 						connections.remove(agentId);
-						context.put("connections", connections);
+						state.put("connections", connections);
 					}
 				}
 			}
@@ -298,14 +312,14 @@ public class XmppService extends TransportService {
 	}
 
 	/**
-	 * initialize all connections stored in the services context
+	 * initialize all connections stored in the services state
 	 */
 	private void initConnections() {
-		if (context != null) {
-			synchronized (context) {
+		if (state != null) {
+			synchronized (state) {
 				@SuppressWarnings("unchecked")
 				Map<String, Map<String, String>> connections = 
-						(Map<String, Map<String, String>>)context.get("connections");
+						(Map<String, Map<String, String>>)state.get("connections");
 				if (connections != null) {
 					logger.info("Initializing " + connections.size() + " XMPP connections...");
 					
@@ -344,23 +358,12 @@ public class XmppService extends TransportService {
 		data.put("service", service);
 		data.put("protocols", protocols);
 
-		if (context != null) {
-			data.put("id", context.getAgentId());
+		if (state != null) {
+			data.put("id", state.getAgentId());
 		}
 		
 		return data.toString();
 	}	
 	
-	private String host = null;
-	private Integer port = null;
-	private String service = null;
-	private Context context = null;	
-	
-	private Map<String, AgentConnection> connectionsById = 
-			new ConcurrentHashMap<String, AgentConnection>();   // agentId as key
-	private Map<String, AgentConnection> connectionsByUrl = 
-			new ConcurrentHashMap<String, AgentConnection>();   // xmpp url as key "xmpp:username@host"
-	private static List<String> protocols = Arrays.asList("xmpp");
 
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

@@ -9,53 +9,54 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.context.ConcurrentFileContext;
-import com.almende.eve.context.Context;
-import com.almende.eve.context.FileContext;
+import com.almende.eve.state.ConcurrentFileState;
+import com.almende.eve.state.FileState;
+import com.almende.eve.state.OriginalFileState;
+import com.almende.eve.state.State;
 
-public class TestContextLocking extends TestCase {
+public class TestStateLocking extends TestCase {
 	//TODO: prove that a collision occurs, possibly by measuring the starttime and runtime of each run.
-	//TODO: alternatively: implement a non-locking, non-thread-safe version of the context and see it break:)
+	//TODO: alternatively: implement a non-locking, non-thread-safe version of the state and see it break:)
 	
 	
-	private void testRun(final Context context){
-		//context.clear();
-		context.put("test", "test");
-		context.put("test2", "test2");
+	private void testRun(final State state){
+		//state.clear();
+		state.put("test", "test");
+		state.put("test2", "test2");
 		
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 		final ScheduledFuture<?> thread1 = scheduler.scheduleAtFixedRate(new Runnable(){
 			@Override
 			public void run() {
-				context.put("test","test1");
-				context.put("test","test1");
-				context.get("test");
-				context.put("test1","test");
-				context.get("test1");
+				state.put("test","test1");
+				state.put("test","test1");
+				state.get("test");
+				state.put("test1","test");
+				state.get("test1");
 			}
 			
 		}, 0, 100, TimeUnit.MILLISECONDS);
 		final ScheduledFuture<?> thread2 = scheduler.scheduleWithFixedDelay(new Runnable(){
 			@Override
 			public void run() {
-				context.put("test","test2");
-				context.put("test","test2");
-				context.get("test");
-				context.put("test1","test");
-				context.put("test1","test");
-				context.get("test1");
+				state.put("test","test2");
+				state.put("test","test2");
+				state.get("test");
+				state.put("test1","test");
+				state.put("test1","test");
+				state.get("test1");
 			}
 			
 		}, 110, 95, TimeUnit.MILLISECONDS);
 		final ScheduledFuture<?> thread3 = scheduler.scheduleWithFixedDelay(new Runnable(){
 			@Override
 			public void run() {
-				context.put("test","test3");
-				context.put("test","test3");
-				context.get("test");
-				context.put("test1","test");
-				context.put("test1","test");
-				context.get("test1");
+				state.put("test","test3");
+				state.put("test","test3");
+				state.get("test");
+				state.put("test1","test");
+				state.put("test1","test");
+				state.get("test1");
 			}
 			
 		}, 105, 97, TimeUnit.MILLISECONDS);
@@ -74,20 +75,20 @@ public class TestContextLocking extends TestCase {
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted after:"+(System.currentTimeMillis()-start)+" ms.");
 		}
-		assertEquals("test",(String)context.get("test1"));
-		assertEquals("test2",(String)context.get("test2"));
-		assertTrue(((String)context.get("test")).startsWith("test"));
+		assertEquals("test",(String)state.get("test1"));
+		assertEquals("test2",(String)state.get("test2"));
+		assertTrue(((String)state.get("test")).startsWith("test"));
 		
 	}
 	
 	@Test
-	public void testFileContext() throws Exception{
-		FileContext fc = new FileContext("test",".testFileContextRun");
+	public void testFileState() throws Exception{
+		FileState fc = new OriginalFileState("test",".testFileStateRun");
 		testRun(fc);
 	}
 	@Test
-	public void testConcurrentFileContext() throws Exception{
-		ConcurrentFileContext fc = new ConcurrentFileContext("test",".testConcurrentFileContextRun");
+	public void testConcurrentFileState() throws Exception{
+		ConcurrentFileState fc = new ConcurrentFileState("test",".testConcurrentFileStateRun");
 		testRun(fc);
 	}
 }
