@@ -87,7 +87,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		// set a state for the service, where the service can 
 		// persist its state.
 		if (id == null) {
-			id = ".runnablescheduler";
+			id = "_runnablescheduler";
 			logger.info("No id specified for RunnableSchedulerFactory. " +
 					"Using '" + id + "' as id.");
 		}

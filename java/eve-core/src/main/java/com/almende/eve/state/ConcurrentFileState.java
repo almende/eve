@@ -1,5 +1,6 @@
 package com.almende.eve.state;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,11 +13,14 @@ import java.io.RandomAccessFile;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * @class FileState
@@ -29,8 +33,8 @@ import java.util.Set;
  *        store its state in the context. The context extends a standard Java
  *        Map.
  * 
- *        All operations on this FileState are thread-safe. It also provides
- *        two aditional methods: PutIfNotChanged() and PutAllIfNotChanged().
+ *        All operations on this FileState are thread-safe. It also provides two
+ *        aditional methods: PutIfNotChanged() and PutAllIfNotChanged().
  * 
  *        Usage:<br>
  *        AgentFactory factory = new AgentFactory(config);<br>
@@ -43,6 +47,7 @@ import java.util.Set;
  * @author ludo
  */
 public class ConcurrentFileState extends FileState {
+	Logger logger = Logger.getLogger("ConcurrentFileState");
 	protected ConcurrentFileState() {
 	}
 
@@ -51,34 +56,56 @@ public class ConcurrentFileState extends FileState {
 	private FileLock lock = null;
 	private InputStream fis = null;
 	private OutputStream fos = null;
-	
+	private List<Boolean> locked = new ArrayList<Boolean>(1);
+
 	private static Map<String, Object> properties = Collections
 			.synchronizedMap(new HashMap<String, Object>());
 
 	public ConcurrentFileState(String agentId, String filename) {
 		super(agentId);
 		this.filename = filename;
+		locked.add(false);
 	}
 
 	@SuppressWarnings("resource")
 	private void openFile() throws Exception {
-		File file = new File(this.filename);
-		channel = new RandomAccessFile(file, "rw").getChannel();
-		lock = channel.lock();
-		fis = Channels.newInputStream(channel);
-		fos = Channels.newOutputStream(channel);
+		synchronized (locked) {
+			File file = new File(this.filename);
+			channel = new RandomAccessFile(file, "rw").getChannel();
+			while (locked.get(0)) {
+//				logger.warning("Starting to wait for locked! "+filename);
+				locked.wait();
+			}
+			locked.set(0, true);
+//			logger.warning("Locked set, starting to wait for fileLock! "+filename);
+			lock = channel.lock();
+//			logger.warning("fileLock set! "+filename);
+			fis = Channels.newInputStream(channel);
+			fos = Channels.newOutputStream(channel);
+		}
 	}
 
-	private void closeFile() throws Exception {
-		if (channel.isOpen()){
-			lock.release();
-			fos.close();
-			fis.close();
-			channel.close();
-			fis=null;
-			fos=null;
-			lock=null;
-			channel=null;
+	private void closeFile() {
+		synchronized (locked) {
+			if (channel.isOpen()) {
+				try{
+					lock.release();
+//					logger.warning("fileLock released! "+filename);
+
+					fos.close();
+					fis.close();
+					channel.close();
+				} catch (Exception e){
+					e.printStackTrace();
+				}
+			}
+			fis = null;
+			fos = null;
+			lock = null;
+			channel = null;
+			locked.set(0, false);
+			locked.notifyAll();
+//			logger.warning("locked released! "+filename);
 		}
 	}
 
@@ -104,10 +131,14 @@ public class ConcurrentFileState extends FileState {
 	 */
 	@SuppressWarnings("unchecked")
 	private void read() throws Exception {
-		channel.position(0);
-		ObjectInput in = new ObjectInputStream(fis);
-		properties.clear();
-		properties.putAll((Map<String, Object>) in.readObject());
+		try {
+			channel.position(0);
+			ObjectInput in = new ObjectInputStream(fis);
+			properties.clear();
+			properties.putAll((Map<String, Object>) in.readObject());
+		} catch (EOFException eof){
+			logger.info("Empty State file read:"+filename);
+		};
 	}
 
 	/**
@@ -131,10 +162,10 @@ public class ConcurrentFileState extends FileState {
 			openFile();
 			properties.clear();
 			write();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 	}
 
 	@Override
@@ -144,38 +175,38 @@ public class ConcurrentFileState extends FileState {
 			openFile();
 			read();
 			result = properties.keySet();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized boolean containsKey(Object key) {
-		boolean result=false;
+		boolean result = false;
 		try {
 			openFile();
 			read();
 			result = properties.containsKey(key);
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized boolean containsValue(Object value) {
-		boolean result=false;
+		boolean result = false;
 		try {
 			openFile();
 			read();
 			result = properties.containsValue(value);
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
@@ -186,53 +217,53 @@ public class ConcurrentFileState extends FileState {
 			openFile();
 			read();
 			result = properties.entrySet();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized Object get(Object key) {
-		Object result=null;
+		Object result = null;
 		try {
 			openFile();
 			read();
 			result = properties.get(key);
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized boolean isEmpty() {
-		boolean result=false;
+		boolean result = false;
 		try {
 			openFile();
 			read();
 			result = properties.isEmpty();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized Object put(String key, Object value) {
-		Object result=null;
+		Object result = null;
 		try {
 			openFile();
 			read();
-			result = properties.put(key,value);
+			result = properties.put(key, value);
 			write();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
@@ -243,52 +274,52 @@ public class ConcurrentFileState extends FileState {
 			read();
 			properties.putAll(map);
 			write();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 	}
 
 	@Override
 	public synchronized Object remove(Object key) {
-		Object result=null;
+		Object result = null;
 		try {
 			openFile();
 			read();
 			result = properties.remove(key);
 			write();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized int size() {
-		int result=-1;
+		int result = -1;
 		try {
 			openFile();
 			read();
 			result = properties.size();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
 	@Override
 	public synchronized Collection<Object> values() {
-		Collection<Object> result=null;
+		Collection<Object> result = null;
 		try {
 			openFile();
 			read();
 			result = properties.values();
-			closeFile();
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		closeFile();
 		return result;
 	}
 
