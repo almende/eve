@@ -30,9 +30,9 @@ public class ManagementAgent extends Agent {
 	 */
 	public Map<String, Object> create(@Name("id") String id, @Name("type") String type) 
 			throws Exception {
-		AgentFactory factory = getAgentFactory();
-		Agent agent = factory.createAgent(type, id);
-		if (agent != null) {
+		try {
+			getAgentFactory().createAgent(type, id);	
+		
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
 			
 			// remove any old registration
@@ -52,7 +52,13 @@ public class ManagementAgent extends Agent {
 			
 			return toInfo(meta);
 		}
-		return null;
+		catch (Exception e) {
+			// failed to create. 
+			// The agent probably already exists but is not registered.
+			register(id);
+			
+			throw e;
+		}
 	}
 
 	/**

@@ -186,7 +186,7 @@ public class AgentServlet extends HttpServlet {
 			return;
 		}
 		if (agentType == null || agentType.isEmpty()) {
-			resp.sendError(400, "Query parameter 'class' missing in url.");
+			resp.sendError(400, "Query parameter 'type' missing in url.");
 			return;
 		}
 		

@@ -9,8 +9,9 @@ function Planning($scope) {
     var AGENT_SERVLET = ORIGIN + 'agents/';
     //var PERSONAL_AGENT_URI = AGENT_SERVLET + 'googlecalendaragent/'; // TODO: cleanup
     //var MEETING_AGENT_URI = AGENT_SERVLET + 'meetingagent/'; // TODO: cleanup
-    var DIRECTORY_AGENT_URI = AGENT_SERVLET + 'directoryagent1/';
+    var DIRECTORY_AGENT_URI = AGENT_SERVLET + 'directoryagent/';
     var CALLBACK_URI = window.location.href;
+    var MEETINGAGENT_TYPE = 'com.almende.eve.agent.MeetingAgent';
 
     var SECOND = 1000;
     var MINUTE = 60 * SECOND;
@@ -261,33 +262,40 @@ function Planning($scope) {
 
     $scope.createEvent = function () {
         var uuid = UUID.randomUUID();
-        var agent = AGENT_SERVLET + uuid + '/';
-        var activity = {
-            'agent': agent,
-            'summary': 'new event',
-            'constraints': {
-                'time': {
-                    'duration': 60 * 60 * 1000
-                },
-                'attendees': [
-                    {
-                        'agent': $scope.personalAgent,
-                        'username': $scope.username,
-                        'email': $scope.email
-                    }
-                ]
-            }
-        };
+        var agent = AGENT_SERVLET + uuid + '/?type=' + MEETINGAGENT_TYPE;
 
-        $scope.editor.edit(activity);
+        $.ajax({
+            'type': 'PUT',
+            'url': agent,
+            'success': function () {
+                var activity = {
+                    'agent': agent,
+                    'summary': 'new event',
+                    'constraints': {
+                        'time': {
+                            'duration': 60 * 60 * 1000
+                        },
+                        'attendees': [
+                            {
+                                'agent': $scope.personalAgent,
+                                'username': $scope.username,
+                                'email': $scope.email
+                            }
+                        ]
+                    }
+                };
+
+                $scope.editor.edit(activity);
+                $scope.$apply();
+            }
+        });
     };
 
     $scope.deleteEvent = function (agent) {
         // TODO: directly remove the event from the list? Or disable it?
-        jsonrpc({
+        $.ajax({
+            'type': 'DELETE',
             'url': agent,
-            'method': 'clear',
-            'params': {},
             'success': function () {
                 $scope.getEvents();
             }
@@ -408,6 +416,7 @@ function Planning($scope) {
     };
 
     $scope.login = function () {
+        // TODO: create agent
         $scope.authorized = false;
         $scope.usernameChanged = false;
 
@@ -438,10 +447,9 @@ function Planning($scope) {
      * Delete current personalAgent
      */
     $scope.delete = function () {
-        jsonrpc({
-            'url': $scope.personalAgent,
-            'method': 'clear',
-            'params': {}
+        $.ajax({
+            'type': 'DELETE',
+            'url': $scope.personalAgent
         });
 
         this.unregisterAgent();

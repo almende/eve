@@ -19,6 +19,12 @@ context:
 scheduler:
   class: GaeSchedulerFactory
 
+# always create a management agent
+bootstrap:
+  agents:
+    management: com.almende.eve.agent.ManagementAgent
+    directoryagent: com.almende.eve.agent.DirectoryAgent
+
 # Google API access
 google:
   client_id: 231599786845-p4r6ka1emoj8enivejds6vma41ni2s26.apps.googleusercontent.com

@@ -99,6 +99,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.IntervalsUtil;
 import com.almende.util.WeightsUtil;
+import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -360,10 +361,8 @@ public class MeetingAgent extends Agent {
 		// Check if the activity is finished
 		// If not, schedule a new update task. Else we are done
 		Activity activity = getActivity();
-		String start = 
-				(activity != null) ? activity.withStatus().getStart() : null;
-		String updated = 
-				(activity != null) ? activity.withStatus().getUpdated() : null;
+		String start =   (activity != null) ? activity.withStatus().getStart() : null;
+		String updated = (activity != null) ? activity.withStatus().getUpdated() : null;
 		boolean isFinished = false;
 		if (start != null && (new DateTime(start)).isBefore(DateTime.now())) {
 			// start of the event is in the past
@@ -469,6 +468,19 @@ public class MeetingAgent extends Agent {
 				status.setUpdated(DateTime.now().toString());
 				context.put("activity", activity);
 				logger.info("Activity replanned at " + solution.toString()); // TODO: cleanup logging
+				try {
+					// TODO: cleanup
+					logger.info("New activity: " + JOM.getInstance().writeValueAsString(activity));
+				} catch (JsonGenerationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JsonMappingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} // TODO: cleanup logging
 				return true;
 			}
 			else {
