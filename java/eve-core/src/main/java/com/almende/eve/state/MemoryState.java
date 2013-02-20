@@ -1,4 +1,4 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 import java.util.Collection;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @class MemoryContext
+ * @class MemoryState
  * 
  * A context for an Eve Agent, which stores the data in memory.
  * (After a restart of the application, the data will be gone!)
@@ -18,16 +18,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
- *     FileContext context = new Context("agentId");<br>
+ *     FileState state = new State("agentId");<br>
  *     context.put("key", "value");<br>
  *     System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  */
-public class MemoryContext extends Context {
-	public MemoryContext() {}
+public class MemoryState extends State {
+	public MemoryState() {}
 	
-	public MemoryContext(String agentId) {
+	public MemoryState(String agentId) {
 		super(agentId);
 	}
 

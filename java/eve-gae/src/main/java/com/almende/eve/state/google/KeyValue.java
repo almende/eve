@@ -25,7 +25,7 @@
  * @author 	Jos de Jong, <jos@almende.org>
  * @date	  2012-03-26
  */
-package com.almende.eve.context.google;
+package com.almende.eve.state.google;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

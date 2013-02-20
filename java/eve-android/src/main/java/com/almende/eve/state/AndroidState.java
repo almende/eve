@@ -1,4 +1,4 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 
 import java.io.EOFException;
@@ -18,16 +18,16 @@ import java.util.Set;
 
 import android.content.Context;
 
-public class AndroidContext extends com.almende.eve.context.Context {
+public class AndroidState extends com.almende.eve.state.State {
 
-	public AndroidContext() {}
+	public AndroidState() {}
 
 	Context appCtx=null;
 	private String filename = null;
 	private Map<String, Object> properties = Collections.synchronizedMap(new HashMap<String, Object>());
 	
 	
-	public AndroidContext(String agentId, Context appContext) {
+	public AndroidState(String agentId, Context appContext) {
 		super(agentId);
 		this.appCtx = appContext;
 		this.filename=agentId;

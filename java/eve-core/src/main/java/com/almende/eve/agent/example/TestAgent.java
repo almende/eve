@@ -193,23 +193,23 @@ public class TestAgent extends Agent implements TestAgentInterface {
 	}
 	
 	public Double increment() {
-		Double value = (Double) getContext().get("count");
+		Double value = (Double) getState().get("count");
 		if (value == null) {
 			value = new Double(0);
 		}
 		value++;
-		getContext().put("count", value);
+		getState().put("count", value);
 
 		return value;
 	}
 	
 	public String get(@Name("key") String key) {
-		return (String) getContext().get(key);
+		return (String) getState().get(key);
 	}
 
 	public void put(@Name("key") String key, 
 			@Name("value") String value) {
-		getContext().put(key, value);
+		getState().put(key, value);
 	}
 	
 	public void registerPingEvent() throws Exception {
@@ -302,7 +302,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 	}
 	
 	public Object getEverything() {
-		return getContext();
+		return getState();
 	}
 	
 	public void onEvent(

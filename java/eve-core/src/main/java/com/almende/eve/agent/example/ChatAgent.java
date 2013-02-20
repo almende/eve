@@ -79,7 +79,7 @@ public class ChatAgent extends Agent {
 	 * @throws Exception 
 	 */
 	public String getUsername() throws Exception {
-		String username = (String) getContext().get("username");
+		String username = (String) getState().get("username");
 		return (username != null) ? username : getMyUrl();
 	}
 
@@ -93,7 +93,7 @@ public class ChatAgent extends Agent {
 	 * @param username
 	 */
 	public void setUsername(@Name("username") String username) {
-		getContext().put("username", username);
+		getState().put("username", username);
 	}
 	
 	/**
@@ -161,7 +161,7 @@ public class ChatAgent extends Agent {
 
 		// get my own connections from the context
 		String urlSelf = getMyUrl();
-		List<String> connections = (List<String>) getContext().get("connections"); 
+		List<String> connections = (List<String>) getState().get("connections"); 
 		if (connections == null) {	
 			connections = new ArrayList<String>();
 		}
@@ -207,7 +207,7 @@ public class ChatAgent extends Agent {
 		}
 
 		// store the connection list
-		getContext().put("connections", connections);
+		getState().put("connections", connections);
 
 		// schedule tasks to connect to all newly connected agents
 		for (String connection : newConnections) {
@@ -223,9 +223,9 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void disconnect() throws Exception {
-		List<String> connections = (List<String>) getContext().get("connections");
+		List<String> connections = (List<String>) getState().get("connections");
 		if (connections != null) {
-			getContext().remove("connections");			
+			getState().remove("connections");			
 
 			log(getUsername() + " disconnecting " + connections.size() + " agent(s)"); 
 			
@@ -252,10 +252,10 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void removeConnection(@Name("url") String url) throws Exception {
-		List<String> connections = (List<String>) getContext().get("connections");
+		List<String> connections = (List<String>) getState().get("connections");
 		if (connections != null) {
 			connections.remove(url);
-			getContext().put("connections", connections);	
+			getState().put("connections", connections);	
 			
 			log(getUsername() + " disconnected from " + url); 
 			// trigger a "connected" event
@@ -271,7 +271,7 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<String> getConnections() {
-		List<String> connections = (List<String>) getContext().get("connections");
+		List<String> connections = (List<String>) getState().get("connections");
 		if (connections != null) {
 			return connections;
 		}

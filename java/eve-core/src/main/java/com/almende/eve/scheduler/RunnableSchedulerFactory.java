@@ -20,10 +20,10 @@ import org.joda.time.Interval;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
-import com.almende.eve.context.Context;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.state.State;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class RunnableSchedulerFactory implements SchedulerFactory {
 	
 	private AgentFactory agentFactory;
-	private Context context = null;	
+	private State state = null;	
 
 	private long count = 0;
 	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
@@ -59,32 +59,32 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	/**
 	 * initialize the settings for the scheduler
 	 * @param params   Available parameters:
-	 *                 {String} id   context id, to persist the running tasks
+	 *                 {String} id   state id, to persist the running tasks
      */
 	private void init(Map<String, Object> params) {
-		String contextId = null;
+		String stateId = null;
 		if (params != null) {
-			contextId = (String) params.get("id");
+			stateId = (String) params.get("id");
 		}
-		init(contextId);
+		init(stateId);
 	}
 
 	/**
 	 * initialize the settings for the scheduler
-	 * @param id       context id, to persist the running tasks
+	 * @param id       state id, to persist the running tasks
      */
 	private void init(String id) {
-		initContext(id);
+		initState(id);
 		loadTasks();
 	}
 	
 	/**
-	 * Initialize a context for the service, to persist the parameters of all
+	 * Initialize a state for the service, to persist the parameters of all
 	 * open connections.
 	 * @param id
 	 */
-	private void initContext (String id) {
-		// set a context for the service, where the service can 
+	private void initState (String id) {
+		// set a state for the service, where the service can 
 		// persist its state.
 		if (id == null) {
 			id = ".runnablescheduler";
@@ -92,10 +92,10 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 					"Using '" + id + "' as id.");
 		}
 		try {
-			// TODO: dangerous to use a generic context (can possibly conflict with the id a regular agent)
-			context = agentFactory.getContextFactory().get(id);
-			if (context == null) {
-				context = agentFactory.getContextFactory().create(id);
+			// TODO: dangerous to use a generic state (can possibly conflict with the id a regular agent)
+			state = agentFactory.getStateFactory().get(id);
+			if (state == null) {
+				state = agentFactory.getStateFactory().create(id);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -313,7 +313,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	/**
 	 * load scheduled, persisted tasks
 	 */
-	// TODO: storing all running tasks in one context file is quite a bottleneck and not scalable!
+	// TODO: storing all running tasks in one state file is quite a bottleneck and not scalable!
 	private void loadTasks() {
 		int taskCount = 0;
 		int failedTaskCount = 0;
@@ -321,7 +321,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		try {
 			@SuppressWarnings("unchecked")
 			List<Map<String, String>> serializedTasks = 
-					(List<Map<String, String>>) context.get("tasks");
+					(List<Map<String, String>>) state.get("tasks");
 			
 			if (serializedTasks != null) {
 				for (Map<String, String> taskParams : serializedTasks) {
@@ -361,7 +361,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	        }
 	    }
 		
-		context.put("tasks", serializedTasks);
+		state.put("tasks", serializedTasks);
 	}
 
 

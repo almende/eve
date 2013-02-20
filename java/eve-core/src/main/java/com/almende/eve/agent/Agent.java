@@ -38,13 +38,13 @@ import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.context.Context;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -53,7 +53,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 abstract public class Agent implements AgentInterface {
 	private AgentFactory agentFactory = null;
-	private Context context = null;
+	private State state = null;
 	private Scheduler scheduler = null;
 	
 	public abstract String getDescription();
@@ -88,16 +88,16 @@ abstract public class Agent implements AgentInterface {
 			scheduler.cancelTask(taskId);
 		}
 		
-		// remove all keys from the context
-		// Note: the context itself will be deleted by the AgentFactory
-		context.clear();
+		// remove all keys from the state
+		// Note: the state itself will be deleted by the AgentFactory
+		state.clear();
 		
-		// save the agents class again in the context
-		context.put(Context.KEY_AGENT_TYPE, getClass().getName());		
+		// save the agents class again in the state
+		state.put(State.KEY_AGENT_TYPE, getClass().getName());		
 	}
 	
 	/**
-	 * This method is called directly after the agent and its context is 
+	 * This method is called directly after the agent and its state is 
 	 * initiated. 
 	 * It can be overridden and used to perform some action when the agent
 	 * is initialized, in that case super.init() should be called in 
@@ -108,47 +108,57 @@ abstract public class Agent implements AgentInterface {
 
 	/**
 	 * This method can is called when the agent is uninitialized, and is 
-	 * needed finalize the context of the agent.
+	 * needed finalize the state of the agent.
 	 * It can be overridden and used to perform some action when the agent
 	 * is uninitialized, in that case super.destroy() should be called in 
 	 * the overridden destroy().
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void destroy() {
-		getContext().destroy();
+		getState().destroy();
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	protected void finalize() {
-		// ensure the context is cleanup when the agent's method destroy is not
+		// ensure the state is cleanup when the agent's method destroy is not
 		// called.
-		getContext().destroy();
+		getState().destroy();
 	}
 	
 	/**
-	 * Set the context of the agent instance. This method is used by the 
+	 * Set the state of the agent instance. This method is used by the 
 	 * AgentFactory.
-	 * @param context
+	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void setContext(Context context) {
-		this.context = context;
+	final public void setState(State state) {
+		this.state = state;
 	}
 
+	@Access(AccessType.UNAVAILABLE)
+	final public void setContext(State state) {
+		this.setState(state);
+	}
+	
 	/**
-	 * Get the agents context. The context contains methods get, put, etc. to
-	 * write properties into a persistent context.
-	 * @param context
+	 * Get the agents state. The state contains methods get, put, etc. to
+	 * write properties into a persistent state.
+	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public Context getContext() {
-		return context;
+	final public State getState() {
+		return state;
 	}
 
+	@Access(AccessType.UNAVAILABLE)
+	final public State getContext() {
+		return getState();
+	}
+	
 	/**
 	 * Get a scheduler to schedule tasks for the agent to be executed later on.
-	 * @param context
+	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public Scheduler getScheduler() {
@@ -173,7 +183,7 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	/**
-	 * Clear the agents context, unsubscribe from all subscribed events, 
+	 * Clear the agents state, unsubscribe from all subscribed events, 
 	 * cancel all running tasks
 	 * @Deprecated use delete() instead.
 	 */
@@ -191,7 +201,7 @@ abstract public class Agent implements AgentInterface {
 	@SuppressWarnings("unchecked")
 	private List<Callback> getSubscriptions(String event) {
 		Map<String, List<Callback> > allSubscriptions = 
-			(Map<String, List<Callback> >) context.get("subscriptions");
+			(Map<String, List<Callback> >) state.get("subscriptions");
 		if (allSubscriptions != null) {
 			List<Callback> eventSubscriptions = allSubscriptions.get(event);
 			if (eventSubscriptions != null) {
@@ -210,12 +220,12 @@ abstract public class Agent implements AgentInterface {
 	@SuppressWarnings("unchecked")
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
 		Map<String, List<Callback> > allSubscriptions = 
-			(Map<String, List<Callback> >) context.get("subscriptions");
+			(Map<String, List<Callback> >) state.get("subscriptions");
 		if (allSubscriptions == null) {
 			allSubscriptions = new HashMap<String, List<Callback>> ();
 		}
 		allSubscriptions.put(event, subscriptions);
-		context.put("subscriptions", allSubscriptions);
+		state.put("subscriptions", allSubscriptions);
 	}
 	
 	/**
@@ -274,7 +284,7 @@ abstract public class Agent implements AgentInterface {
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
 		@SuppressWarnings("unchecked")
 		Map<String, List<Callback> > allSubscriptions = 
-				(Map<String, List<Callback> >) context.get("subscriptions");
+				(Map<String, List<Callback> >) state.get("subscriptions");
 		if (allSubscriptions == null) {
 			return;
 		}
@@ -310,8 +320,8 @@ abstract public class Agent implements AgentInterface {
 			// TODO: cleanup event list when empty
 		}
 		
-		// store context again
-		context.put("subscriptions", allSubscriptions);
+		// store state again
+		state.put("subscriptions", allSubscriptions);
 	}
 	
 	/**
@@ -483,7 +493,7 @@ abstract public class Agent implements AgentInterface {
 			jsonParams = JOM.getInstance().convertValue(params, ObjectNode.class);
 		}
 		
-		// invoke the other agent via the context, allowing the context
+		// invoke the other agent via the state, allowing the state
 		// to route the request internally or externally
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
@@ -645,7 +655,7 @@ abstract public class Agent implements AgentInterface {
 	 * @return
 	 */
 	final public String getId() {
-		return context.getAgentId();
+		return state.getAgentId();
 	}
 	
 	/**

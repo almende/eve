@@ -1,4 +1,4 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,8 +10,8 @@ import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentFactory;
 
-public class FileContextFactory extends ContextFactory {
-	public FileContextFactory (AgentFactory agentFactory, Map<String, Object> params) {
+public class FileStateFactory extends StateFactory {
+	public FileStateFactory (AgentFactory agentFactory, Map<String, Object> params) {
 		super(agentFactory, params);
 		
 		// built the path where the agents will be stored
@@ -19,7 +19,7 @@ public class FileContextFactory extends ContextFactory {
 		setPath(newPath);
 	}
 	
-	public FileContextFactory (AgentFactory agentFactory, String path) {
+	public FileStateFactory (AgentFactory agentFactory, String path) {
 		super(agentFactory, null);
 		setPath(path);
 	}
@@ -58,9 +58,9 @@ public class FileContextFactory extends ContextFactory {
 	 * @return context
 	 */
 	@Override
-	public FileContext get(String agentId) {
+	public FileState get(String agentId) {
 		if (exists(agentId)) {
-			return new FileContext(agentId, getFilename(agentId));
+			return new FileState(agentId, getFilename(agentId));
 		}
 		return null;
 	}
@@ -72,7 +72,7 @@ public class FileContextFactory extends ContextFactory {
 	 * @return context
 	 */
 	@Override
-	public synchronized FileContext create(String agentId) throws Exception {
+	public synchronized FileState create(String agentId) throws Exception {
 		if (exists(agentId)) {
 			throw new Exception("Cannot create context, " + 
 					"context with id '" + agentId + "' already exists.");
@@ -85,7 +85,7 @@ public class FileContextFactory extends ContextFactory {
 		file.createNewFile();
 		
 		// instantiate the context
-		return new FileContext(agentId, filename);
+		return new FileState(agentId, filename);
 	}
 	
 	/**

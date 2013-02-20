@@ -1,4 +1,4 @@
-package com.almende.eve.context;
+package com.almende.eve.state;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @class FileContext
+ * @class FileState
  * 
  *        A context for an Eve Agent, which stores the data on disk. Data is
  *        stored in the path provided by the configuration file.
@@ -29,21 +29,21 @@ import java.util.Set;
  *        store its state in the context. The context extends a standard Java
  *        Map.
  * 
- *        All operations on this FileContext are thread-safe. It also provides
+ *        All operations on this FileState are thread-safe. It also provides
  *        two aditional methods: PutIfNotChanged() and PutAllIfNotChanged().
  * 
  *        Usage:<br>
  *        AgentFactory factory = new AgentFactory(config);<br>
- *        ConcurrentFileContext context = new
- *        ConcurrentFileContext("agentId",".eveagents");<br>
+ *        ConcurrentFileState state = new
+ *        ConcurrentFileState("agentId",".eveagents");<br>
  *        context.put("key", "value");<br>
  *        System.out.println(context.get("key")); // "value"<br>
  * 
  * @author jos
  * @author ludo
  */
-public class ConcurrentFileContext extends Context {
-	protected ConcurrentFileContext() {
+public class ConcurrentFileState extends State {
+	protected ConcurrentFileState() {
 	}
 
 	private String filename = null;
@@ -55,7 +55,7 @@ public class ConcurrentFileContext extends Context {
 	private static Map<String, Object> properties = Collections
 			.synchronizedMap(new HashMap<String, Object>());
 
-	public ConcurrentFileContext(String agentId, String filename) {
+	public ConcurrentFileState(String agentId, String filename) {
 		super(agentId);
 		this.filename = filename;
 	}

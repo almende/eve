@@ -1,4 +1,4 @@
-package com.almende.eve.context.google;
+package com.almende.eve.state.google;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.almende.eve.context.Context;
+import com.almende.eve.state.State;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
@@ -15,33 +15,33 @@ import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 /**
- * @class DatastoreContext
+ * @class DatastoreState
  * 
- * A context for an Eve Agent, which stores the data in the Google Datastore.
- * This context is only available when the application is running in Google 
+ * A state for an Eve Agent, which stores the data in the Google Datastore.
+ * This state is only available when the application is running in Google 
  * App Engine.
  * 
- * The context provides general information for the agent (about itself,
+ * The state provides general information for the agent (about itself,
  * the environment, and the system configuration), and the agent can store its 
- * state in the context. 
- * The context extends a standard Java Map.
+ * state in the state. 
+ * The state extends a standard Java Map.
  * 
- * During the lifetime of a DatastoreContext, the context synchronized over all
- * running instances of the same DatastoreContext using MemCache.
+ * During the lifetime of a DatastoreState, the state synchronized over all
+ * running instances of the same DatastoreState using MemCache.
  * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
- *     DatastoreContext context = 
- *     	   new DatastoreContext(factory, "agentType", "agentId");<br>
- *     context.put("key", "value");<br>
- *     System.out.println(context.get("key")); // "value"<br>
+ *     DatastoreState state = 
+ *     	   new DatastoreState(factory, "agentType", "agentId");<br>
+ *     state.put("key", "value");<br>
+ *     System.out.println(state.get("key")); // "value"<br>
  * 
  * @author jos
  */
-public class DatastoreContext extends Context {
-	public DatastoreContext() {}
+public class DatastoreState extends State {
+	public DatastoreState() {}
 
-	public DatastoreContext(String agentId) {
+	public DatastoreState(String agentId) {
 		super(agentId);
 	}
 
@@ -81,9 +81,9 @@ public class DatastoreContext extends Context {
 	*/
 
 	/**
-	 * Load the context from cache. If the context is not available in cache,
+	 * Load the state from cache. If the state is not available in cache,
 	 * it will be loaded from the Datastore and the cache will be created.
-	 * If there is no context stored in both cache and Datastore, an empty
+	 * If there is no state stored in both cache and Datastore, an empty
 	 * map with properties is initialized.
 	 */
 	private void refresh() {
@@ -100,8 +100,8 @@ public class DatastoreContext extends Context {
 	}
 	
 	/**
-	 * Store changes in the context into memcache, and mark the context as
-	 * changed. The context will be stored in the datastore when the method 
+	 * Store changes in the state into memcache, and mark the state as
+	 * changed. The state will be stored in the datastore when the method 
 	 * .destroy() is executed.
 	 * @return success    returns true if the change is saved in memcache.
 	 */
@@ -112,7 +112,7 @@ public class DatastoreContext extends Context {
 	}
 
 	/**
-	 * Load the context from cache
+	 * Load the state from cache
 	 * @return success
 	 */
 	@SuppressWarnings("unchecked")
@@ -127,7 +127,7 @@ public class DatastoreContext extends Context {
 	}
 	
 	/**
-	 * Save the context to cache
+	 * Save the state to cache
 	 * If the cache is changed since the last retrieval of the cache, saving
 	 * will fail and false will be returned.
 	 * @return success
@@ -232,7 +232,7 @@ public class DatastoreContext extends Context {
 	public synchronized void init() {}
 
 	/**
-	 * If the context is changed, it will be stored in the datastore on destroy. 
+	 * If the state is changed, it will be stored in the datastore on destroy. 
 	 */
 	@Override
 	public synchronized void destroy() {
@@ -244,7 +244,7 @@ public class DatastoreContext extends Context {
 	}
 
 	/**
-	 * Permanently delete this context
+	 * Permanently delete this state
 	 */
 	protected void delete() {
 		clear();
