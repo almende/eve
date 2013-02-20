@@ -10,8 +10,9 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.state.ConcurrentFileState;
-import com.almende.eve.state.State;
 import com.almende.eve.state.FileState;
+import com.almende.eve.state.OriginalFileState;
+import com.almende.eve.state.State;
 
 public class TestStateLocking extends TestCase {
 	//TODO: prove that a collision occurs, possibly by measuring the starttime and runtime of each run.
@@ -82,7 +83,7 @@ public class TestStateLocking extends TestCase {
 	
 	@Test
 	public void testFileState() throws Exception{
-		FileState fc = new FileState("test",".testFileStateRun");
+		FileState fc = new OriginalFileState("test",".testFileStateRun");
 		testRun(fc);
 	}
 	@Test

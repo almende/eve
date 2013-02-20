@@ -60,7 +60,7 @@ public class FileStateFactory extends StateFactory {
 	@Override
 	public FileState get(String agentId) {
 		if (exists(agentId)) {
-			return new FileState(agentId, getFilename(agentId));
+			return new ConcurrentFileState(agentId, getFilename(agentId));
 		}
 		return null;
 	}
@@ -85,7 +85,7 @@ public class FileStateFactory extends StateFactory {
 		file.createNewFile();
 		
 		// instantiate the context
-		return new FileState(agentId, filename);
+		return new ConcurrentFileState(agentId, filename);
 	}
 	
 	/**

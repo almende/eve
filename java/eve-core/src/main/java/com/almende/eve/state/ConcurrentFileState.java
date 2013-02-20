@@ -42,7 +42,7 @@ import java.util.Set;
  * @author jos
  * @author ludo
  */
-public class ConcurrentFileState extends State {
+public class ConcurrentFileState extends FileState {
 	protected ConcurrentFileState() {
 	}
 
