@@ -12,11 +12,11 @@ import com.almende.eve.agent.TaskAgent;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.config.Config;
-import com.almende.eve.context.Context;
 import com.almende.eve.entity.calendar.Authorization;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.State;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 			@Name("refresh_token") String refresh_token) throws IOException {
 		logger.info("setAuthorization");
 		
-		Context context = getContext();
+		State state = getState();
 		
 		// retrieve user information
 		String url = "https://www.googleapis.com/oauth2/v1/userinfo";
@@ -61,10 +61,10 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 		Authorization auth = new Authorization(access_token, token_type, 
 				expires_at, refresh_token);
 		
-		// store the tokens in the context
-		context.put("auth", auth);
-		context.put("email", email);
-		context.put("name", name);
+		// store the tokens in the state
+		state.put("auth", auth);
+		state.put("email", email);
+		state.put("name", name);
 	}
 	
 	/**
@@ -150,7 +150,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 * @throws Exception
 	 */
 	private Authorization getAuthorization() throws Exception {
-		Authorization auth = (Authorization) getContext().get("auth");
+		Authorization auth = (Authorization) getState().get("auth");
 
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
@@ -158,7 +158,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 			// TODO: remove this logging
 			logger.info("access token is expired. refreshing now...");
 			refreshAuthorization(auth);
-			getContext().put("auth", auth);
+			getState().put("auth", auth);
 		}
 		
 		return auth;
@@ -188,7 +188,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public String getUsername() {
-		return (String) getContext().get("name");
+		return (String) getState().get("name");
 	}
 
 	/**
@@ -197,7 +197,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public String getEmail() {
-		return (String) getContext().get("email");
+		return (String) getState().get("email");
 	}
 	
 	/**
@@ -206,12 +206,12 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	private String getDefaultTaskList() throws Exception {
 		
-		String defaultList=(String) getContext().get("defaultList");
+		String defaultList=(String) getState().get("defaultList");
 		if(defaultList==null) {
 			ArrayNode taskLists = getTaskList();
 			for(JsonNode taskList : taskLists) {
 				if(taskList.get("title").textValue().equals("Paige Task List")){
-					getContext().put("defaultList", taskList.get("id").textValue());
+					getState().put("defaultList", taskList.get("id").textValue());
 					return taskList.get("id").textValue();
 				}
 			}
@@ -223,7 +223,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 			taskList.put("title", "Paige Task List");
 			taskList = createTaskList(taskList);
 			defaultList = taskList.get("id").textValue();
-			getContext().put("defaultList", defaultList);
+			getState().put("defaultList", defaultList);
 		}
 		
 		return defaultList;
@@ -506,11 +506,11 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 * Remove all stored data from this agent
 	 */
 	public void clear() {
-		Context context = getContext();
-		context.remove("auth");
-		context.remove("email");
-		context.remove("name");
-		context.remove("defaultList");
+		State state = getState();
+		state.remove("auth");
+		state.remove("email");
+		state.remove("name");
+		state.remove("defaultList");
 	}
 
 }
