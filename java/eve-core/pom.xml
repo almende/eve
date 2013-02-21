@@ -86,6 +86,12 @@
 							<contextPath>/</contextPath>
 							<descriptor>src/test/webapp/WEB-INF/web.xml</descriptor>
 						</webApp>
+						<systemProperties>
+							<systemProperty>
+								<name>com.almende.eve.runtime.environment</name>
+								<value>Development</value>
+							</systemProperty>
+						</systemProperties>
 					</configuration>
 
 					<executions>

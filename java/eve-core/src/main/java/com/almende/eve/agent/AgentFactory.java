@@ -589,8 +589,7 @@ public class AgentFactory {
 	public static String getEnvironment() {
 		if (environment == null) {
 			for (String path : ENVIRONMENT_PATH) {
-				environment = System.getenv(path);
-				//environment = System.getProperty(path);
+				environment = System.getProperty(path);
 				if (environment != null) {
 					logger.info("Current environment: '" + environment + 
 							"' (read from path '" + path + "')");

@@ -9,7 +9,7 @@ environment:
 
 # transport services
 transport_services:
-- class: XmppTransportService
+- class: XmppService
   host: openid.almende.org
   port: 5222
   service: openid.almende.org
