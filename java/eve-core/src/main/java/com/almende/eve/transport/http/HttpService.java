@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -31,7 +32,7 @@ public class HttpService implements TransportService {
 	 * @param params   Available parameters:
 	 *                 {String} servlet_url
 	 */
-	public HttpService(Map<String, Object> params) {
+	public HttpService(AgentFactory agentFactory, Map<String, Object> params) {
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}

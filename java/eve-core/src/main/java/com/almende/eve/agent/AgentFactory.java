@@ -615,6 +615,15 @@ public class AgentFactory {
 	}
 
 	/**
+	 * Programmatically set the environment
+	 * @param env   The environment, for example "Production" or "Development" 
+	 * @return
+	 */
+	public static void setEnvironment(String env) {
+		environment = env;
+	}
+	
+	/**
 	 * Get the loaded config file
 	 * @return config   A configuration file
 	 */
