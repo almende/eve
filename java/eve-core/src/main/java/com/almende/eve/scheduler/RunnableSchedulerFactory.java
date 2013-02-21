@@ -56,7 +56,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	}
 	
 	public RunnableSchedulerFactory (AgentFactory agentFactory, String id) {
-		stateId = id;
+		this.agentFactory = agentFactory;
+		this.stateId = id;
+
 		init();
 	}
 
