@@ -56,7 +56,7 @@ public class ConcurrentFileState extends FileState {
 	private FileLock lock = null;
 	private InputStream fis = null;
 	private OutputStream fos = null;
-	private List<Boolean> locked = new ArrayList<Boolean>(1);
+	private static List<Boolean> locked = new ArrayList<Boolean>(1);
 
 	private static Map<String, Object> properties = Collections
 			.synchronizedMap(new HashMap<String, Object>());
@@ -70,13 +70,13 @@ public class ConcurrentFileState extends FileState {
 	@SuppressWarnings("resource")
 	private void openFile() throws Exception {
 		synchronized (locked) {
-			File file = new File(this.filename);
-			channel = new RandomAccessFile(file, "rw").getChannel();
 			while (locked.get(0)) {
 //				logger.warning("Starting to wait for locked! "+filename);
 				locked.wait();
 			}
 			locked.set(0, true);
+			File file = new File(this.filename);
+			channel = new RandomAccessFile(file, "rw").getChannel();
 //			logger.warning("Locked set, starting to wait for fileLock! "+filename);
 			lock = channel.lock();
 //			logger.warning("fileLock set! "+filename);
