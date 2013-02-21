@@ -985,7 +985,7 @@ public class AgentFactory {
 	 * an agents scheduler.
 	 * @param schedulerFactory
 	 */
-	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
+	public synchronized void setSchedulerFactory(SchedulerFactory schedulerFactory) {
 		this.schedulerFactory = schedulerFactory;
 	}
 
@@ -994,7 +994,7 @@ public class AgentFactory {
 	 * @param agentId
 	 * @return scheduler
 	 */
-	public Scheduler getScheduler(String agentId) {
+	public synchronized Scheduler getScheduler(String agentId) {
 		return schedulerFactory.getScheduler(agentId);
 	}
 
