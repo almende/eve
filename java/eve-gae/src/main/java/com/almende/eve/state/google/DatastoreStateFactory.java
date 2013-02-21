@@ -2,15 +2,23 @@ package com.almende.eve.state.google;
 
 import java.util.Map;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.util.TwigUtil;
-import com.google.appengine.api.utils.SystemProperty;
 
-public class DatastoreStateFactory extends StateFactory {
-	public DatastoreStateFactory (Map<String, Object> params) {
-		super(params);
-		
+public class DatastoreStateFactory implements StateFactory {
+	/**
+	 * This constructor is called when constructed by the AgentFactory
+	 * @param agentFactory
+	 * @param params
+	 */
+	public DatastoreStateFactory (AgentFactory agentFactory, 
+			Map<String, Object> params) {
+		TwigUtil.register(KeyValue.class);
+	}
+	
+	public DatastoreStateFactory () {
 		TwigUtil.register(KeyValue.class);
 	}
 	
@@ -61,12 +69,10 @@ public class DatastoreStateFactory extends StateFactory {
 		return (get(agentId) != null);
 	}
 
+	/* TODO: cleanup getEnvironment
 	@Override 
 	public String getEnvironment() {
 		return SystemProperty.environment.get(); // "Development" or "Production"
 	}
-
-	@Override
-	public void bootstrap() {
-	}
+	*/
 }

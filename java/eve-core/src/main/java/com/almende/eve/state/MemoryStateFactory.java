@@ -3,26 +3,22 @@ package com.almende.eve.state;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MemoryStateFactory extends StateFactory {
+import com.almende.eve.agent.AgentFactory;
+
+public class MemoryStateFactory implements StateFactory {
 	// Singleton containing all states, stored per id
 	private Map<String, MemoryState> states = 
 		new ConcurrentHashMap<String, MemoryState>();
 	
-	public MemoryStateFactory (Map<String, Object> params) {
-		super(params);
-	}
-
-	public MemoryStateFactory () {
-		super(null);
-	}
-
 	/**
-	 * Perform bootstrap tasks. bootstrap is called by the AgentFactory
-	 * after the agentfactory is fully initialized.
+	 * This constructor is called when constructed by the AgentFactory
+	 * @param agentFactory
+	 * @param params
 	 */
-	@Override
-	public void bootstrap() {}
-	
+	public MemoryStateFactory (AgentFactory agentFactory, Map<String, Object> params) {}
+
+	public MemoryStateFactory () {}
+
 	/**
 	 * Get state with given id. Will return null if not found
 	 * @param agentId
@@ -76,8 +72,10 @@ public class MemoryStateFactory extends StateFactory {
 	 * In case of a memory state, this will always return "Production".
 	 * @return environment
 	 */
+	/* TODO: cleanup getEnvironment
 	@Override
 	public String getEnvironment() {
 		return "Production";
 	}
+	*/
 }

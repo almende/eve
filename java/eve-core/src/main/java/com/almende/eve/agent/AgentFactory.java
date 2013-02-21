@@ -81,6 +81,12 @@ public class AgentFactory {
 	private Config config = null;
 	private EventLogger eventLogger = new EventLogger(this);
 
+	private static String ENVIRONMENT_PATH[] = new String[] {
+		"com.google.appengine.runtime.environment",
+		"com.almende.eve.runtime.environment"
+	};
+	private static String environment = null;
+	
 	private static Map<String, AgentFactory> factories = 
 			new ConcurrentHashMap<String, AgentFactory>();  // namespace:factory
 
@@ -110,50 +116,34 @@ public class AgentFactory {
 	
 	private static AgentCache agents;
 	
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	private static Logger logger = Logger.getLogger(AgentFactory.class.getSimpleName());
 	
 	public AgentFactory () {
 		addTransportService(new HttpService());
 		agents = new AgentCache();
 	}
-	
+
 	/**
 	 * Construct an AgentFactory and initialize the configuration
 	 * @param config
-	 */
-	public AgentFactory(Config config) throws Exception {
-		this(config, null);
-	}
-	
-	/**
-	 * Construct an AgentFactory and initialize the configuration
-	 * @param config
-	 * @param bootstrap    If true or undefined (default), all services
-	 *                     are bootstrapped on creation of the factory.
-	 *                     When true, one has to perform the initialize action
-	 *                     by itself later on.
      * @throws Exception
 	 */
-	public AgentFactory(Config config, Boolean bootstrap) throws Exception {
+	public AgentFactory(Config config) throws Exception {
 		this.config = config;
 
+		// initialize all factories for state, transport, and scheduler
 		if (config != null) {
 			// important to initialize in the correct order: cache first, 
 			// then the state and transport services, and lastly scheduler.
 			agents = new AgentCache(config);
 			
-			loadStateFactory(config);
-			loadTransportServices(config);
-			loadSchedulerFactory(config);
+			addStateFactory(config);
+			addTransportServices(config);
+			addSchedulerFactory(config);
+			addAgents(config);
 		}
 		else {
 			agents = new AgentCache();
-		}
-
-		addTransportService(new HttpService());
-		
-		if (bootstrap == null || bootstrap == true) {
-			bootstrap();
 		}
 	}
 	
@@ -185,7 +175,7 @@ public class AgentFactory {
 	 */
 	public static synchronized AgentFactory createInstance() 
 			throws Exception{
-		return createInstance(null, null, null);
+		return createInstance(null, null);
 	}
 	
 	/**
@@ -195,21 +185,7 @@ public class AgentFactory {
 	 */
 	public static synchronized AgentFactory createInstance(Config config) 
 			throws Exception{
-		return createInstance(null, config, null);
-	}
-	
-	/**
-	 * Create a shared AgentFactory instance with the default namespace "default"
-	 * @param config
-	 * @param bootstrap    If true or undefined (default), all services
-	 *                     are bootstrapped on creation of the factory.
-	 *                     When true, one has to perform the initialize action
-	 *                     by itself later on.
-	 * @return factory
-	 */
-	public static synchronized AgentFactory createInstance(Config config, 
-			Boolean bootstrap) throws Exception{
-		return createInstance(null, config, bootstrap);
+		return createInstance(null, config);
 	}
 
 	/**
@@ -219,18 +195,7 @@ public class AgentFactory {
 	 */
 	public static synchronized AgentFactory createInstance(String namespace) 
 			throws Exception {
-		return createInstance(namespace, null, null);
-	}
-	/**
-	 * Create a shared AgentFactory instance with a specific namespace
-	 * @param namespace
-	 * @param config       If null, a non-configured AgentFactory will be
-	 *                     created.
-	 * @return factory
-	 */
-	public static synchronized AgentFactory createInstance(String namespace, 
-			Config config) throws Exception {
-		return createInstance(namespace, config, null);
+		return createInstance(namespace, null);
 	}
 	
 	/**
@@ -238,15 +203,11 @@ public class AgentFactory {
 	 * @param namespace    If null, "default" namespace will be loaded.
 	 * @param config       If null, a non-configured AgentFactory will be
 	 *                     created.
-	 * @param bootstrap    If true or undefined (default), all services
-	 *                     are bootstrapped on creation of the factory.
-	 *                     When true, one has to perform the initialize action
-	 *                     by itself later on.
 	 * @return factory
 	 * @throws Exception
 	 */
 	public static synchronized AgentFactory createInstance(String namespace, 
-			Config config, Boolean bootstrap) throws Exception {
+			Config config) throws Exception {
 		if (namespace == null) {
 			namespace = "default";
 		}
@@ -258,7 +219,7 @@ public class AgentFactory {
 					"Use getInstance instead to get the existing shared instance.");
 		}
 		
-		AgentFactory factory = new AgentFactory(config, bootstrap);
+		AgentFactory factory = new AgentFactory(config);
 		factories.put(namespace, factory);
 		
 		return factory;
@@ -621,11 +582,36 @@ public class AgentFactory {
 	
 	/**
 	 * Retrieve the current environment, using the configured State.
-	 * Available values: "Production", "Development"
+	 * Can return values like "Production", "Development". If no environment
+	 * variable is found, "Production" is returned.
 	 * @return environment
 	 */
-	public String getEnvironment() {
-		return (stateFactory != null) ? stateFactory.getEnvironment() : null;
+	public static String getEnvironment() {
+		if (environment == null) {
+			for (String path : ENVIRONMENT_PATH) {
+				environment = System.getenv(path);
+				//environment = System.getProperty(path);
+				if (environment != null) {
+					logger.info("Current environment: '" + environment + 
+							"' (read from path '" + path + "')");
+					break;
+				}
+			}
+			
+			if (environment == null) {
+				// no environment variable found. Fall back to "Production"
+				environment = "Production";
+
+				String msg = "No environment variable found. " +
+						"Environment set to '" + environment + "'. Checked paths: ";
+				for (String path : ENVIRONMENT_PATH) {
+					msg += path + ", ";
+				}
+				logger.warning(msg);
+			}
+		}
+		
+		return environment;
 	}
 
 	/**
@@ -635,32 +621,13 @@ public class AgentFactory {
 	public Config getConfig() {
 		return config;
 	}
-	
+
 	/**
-	 * Bootstrap all transport services, the scheduler, and agent creation.
-	 * This will restore open connections and scheduled tasks after a system
-	 * restart
-	 */
-	public void bootstrap() {
-		// bootstrap all transport services
-		for (TransportService transport : transportServices) {
-			transport.bootstrap();
-		}
-		
-		// bootstrap the scheduler
-		schedulerFactory.bootstrap();
-		
-		// bootstrap agent creation
-		bootstrapAgents();
-	}
-	
-	/**
-	 * Initialize the state factory. The class is read from the provided 
-	 * configuration file.
+	 * Load a state factory from config 
 	 * @param config
 	 * @throws Exception
 	 */
-	private void loadStateFactory(Config config) {
+	public void addStateFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -703,7 +670,7 @@ public class AgentFactory {
 		try {
 			// get the class
 			Class<?> stateClass = Class.forName(className);
-			if (!ClassUtil.hasSuperClass(stateClass, StateFactory.class)) {
+			if (!ClassUtil.hasInterface(stateClass, StateFactory.class)) {
 				throw new IllegalArgumentException(
 						"State factory class " + stateClass.getName() + 
 						" must extend " + State.class.getName());
@@ -712,8 +679,8 @@ public class AgentFactory {
 			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
 			StateFactory stateFactory = (StateFactory) stateClass
-					.getConstructor(Map.class )
-					.newInstance(params);
+					.getConstructor(AgentFactory.class, Map.class )
+					.newInstance(this, params);
 
 			setStateFactory(stateFactory);
 			logger.info("Initialized state factory: " + stateFactory.toString());
@@ -724,11 +691,13 @@ public class AgentFactory {
 	}
 	
 	/**
-	 * Bootstrap agents on system startup.
-	 * This will create the configured agents when they are not yet existing.
+	 * Create agents from a config (only when they do not yet exist).
+	 * Agents will be read from the configuration path bootstrap.agents,
+	 * which must contain a map where the keys are agentId's and the values
+	 * are the agent types (full java class path).
 	 * @param config
 	 */
-	private void bootstrapAgents () {
+	public void addAgents (Config config) {
 		Map<String, String> agents = config.get("bootstrap", "agents");
 		if (agents != null) {
 			for (Entry<String, String> entry : agents.entrySet()) {
@@ -756,7 +725,6 @@ public class AgentFactory {
 	 * @param stateFactory
 	 */
 	public void setStateFactory(StateFactory stateFactory) {
-		stateFactory.setAgentFactory(this);
 		this.stateFactory = stateFactory;
 	}
 
@@ -772,12 +740,11 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Initialize the scheduler. The class is read from the provided 
-	 * configuration file.
+	 * Load a scheduler factory from a config file
 	 * @param config
 	 * @throws Exception
 	 */
-	private void loadSchedulerFactory(Config config) {
+	public void addSchedulerFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -823,7 +790,7 @@ public class AgentFactory {
 		try {
 			// get the class
 			Class<?> schedulerClass = Class.forName(className);
-			if (!ClassUtil.hasSuperClass(schedulerClass, SchedulerFactory.class)) {
+			if (!ClassUtil.hasInterface(schedulerClass, SchedulerFactory.class)) {
 				throw new IllegalArgumentException(
 						"Scheduler class " + schedulerClass.getName() + 
 						" must implement " + SchedulerFactory.class.getName());
@@ -831,8 +798,8 @@ public class AgentFactory {
 			
 			// initialize the scheduler factory
 			SchedulerFactory schedulerFactory = (SchedulerFactory) schedulerClass
-						.getConstructor(Map.class )
-						.newInstance(params);
+						.getConstructor(AgentFactory.class, Map.class )
+						.newInstance(this, params);
 
 			setSchedulerFactory(schedulerFactory);
 			
@@ -845,11 +812,11 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Initialize transport services for incoming and outgoing messages
+	 * Load transport services for incoming and outgoing messages from a config
 	 * (for example http and xmpp services).
 	 * @param config
 	 */
-	private void loadTransportServices(Config config) {
+	public void addTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
 			e.printStackTrace();
@@ -913,11 +880,18 @@ public class AgentFactory {
 						}
 					}
 					
-					// initialize the transport service
+					// get class
 					Class<?> transportClass = Class.forName(className);
+					if (!ClassUtil.hasInterface(transportClass, TransportService.class)) {
+						throw new IllegalArgumentException(
+								"TransportService class " + transportClass.getName() + 
+								" must implement " + TransportService.class.getName());
+					}
+					
+					// initialize the transport service
 					TransportService transport = (TransportService) transportClass
-							.getConstructor(Map.class)
-							.newInstance(transportParams);
+							.getConstructor(AgentFactory.class, Map.class)
+							.newInstance(this, transportParams);
 
 					// register the service with the agent factory
 					addTransportService(transport);
@@ -940,7 +914,6 @@ public class AgentFactory {
 	 * @param transportService
 	 */
 	public void addTransportService(TransportService transportService) {
-		transportService.setAgentFactory(this);
 		transportServices.add(transportService);
 		logger.info("Registered transport service: " + transportService.toString());
 	}
@@ -1005,7 +978,6 @@ public class AgentFactory {
 	 * @param schedulerFactory
 	 */
 	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
-		schedulerFactory.setAgentFactory(this);
 		this.schedulerFactory = schedulerFactory;
 	}
 

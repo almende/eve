@@ -35,8 +35,8 @@ public class SingleAgentServlet extends HttpServlet {
 	@Override
 	public void init() {
 		try {
-			initAgentFactory();
 			initHttpTransport();
+			initAgentFactory();
 			initAgent();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -114,7 +114,11 @@ public class SingleAgentServlet extends HttpServlet {
 	private void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
-		if (agentFactory == null) {
+		if (agentFactory != null) {
+			// agentFactory already exists. Add our http transport service
+			agentFactory.addTransportService(httpTransport);
+		}
+		else {
 			// if the agent factory is not yet loaded, load it from config
 			String filename = getInitParameter("config");
 			if (filename == null) {
@@ -127,8 +131,14 @@ public class SingleAgentServlet extends HttpServlet {
 			logger.info("loading configuration file '" + 
 					getServletContext().getRealPath(fullname) + "'...");
 			Config config = new Config(getServletContext().getResourceAsStream(fullname));
-			
-			agentFactory = AgentFactory.createInstance(config);
+
+			// TODO: create the agentFactory in a synchronized way
+			agentFactory = AgentFactory.createInstance();
+			agentFactory.addStateFactory(config);
+			agentFactory.addTransportServices(config);
+			agentFactory.addTransportService(httpTransport);
+			agentFactory.addSchedulerFactory(config);
+			agentFactory.addAgents(config);
 		}
 	}
 	
@@ -137,13 +147,11 @@ public class SingleAgentServlet extends HttpServlet {
 	 * @throws Exception 
 	 */
 	private void initHttpTransport () throws Exception {
-		if (agentFactory == null) {
-			throw new Exception(
-					"Cannot initialize HttpTransport: no AgentFactory initialized.");
-		}
+		// TODO: one servlet must be able to support multiple servlet_urls
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
-		String environment = agentFactory.getEnvironment();
+		//String environment = agentFactory.getEnvironment();
+		String environment = "Production"; // TODO: get real environment
 		String envParam = "environment." + environment + ".servlet_url";
 		String globalParam = "servlet_url";
 		String servletUrl = getInitParameter(envParam);
@@ -157,8 +165,7 @@ public class SingleAgentServlet extends HttpServlet {
 					"missing in servlet configuration web.xml.");
 		}
 		
-		httpTransport = new HttpService(servletUrl); 
-		agentFactory.addTransportService(httpTransport);
+		httpTransport = new HttpService(servletUrl);
 	}
 	
 	/**
@@ -166,6 +173,8 @@ public class SingleAgentServlet extends HttpServlet {
 	 * @throws Exception 
 	 */
 	private void initAgent () throws Exception {
+		// TODO: use agent bootstrap mechanism instead
+		
 		// retrieve the agents id
 		agentId = getInitParameter("agentId");
 		if (agentId == null) {

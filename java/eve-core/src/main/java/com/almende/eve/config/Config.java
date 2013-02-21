@@ -35,6 +35,15 @@ public class Config {
 	public Config(InputStream inputStream) {
 		load(inputStream);
 	}
+
+	/**
+	 * Load the configuration from a map
+	 * @param map
+	 * @return
+	 */
+	public Config(Map<String, Object> config) {
+		this.config = config;
+	}
 	
 	/**
 	 * Load the configuration file by filename (absolute path)

@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -31,10 +32,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  * 	   http://docs.oracle.com/javase/1.5.0/docs/api/java/util/concurrent/ScheduledExecutorService.html
  * 	   http://www.javapractices.com/topic/TopicAction.do?Id=54
  */
-public class RunnableSchedulerFactory extends SchedulerFactory {
+public class RunnableSchedulerFactory implements SchedulerFactory {
 	private State state = null;	
 	private String stateId = null;
-
+	private AgentFactory agentFactory = null;
 	private long count = 0;
 	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
@@ -44,33 +45,27 @@ public class RunnableSchedulerFactory extends SchedulerFactory {
 
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
-	public RunnableSchedulerFactory (Map<String, Object> params) {
-		init(params);
+	/**
+	 * This constructor is called when constructed by the AgentFactory
+	 * @param agentFactory
+	 * @param params
+	 */
+	public RunnableSchedulerFactory (AgentFactory agentFactory, 
+			Map<String, Object> params) {
+		this(agentFactory, (params != null) ? (String) params.get("id"): null);
 	}
 	
-	public RunnableSchedulerFactory (String id) {
+	public RunnableSchedulerFactory (AgentFactory agentFactory, String id) {
 		stateId = id;
+		init();
 	}
 
 	/**
-	 * initialize the settings for the scheduler
-	 * @param params   Available parameters:
-	 *                 {String} id   state id, to persist the running tasks
-     */
-	private void init(Map<String, Object> params) {
-		if (params != null) {
-			stateId = (String) params.get("id");
-		}
-	}
-
-	/**
-	 * Perform bootstrap tasks. bootstrap is called by the AgentFactory
-	 * after the agentfactory is fully initialized.
+	 * Perform initialization tasks.
 	 */
-	@Override
-	public void bootstrap() {
-		loadState();
-		loadTasks();
+	private void init() {
+		initState();
+		initTasks();
 	}
 	
 	/**
@@ -78,7 +73,7 @@ public class RunnableSchedulerFactory extends SchedulerFactory {
 	 * open connections.
 	 * @param id
 	 */
-	private void loadState () {
+	private void initState () {
 		// set a state for the service, where the service can 
 		// persist its state.
 		if (stateId == null) {
@@ -309,7 +304,7 @@ public class RunnableSchedulerFactory extends SchedulerFactory {
 	 * load scheduled, persisted tasks
 	 */
 	// TODO: storing all running tasks in one state file is quite a bottleneck and not scalable!
-	private void loadTasks() {
+	private void initTasks() {
 		int taskCount = 0;
 		int failedTaskCount = 0;
 		

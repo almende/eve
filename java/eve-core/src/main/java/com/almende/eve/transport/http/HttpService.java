@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -15,7 +15,8 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.HttpUtil;
 
-public class HttpService extends TransportService {
+public class HttpService implements TransportService {
+	protected Config config = null;
 	protected String servletUrl = null;
 	protected List<String> protocols = Arrays.asList("http", "https");
 	//protected List<String> protocols = new ArrayList<String>();
@@ -30,10 +31,25 @@ public class HttpService extends TransportService {
 	 * @param params   Available parameters:
 	 *                 {String} servlet_url
 	 */
-	public HttpService(AgentFactory agentFactory, Map<String, Object> params) {
+	public HttpService(Map<String, Object> params) {
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}
+	}
+
+	/**
+	 * Construct an HttpService from a config
+	 * The config can contain parameters:
+	 *     environment.Production.servlet_url
+	 *     environment.Development.servlet_url
+	 *     servlet_url
+	 * The HttpService will select the parameter based on the current environment
+	 * @param agentFactory
+	 * @param params   Available parameters:
+	 *                 {String} servlet_url
+	 */
+	public HttpService(Config config) {
+		this.config = config;
 	}
 	
 	/**
@@ -43,14 +59,6 @@ public class HttpService extends TransportService {
 	public HttpService(String servletUrl) {
 		setServletUrl(servletUrl);
 	}
-	
-	/**
-	 * Bootstrap the transport service
-	 * This method is called by the AgentFactory after it is fully initialized 
-	 * @param agentFactory
-	 */
-	@Override
-	public void bootstrap() {}
 	
 	/**
 	 * Set the servlet url for the transport service. 

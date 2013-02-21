@@ -1,33 +1,27 @@
 package com.almende.eve.state;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class FileStateFactory extends StateFactory {
-	public FileStateFactory (Map<String, Object> params) {
-		super(params);
-		
+import com.almende.eve.agent.AgentFactory;
+
+public class FileStateFactory implements StateFactory {
+	/**
+	 * This constructor is called when constructed by the AgentFactory
+	 * @param agentFactory
+	 * @param params
+	 */
+	public FileStateFactory (AgentFactory agentFactory, Map<String, Object> params) {
 		// built the path where the agents will be stored
-		String newPath = (params != null) ? (String) params.get("path") : null;
-		setPath(newPath);
+		this((params != null) ? (String) params.get("path") : null);
 	}
 	
 	public FileStateFactory (String path) {
-		super(null);
 		setPath(path);
 	}
-	
-	/**
-	 * Perform bootstrap tasks. bootstrap is called by the AgentFactory
-	 * after the agentfactory is fully initialized.
-	 */
-	@Override
-	public void bootstrap() {}
 	
 	/**
 	 * Set the path where the agents data will be stored
@@ -122,6 +116,7 @@ public class FileStateFactory extends StateFactory {
 	 * 
 	 * @return environment
 	 */
+	/* TODO: cleanup getEnvironment
 	@Override
 	public String getEnvironment() {
 		String environment = "Production";
@@ -149,6 +144,7 @@ public class FileStateFactory extends StateFactory {
 		}
 		return environment;
 	}
+	*/
 
 	/**
 	 * Get the filename of the saved

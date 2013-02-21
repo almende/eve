@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -17,7 +18,8 @@ import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.SyncCallback;
 import com.almende.util.EncryptionUtil;
 
-public class XmppService extends TransportService {	
+public class XmppService implements TransportService {
+	private AgentFactory agentFactory = null; 
 	private String host = null;
 	private Integer port = null;
 	private String service = null;
@@ -44,13 +46,17 @@ public class XmppService extends TransportService {
 	 *                 {String} serviceName
 	 *                 {String} id
 	 */
-	public XmppService(Map<String, Object> params) {
+	public XmppService(AgentFactory agentFactory, Map<String, Object> params) {
+		this.agentFactory = agentFactory;
+		
 		if (params != null) {
 			host = (String) params.get("host");
 			port = (Integer) params.get("port");
 			service = (String) params.get("service");
 			stateId = (String) params.get("id");
 		}
+		
+		init();
 	}
 	
 	/**
@@ -66,6 +72,8 @@ public class XmppService extends TransportService {
 		this.port = port;
 		this.service = service;
 		this.stateId = id;
+		
+		init();
 	}
 	
 	/**
@@ -76,9 +84,7 @@ public class XmppService extends TransportService {
      */
 	public XmppService(String host, Integer port, 
 			String service) {
-		this.host = host;
-		this.port = port;
-		this.service = service;
+		this(host, port, service, null);
 	}
 	
 	/**
@@ -113,14 +119,11 @@ public class XmppService extends TransportService {
 	}
 	
 	/**
-	 * Bootstrap the transport service
-	 * This methods is called by the AgentFactory after it is fully initialized 
-	 * @param agentFactory
+	 * initialize the transport service
 	 */
-	@Override
-	public void bootstrap() {
-		loadState();
-		loadConnections();
+	public void init() {
+		initState();
+		initConnections();
 	}
 	
 	/**
@@ -128,7 +131,7 @@ public class XmppService extends TransportService {
 	 * open connections.
 	 * @param stateId
 	 */
-	private void loadState () {
+	private void initState () {
 		// set a state for the service, where the service can 
 		// persist its state.
 		if (stateId == null) {
@@ -316,7 +319,7 @@ public class XmppService extends TransportService {
 	/**
 	 * open all connections stored in the services state
 	 */
-	private void loadConnections() {
+	private void initConnections() {
 		if (state != null) {
 			synchronized (state) {
 				@SuppressWarnings("unchecked")

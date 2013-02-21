@@ -34,8 +34,8 @@ public class AgentServlet extends HttpServlet {
 	@Override
 	public void init() {
 		try {
-			initAgentFactory();
 			initHttpTransport();
+			initAgentFactory();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -231,7 +231,11 @@ public class AgentServlet extends HttpServlet {
 	private void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
-		if (agentFactory == null) {
+		if (agentFactory != null) {
+			// agentFactory already exists. Add our http transport service
+			agentFactory.addTransportService(httpTransport);
+		}
+		else {
 			// if the agent factory is not yet loaded, load it from config
 			String filename = getInitParameter("config");
 			if (filename == null) {
@@ -245,24 +249,26 @@ public class AgentServlet extends HttpServlet {
 					getServletContext().getRealPath(fullname) + "'...");
 			Config config = new Config(getServletContext().getResourceAsStream(fullname));
 			
-			agentFactory = AgentFactory.createInstance(config);
+			// TODO: create the agentFactory in a synchronized way
+			agentFactory = AgentFactory.createInstance();
+			agentFactory.addStateFactory(config);
+			agentFactory.addTransportServices(config);
+			agentFactory.addTransportService(httpTransport);
+			agentFactory.addSchedulerFactory(config);
+			agentFactory.addAgents(config);
 		}
 	}
 	
 	/**
-	 * Register this servlet at the agent factory
+	 * Initialize an HttpTransport service for the servlet
 	 * @throws Exception 
 	 */
 	private void initHttpTransport () throws Exception {
-		if (agentFactory == null) {
-			throw new Exception(
-					"Cannot initialize HttpTransport: no AgentFactory initialized.");
-		}
-		
 		// TODO: one servlet must be able to support multiple servlet_urls
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
-		String environment = agentFactory.getEnvironment();
+		//String environment = agentFactory.getEnvironment();
+		String environment = "Production"; // TODO: get real environment
 		String envParam = "environment." + environment + ".servlet_url";
 		String globalParam = "servlet_url";
 		String servletUrl = getInitParameter(envParam);
@@ -277,7 +283,6 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		httpTransport = new HttpService(servletUrl);
-		agentFactory.addTransportService(httpTransport);
 	}
 	
 	/**

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.AsyncCallback;
@@ -14,15 +15,16 @@ import com.google.apphosting.api.ApiProxy.Environment;
 /**
  * Google App Engine XMPP Transport Service
  */
-public class GaeXmppService extends TransportService {
+public class GaeXmppService implements TransportService {
 	private static List<String> protocols = Arrays.asList("xmpp");
 	private String host = null;
 
 	/**
 	 * This constructor is called when constructed by the AgentFactory
+	 * @param agentFactory
 	 * @param params
 	 */
-	public GaeXmppService(Map<String, Object> params) {
+	public GaeXmppService(AgentFactory agentFactory, Map<String, Object> params) {
 		this();
 	}
 
@@ -112,7 +114,4 @@ public class GaeXmppService extends TransportService {
 	public List<String> getProtocols() {
 		return protocols;
 	}
-
-	@Override
-	public void bootstrap() {}
 }
