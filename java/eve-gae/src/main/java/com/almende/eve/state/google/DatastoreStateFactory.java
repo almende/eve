@@ -15,7 +15,7 @@ public class DatastoreStateFactory implements StateFactory {
 	 */
 	public DatastoreStateFactory (AgentFactory agentFactory, 
 			Map<String, Object> params) {
-		TwigUtil.register(KeyValue.class);
+		this();
 	}
 	
 	public DatastoreStateFactory () {
