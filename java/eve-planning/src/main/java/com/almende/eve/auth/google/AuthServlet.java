@@ -74,7 +74,7 @@ public class AuthServlet extends HttpServlet {
 
 			// first read the servlet url from the current environment settings,
 			// if not available, read it from the global settings.
-			String environment = getEnvironment(config); 
+			String environment = AgentFactory.getEnvironment(); 
 			REDIRECT_URI = config.get("environment", environment, "google_auth_servlet_url");
 			if (REDIRECT_URI == null) {
 				REDIRECT_URI = config.get("google_auth_servlet_url");
@@ -102,10 +102,6 @@ public class AuthServlet extends HttpServlet {
 		}		
 	}
 	
-	private String getEnvironment(Config config) throws Exception {
-		return AgentFactory.getEnvironment();
-	}
-
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
