@@ -107,6 +107,13 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return resp;
 	}
 
+	public enum STATUS {GOOD, BAD, OK, WRONG, FAILED, SUCCESS};
+	
+	public STATUS testEnum(@Name("status") STATUS status) {
+		System.out.println("Status: " + status);
+		return status;
+	}
+	
 	public String cascade() throws IOException, JSONRPCException, Exception {
 		String name1 = get("name");
 		Map<String, Object> params = new HashMap<String, Object>();

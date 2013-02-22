@@ -119,8 +119,10 @@ public class AgentFactory {
 	private static Logger logger = Logger.getLogger(AgentFactory.class.getSimpleName());
 	
 	public AgentFactory () {
-		addTransportService(new HttpService());
 		agents = new AgentCache();
+
+		// ensure there is always an HttpService for outgoing calls
+		addTransportService(new HttpService());
 	}
 
 	/**
@@ -130,15 +132,16 @@ public class AgentFactory {
 	 */
 	public AgentFactory(Config config) throws Exception {
 		this.config = config;
-
-		// initialize all factories for state, transport, and scheduler
 		if (config != null) {
+			agents = new AgentCache(config);
+
+			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first, 
 			// then the state and transport services, and lastly scheduler.
-			agents = new AgentCache(config);
-			
 			setStateFactory(config);
 			addTransportServices(config);
+			// ensure there is always an HttpService for outgoing calls
+			addTransportService(new HttpService()); 
 			setSchedulerFactory(config);
 			addAgents(config);
 		}
