@@ -134,10 +134,10 @@ public class SingleAgentServlet extends HttpServlet {
 
 			// TODO: create the agentFactory in a synchronized way
 			agentFactory = AgentFactory.createInstance();
-			agentFactory.addStateFactory(config);
+			agentFactory.setStateFactory(config);
 			agentFactory.addTransportServices(config);
 			agentFactory.addTransportService(httpTransport);
-			agentFactory.addSchedulerFactory(config);
+			agentFactory.setSchedulerFactory(config);
 			agentFactory.addAgents(config);
 		}
 	}

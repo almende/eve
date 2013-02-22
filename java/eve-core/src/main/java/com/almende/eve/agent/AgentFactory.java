@@ -137,9 +137,9 @@ public class AgentFactory {
 			// then the state and transport services, and lastly scheduler.
 			agents = new AgentCache(config);
 			
-			addStateFactory(config);
+			setStateFactory(config);
 			addTransportServices(config);
-			addSchedulerFactory(config);
+			setSchedulerFactory(config);
 			addAgents(config);
 		}
 		else {
@@ -643,7 +643,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	public void addStateFactory(Config config) {
+	public void setStateFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -760,7 +760,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	public void addSchedulerFactory(Config config) {
+	public void setSchedulerFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
