@@ -25,7 +25,7 @@ public class TestXmpp {
 		String host = "openid.almende.org";
 		int port = 5222;
 		String serviceName = host;
-		XmppService xmppService = new XmppService(host, port, serviceName);
+		XmppService xmppService = new XmppService(factory, host, port, serviceName);
 		factory.addTransportService(xmppService);
 		
 		// instantiate an agent and connect it to a messenger service

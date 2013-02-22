@@ -37,13 +37,11 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	 */
 	public GaeSchedulerFactory (AgentFactory agentFactory, 
 			Map<String, Object> params) {
-		this();
 		this.agentFactory = agentFactory;
-	}
-	
-	public GaeSchedulerFactory () {
 		TwigUtil.register(GaeTask.class);
 	}
+	
+	protected GaeSchedulerFactory () {}
 	
 	/**
 	 * Get a scheduler for specified agent

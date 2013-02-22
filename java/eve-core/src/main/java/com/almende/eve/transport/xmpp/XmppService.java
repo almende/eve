@@ -34,7 +34,7 @@ public class XmppService implements TransportService {
 	
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	
-	public XmppService() {}
+	protected XmppService() {}
 	
 	/**
 	 * Construct an XmppService
@@ -66,8 +66,9 @@ public class XmppService implements TransportService {
 	 * @param service  service name
 	 * @param id       state id, to persist the state
      */
-	public XmppService(String host, Integer port, 
+	public XmppService(AgentFactory agentFactory, String host, Integer port, 
 			String service, String id) {
+		this.agentFactory = agentFactory;
 		this.host = host;
 		this.port = port;
 		this.service = service;
@@ -78,13 +79,14 @@ public class XmppService implements TransportService {
 	
 	/**
 	 * initialize the settings for the xmpp service
+	 * @param agentFactory
 	 * @param host
 	 * @param port
 	 * @param service  service name
      */
-	public XmppService(String host, Integer port, 
+	public XmppService(AgentFactory agentFactory, String host, Integer port, 
 			String service) {
-		this(host, port, service, null);
+		this(agentFactory, host, port, service, null);
 	}
 	
 	/**
@@ -121,7 +123,7 @@ public class XmppService implements TransportService {
 	/**
 	 * initialize the transport service
 	 */
-	public void init() {
+	private void init() {
 		initState();
 		initConnections();
 	}
