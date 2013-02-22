@@ -22,6 +22,7 @@ function Controller($scope, $resource) {
     $scope.meetingAgents = [];
 
     $scope.newCalendarAgentId = '';
+    $scope.newMeetingAgentId = '';
 
     /**
      * Authorize a calendar agent with the users Google Calendar
@@ -44,6 +45,7 @@ function Controller($scope, $resource) {
             alert('Error: no id for the new CalendarAgent filled in');
             return;
         }
+        $scope.newCalendarAgentId = '';
 
         jsonrpc({
             'url': $scope.MANAGEMENT_AGENT,
@@ -173,6 +175,7 @@ function Controller($scope, $resource) {
             alert('Error: no id for the new MeetingAgent filled in');
             return;
         }
+        $scope.newMeetingAgentId = '';
 
         jsonrpc({
             'url': $scope.MANAGEMENT_AGENT,
@@ -371,8 +374,13 @@ function Controller($scope, $resource) {
      * @return {String} formattedDateTime
      */
     $scope.formatDateTime = function (dateTime) {
-        var d = new Date(dateTime);
-        return d.toLocaleDateString() + ', ' + d.toLocaleTimeString();
+        if (dateTime) {
+            var d = new Date(dateTime);
+            return d.toISOString();
+        }
+        else {
+            return '';
+        }
     };
 
     /**

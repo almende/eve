@@ -191,3 +191,7 @@ div.dialog {
     padding: 5px;
     margin: 0;
 }
+
+chzn-select {
+    width: 200px;
+}

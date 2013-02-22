@@ -6,7 +6,7 @@
 
 	<groupId>com.almende.eve</groupId>
 	<artifactId>eve</artifactId>
-	<version>0.18-SNAPSHOT</version>
+	<version>0.18</version>
 	<packaging>pom</packaging>
 
 	<name>EVE</name>

@@ -2,7 +2,7 @@ EVE CORE
 http://almende.github.com/eve/
 
 
-<under construction>, version 0.18
+2013-02-22, version 0.18
 
 - Implemented support for a resource name for xmpp connections.
 - Implemented subscriptionId for subscriptions, which can be used to uniquely

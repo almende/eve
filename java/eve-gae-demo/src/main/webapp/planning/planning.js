@@ -11,6 +11,7 @@ function Planning($scope) {
     //var MEETING_AGENT_URI = AGENT_SERVLET + 'meetingagent/'; // TODO: cleanup
     var DIRECTORY_AGENT_URI = AGENT_SERVLET + 'directoryagent/';
     var CALLBACK_URI = window.location.href;
+    var CALENDARAGENT_TYPE = 'com.almende.eve.agent.google.GoogleCalendarAgent';
     var MEETINGAGENT_TYPE = 'com.almende.eve.agent.MeetingAgent';
 
     var SECOND = 1000;
@@ -421,17 +422,29 @@ function Planning($scope) {
         $scope.usernameChanged = false;
 
         if ($scope.username && $scope.username.length > 0) {
-            $scope.personalAgent = AGENT_SERVLET + $scope.username + '/';
+            var callback = function () {
+                $scope.personalAgent = AGENT_SERVLET + $scope.username + '/';
+                $scope.getEmail();
+                $scope.getEvents();
+                $scope.getRegistrations();
+
+                console.log('personalagent', $scope.personalAgent);
+            };
+
+            // just try to create the agent. if it already exists, an error
+            // will be returned
+            $.ajax({
+                'type': 'PUT',
+                'url': AGENT_SERVLET + '?type=' + CALENDARAGENT_TYPE,
+                'success': callback,
+                'failure': callback
+            });
         }
         else {
             delete $scope.personalAgent;
+            $scope.logout();
         }
         console.log('username', $scope.username);
-        console.log('personalagent', $scope.personalAgent);
-
-        $scope.getEmail();
-        $scope.getEvents();
-        $scope.getRegistrations();
     };
 
     $scope.logout = function () {
