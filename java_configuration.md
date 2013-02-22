@@ -7,7 +7,7 @@ title: Configuration
 # Configuration
 
 Eve needs a configuration file containing settings for persistency of the agents
-context, settings for transport services such as HTTP and XMPP, and other
+state, settings for transport services such as HTTP and XMPP, and other
 environment settings. The servlet used to host the Eve agents points to an Eve
 configuration file, as explained on the page [Services](java_services.html).
 
@@ -33,9 +33,9 @@ file: **war/WEB-INF/eve.yaml**
       host: my_xmpp_server.com
       port: 5222
 
-    # context settings (for persistency)
-    context:
-      class: FileContextFactory
+    # state settings (for persistency)
+    state:
+      class: FileStateFactory
       path: .eveagents
 
     # scheduler settings (for tasks)
@@ -80,7 +80,7 @@ Description of the available properties:
             There are two environments available <code>Development</code> and
             <code>Production</code>.
             The environment is determined at runtime
-            and can be retrieved from the AgentFactory and ContextFactory using the
+            and can be retrieved from the AgentFactory and StateFactory using the
             method <code>getEnvironment()</code>.<br>
             <br>
             All Eve settings can be placed both in the root of the configuration
@@ -135,9 +135,9 @@ Description of the available properties:
         </td>
     </tr>
     <tr>
-        <td>context</td>
+        <td>state</td>
         <td>
-            Configuration for the context, used to persist the agents state.
+            Configuration for the state, used to persist data for an agent.
             An object containing parameters:
 
             <p></p>
@@ -148,31 +148,31 @@ Description of the available properties:
                 </tr>
                 <tr>
                     <td>class</td>
-                    <td>The full class path of an ContextFactory.
-                    For built-in context factories, it is enough to specify
+                    <td>The full class path of an StateFactory.
+                    For built-in state factories, it is enough to specify
                     the classes simple name instead of the full path.</td>
                 </tr>
                 <tr>
                     <td>path</td>
-                    <td>The path on disk where the context of the agents will be stored.
-                        Only applicable for the <code>FileContextFactory</code>.</td>
+                    <td>The path on disk where the state of the agents will be stored.
+                        Only applicable for the <code>FileStateFactory</code>.</td>
                 </tr>
             </table>
             <p></p>
 
-            The following context factories are available:
+            The following state factories are available:
 
             <ul>
-                <li><code>FileContextFactory</code>.
+                <li><code>FileStateFactory</code>.
                     Located in eve-core.jar.
-                    The FileContextFactory stores the context of each agent as a
+                    The FileStateFactory stores the state of each agent as a
                     file on disk. The files may only be used by a single Eve
                     application. Multiple Eve applications running on the same
                     machine must use a different `path`.
-                    This context is not applicable when deployed on Google App Engine.</li>
-                <li><code>MemoryContextFactory</code>.
+                    This state is not applicable when deployed on Google App Engine.</li>
+                <li><code>MemoryStateFactory</code>.
                     Located in eve-core.jar.</li>
-                <li><code>DatastoreContextFactory</code>.
+                <li><code>DatastoreStateFactory</code>.
                     Located in eve-gae.jar.
                     Only applicable when the application is deployed on Google App Engine.
                 </li>
@@ -201,7 +201,7 @@ Description of the available properties:
             </table>
             <p></p>
 
-            The following context factories are available:
+            The following scheduler factories are available:
 
             <ul>
                 <li><code>RunnableSchedulerFactory</code>.
@@ -254,7 +254,7 @@ Description of the available properties:
 ## Accessing configuration properties {#accessing_configuration_properties}
 
 All configuration properties can be accessed by the agents via their
-[context](java_agents.html#context). If an agent needs specific properties,
+agent factory. If an agent needs specific properties,
 for example some database configuration, these properties can be stored in the
 configuration file of Eve.
 
@@ -303,9 +303,9 @@ There are two environments available:
   development mode.
 - `Production`, which is used when the project is deployed on App Engine.
 
-There is one context available on Google App Engine: `DatastoreContext`,
-which uses Google Datastore to persist the state of the agents. The Datastore
-context does not need any additional configuration.
+There is one state facctory available on Google App Engine:
+`DatastoreStateFactory`, which uses Google Datastore to persist the state of
+the agents. The Datastore state does not need any additional configuration.
 There is one scheduler available: `AppEngineSchedulerFactory`.
 
 Example file: **war/WEB-INF/web.inf**
@@ -347,9 +347,9 @@ Example file: **war/WEB-INF/eve.yaml**
 
     # Eve configuration
 
-    # context settings (for persistency)
-    context:
-      class: DatastoreContextFactory
+    # state settings (for persistency)
+    state:
+      class: DatastoreStateFactory
 
     # scheduler settings (for tasks)
     scheduler:
@@ -362,10 +362,10 @@ Example file: **war/WEB-INF/eve.yaml**
 An Eve setup running on [Tomcat](http://tomcat.apache.org/) requires only the
 library `eve-core.jar`.
 On Tomcat, there is currently only a `Production` environment available (no
-`Development` as available on Google App Engine). There are two types of
-context available for storing the agents state: `FileContext` and
-`MemoryContext`.
-In case of `FileContext`, each agent stores its state in a single file
+`Development` as available on Google App Engine). There are two state factories
+available for storing the agents state: `FileStateFactory` and
+`MemoryStateFactory`.
+In case of `FileStateFactory`, each agent stores its state in a single file
 in the configured path.
 There is one scheduler available: `RunnableSchedulerFactory`.
 
@@ -412,9 +412,9 @@ Example file: **war/WEB-INF/eve.yaml**
       host: my_xmpp_server.com
       port: 5222
 
-    # context settings (for persistency)
-    context:
-      class: FileContextFactory
+    # state settings (for persistency)
+    state:
+      class: FileStateFactory
       path: .eveagents
 
     # scheduler settings (for tasks)
@@ -496,10 +496,10 @@ Example file: **war/WEB-INF/eve.yaml**
       Production:
         auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
-    # context settings
-    # the context is used by agents for storing their state.
-    context:
-      class: DatastoreContextFactory
+    # state settings
+    # the state is used by agents for storing their state.
+    state:
+      class: DatastoreStateFactory
 
     # Google API access
     google:

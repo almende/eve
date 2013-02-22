@@ -76,7 +76,7 @@ The servlet configuration can contain the following init parameters:
         <td>
             The init-param `config` points to an eve configuration file
             (for example eve.yaml). The configuration file is used by the AgentFactory
-            and contains configuration for the context, scheduler, and services.
+            and contains configuration for the state, scheduler, and services.
         </td>
     </tr>
     <tr>
@@ -121,9 +121,9 @@ Create a file eve.yaml and insert the following text:
 
     # Eve configuration
 
-    # context settings (for persistency)
-    context:
-      class: FileContextFactory
+    # state settings (for persistency)
+    state:
+      class: FileStateFactory
       path: .eveagents
 
     # scheduler settings (for tasks)
@@ -142,15 +142,15 @@ The configuration contains:
   via which the agents can be accessed, for example HTTP and XMPP.
 -->
 
-- A parameter *context* specifying the type of context that will be
+- A parameter *state* specifying the type of state factory that will be
   available for the agents to read and write persistent data.
-  Agents themselves are stateless. They can use a context to store data.
+  Agents themselves are stateless. They can use a state to persist data.
 
 - A parameter *scheduler* specifying the scheduler that will be used to
   let agents schedule tasks for themselves.
 
 Each agent has access has access to this configuration file via its
-[context](java_agents.html#context).
+AgentFactory.
 If your agent needs specific settings (for example for database access),
 you can add these settings to the configuration file.
 
@@ -178,9 +178,9 @@ The AgentServlet supports the following request:
   an exception.
   A 404 error will be returned when the agent does not exist.
 
-- `PUT /agents/{agentId}?class={agentClass}`
+- `PUT /agents/{agentId}?type={agentType}`
 
-  Create an agent. `agentId` can be any string. `agentClass` must
+  Create an agent. `agentId` can be any string. `agentType` must
   be a full java class path of an Agent. A 500 error will be
   thrown when an agent with this id already exists.
 
@@ -227,9 +227,9 @@ file name **eve.yaml**.
       port: 5222
       service: my_xmpp_service_name
 
-    # context settings (for persistency)
-    context:
-      class: FileContextFactory
+    # state settings (for persistency)
+    state:
+      class: FileStateFactory
       path: .eveagents
 
     # scheduler settings (for tasks)
@@ -240,7 +240,7 @@ file name **eve.yaml**.
 
 An agent can be connected to an XMPP service programmatically via the configured
 XmppService. The following code example shows how an agent can retrieve the
-xmpp service via its [Context](java_agents.html#context),
+xmpp service via its AgentFactory,
 and connect itself to the service with a username and password.
 
     public void xmppConnect(@Name("username") String username,

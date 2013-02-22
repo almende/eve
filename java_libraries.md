@@ -69,9 +69,9 @@ They can be downloaded at the
   
 - **eve-gae.jar**
   Library needed for hosting Eve agents on Google App Engine.
-  This libary contains platform dependent functionallity:
-   a persistent context for the agents (DatastoreContext), 
-  and a schedular (AppEngineSchedular).
+  This libary contains platform dependent functionality:
+   a persistent state for the agents (DatastoreStateFactory),
+  and a scheduler (AppEngineSchedulerFactory).
 
   *Dependencies: 
     eve-core.jar,

@@ -138,9 +138,9 @@ web servlet.
       # services:
       # - class: ...
 
-      # context settings (for persistence)
-      context:
-        class: DatastoreContextFactory
+      # state settings (for persistence)
+      state:
+        class: DatastoreStateFactory
 
       # scheduler settings (for tasks)
       scheduler:
@@ -157,9 +157,9 @@ web servlet.
     each other in multiple ways.
     An agent will have a unique url for each of the configured services.
 
-  - The parameter *context* specifies the type of context that will be
+  - The parameter *state* specifies the type of state that will be
     available for the agents to read and write persistent data.
-    Agents themselves are stateless. They can use a context to store data.
+    Agents themselves are stateless. They can use a state to persist data.
 
   - The parameter *scheduler* specifies the scheduler that will be used to
     let agents schedule tasks for themselves.
@@ -170,7 +170,7 @@ web servlet.
     `environment.Production.[param]`.
 
   Each agent has access has access to this configuration file via its 
-  [context](java_agents.html#context).
+  AgentFactory.
   If your agent needs specific settings (for example for database access), 
   you can add these settings to the configuration file.
 
@@ -197,7 +197,7 @@ Now the project can be started and you can see one of the example agents in acti
 - Create a CalcAgent by sending an HTTP PUT request to the servlet. We will
   create an agent with id `calcagent1` and class `com.almende.eve.agent.example.CalcAgent`.
 
-      http://localhost:8888/agents/calcagent1/?class=com.almende.eve.agent.example.CalcAgent
+      http://localhost:8888/agents/calcagent1/?type=com.almende.eve.agent.example.CalcAgent
 
   If the agent is successfully created, the agents urls will be returned
   (in this case only one url):
@@ -278,7 +278,7 @@ your agent class in the eve.properties file.
 - Create an instance of your new agent. Send an HTTP PUT request to the servlet.
   We will create an agent with id `myfirstagent1` and class `com.mycompany.myproject.MyFirstAgent`.
 
-      http://localhost:8888/agents/myfirstagent1/?class=com.mycompany.myproject.MyFirstAgent
+      http://localhost:8888/agents/myfirstagent1/?type=com.mycompany.myproject.MyFirstAgent
 
   If the agent is successfully created, its urls will be returned:
 

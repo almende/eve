@@ -119,9 +119,9 @@ when they get a request to handle.
 
 Agents are stateless. It is possible that multiple instances of the same agent
 are running simultaneously. 
-To store a state, agents can use the provided context, which is shared amongst
-all running instances of the agent.
-The implementation of this context is dependent on the platform where the agents
+Agents can persist data in their State.
+This state is shared amongst all running instances of the agent.
+The implementation of this state is dependent on the platform where the agents
 are deployed.
 
 When an agent is deployed as a dedicated web service with only 

@@ -95,7 +95,7 @@ not via HTTP. In the case of HTTP, the @Sender parameter will be null.
 
 Eve agents are stateless.
 An agent can have multiple instances running simultaneously.
-The agents have a [shared context](#context) where they can persist data.
+The agents have a [shared state](#state) where they can persist data.
 The amount of work which can be done by one agent is thus not limited to the
 limitations of one physical server, but can be scaled endlessly over multiple
 instances running on different servers in the cloud.
@@ -199,29 +199,29 @@ To create a proxy to an agent using this interface:
     System.out.println("result=" + result);
 
 
-## Context {#context}
+## State {#state}
 
-Each agent has a Context available which can be used to persist the agents state.
-The Context offers an interface which is independent of the platform where the 
+Each agent has a State available which can be used to persist the agents state.
+The State offers an interface which is independent of the platform where the
 agent is deployed, and is shared amongst all running instances of the agent.
-The Context can be accessed via the method `getContext`, and offers a simple
+The State can be accessed via the method `getState`, and offers a simple
 key/value storage. 
 
-The Context is meant for storing a limited amount of state parameters, 
+The State is meant for storing a limited amount of state parameters,
 and not as complete database solution. For storing large amounts of data,
 a database natively available to the agents should be used. For example when 
 running on Google App Engine, an agent can use the Google Datastore. When running 
 on Amazon Elastic Cloud, Amazons SimpleDB or DynamoDB can be used.
 
 
-An example of using the context is shown in the following example:
+An example of using the state is shown in the following example:
 
     public void setUsername(@Name("username") String username) {
-        getContext().put("username", username);
+        getState().put("username", username);
     }
     
     public String getUsername() {
-        return getContext().get("username");
+        return getState().get("username");
     }
 
 ## Events {#events}
@@ -360,7 +360,7 @@ See also the page
 ## Database {#database}
 
 The Eve libraries do not include interfaces for data storage, 
-besides the context to store an agents state.
+besides the agents [State](#state).
 To connect an agent to a database (such as the Google Datastore),
 the regular libraries and interfaces for that specific database should be used.
 

@@ -65,7 +65,7 @@ An Eve agent is created as a regular Java class.
 Its methods will be exposed via JSON-RPC.
 Agents themselves are stateless, and it is possible to have multiple
 instances of the same agent running simultaneously in the cloud.
-An agent can store its state in a context, which offers a simple 
+An agent can persist data in its state, which offers a simple
 key/value storage.
 
 The agents are explained in detail on the page 
