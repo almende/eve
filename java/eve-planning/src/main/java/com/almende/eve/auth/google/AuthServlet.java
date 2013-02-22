@@ -72,12 +72,9 @@ public class AuthServlet extends HttpServlet {
 				throw new Exception("Parameter 'google.client_secret' missing in config");
 			}
 
-			logger.info("CLIENT_ID=" + CLIENT_ID); // TDOO: cleanup
-			logger.info("CLIENT_SECRET=" + CLIENT_SECRET); // TDOO: cleanup
-			
 			// first read the servlet url from the current environment settings,
 			// if not available, read it from the global settings.
-			String environment = getEnvironment(); 
+			String environment = AgentFactory.getEnvironment(); 
 			REDIRECT_URI = config.get("environment", environment, "google_auth_servlet_url");
 			if (REDIRECT_URI == null) {
 				REDIRECT_URI = config.get("google_auth_servlet_url");
@@ -105,10 +102,6 @@ public class AuthServlet extends HttpServlet {
 		}		
 	}
 	
-	private String getEnvironment() throws Exception {
-		return AgentFactory.getEnvironment();
-	}
-
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
