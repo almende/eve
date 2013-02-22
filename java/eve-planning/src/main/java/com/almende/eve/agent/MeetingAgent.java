@@ -99,7 +99,6 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.util.IntervalsUtil;
 import com.almende.util.WeightsUtil;
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -237,11 +236,19 @@ public class MeetingAgent extends Agent {
 
 	/**
 	 * get meeting activity returns null if no activity has been initialized.
-	 * 
-	 * @return
+	 * @return activity
 	 */
 	public Activity getActivity() {
 		return (Activity) getState().get("activity");
+	}
+
+	/**
+	 * The the complete state of the agent.
+	 * TODO: remove this temporary method 
+	 * @return state
+	 */
+	public Object getEverything() {
+		return getState();
 	}
 
 	/**
@@ -312,7 +319,7 @@ public class MeetingAgent extends Agent {
 	 */
 	private boolean syncEvents() {
 		logger.info("syncEvents started");
-		Activity activity = (Activity) getState().get("activity");
+		Activity activity = getActivity();
 
 		boolean changed = false;
 		if (activity != null) {
@@ -330,12 +337,12 @@ public class MeetingAgent extends Agent {
 				}
 			}
 
-			activity = (Activity) getState().get("activity");
+			activity = getActivity();
 			String updatedAfter = activity.withStatus().getUpdated();
 
 			changed = !updatedBefore.equals(updatedAfter);
 		}
-
+		
 		return changed;
 	}
 
@@ -379,14 +386,16 @@ public class MeetingAgent extends Agent {
 
 			boolean changedConstraints = applyConstraints();
 			boolean rescheduled = scheduleActivity();
+			
 			if (changedConstraints || rescheduled) {
 				changedEvent = syncEvents();
 				if (changedEvent) {
 					syncEvents();
 				}
 			}
-			
+
 			// TODO: not so nice adjusting the activityStatus here this way
+			activity = getActivity();
 			if (activity.withStatus().getActivityStatus() != Status.ACTIVITY_STATUS.error) {
 				// store status of a activity as "planned"
 				activity.withStatus().setActivityStatus(Status.ACTIVITY_STATUS.planned);
@@ -470,17 +479,8 @@ public class MeetingAgent extends Agent {
 				logger.info("Activity replanned at " + solution.toString()); // TODO: cleanup logging
 				try {
 					// TODO: cleanup
-					logger.info("New activity: " + JOM.getInstance().writeValueAsString(activity));
-				} catch (JsonGenerationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JsonMappingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} // TODO: cleanup logging
+					logger.info("Replanned activity: " + JOM.getInstance().writeValueAsString(activity));
+				} catch (Exception e) {}
 				return true;
 			}
 			else {
@@ -1019,18 +1019,9 @@ public class MeetingAgent extends Agent {
 				activity.withStatus().getUpdated());
 		boolean eventChanged = !equalsDateTime(agentData.eventUpdated, 
 				eventActivity.withStatus().getUpdated());
-		boolean changed = activityChanged || eventChanged;
-
+		boolean changed = activityChanged || eventChanged;		
 		if (changed && activity.isNewerThan(eventActivity)) {
 			// activity is updated (event is out-dated or not yet existing)
-
-			// TODO: cleanup logging
-			try {
-				logger.info("activity is newer than event. Updating event. Activity="
-						+ JOM.getInstance().writeValueAsString(activity));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 
 			// merge the activity into the event
 			mergeActivityIntoEvent(event, activity);
@@ -1109,14 +1100,6 @@ public class MeetingAgent extends Agent {
 			agentData.eventUpdated = event.get("updated").asText();
 			agentData.activityUpdated = activity.withStatus().getUpdated();
 			putAgentData(agent, agentData);
-
-			// TODO: cleanup
-			try {
-				logger.info("event is newer than activity. Updating activity. Activity="
-						+ JOM.getInstance().writeValueAsString(activity));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		}
 		else {
 			// activity and eventActivity have the same updated timestamp

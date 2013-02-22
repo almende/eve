@@ -402,6 +402,9 @@ public class AgentFactory {
 	 */
 	public void deleteAgent(String agentId) throws Exception {
 		Exception e = null;
+		if (agentId == null) {
+			return;
+		}
 		
 		try {
 			// get the agent and execute the delete method
