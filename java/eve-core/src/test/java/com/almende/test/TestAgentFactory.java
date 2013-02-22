@@ -19,7 +19,7 @@ public class TestAgentFactory extends TestCase {
 		AgentFactory factory = new AgentFactory();
 		
 		TestAgentInterface agent = factory.createAgentProxy(null, 
-				"http://eveagents.appspot.com/agents/testagent/1/", 
+				"http://eveagents.appspot.com/agents/test/", 
 				TestAgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);

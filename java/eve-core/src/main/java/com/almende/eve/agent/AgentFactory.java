@@ -147,6 +147,9 @@ public class AgentFactory {
 		}
 		else {
 			agents = new AgentCache();
+
+			// ensure there is always an HttpService for outgoing calls
+			addTransportService(new HttpService()); 
 		}
 	}
 	
