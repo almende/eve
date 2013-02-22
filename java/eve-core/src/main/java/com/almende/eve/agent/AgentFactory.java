@@ -626,6 +626,14 @@ public class AgentFactory {
 	 * Get the loaded config file
 	 * @return config   A configuration file
 	 */
+	public void setConfig(Config config) {
+		this.config = config;
+	}
+	
+	/**
+	 * Get the loaded config file
+	 * @return config   A configuration file
+	 */
 	public Config getConfig() {
 		return config;
 	}

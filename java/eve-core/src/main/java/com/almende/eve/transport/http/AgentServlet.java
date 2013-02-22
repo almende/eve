@@ -254,8 +254,10 @@ public class AgentServlet extends HttpServlet {
 			agentFactory.addStateFactory(config);
 			agentFactory.addTransportServices(config);
 			agentFactory.addTransportService(httpTransport);
+			agentFactory.setConfig(config);
 			agentFactory.addSchedulerFactory(config);
 			agentFactory.addAgents(config);
+			
 		}
 	}
 	

@@ -2,6 +2,7 @@ package com.almende.eve.agent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,12 +10,13 @@ import com.almende.eve.config.Config;
 
 public class AgentCache {
 	Map<String,MetaInfo> cache;
-	ArrayList<MetaInfo> scores;
+	List<MetaInfo> scores;
 	
 	int maxSize = 100;
 	
 	public AgentCache(){
-		cache = new ConcurrentHashMap<String, MetaInfo>(maxSize);
+		cache = new ConcurrentHashMap<String, MetaInfo>(this.maxSize);
+		scores = new ArrayList<MetaInfo>(this.maxSize);
 	}
 	public AgentCache(Config config){
 		Integer maxSize = config.get("AgentCache","maxSize");
@@ -55,7 +57,7 @@ public class AgentCache {
 				MetaInfo entry = scores.get(i);
 				toEvict.add(entry);
 			}
-			scores = (ArrayList<MetaInfo>) scores.subList(amount, scores.size());
+			scores = (List<MetaInfo>) scores.subList(amount, scores.size());
 			for (MetaInfo entry: toEvict){
 				cache.remove(entry.agent.getId());
 			}
