@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * state in the state. 
  * The state extends a standard Java Map.
  * 
+ * <b>Warning, this implementation is not thread-safe!</b>
+ * 
  * Usage:<br>
  *     AgentFactory factory = new AgentFactory(config);<br>
  *     FileState state = new State("agentId");<br>
@@ -24,7 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * @author jos
  */
-public class MemoryState extends State {
+public class MemoryState extends AbstractState {
+	private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
+
 	public MemoryState() {}
 	
 	public MemoryState(String agentId) {
@@ -77,6 +81,16 @@ public class MemoryState extends State {
 	}
 
 	@Override
+	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+		boolean result=false;
+		if (properties.containsKey(key) && properties.get(key).equals(oldVal)){
+			properties.put(key, newVal);
+			result=true;
+		}
+		return result;
+	}
+	
+	@Override
 	public Object remove(Object key) {
 		return properties.remove(key);
 	}
@@ -103,5 +117,5 @@ public class MemoryState extends State {
 	@Override
 	public void destroy() {}
 
-	private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
+
 }

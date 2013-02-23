@@ -24,7 +24,7 @@ import java.util.Set;
  * @author jos
  */
 // TODO: create an in memory cache and reduce the number of reads/writes
-public abstract class FileState extends State {
+public abstract class FileState extends AbstractState {
 	protected FileState() {}
 
 	public FileState(String agentId) {

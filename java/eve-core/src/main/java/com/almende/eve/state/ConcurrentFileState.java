@@ -281,6 +281,24 @@ public class ConcurrentFileState extends FileState {
 	}
 
 	@Override
+	public synchronized boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+		boolean result=false;
+		try {
+			openFile();
+			read();
+			if (properties.containsValue(key) && properties.get(key).equals(oldVal)){
+				properties.put(key, newVal);
+				write();
+				result=true;
+			}
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+		closeFile();
+		return result;
+	}
+
+	@Override
 	public synchronized Object remove(Object key) {
 		Object result = null;
 		try {
@@ -322,5 +340,6 @@ public class ConcurrentFileState extends FileState {
 		closeFile();
 		return result;
 	}
+
 
 }
