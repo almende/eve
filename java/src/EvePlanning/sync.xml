@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE PROJECT>
-<project name="eve-planning" default="sync" basedir=".">
-  <target name="sync" description="Synchronize libraries">
-
-  	<copy file="../EveCore/bin/eve-core.jar" todir="war/WEB-INF/lib"/>
-  	
-  </target>
-</project>

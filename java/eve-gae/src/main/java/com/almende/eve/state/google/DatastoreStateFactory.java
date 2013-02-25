@@ -3,7 +3,7 @@ package com.almende.eve.state.google;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.state.State;
+import com.almende.eve.state.AbstractState;
 import com.almende.eve.state.StateFactory;
 import com.almende.util.TwigUtil;
 
@@ -32,7 +32,7 @@ public class DatastoreStateFactory implements StateFactory {
 	public DatastoreState get(String agentId) {
 		DatastoreState state = new DatastoreState(agentId);
 		// TODO: how to really check if the state exists in the datastore?
-		if (state.get(State.KEY_AGENT_TYPE) != null) {
+		if (state.get(AbstractState.KEY_AGENT_TYPE) != null) {
 			return state;
 		}
 		return null;

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.almende.eve.state.State;
+import com.almende.eve.state.AbstractState;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheService.SetPolicy;
@@ -38,7 +38,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * 
  * @author jos
  */
-public class DatastoreState extends State {
+public class DatastoreState extends AbstractState {
 	public DatastoreState() {}
 
 	public DatastoreState(String agentId) {
@@ -327,6 +327,18 @@ public class DatastoreState extends State {
 	}
 
 	@Override
+	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+		boolean result=false;
+		refresh();
+		if ((oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
+			properties.put(key,newVal);
+			update();
+			result=true;
+		}
+		return result;
+	}
+	
+	@Override
 	public int size() {
 		refresh();
 		return properties.size();
@@ -342,5 +354,6 @@ public class DatastoreState extends State {
 	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 	private IdentifiableValue cacheValue = null;
 	private boolean isChanged = false;
+
 }
 

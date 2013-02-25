@@ -9,6 +9,11 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.AgentFactory;
 
 public class FileStateFactory implements StateFactory {
+
+private String path = null;
+private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+private Map<String,FileState> states = new HashMap<String,FileState>();
+	
 	/**
 	 * This constructor is called when constructed by the AgentFactory
 	 * @param agentFactory
@@ -58,10 +63,16 @@ public class FileStateFactory implements StateFactory {
 	 */
 	@Override
 	public FileState get(String agentId) {
+		FileState state = null;
 		if (exists(agentId)) {
-			return new ConcurrentFileState(agentId, getFilename(agentId));
+			if (states.containsKey(agentId)){
+				state = states.get(agentId);
+			} else {
+				state = new ConcurrentFileState(agentId, getFilename(agentId));
+				states.put(agentId, state);
+			}
 		}
-		return null;
+		return state;
 	}
 
 	/**
@@ -84,7 +95,9 @@ public class FileStateFactory implements StateFactory {
 		file.createNewFile();
 		
 		// instantiate the state
-		return new ConcurrentFileState(agentId, filename);
+		FileState state =  new ConcurrentFileState(agentId, filename);
+		states.put(agentId, state);
+		return state;
 	}
 	
 	/**
@@ -162,7 +175,4 @@ public class FileStateFactory implements StateFactory {
 		data.put("path", path);
 		return data.toString();
 	}
-
-	private String path = null;
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 }

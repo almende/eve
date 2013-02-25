@@ -192,6 +192,20 @@ public class OriginalFileState extends FileState {
 	}
 
 	@Override
+	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+		synchronized(properties){
+			boolean result=false;
+			read();
+			if ((oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
+				properties.put(key,newVal);
+				write();
+				result=true;
+			}
+			return result;
+		}
+	}
+	
+	@Override
 	public Object remove(Object key) {
 		synchronized(properties){
 			read();
@@ -219,4 +233,5 @@ public class OriginalFileState extends FileState {
 	
 	private String filename = null;
 	private static Map<String, Object> properties = Collections.synchronizedMap(new HashMap<String, Object>());
+
 }
