@@ -107,8 +107,6 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return resp;
 	}
 
-	public enum STATUS {GOOD, BAD, OK, WRONG, FAILED, SUCCESS};
-	
 	public STATUS testEnum(@Name("status") STATUS status) {
 		System.out.println("Status: " + status);
 		return status;
