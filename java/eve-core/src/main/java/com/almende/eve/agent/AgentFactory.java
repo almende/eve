@@ -324,7 +324,7 @@ public class AgentFactory {
 								throw err;
 							}
 							else if (response.getResult() != null) {
-								return response.getResult(Object.class);
+								return response.getResult(method.getReturnType());
 							}
 							else {
 								return null;
