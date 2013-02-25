@@ -431,13 +431,21 @@ function Planning($scope) {
                 console.log('personalagent', $scope.personalAgent);
             };
 
-            // just try to create the agent. if it already exists, an error
-            // will be returned
-            $.ajax({
-                'type': 'PUT',
-                'url': AGENT_SERVLET + '?type=' + CALENDARAGENT_TYPE,
-                'success': callback,
-                'failure': callback
+            // test if the agent exists. if not, a 404 will be returned
+            jsonrpc({
+                url: AGENT_SERVLET + $scope.username + '/',
+                method: 'getUrls',
+                success: callback,
+                error: function (err) {
+                    // error retrieving the agent. It probably does not exist
+                    // try to create the agent
+                    $.ajax({
+                        'type': 'PUT',
+                        'url': AGENT_SERVLET + $scope.username + '/?type=' + CALENDARAGENT_TYPE,
+                        'success': callback,
+                        'error': callback
+                    });
+                }
             });
         }
         else {
@@ -462,7 +470,7 @@ function Planning($scope) {
     $scope.delete = function () {
         $.ajax({
             'type': 'DELETE',
-            'url': $scope.personalAgent
+            'url': AGENT_SERVLET + $scope.username + '/'
         });
 
         this.unregisterAgent();
