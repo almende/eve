@@ -64,7 +64,7 @@ public class ConcurrentFileState extends FileState {
 	public ConcurrentFileState(String agentId, String filename) {
 		super(agentId);
 		this.filename = filename;
-		locked.add(false);
+		if (locked.isEmpty()) locked.add(0,false);
 	}
 
 	@SuppressWarnings("resource")
@@ -137,7 +137,7 @@ public class ConcurrentFileState extends FileState {
 			properties.clear();
 			properties.putAll((Map<String, Object>) in.readObject());
 		} catch (EOFException eof){
-			logger.info("Empty State file read:"+filename);
+			//empty file, new agent?
 		};
 	}
 
@@ -286,7 +286,7 @@ public class ConcurrentFileState extends FileState {
 		try {
 			openFile();
 			read();
-			if (properties.containsValue(key) && properties.get(key).equals(oldVal)){
+			if (!(oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 				properties.put(key, newVal);
 				write();
 				result=true;

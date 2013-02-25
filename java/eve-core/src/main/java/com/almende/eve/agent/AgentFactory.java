@@ -100,6 +100,7 @@ public class AgentFactory {
 	private final static Map<String, String> SCHEDULERS = new HashMap<String, String>();
 	static {
 		SCHEDULERS.put("RunnableSchedulerFactory",  "com.almende.eve.scheduler.RunnableSchedulerFactory");
+		SCHEDULERS.put("ClockSchedulerFactory",  "com.almende.eve.scheduler.ClockSchedulerFactory");
 		SCHEDULERS.put("GaeSchedulerFactory", "com.almende.eve.scheduler.google.GaeSchedulerFactory");
 	}
 	

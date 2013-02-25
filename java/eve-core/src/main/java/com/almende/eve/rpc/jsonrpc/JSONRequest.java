@@ -1,90 +1,95 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class JSONRequest {
+public class JSONRequest implements Serializable {
+	private static final long serialVersionUID = 1970046457233622444L;
+
 	protected ObjectNode req = JOM.createObjectNode();
 
-	public enum VERSION {ONE, TWO};
-	
-	public JSONRequest () {
+	public enum VERSION {
+		ONE, TWO
+	};
+
+	public JSONRequest() {
 		init(null, null, null);
 	}
 
-	public JSONRequest (String json) throws JSONRPCException, 
+	public JSONRequest(String json) throws JSONRPCException,
 			JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = JOM.getInstance();
 		init(mapper.readValue(json, ObjectNode.class));
 	}
-	
-	public JSONRequest (ObjectNode request) throws JSONRPCException {
+
+	public JSONRequest(ObjectNode request) throws JSONRPCException {
 		init(request);
 	}
-	
-	public void init (ObjectNode request) throws JSONRPCException {
+
+	public void init(ObjectNode request) throws JSONRPCException {
 		if (request == null || request.isNull()) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Request is null");
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Request is null");
 		}
 		if (request.has("jsonrpc") && request.get("jsonrpc").isTextual()) {
 			if (!request.get("jsonrpc").asText().equals("2.0")) {
-				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
+				throw new JSONRPCException(
+						JSONRPCException.CODE.INVALID_REQUEST,
 						"Value of member 'jsonrpc' is not equal to '2.0'");
 			}
 		}
 		if (!request.has("method")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'method' missing in request");
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Member 'method' missing in request");
 		}
 		if (!(request.get("method").isTextual())) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'method' is no String");
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Member 'method' is no String");
 		}
-		/* TODO: cleanup
-		if (!request.has("params")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'params' missing in request");
-		}
-		*/
+		/*
+		 * TODO: cleanup if (!request.has("params")) { throw new
+		 * JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+		 * "Member 'params' missing in request"); }
+		 */
 		if (request.has("params") && !(request.get("params").isObject())) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'params' is no ObjectNode");
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Member 'params' is no ObjectNode");
 		}
-		
-		init (request.get("id"), request.get("method").asText(), 
-				(ObjectNode)request.get("params"));
+
+		init(request.get("id"), request.get("method").asText(),
+				(ObjectNode) request.get("params"));
 	}
 
 	/*
-	public JSONRequest (String method) {
-		init (null, method, null);
-	}
+	 * public JSONRequest (String method) { init (null, method, null); }
 	 */
-	
-	public JSONRequest (String method, ObjectNode params) {
-		init (null, method, params);
+
+	public JSONRequest(String method, ObjectNode params) {
+		init(null, method, params);
 	}
 
-	public JSONRequest (Object id, String method, ObjectNode params) {
-		init (id, method, params);
+	public JSONRequest(Object id, String method, ObjectNode params) {
+		init(id, method, params);
 	}
 
-	public JSONRequest (String method, ObjectNode params,
-			String callbackUrl, String callbackMethod) {
-		init (null, method, params);
+	public JSONRequest(String method, ObjectNode params, String callbackUrl,
+			String callbackMethod) {
+		init(null, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 
-	public JSONRequest (Object id, String method, ObjectNode params,
+	public JSONRequest(Object id, String method, ObjectNode params,
 			String callbackUrl, String callbackMethod) {
-		init (id, method, params);
+		init(id, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 
@@ -94,12 +99,12 @@ public class JSONRequest {
 		setMethod(method);
 		setParams(params);
 	}
-	
+
 	public void setId(Object id) {
 		ObjectMapper mapper = JOM.getInstance();
 		req.put("id", mapper.convertValue(id, JsonNode.class));
 	}
-	
+
 	public Object getId() {
 		ObjectMapper mapper = JOM.getInstance();
 		return mapper.convertValue(req.get("id"), Object.class);
@@ -119,14 +124,15 @@ public class JSONRequest {
 	public void setParams(ObjectNode params) {
 		req.put("params", params != null ? params : JOM.createObjectNode());
 	}
-	
+
 	public ObjectNode getParams() {
 		return (ObjectNode) req.get("params");
 	}
-	
+
 	public void putParam(String name, Object value) {
 		ObjectMapper mapper = JOM.getInstance();
-		req.with("params").put(name, mapper.convertValue(value, JsonNode.class));
+		req.with("params")
+				.put(name, mapper.convertValue(value, JsonNode.class));
 	}
 
 	public Object getParam(String name) {
@@ -137,10 +143,10 @@ public class JSONRequest {
 		}
 		return null;
 	}
-	
+
 	public Object hasParam(String name) {
 		return req.get("params").has(name);
-	}	
+	}
 
 	private void setVersion() {
 		req.put("jsonrpc", "2.0");
@@ -164,9 +170,8 @@ public class JSONRequest {
 
 	public String getCallbackMethod() {
 		JsonNode callback = req.get("callback");
-		if (callback != null && callback.isObject() && 
-				callback.has("method") && 
-				callback.get("method").isTextual()) {
+		if (callback != null && callback.isObject() && callback.has("method")
+				&& callback.get("method").isTextual()) {
 			return callback.get("method").asText();
 		}
 		return null;
@@ -175,11 +180,11 @@ public class JSONRequest {
 	public boolean hasCallback() {
 		return req.has("callback");
 	}
-	
+
 	public ObjectNode getObjectNode() {
 		return req;
 	}
-	
+
 	@Override
 	public String toString() {
 		ObjectMapper mapper = JOM.getInstance();
@@ -190,4 +195,18 @@ public class JSONRequest {
 		}
 		return null;
 	}
+
+	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+		mapper.writeValue(out, req);
+	}
+
+	private void readObject(java.io.ObjectInputStream in) throws IOException,
+			ClassNotFoundException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+		req = mapper.readValue(in, ObjectNode.class);
+	}
+
 }
