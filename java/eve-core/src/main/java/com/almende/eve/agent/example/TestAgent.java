@@ -107,11 +107,36 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return resp;
 	}
 
-	public enum STATUS {GOOD, BAD, OK, WRONG, FAILED, SUCCESS};
-	
 	public STATUS testEnum(@Name("status") STATUS status) {
 		System.out.println("Status: " + status);
 		return status;
+	}
+
+	public STATUS testEnumProxy() {
+		String url = "http://eveagents.appspot.com/agents/test/";
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		
+		STATUS value = other.testEnum(STATUS.GOOD);
+		return value;
+	}
+
+	public void testVoid() {
+		System.out.println("testVoid");
+	}
+
+	public void testVoidProxy() {
+		String url = "http://eveagents.appspot.com/agents/test/";
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		other.testVoid();
+	}
+
+	public STATUS testEnumSend() throws Exception {
+		String url = "http://eveagents.appspot.com/agents/test/";
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("status", STATUS.GOOD);
+		STATUS value = send(url, "testEnum", params, STATUS.class);
+		
+		return value;
 	}
 	
 	public String cascade() throws IOException, JSONRPCException, Exception {

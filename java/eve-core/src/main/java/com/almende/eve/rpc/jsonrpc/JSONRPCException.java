@@ -134,7 +134,7 @@ public class JSONRPCException extends Exception {
 	public void setData(Object data) {
 		ObjectMapper mapper = JOM.getInstance();
 		// TODO: test if convert value works
-		error.put("data", mapper.convertValue(data, JsonNode.class));
+		error.put("data", data != null ? mapper.convertValue(data, JsonNode.class) : null);
 	}
 	
 	public Object getData() {

@@ -2,6 +2,12 @@ EVE CORE
 http://almende.github.com/eve/
 
 
+<not yet released>, version 0.19
+
+- Fixed: Agent proxy was not capable of returning primitive types, enums, or 
+  void.
+
+
 2013-02-22, version 0.18
 
 - Implemented support for a resource name for xmpp connections.

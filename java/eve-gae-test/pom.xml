@@ -11,7 +11,7 @@
   <name>EVE Google App Engine Test</name>
 
   <properties>
-    <appengine.version>1.7.4</appengine.version>
+    <appengine.version>1.7.5</appengine.version>
   </properties>
 
   <dependencies>

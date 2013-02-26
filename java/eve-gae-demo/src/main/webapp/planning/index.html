@@ -57,11 +57,13 @@
             a PersonalAgent which manages your calendar and dynamic events.
         </p>
 
-        <div>
+        <div ng-show="!personalAgent">
             <form ng-submit="login()">
-            Username: <input type="text" ng-model="username" ng-change="usernameChanged=true"
-                          placeholder="username">
-            <button ng-disabled="!usernameChanged">Login</button>
+            Username: <input type="text"
+                             ng-model="username"
+                             ng-change="usernameChanged=true"
+                             placeholder="username">
+            <button ng-disabled="agentLoading">Login</button>
             <span ng-show="agentLoading">logging in...</span>
             </form>
         </div>
