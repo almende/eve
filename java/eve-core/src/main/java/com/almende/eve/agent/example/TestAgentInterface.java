@@ -11,4 +11,6 @@ public interface TestAgentInterface extends AgentInterface {
 
 	public enum STATUS {GOOD, BAD, OK, WRONG, FAILED, SUCCESS};
 	public STATUS testEnum(@Name("status") STATUS status);
+	
+	public void testVoid();
 }

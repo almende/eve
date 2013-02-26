@@ -120,6 +120,16 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return value;
 	}
 
+	public void testVoid() {
+		System.out.println("testVoid");
+	}
+
+	public void testVoidProxy() {
+		String url = "http://eveagents.appspot.com/agents/test/";
+		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
+		other.testVoid();
+	}
+
 	public STATUS testEnumSend() throws Exception {
 		String url = "http://eveagents.appspot.com/agents/test/";
 		Map<String, Object> params = new HashMap<String, Object>();

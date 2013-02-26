@@ -320,11 +320,13 @@ public class AgentFactory {
 							// remote agent
 							JSONRequest request = JSONRPC.createRequest(method, args);
 							JSONResponse response = send(senderId, receiverUrl, request);
+							
 							JSONRPCException err = response.getError();
 							if (err != null) {
 								throw err;
 							}
-							else if (response.getResult() != null) {
+							else if (response.getResult() != null &&
+									!method.getReturnType().equals(Void.TYPE)) {
 								return response.getResult(method.getReturnType());
 							}
 							else {
