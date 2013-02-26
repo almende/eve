@@ -5,14 +5,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 public class RunnableClock implements Runnable, Clock {
+	@SuppressWarnings("unused")
+	private static final Logger log = Logger.getLogger("RunnableClock");
 	static TreeMap<ClockEntry, ClockEntry> timeline = new TreeMap<ClockEntry, ClockEntry>();
 	private static ScheduledExecutorService pool = Executors
-			.newScheduledThreadPool(100);
+			.newScheduledThreadPool(50);
 	private static ScheduledFuture<?> future = null;
 
 	public void run() {
@@ -22,16 +25,17 @@ public class RunnableClock implements Runnable, Clock {
 				DateTime now = DateTime.now();
 				if (ce.due.isBefore(now)) {
 					timeline.remove(ce);
-					pool.submit(ce.callback);
+					pool.execute(ce.callback);
 					continue;
 				}
 				if (future != null) {
 					future.cancel(false);
 					future = null;
 				}
-				future = pool.schedule(this,
-						new Interval(now, ce.due).toDurationMillis(),
-						TimeUnit.MILLISECONDS);
+				// log.warning("Delaying next trigger until:"+ce.due);
+				long interval = new Interval(now, ce.due).toDurationMillis();
+				future = pool.schedule(this, interval, TimeUnit.MILLISECONDS);
+				break;
 			}
 		}
 	}
@@ -42,10 +46,16 @@ public class RunnableClock implements Runnable, Clock {
 			ClockEntry ce = new ClockEntry(agentId, due, callback);
 			ClockEntry oldVal = timeline.get(ce);
 			if (oldVal == null || oldVal.due.isAfter(due)) {
+				// log.warning("Adding/replacing "+agentId+"'s trigger to:"+due);
 				timeline.put(ce, ce);
 				run();
 			}
 		}
+	}
+
+	@Override
+	public void runInPool(Runnable method) {
+		pool.execute(method);
 	}
 }
 

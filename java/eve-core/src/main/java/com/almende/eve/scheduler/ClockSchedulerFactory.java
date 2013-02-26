@@ -102,7 +102,7 @@ class ClockScheduler implements Scheduler,Runnable {
 	}
 
 	public void runTask(final TaskEntry task){
-		myClock.requestTrigger(myAgent.getId(), DateTime.now(), new Runnable(){
+		myClock.runInPool(new Runnable(){
 			@Override
 			public void run() {
 				try {
@@ -120,7 +120,7 @@ class ClockScheduler implements Scheduler,Runnable {
 	
 	@Override
 	public String createTask(JSONRequest request, long delay) {
-		TaskEntry task =new TaskEntry(DateTime.now(),request); 
+		TaskEntry task =new TaskEntry(DateTime.now().plus(delay),request); 
 		if (delay <= 0) {
 			runTask(task);
 		} else {
@@ -152,13 +152,12 @@ class ClockScheduler implements Scheduler,Runnable {
 		if (task != null){
 			if (task.due.isBeforeNow()){
 				runTask(task);
-				run();
+				run();//recursive call next task
 				return;
 			} else {
 				putTask(task);
 			}
-			TaskEntry first = getFirstTask(false);
-			if (first != null) myClock.requestTrigger(myAgent.getId(), first.due, this);
+			myClock.requestTrigger(myAgent.getId(), task.due, this);
 		}
 	}
 }
