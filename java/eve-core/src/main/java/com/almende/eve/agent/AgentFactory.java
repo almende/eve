@@ -411,7 +411,7 @@ public class AgentFactory {
 		if (agentId == null) {
 			return;
 		}
-		
+		schedulerFactory.destroyScheduler(agentId);
 		try {
 			// get the agent and execute the delete method
 			Agent agent = getAgent(agentId);

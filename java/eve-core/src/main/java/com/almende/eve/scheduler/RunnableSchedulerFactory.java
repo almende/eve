@@ -109,6 +109,12 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		return new RunnableScheduler(agentId);
 	}
 
+
+	@Override
+	public void destroyScheduler(String agentId) {
+		allTasks.remove(agentId);
+	}
+	
 	/**
 	 * Create a new unique taskId
 	 * 
@@ -306,7 +312,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				}
 			}
 		}
-
+		
 		/**
 		 * Retrieve a list with all scheduled tasks
 		 * 
@@ -380,4 +386,5 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 
 		state.put("tasks", serializedTasks);
 	}
+
 }

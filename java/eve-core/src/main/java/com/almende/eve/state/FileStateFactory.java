@@ -110,6 +110,7 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 		if (file.exists()) {
 			file.delete();
 		}
+		states.remove(agentId);
 	}
 
 	/**

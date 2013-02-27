@@ -54,6 +54,13 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 			return null;
 		}
 	}
+	
+	@Override
+	public void destroyScheduler(String agentId){
+		synchronized(schedulers){
+			schedulers.remove(agentId);
+		}
+	}
 }
 
 class ClockScheduler implements Scheduler, Runnable {

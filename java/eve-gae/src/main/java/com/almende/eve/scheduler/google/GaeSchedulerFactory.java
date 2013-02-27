@@ -160,4 +160,10 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 		
 		private String agentId = null;
 	}
+
+	@Override
+	public void destroyScheduler(String agentId) {
+		// TODO 
+		//How?
+	}
 }
