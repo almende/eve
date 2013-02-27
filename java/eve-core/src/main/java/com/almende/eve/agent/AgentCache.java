@@ -64,6 +64,9 @@ public class AgentCache {
 			//System.err.println("Evicted:"+amount+" records");
 		}
 	}
+	public void delete(String agentId) {
+		cache.remove(agentId);
+	}
 }
 class MetaInfo implements Comparable<MetaInfo> {
 	Agent agent;

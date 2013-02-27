@@ -417,6 +417,7 @@ public class AgentFactory {
 			Agent agent = getAgent(agentId);
 			agent.destroy();
 			agent.delete();
+			agents.delete(agentId);
 			agent = null;
 		}
 		catch (Exception err) {
