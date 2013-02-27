@@ -86,7 +86,7 @@ class ClockScheduler implements Scheduler, Runnable {
 				newTimeline.remove(task);
 				if (!myAgent.getState().putIfUnchanged("_taskList",
 						newTimeline, timeline)) {
-					return getFirstTask(true); // recursive retry......
+					return getFirstTask(remove); // recursive retry......
 				}
 			}
 			return task;
@@ -108,6 +108,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
 				oldTimeline)) {
 			putTask(task); // recursive retry....
+			return;
 		}
 	}
 
@@ -164,6 +165,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
 				oldTimeline)) {
 			cancelTask(id); // recursive retry....
+			return;
 		}
 	}
 
@@ -230,5 +232,10 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		if (due.equals(o.due))
 			return 0;
 		return due.compareTo(o.due);
+	}
+	
+	@Override
+	public String toString(){
+		return taskId+" ["+due+"]";
 	}
 }
