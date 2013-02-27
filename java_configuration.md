@@ -105,7 +105,9 @@ Description of the available properties:
 
         <h4>XmppService</h4>
         Allows communication of agents via XMPP. Each agent needs to have an account.
-        Configuration parameters:
+        See <a href="java_services.html#XmppService">XmppService</a> for more details.
+
+        Available configuration parameters:
         <p></p>
         <table>
             <tr>
