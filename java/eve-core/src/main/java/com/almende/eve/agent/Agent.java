@@ -93,7 +93,8 @@ abstract public class Agent implements AgentInterface {
 		state.clear();
 		
 		// save the agents class again in the state
-		state.put(State.KEY_AGENT_TYPE, getClass().getName());		
+		state.put(State.KEY_AGENT_TYPE, getClass().getName());
+		state=null; //forget local reference, as it can keep the State alive even if the agentFactory removes the file. 
 	}
 	
 	/**
