@@ -83,7 +83,7 @@ public class MemoryState extends AbstractState {
 	@Override
 	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
 		boolean result=false;
-		if (!(oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
+		if (!(oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 			properties.put(key, newVal);
 			result=true;
 		}

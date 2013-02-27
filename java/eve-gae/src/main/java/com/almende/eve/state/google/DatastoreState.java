@@ -330,7 +330,7 @@ public class DatastoreState extends AbstractState {
 	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
 		boolean result=false;
 		refresh();
-		if ((oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
+		if ((oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 			properties.put(key,newVal);
 			update();
 			result=true;

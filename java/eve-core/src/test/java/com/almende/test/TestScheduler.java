@@ -1,5 +1,7 @@
 package com.almende.test;
 
+import java.util.Set;
+
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -11,7 +13,7 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestSchedulerAgent;
 
 public class TestScheduler extends TestCase {
-	public static Integer count=36;
+	public static Integer count=33;
 	
 	@Test
 	public void testScheduler() throws Exception {
@@ -44,6 +46,9 @@ public class TestScheduler extends TestCase {
 			agent.setTest(agentIds[0], 900);
 			agent.setTest(agentIds[1], 3300);
 			agent.setTest(agentIds[2], 2300);
+			Set<String> taskList = agent.getScheduler().getTasks();
+			System.err.println("Tasks list:"+taskList);
+			agent.getScheduler().cancelTask(taskList.toArray(new String[0])[0]);
 		}
 		while (count > 0 ){
 			Thread.sleep(1000);

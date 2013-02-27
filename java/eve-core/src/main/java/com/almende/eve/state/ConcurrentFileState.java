@@ -286,7 +286,7 @@ public class ConcurrentFileState extends FileState {
 		try {
 			openFile();
 			read();
-			if (!(oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
+			if (!(oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 				properties.put(key, newVal);
 				write();
 				result=true;

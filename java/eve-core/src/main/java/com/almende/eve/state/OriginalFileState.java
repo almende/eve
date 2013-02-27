@@ -196,7 +196,7 @@ public class OriginalFileState extends FileState {
 		synchronized(properties){
 			boolean result=false;
 			read();
-			if ((oldVal == null && !properties.containsKey(key)) || properties.get(key).equals(oldVal)){
+			if ((oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 				properties.put(key,newVal);
 				write();
 				result=true;
