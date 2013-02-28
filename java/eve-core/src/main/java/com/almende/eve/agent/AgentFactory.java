@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
+import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
@@ -248,7 +249,7 @@ public class AgentFactory {
 		}
 		
 		//Check if agent is instantiated already, returning if it is:
-		Agent agent = agents.get(agentId);
+		Agent agent = (Agent) agents.get(agentId);
 		if (agent != null){
 			//System.err.println("Agent "+agentId+" found in cache!");
 			return agent;
@@ -287,6 +288,7 @@ public class AgentFactory {
 		return agent;
 	}
 
+	
 	/**
 	 * Create an agent proxy from an java interface
 	 * @param senderId        Internal id of the sender agent.
@@ -341,6 +343,19 @@ public class AgentFactory {
 		return proxy;
 	}
 
+	/**
+	 * Create an asynchronous agent proxy from an java interface, each call will return a future for handling the results.
+	 * @param senderId        Internal id of the sender agent.
+	 *                        Not required for all transport services 
+	 *                        (for example not for outgoing HTTP requests)
+	 * @param receiverUrl     Url of the receiving agent
+	 * @param agentInterface  A java Interface, extending AgentInterface
+	 * @return
+	 */
+	public <T> AsyncProxy<T> createAsyncAgentProxy(final String senderId, final String receiverUrl,
+			Class<T> agentInterface) {
+		return new AsyncProxy<T>(createAgentProxy(senderId,receiverUrl,agentInterface));
+	}
 	/**
 	 * Create an agent.
 	 * 
