@@ -15,8 +15,8 @@ public class TestAgent extends Agent implements TestInterface {
 	}
 
 	@Override
-	public int testPrimitive(int num) {
-		return num+10;
+	public int testPrimitive(int num, Integer num2) {
+		return num+num2;
 	}
 
 	@Override

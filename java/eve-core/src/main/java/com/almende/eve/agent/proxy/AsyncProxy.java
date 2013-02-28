@@ -1,6 +1,7 @@
 package com.almende.eve.agent.proxy;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -8,6 +9,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import com.almende.util.ClassUtil;
 
 
 public class AsyncProxy<T> {
@@ -20,13 +23,19 @@ public class AsyncProxy<T> {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <V> Future<V> call(final Method method, final Object[] args,Class<V> type){
+	public Future<?> call(String functionName, final Object... args) throws SecurityException, NoSuchMethodException{
+		ArrayList<Class> classes = new ArrayList<Class>(args.length);
+		for (Object obj : args){
+			classes.add(obj.getClass());
+		}
+		final Method method = ClassUtil.searchForMethod(proxy.getClass(), functionName, classes.toArray(new Class[0]));
+		
 		return new DecoratedFuture(pool.submit(new Callable<Object>(){
 			@Override
 			public Object call() throws Exception {
 				return method.invoke(proxy, args);
 			}
-		}),type);
+		}),ClassUtil.wrap(method.getReturnType()));
 	}
 	class DecoratedFuture<V> implements Future<V>{
 		Future<?> future;
