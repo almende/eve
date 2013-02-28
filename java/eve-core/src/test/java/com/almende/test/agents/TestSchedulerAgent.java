@@ -9,7 +9,6 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.test.TestScheduler;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestSchedulerAgent extends Agent {
@@ -20,7 +19,6 @@ public class TestSchedulerAgent extends Agent {
 		params.put("time", DateTime.now().toString());
 		params.put("expected", DateTime.now().plus(delay).toString());
 		JSONRequest request = new JSONRequest("doTest", params);
-
 		getScheduler().createTask(request, delay);
 	}
 
@@ -34,9 +32,25 @@ public class TestSchedulerAgent extends Agent {
 				+ (new Duration(startTime, DateTime.now()).getMillis()));
 		log.info("Delay after expected runtime:"
 				+ (new Duration(expected,DateTime.now()).getMillis()));
-		synchronized (TestScheduler.count) {
-			TestScheduler.count--;
+		Object oldCnt = getState().get("runCount");
+		Integer newCnt = 1;
+		if (oldCnt != null){
+			newCnt = ((Integer)oldCnt)+1;
 		}
+		while (!getState().putIfUnchanged("runCount", newCnt, oldCnt)){
+			oldCnt = (Integer) getState().get("runCount");
+			if (oldCnt != null){
+				newCnt = ((Integer)oldCnt)+1;
+			}
+		}
+	}
+	public int getCount(){
+		Integer count =(Integer) getState().get("runCount");
+		if (count == null) count = 0;
+		return count;
+	}
+	public void resetCount(){
+		getState().put("runCount", 0);
 	}
 
 	@Override

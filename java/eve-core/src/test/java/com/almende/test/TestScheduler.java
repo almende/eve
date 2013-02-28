@@ -4,6 +4,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentFactory;
@@ -13,27 +14,33 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestSchedulerAgent;
 
 public class TestScheduler extends TestCase {
-	public static Integer count=33;
-	
+
 	@Test
 	public void testScheduler() throws Exception {
 		AgentFactory af = AgentFactory.getInstance();
-		if (af == null){
+		if (af == null) {
 			af = AgentFactory.createInstance();
 			af.setStateFactory(new FileStateFactory(".eveagents"));
 			af.addTransportService(new HttpService());
 		}
-		af.setSchedulerFactory(new ClockSchedulerFactory(af,""));
-//		af.setSchedulerFactory(new RunnableSchedulerFactory(af,"_runnableScheduler"));
+		af.setSchedulerFactory(new ClockSchedulerFactory(af, ""));
+		// af.setSchedulerFactory(new
+		// RunnableSchedulerFactory(af,"_runnableScheduler"));
 		String agentIds[] = { "myTest1", "myTest2", "myTest3" };
 
 		for (String agentId : agentIds) {
 			if (af.hasAgent(agentId)) {
+				System.err
+						.println("Agent:" + agentId + " exists, removing....");
 				af.deleteAgent(agentId);
 			}
-			TestSchedulerAgent agent = (TestSchedulerAgent) af.createAgent(TestSchedulerAgent.class,
-					agentId);
-			System.err.println("Setup agent:"+agentId);
+			System.err.println("Setup agent:" + agentId);
+			TestSchedulerAgent agent = (TestSchedulerAgent) af.createAgent(TestSchedulerAgent.class, agentId);
+			agent.resetCount();
+		}
+		for (String agentId : agentIds) {
+			TestSchedulerAgent agent = (TestSchedulerAgent) af
+					.getAgent(agentId);
 			agent.setTest(agentId, 1000);
 			agent.setTest(agentIds[0], 1500);
 			agent.setTest(agentIds[1], 3000);
@@ -47,11 +54,34 @@ public class TestScheduler extends TestCase {
 			agent.setTest(agentIds[1], 3300);
 			agent.setTest(agentIds[2], 2300);
 			Set<String> taskList = agent.getScheduler().getTasks();
-			System.err.println("Tasks list:"+taskList);
-			agent.getScheduler().cancelTask(taskList.toArray(new String[0])[0]);
+			System.err.println("Tasks list:" + taskList + " / "
+					+ taskList.size());
+			// agent.getScheduler().cancelTask(taskList.toArray(new
+			// String[0])[0]);
 		}
-		while (count > 0 ){
-			Thread.sleep(1000);
+		DateTime start = DateTime.now();
+		System.err.println("Start:" + start);
+		while (start.plus(2000).isAfterNow()) {
+			Thread.sleep(500);
 		}
+		for (String agentId : agentIds) {
+			if (af.hasAgent(agentId)) {
+				System.err
+						.println("Drop Agent:" + agentId + ".");
+				af.deleteAgent(agentId);
+			}
+		}
+		for (String agentId : agentIds) {
+			System.err.println("Setup agent:" + agentId);
+			TestSchedulerAgent agent = (TestSchedulerAgent) af.createAgent(TestSchedulerAgent.class, agentId);
+			agent.getScheduler();
+		}
+/*		for (String agentId : agentIds) {
+			System.err.println("Agent " + agentId + " ran "
+					+ ((TestSchedulerAgent) af.getAgent(agentId)).getCount()
+					+ " tasks.");
+			System.err.println("Tasks left:"
+					+ af.getAgent(agentId).getScheduler().getTasks());
+		}*/
 	}
 }
