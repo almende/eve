@@ -13,9 +13,9 @@ where agents run in a closed, controlled environment.
 </div>
 
 Eve is a multipurpose, web based agent platform.
-Eve envisions an open and dynamic environment where agents can live and act
-anywhere: in the cloud, on smartphones, on desktops, in browsers, robots, home
-automation devices, and others.
+Eve envisions to be an open and dynamic environment where agents can live and
+act anywhere: in the cloud, on smartphones, on desktops, in browsers, robots,
+home automation devices, and others.
 Eve tries to mimic human society: the way people interact and work together.
 
 Eve agents are connected with each other via the web.
