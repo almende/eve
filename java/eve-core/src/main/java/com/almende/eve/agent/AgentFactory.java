@@ -25,6 +25,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
+import com.almende.eve.state.MemoryStateFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.transport.AsyncCallback;
@@ -122,7 +123,9 @@ public class AgentFactory {
 	
 	public AgentFactory () {
 		agents = new AgentCache();
-
+		//ensure there is at least a memory state service
+		setStateFactory(new MemoryStateFactory());
+		
 		// ensure there is always an HttpService for outgoing calls
 		addTransportService(new HttpService());
 	}
@@ -599,6 +602,9 @@ public class AgentFactory {
 	 * @return agentId
 	 */
 	private String getAgentId(String agentUrl) {
+		if (agentUrl.startsWith("local:")){
+			return agentUrl.replaceFirst("local:/?/?", "");
+		}
 		for (TransportService service : transportServices) {
 			String agentId = service.getAgentId(agentUrl);
 			if (agentId != null) {

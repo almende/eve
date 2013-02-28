@@ -20,13 +20,13 @@ public class AsyncProxy<T> {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Future<?> call(final Method method, final Object[] args){
+	public <V> Future<V> call(final Method method, final Object[] args,Class<V> type){
 		return new DecoratedFuture(pool.submit(new Callable<Object>(){
 			@Override
 			public Object call() throws Exception {
 				return method.invoke(proxy, args);
 			}
-		}),method.getReturnType());
+		}),type);
 	}
 	class DecoratedFuture<V> implements Future<V>{
 		Future<?> future;
