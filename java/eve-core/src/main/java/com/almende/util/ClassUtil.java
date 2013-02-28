@@ -52,20 +52,31 @@ public class ClassUtil {
 		return false;
 	}
 
-	// safe because both Long.class and long.class are of type Class<Long>
+	/**
+	 * Wraps any primitive type in it's boxed version
+	 * returns other types unmodified
+	 * 
+	 * @param class type
+	 * @return class type
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Class<T> wrap(Class<T> c) {
 		return c.isPrimitive() ? (Class<T>) PRIMITIVES_TO_WRAPPERS.get(c) : c;
 	}
 
-	// safe because both Long.class and long.class are of type Class<Long>
+	/**
+	 * Unwraps any boxed type in it's primitive version
+	 * returns other types unmodified
+	 * 
+	 * @param class type
+	 * @return class type
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Class<T> unWrap(Class<T> c) {
-		return CLASS_MAP.containsKey(c) ? (Class<T>) CLASS_MAP.get(c) : c;
+		return WRAPPERS_TO_PRIMITIVES.containsKey(c) ? (Class<T>) WRAPPERS_TO_PRIMITIVES.get(c) : c;
 	}
 
 	private static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS = generateMap();
-
 	private static Map<Class<?>, Class<?>> generateMap() {
 		Map<Class<?>, Class<?>> result = new HashMap<Class<?>, Class<?>>();
 		result.put(boolean.class, Boolean.class);
@@ -80,8 +91,7 @@ public class ClassUtil {
 		return result;
 	}
 
-	private static final Map<Class<?>, Class<?>> CLASS_MAP = generatePrimitiveMap();
-
+	private static final Map<Class<?>, Class<?>> WRAPPERS_TO_PRIMITIVES = generatePrimitiveMap();
 	private static Map<Class<?>, Class<?>> generatePrimitiveMap() {
 		Map<Class<?>, Class<?>> result = new HashMap<Class<?>, Class<?>>();
 		result.put(Boolean.class, boolean.class);
@@ -96,6 +106,18 @@ public class ClassUtil {
 		return result;
 	}
 
+	
+	/**
+	 * Search for method (reflection) which fits the given argument types. Works for any combination of 
+	 * primitive types, boxed types and normal objects.
+	 * 
+	 * @author PSpeed http://stackoverflow.com/questions/1894740/any-solution-for-class-getmethod-reflection-and-autoboxing
+	 * 
+	 * @param type Class in which the method is searched
+	 * @param name Method name to search for
+	 * @param parms Class types of the requested arguments
+	 * @return Method
+	 */
 	public static Method searchForMethod(Class<?> type, String name, Class<?>[] parms) {
 		Method[] methods = type.getMethods();
 		for (int i = 0; i < methods.length; i++) {

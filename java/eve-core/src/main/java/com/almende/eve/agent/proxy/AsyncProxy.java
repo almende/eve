@@ -12,7 +12,12 @@ import java.util.concurrent.TimeoutException;
 
 import com.almende.util.ClassUtil;
 
-
+/**
+ * Asynchronous proxy wrapper, which can be used to decorate a generated proxy.
+ * @author ludo
+ *
+ * @param <T>
+ */
 public class AsyncProxy<T> {
 	private ScheduledExecutorService pool = Executors
 			.newScheduledThreadPool(50);
@@ -22,6 +27,15 @@ public class AsyncProxy<T> {
 		this.proxy = proxy;
 	}
 	
+	/**
+	 * Call the given method on the wrapped proxy, returning a Future which can be used to wait for the result and/or cancel the task.
+	 * 
+	 * @param functionName
+	 * @param args
+	 * @return Future<?>
+	 * @throws SecurityException
+	 * @throws NoSuchMethodException
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Future<?> call(String functionName, final Object... args) throws SecurityException, NoSuchMethodException{
 		ArrayList<Class> classes = new ArrayList<Class>(args.length);
