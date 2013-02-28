@@ -2,7 +2,12 @@ EVE GOOGLE APPENGINE
 http://almende.github.com/eve/
 
 
-2013-02-22, version 0.18
+2013-02-28, version 1.0.1
+
+- Updated version number to match the version of eve-core
+
+
+2013-02-22, version 1.0.0 (0.18)
 
 - Implemented XMPP support for incoming requests on Google App Engine.
 - Renamed AppEngineSchedulerFactory to GaeSchedulerFactory.
