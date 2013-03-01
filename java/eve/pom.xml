@@ -10,7 +10,28 @@
 	<packaging>pom</packaging>
 
 	<name>EVE</name>
+	<description>EVE is a generic, multi-purpose, web-based Agentplatform.</description>
 	<url>http://almende.github.com/eve</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+		<license>
+			<name>The MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git@github.com:almende/eve.git</connection>
+		<url>scm:git:git@github.com:almende/eve.git</url>
+		<developerConnection>scm:git:git@github.com:almende/eve.git</developerConnection>
+	</scm>
 
 	<organization>
 		<name>Almende BV</name>
@@ -36,6 +57,16 @@
 		</developer>
 	</developers>
 
+	<modules>
+		<module>../eve-core</module>
+		<module>../eve-android</module>
+		<module>../eve-gae</module>
+		<module>../eve-gae-demo</module>
+		<module>../eve-gae-test</module>
+		<module>../eve-planning</module>
+	</modules>
+
+
 	<properties>
 		<skipTests>true</skipTests>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -49,25 +80,14 @@
 		<junit.version>4.11</junit.version>
 	</properties>
 
-  <!-- TODO: create a separate project for building all projects
-  <modules>
-    <module>../eve-core</module>
-    <module>../eve-gae</module>
-    <module>../eve-gae-test</module>
-  </modules>
-  -->
-
 	<dependencies>
-                <dependency>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                        <version>${junit.version}</version>
-                        <scope>test</scope>
-                </dependency>
-        </dependencies>
-
-	<pluginRepositories>
-	</pluginRepositories>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<reporting>
 		<plugins>

@@ -10,7 +10,7 @@
 
 	<artifactId>eve-gae-demo</artifactId>
 	<packaging>war</packaging>
-	<name>eve-gae-demo</name>
+	<name>EVE Google App Engine Demo</name>
 	<description>EVE Google App Engine Demo</description>
 
 	<properties>
