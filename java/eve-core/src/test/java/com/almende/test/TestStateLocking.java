@@ -1,5 +1,6 @@
 package com.almende.test;
 
+import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -9,8 +10,8 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.state.ConcurrentFileState;
 import com.almende.eve.state.FileState;
+import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.OriginalFileState;
 import com.almende.eve.state.State;
 
@@ -83,12 +84,20 @@ public class TestStateLocking extends TestCase {
 	
 	@Test
 	public void testFileState() throws Exception{
-		FileState fc = new OriginalFileState("test",".testFileStateRun");
+		File dir = new File(".testStates");
+		if ((!dir.exists() && !dir.mkdir()) || !dir.isDirectory()) fail("Couldn't create .testStates folder");
+		FileState fc = new OriginalFileState("test",".testStates/FileStateRun");
 		testRun(fc);
 	}
 	@Test
 	public void testConcurrentFileState() throws Exception{
-		ConcurrentFileState fc = new ConcurrentFileState("test",".testConcurrentFileStateRun");
+		File dir = new File(".testStates");
+		if ((!dir.exists() && !dir.mkdir()) || !dir.isDirectory()) fail("Couldn't create .testStates folder");
+		FileStateFactory sf = new FileStateFactory(".testStates"); //Defaults to ConcurrentFileState
+		
+		String agentId = "ConcurrentFileStateRun";
+		if (sf.exists(agentId)) sf.delete(agentId);
+		FileState fc = sf.create(agentId);
 		testRun(fc);
 	}
 }
