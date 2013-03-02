@@ -77,6 +77,7 @@
 		<maven-resources-plugin.version>2.5</maven-resources-plugin.version>
 		<maven-surefire-plugin.version>2.12</maven-surefire-plugin.version>
 		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
 		<junit.version>4.11</junit.version>
 	</properties>
 
@@ -89,6 +90,12 @@
 		</dependency>
 	</dependencies>
 
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
 	<reporting>
 		<plugins>
 		</plugins>
@@ -100,6 +107,9 @@
 			<id>maven-github</id>
 			<url>file:///${basedir}/../../../maven</url>
 		</repository>
+		<!-- <repository> <id>sonatype-nexus-staging</id> <name>Nexus Staging Repository</name> 
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url> 
+			</repository> -->
 	</distributionManagement>
 
 	<build>
@@ -150,7 +160,6 @@
 					</compilerArguments>
 				</configuration>
 			</plugin>
-
 			<!-- Have Eclipse IDE's Maven integration (specified in <pluginManagement/>) 
 				download sources and javadoc -->
 			<plugin>
@@ -170,6 +179,12 @@
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.4</version>
 			</plugin>
 
 			<!-- skip all tests -->
@@ -194,6 +209,35 @@
 						<id>attach-sources</id>
 						<goals>
 							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Attach javadocs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Sign packages -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
 						</goals>
 					</execution>
 				</executions>
