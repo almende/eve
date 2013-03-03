@@ -1,16 +1,36 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- $Id$ -->
 
 	<groupId>com.almende.eve</groupId>
 	<artifactId>eve</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>EVE</name>
+	<description>EVE is a generic, multi-purpose, web-based Agentplatform.</description>
 	<url>http://almende.github.com/eve</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+		<license>
+			<name>The MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git@github.com:almende/eve.git</connection>
+		<url>scm:git:git@github.com:almende/eve.git</url>
+		<developerConnection>scm:git:git@github.com:almende/eve.git</developerConnection>
+	</scm>
 
 	<organization>
 		<name>Almende BV</name>
@@ -36,6 +56,16 @@
 		</developer>
 	</developers>
 
+	<modules>
+		<module>../eve-core</module>
+		<module>../eve-android</module>
+		<module>../eve-gae</module>
+		<module>../eve-gae-demo</module>
+		<module>../eve-gae-test</module>
+		<module>../eve-planning</module>
+	</modules>
+
+
 	<properties>
 		<skipTests>true</skipTests>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -46,28 +76,24 @@
 		<maven-resources-plugin.version>2.5</maven-resources-plugin.version>
 		<maven-surefire-plugin.version>2.12</maven-surefire-plugin.version>
 		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
 		<junit.version>4.11</junit.version>
 	</properties>
 
-  <!-- TODO: create a separate project for building all projects
-  <modules>
-    <module>../eve-core</module>
-    <module>../eve-gae</module>
-    <module>../eve-gae-test</module>
-  </modules>
-  -->
-
 	<dependencies>
-                <dependency>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                        <version>${junit.version}</version>
-                        <scope>test</scope>
-                </dependency>
-        </dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-	<pluginRepositories>
-	</pluginRepositories>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 
 	<reporting>
 		<plugins>
@@ -80,6 +106,9 @@
 			<id>maven-github</id>
 			<url>file:///${basedir}/../../../maven</url>
 		</repository>
+		<!-- <repository> <id>sonatype-nexus-staging</id> <name>Nexus Staging Repository</name> 
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url> 
+			</repository> -->
 	</distributionManagement>
 
 	<build>
@@ -97,6 +126,19 @@
 					<configuration>
 						<lifecycleMappingMetadata>
 							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-enforcer-plugin</artifactId>
+										<versionRange>[1.0.0,)</versionRange>
+										<goals>
+											<goal>enforce</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
 								<!-- or install the buildhelper in Eclipse :: Window :: Preferences 
 									:: Maven :: Discovery :: Open Catalog -->
 							</pluginExecutions>
@@ -130,8 +172,7 @@
 					</compilerArguments>
 				</configuration>
 			</plugin>
-
-			<!-- Have Eclipse IDE's Maven integration (specified in <pluginManagement/>) 
+			<!-- Have Eclipse IDE's Maven integration (specified in <pluginManagement />) 
 				download sources and javadoc -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -150,6 +191,11 @@
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
 			</plugin>
 
 			<!-- skip all tests -->
@@ -174,6 +220,35 @@
 						<id>attach-sources</id>
 						<goals>
 							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Attach javadocs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Sign packages -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
 						</goals>
 					</execution>
 				</executions>

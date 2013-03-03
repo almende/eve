@@ -3,7 +3,8 @@
   <parent>
     <groupId>com.almende.eve</groupId>
     <artifactId>eve</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
+                <relativePath>../eve/pom.xml</relativePath>
   </parent>
   <artifactId>eve-android</artifactId>
   <name>Eve Android library</name>
