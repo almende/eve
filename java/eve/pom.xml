@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- $Id$ -->
+	<!-- $Id: 1ee77574aea8223155dc303f8bdc4e5aec50024a $ -->
 
 	<groupId>com.almende.eve</groupId>
 	<artifactId>eve</artifactId>
@@ -127,6 +127,19 @@
 					<configuration>
 						<lifecycleMappingMetadata>
 							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-enforcer-plugin</artifactId>
+										<versionRange>[1.0.0,)</versionRange>
+										<goals>
+											<goal>enforce</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
 								<!-- or install the buildhelper in Eclipse :: Window :: Preferences 
 									:: Maven :: Discovery :: Open Catalog -->
 							</pluginExecutions>
@@ -184,7 +197,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>2.4</version>
 			</plugin>
 
 			<!-- skip all tests -->
