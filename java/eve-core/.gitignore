@@ -4,3 +4,4 @@ target
 .classpath
 .eveagents
 .testStates
+/pom.xml.asc
