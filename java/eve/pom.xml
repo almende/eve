@@ -196,6 +196,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
+			            <configuration>
+			                <pomFileName>java/${project.artifactId}/pom.xml</pomFileName>
+			            </configuration>
 			</plugin>
 
 			<!-- skip all tests -->
