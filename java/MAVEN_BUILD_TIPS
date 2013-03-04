@@ -42,7 +42,7 @@ Requirements:
 
 5: git tag <ver>
 6: git push --tags
-7: mvn clean deploy
+7: mvn clean deploy -Prelease
 
 8: mvn versions:set -DnewVersion=<ver+1>-SNAPSHOT
 9: git commit -a

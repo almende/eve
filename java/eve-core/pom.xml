@@ -20,17 +20,7 @@
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 		<smack.version>3.1.0</smack.version>
 		<jetty.version>8.1.8.v20121106</jetty.version>
-		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-		<maven-eclipse-plugin.version>2.9</maven-eclipse-plugin.version>
 	</properties>
-
-	<repositories>
-		<repository>
-			<name>Almende EVE repository</name>
-			<id>eve</id>
-			<url>https://raw.github.com/almende/maven/master/</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -65,8 +55,6 @@
 			<version>${jetty.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency> <groupId>org.eclipse.jetty</groupId> <artifactId>jetty-webapp</artifactId> 
-			<version>${jetty.version}</version> </dependency> -->
 	</dependencies>
 
 	<build>

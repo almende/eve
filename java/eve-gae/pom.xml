@@ -22,11 +22,6 @@
 
 	<repositories>
 		<repository>
-			<name>Almende EVE repository</name>
-			<id>eve</id>
-			<url>https://raw.github.com/almende/maven/master/</url>
-		</repository>
-		<repository>
 			<id>twig</id>
 			<url>http://mvn.twig-persist.googlecode.com/hg</url>
 		</repository>
