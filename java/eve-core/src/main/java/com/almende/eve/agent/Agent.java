@@ -84,10 +84,11 @@ abstract public class Agent implements AgentInterface {
 		
 		// cancel all scheduled tasks.
 		Scheduler scheduler = getScheduler();
-		for (String taskId : scheduler.getTasks()) {
-			scheduler.cancelTask(taskId);
+		if (scheduler != null){
+			for (String taskId : scheduler.getTasks()) {
+				scheduler.cancelTask(taskId);
+			}
 		}
-		
 		// remove all keys from the state
 		// Note: the state itself will be deleted by the AgentFactory
 		state.clear();

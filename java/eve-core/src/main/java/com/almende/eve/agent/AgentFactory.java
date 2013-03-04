@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
+import org.joda.time.DateTime;
+
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
@@ -429,7 +431,9 @@ public class AgentFactory {
 		if (agentId == null) {
 			return;
 		}
-		schedulerFactory.destroyScheduler(agentId);
+		if (getScheduler(agentId) != null){
+			schedulerFactory.destroyScheduler(agentId);
+		}
 		try {
 			// get the agent and execute the delete method
 			Agent agent = getAgent(agentId);
@@ -1029,6 +1033,7 @@ public class AgentFactory {
 	 */
 	public synchronized void setSchedulerFactory(SchedulerFactory schedulerFactory) {
 		this.schedulerFactory = schedulerFactory;
+		this.notifyAll();
 	}
 
 	/**
@@ -1037,6 +1042,18 @@ public class AgentFactory {
 	 * @return scheduler
 	 */
 	public synchronized Scheduler getScheduler(String agentId) {
+		DateTime start = DateTime.now();
+		while (schedulerFactory == null && start.plus(30000).isBeforeNow()){
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		if (schedulerFactory == null){
+			logger.severe("SchedulerFactory is null, while agent "+agentId+" calls for getScheduler");
+			return null;
+		}
 		return schedulerFactory.getScheduler(agentId);
 	}
 

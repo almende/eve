@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -257,3 +258,258 @@
 		</profile>
 	</profiles>
 </project>
+=======
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- $Id$ -->
+
+	<groupId>com.almende.eve</groupId>
+	<artifactId>eve</artifactId>
+	<version>1.0.2</version>
+	<packaging>pom</packaging>
+
+	<name>EVE</name>
+	<description>EVE is a generic, multi-purpose, web-based Agentplatform.</description>
+	<url>http://almende.github.com/eve</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+		<license>
+			<name>The MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git@github.com:almende/eve.git</connection>
+		<url>scm:git:git@github.com:almende/eve.git</url>
+		<developerConnection>scm:git:git@github.com:almende/eve.git</developerConnection>
+	</scm>
+
+	<organization>
+		<name>Almende BV</name>
+		<url>http://www.almende.com/</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<name>Jos de Jong</name>
+			<id>jos</id>
+			<email>jos@almende.org</email>
+			<organization>Almende BV, the Netherlands</organization>
+			<url>http://www.almende.org/</url>
+			<timezone>1</timezone>
+		</developer>
+		<developer>
+			<name>Ludo Stellingwerff</name>
+			<id>ludo</id>
+			<email>ludo@almende.org</email>
+			<organization>Almende BV, the Netherlands</organization>
+			<url>http://www.almende.org/</url>
+			<timezone>1</timezone>
+		</developer>
+	</developers>
+
+	<modules>
+		<module>../eve-core</module>
+		<module>../eve-android</module>
+		<module>../eve-gae</module>
+		<module>../eve-gae-demo</module>
+		<module>../eve-gae-test</module>
+		<module>../eve-planning</module>
+	</modules>
+
+
+	<properties>
+		<skipTests>true</skipTests>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.scm.version>1.8.1</maven.scm.version>
+		<wagon-scm.version>2.2</wagon-scm.version>
+		<maven-eclipse-plugin.version>2.9</maven-eclipse-plugin.version>
+		<maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
+		<maven-resources-plugin.version>2.5</maven-resources-plugin.version>
+		<maven-surefire-plugin.version>2.12</maven-surefire-plugin.version>
+		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
+		<junit.version>4.11</junit.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
+	<reporting>
+		<plugins>
+		</plugins>
+	</reporting>
+
+	<distributionManagement>
+		<downloadUrl>https://raw.github.com/almende/maven/master/</downloadUrl>
+		<repository>
+			<id>maven-github</id>
+			<url>file:///${basedir}/../../../maven</url>
+		</repository>
+		<!-- <repository> <id>sonatype-nexus-staging</id> <name>Nexus Staging Repository</name> 
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url> 
+			</repository> -->
+	</distributionManagement>
+
+	<build>
+		<extensions>
+		</extensions>
+
+		<pluginManagement>
+			<plugins>
+				<!-- Configure the Maven2 Eclipse IDE Integration (m2e) for non-standard 
+					plug-in executions during the compile-test-run life-cycles by the IDE -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-enforcer-plugin</artifactId>
+										<versionRange>[1.0.0,)</versionRange>
+										<goals>
+											<goal>enforce</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+								<!-- or install the buildhelper in Eclipse :: Window :: Preferences 
+									:: Maven :: Discovery :: Open Catalog -->
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+
+				<!-- Specify version of Eclipse IDE's Maven integration plugin e.g. m2e(clipse), 
+					for Kind=4 errors see http://stackoverflow.com/questions/10564684/how-to-fix-error-updating-maven-project-unsupported-iclasspathentry-kind-4 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<version>${maven-eclipse-plugin.version}</version>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<!-- Make compiler UTF-8/ISO-8859-1 aware, set JVM to 1.6+ -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+					<compilerArguments>
+						<verbose />
+					</compilerArguments>
+				</configuration>
+			</plugin>
+			<!-- Have Eclipse IDE's Maven integration (specified in <pluginManagement />) 
+				download sources and javadoc -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+				</configuration>
+			</plugin>
+
+			<!-- Make resources UTF-8/ISO-8859-1 aware -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin.version}</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- skip all tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven-surefire-plugin.version}</version>
+				<configuration>
+					<skipTests>${skipTests}</skipTests>
+					<parallel>methods</parallel>
+					<threadCount>10</threadCount>
+				</configuration>
+			</plugin>
+
+			<!-- Attach sources -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Attach javadocs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Sign packages -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+>>>>>>> 163facc
