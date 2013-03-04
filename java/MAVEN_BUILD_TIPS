@@ -1,0 +1,61 @@
+EVE release management (tips & tricks & procedures)
+
+Terminology: Eve is layed out according to the "Flat" project model, with a separate parent project folder at the same level as the modules,
+compared to the "standard" model in which the parent pom resides in the top-level folder.
+
+Most Maven commands are run in the parent project pom folder.
+
+- #mvn versions:set -DnewVersion=<version_no>[-SNAPSHOT]
+
+- if multi-artifact project fails to build due to children depend on a non-installed parent, you might have to first only install the parent:
+  #mvn clean install -N    //(-N signifies: Non-recursive)
+
+- Currently on every build, the following steps are taken:
+	-Build sources
+	-Copy resources and classes to target
+	-package jar/war
+	-package sources into -sources.jar
+	-Generate javaDocs
+	-package javadocs into -javadoc jar
+	-PGP sign all packages and the pom files
+
+- When running #mvn deploy:  -SNAPSHOTS are deployed to oss.sonatype.com/
+			     -Non-snapshot versions (releases) are deployed to the staging repository of sonatype.
+
+-To get rid of lifecycle-mapping warnings in maven:
+	#create and get into a temp folder
+	#mvn archetype:generate -DgroupId=org.eclipse.m2e -DartifactId=lifecycle-mapping -Dversion=1.0.0 -DarchetypeArtifactId=maven-archetype-mojo
+	#cd lifecycle-mapping
+	#mvn install
+
+Description of release process:
+
+Requirements:
+-Sonatype JIRA account (connected to com.almende, through a separate ticket, ask me:)
+-A GPG-key that has been published. ($ gpg --keyserver hkp://pool.sks-keyservers.net --send-keys <KEYNUM>)
+
+1: have a <ver>-SNAPSHOT working copy ready, in parent folder
+
+2: mvn versions:set -DnewVersion=<ver>
+3: git commit -a
+4: git push --all
+
+5: git tag <ver>
+6: git push --tags
+7: mvn clean deploy
+
+8: mvn versions:set -DnewVersion=<ver+1>-SNAPSHOT
+9: git commit -a
+10: git push --all
+
+11: Login to: https://oss.sonatype.org
+12: Goto: "Staging repositories"
+13: select comalmende repos
+14: click on "close"
+
+<Fix any errors that might popup>
+
+<download and test>
+
+15: click on "release"
+
