@@ -404,8 +404,11 @@ public class HttpUtil {
 		// connection
 		URL u = new URL(url);
 	    HttpURLConnection conn = (HttpURLConnection)u.openConnection();
-	    conn.setConnectTimeout(10000);
-	    conn.setReadTimeout(10000);
+	    conn.setConnectTimeout(60000);
+	    conn.setReadTimeout(60000);
+	    conn.setDefaultUseCaches(false);
+	    conn.setInstanceFollowRedirects(true);
+	    conn.setUseCaches(false);
 
 	    // method
 	    if (method != null) {
