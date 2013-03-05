@@ -4,9 +4,9 @@ import java.util.Scanner;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.example.TestAgent;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.xmpp.XmppService;
+import com.almende.test.agents.Test2Agent;
 
 public class TestXmpp {
 	public static void main (String[] args) throws Exception {
@@ -31,10 +31,10 @@ public class TestXmpp {
 		// instantiate an agent and connect it to a messenger service
 		String agentId = "alex";
 		String agentPassword = "alex";
-		TestAgent agent = (TestAgent)factory.getAgent(agentId);
+		Test2Agent agent = (Test2Agent)factory.getAgent(agentId);
 		if (agent == null) {
 			System.out.println("Create agent " + agentId );
-			agent = (TestAgent) factory.createAgent(TestAgent.class, agentId);
+			agent = (Test2Agent) factory.createAgent(Test2Agent.class, agentId);
 		}
 		xmppService.connect(agentId, agentId, agentPassword);
 
@@ -44,7 +44,7 @@ public class TestXmpp {
 		Agent agent2 = factory.getAgent(agentId);
 		if (agent2 == null) {
 			System.out.println("Create agent " + agentId );
-			agent2 = factory.createAgent(TestAgent.class, agentId);
+			agent2 = factory.createAgent(Test2Agent.class, agentId);
 		}
 		xmppService.connect(agentId, agentId, agentPassword);
 		

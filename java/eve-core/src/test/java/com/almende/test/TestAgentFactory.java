@@ -9,8 +9,8 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.example.TestAgentInterface;
 import com.almende.eve.transport.SyncCallback;
+import com.almende.test.agents.Test2AgentInterface;
 
 public class TestAgentFactory extends TestCase {
 
@@ -18,9 +18,9 @@ public class TestAgentFactory extends TestCase {
 	public void testAgentCall() {
 		AgentFactory factory = new AgentFactory();
 		
-		TestAgentInterface agent = factory.createAgentProxy(null, 
+		Test2AgentInterface agent = factory.createAgentProxy(null, 
 				"http://eveagents.appspot.com/agents/test/", 
-				TestAgentInterface.class);
+				Test2AgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);
 		assertEquals(new Double(7.300000000000001),res); //result not exact due to intermediate binary representation
