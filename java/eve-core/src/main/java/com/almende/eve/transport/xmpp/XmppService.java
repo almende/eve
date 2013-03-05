@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import org.jivesoftware.smack.SmackConfiguration;
+
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
@@ -124,6 +126,8 @@ public class XmppService implements TransportService {
 	 * initialize the transport service
 	 */
 	private void init() {
+		SmackConfiguration.setPacketReplyTimeout(15000);
+
 		initState();
 		initConnections();
 	}
