@@ -1,6 +1,10 @@
 EVE CORE
 http://almende.github.com/eve/
 
+2013-03-05, version 1.0.3
+
+-Fixed: Scheduler racecondition on destroyAgent.
+-Fixed: Timeouts in HTTP enlarged to 60 seconds (was 10s)
 
 2013-02-28, version 1.0.1
 
