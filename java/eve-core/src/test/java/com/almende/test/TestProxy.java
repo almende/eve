@@ -37,8 +37,37 @@ public class TestProxy extends TestCase {
 		Future<?> intRes = aProxy.call("testPrimitive",5,10);
 		assertEquals(new Integer(15),intRes.get());
 		
+		long delay=10000;
 		
-		//Call some functions, wait for result
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		Thread.sleep(delay);
+		
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		Thread.sleep(delay);
+		
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		Thread.sleep(delay);
+		
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		Thread.sleep(delay);
+		
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		Thread.sleep(delay);
 		
 	}
 

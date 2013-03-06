@@ -87,7 +87,11 @@ public class AgentServlet extends HttpServlet {
 			String sinceStr = req.getParameter("since");
 			Long since = null;
 			if (sinceStr != null) {
-				since = Long.valueOf(sinceStr);
+				try {
+					since = Long.valueOf(sinceStr);
+				} catch (java.lang.NumberFormatException e){
+					logger.warning("Couldn't parse 'since' parameter:'"+since+"'");
+				}
 			}
 			
 			try {

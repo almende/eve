@@ -76,7 +76,7 @@ public class ConcurrentFileState extends FileState {
 			}
 			locked.set(0, true);
 			File file = new File(this.filename);
-			if (!file.exists()) throw new Exception("File doesn't exist (anymore):'"+this.filename+"'");
+			if (!file.exists()) throw new Exception("Warning: File doesn't exist (anymore):'"+this.filename+"'");
 			channel = new RandomAccessFile(file, "rw").getChannel();
 //			logger.warning("Locked set, starting to wait for fileLock! "+filename);
 			lock = channel.lock();
