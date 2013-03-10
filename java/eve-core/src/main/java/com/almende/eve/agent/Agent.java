@@ -38,6 +38,7 @@ import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -61,6 +62,17 @@ abstract public class Agent implements AgentInterface {
 
 	public Agent() {}
 
+	@Access(AccessType.UNAVAILABLE)
+	public boolean onAccess(@Sender String senderId, String function_tag) {
+		return true;
+	}
+	
+	@Access(AccessType.UNAVAILABLE)
+	public boolean onAccess(@Sender String senderId) {
+		return onAccess(senderId,null);
+	}
+	
+	
 	/**
 	 * This method is called once in the life time of an agent, at the moment
 	 * the agent is being created by the AgentFactory.
@@ -501,7 +513,7 @@ abstract public class Agent implements AgentInterface {
 		// to route the request internally or externally
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
-		JSONResponse response = getAgentFactory().send(getId(), url, request);
+		JSONResponse response = getAgentFactory().send(this, url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -631,7 +643,7 @@ abstract public class Agent implements AgentInterface {
 			}
 		};
 		
-		getAgentFactory().sendAsync(getId(), url, request, responseCallback);
+		getAgentFactory().sendAsync(this, url, request, responseCallback);
 	}
 
 	/**

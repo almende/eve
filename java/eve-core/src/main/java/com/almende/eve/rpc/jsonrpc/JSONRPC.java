@@ -489,9 +489,10 @@ public class JSONRPC {
 		return Modifier.isPublic(mod) &&
 				hasNamedParams(method, requestParams) &&
 				(access == null || 
-				(access.value() != AccessType.UNAVAILABLE &&
-				 access.visible()));
+				(access.value() != AccessType.UNAVAILABLE));
 	}
+	//TODO: new access model
+	
 	
 	/**
 	 * Test whether a method has named parameters

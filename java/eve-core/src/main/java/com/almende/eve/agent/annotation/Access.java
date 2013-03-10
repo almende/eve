@@ -7,9 +7,8 @@ import java.lang.annotation.Target;
 
 // TODO: replace Access annotation by something more simple (see Jersey JSON annotation)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.METHOD)
+@Target({ElementType.METHOD,ElementType.TYPE})
 public @interface Access {
 	AccessType value();
-	String[] roles() default {};
-	boolean visible() default true;  // visible in getMethods()
+	String tag() default "";
 }
