@@ -306,10 +306,8 @@ public class AgentFactory {
 	/**
 	 * Create an agent proxy from an java interface
 	 * 
-	 * @param senderId
-	 *            Internal id of the sender agent. Not required for all
-	 *            transport services (for example not for outgoing HTTP
-	 *            requests)
+	 * @param sender
+	 *            Sender Agent, used to authentication purposes.
 	 * @param receiverUrl
 	 *            Url of the receiving agent
 	 * @param agentInterface
@@ -539,11 +537,7 @@ public class AgentFactory {
 			RequestParams requestParams = new RequestParams();
 			String senderUrl=null;
 			if (sender != null){
-				senderUrl = "local://" + sender.getId();
-				if (sender.getUrls().size() > 0) {
-					//Check sender URL against receiverURL transport type.
-					senderUrl = sender.getUrls().get(0);
-				}
+				senderUrl=getSenderUrl(sender.getId(),receiverUrl);
 			}
 			requestParams.put(Sender.class, senderUrl);
 			JSONResponse response = invoke(agentId, request, requestParams);
@@ -590,11 +584,10 @@ public class AgentFactory {
 				public void run() {
 					JSONResponse response;
 					try {
-						String senderUrl = "local://" + sender.getId();
-						if (sender.getUrls().size() > 0) {
-							senderUrl = sender.getUrls().get(0);
+						String senderUrl = null;
+						if (sender != null){
+							senderUrl=getSenderUrl(sender.getId(),receiverUrl);
 						}
-
 						RequestParams requestParams = new RequestParams();
 						requestParams.put(Sender.class, senderUrl);
 						response = invoke(receiverId, request, requestParams);
@@ -645,6 +638,28 @@ public class AgentFactory {
 		return null;
 	}
 
+	/**
+	 * Get the agentId from given agentUrl. The url can be any protocol. If the
+	 * url matches any of the registered transport services, an agentId is
+	 * returned. This means that the url represents a local agent. It is
+	 * possible that no agent with this id exists.
+	 * 
+	 * @param agentUrl
+	 * @return agentId
+	 */
+	private String getSenderUrl(String agentId, String receiverUrl) {
+		if (receiverUrl.startsWith("local:")) {
+			return "local://"+agentId;
+		}
+		for (TransportService service : transportServices) {
+			String receiverId = service.getAgentId(receiverUrl);
+			if (receiverId != null) {
+				return service.getAgentUrl(agentId);
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Retrieve the current environment, using the configured State. Can return
 	 * values like "Production", "Development". If no environment variable is
