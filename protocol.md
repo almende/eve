@@ -17,14 +17,16 @@ and  easy for machines to parse and generate.
 
 This page describes:
 
-- [Protocol](#protocol) describes the communication protocol for the agents.
-- [Resources](#resources) describes standardized resources such as calendar
+- [Protocol](#Protocol) describes the communication protocol for the agents.
+- [Agent API](#Agent_API) describes the standard methods of an agent.
+- [AgentFactory API](#AgentFactory_API) describes an AgentFactory's REST API.
+- [Resources](#Resources) describes standardized resources such as calendar
   events and geolocations.
-- [Documentation](#documentation) links to resources related to the communication
+- [Documentation](#Documentation) links to resources related to the communication
   protocol and defined resources.
 
 
-## Protocol {#protocol}
+## Protocol {#Protocol}
 
 Eve agents communicate with each other via the
 [JSON-RPC](http://en.wikipedia.org/wiki/JSON_RPC) protocol.
@@ -63,7 +65,223 @@ Agent Y executes the method with the provided parameters, and returns the result
 </table>
 
 
-## Resources {#resources}
+## Agent API {#Agent_API}
+
+All Eve agents have a set of standard methods available.
+
+<table>
+<tr>
+    <th>Method</th>
+    <th>Parameters</th>
+    <th>Result</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <td>getId</td>
+    <td>none</td>
+    <td>String id</td>
+    <td>Retrieve the agents id. An agent can have multiple urls, but always
+    has one unique id. The id of the agent is not globally unique,
+    agents running on different platforms may have the same id.</td>
+</tr>
+<tr>
+    <td>getType</td>
+    <td>none</td>
+    <td>String type</td>
+    <td>Retrieve the agents type. This is typically the class name of the agent.</td>
+</tr>
+<tr>
+    <td>getVersion</td>
+    <td>none</td>
+    <td>String version</td>
+    <td>Retrieve the agents version number.</td>
+</tr>
+<tr>
+    <td>getDescription</td>
+    <td>none</td>
+    <td>String description</td>
+    <td>Retrieve a description of the agents functionality.</td>
+</tr>
+<tr>
+    <td>getUrls</td>
+    <td>none</td>
+    <td>String[&nbsp;] urls</td>
+    <td>Retrieve an array with the agents urls. An agent can have multiple urls
+    for different transport services such as HTTP and XMPP.</td>
+</tr>
+<tr>
+    <td>getMethods</td>
+    <td>none</td>
+    <td><a href="#MethodDescription">MethodDescription</a>[&nbsp;] methods</td>
+    <td>Retrieve a list with all the available methods.</td>
+</tr>
+<tr>
+    <td>onSubscribe</td>
+    <td>
+        String&nbsp;event,<br>
+        String&nbsp;callbackUrl,<br>
+        String&nbsp;callbackMethod<br>
+    </td>
+    <td>String subscriptionId</td>
+    <td>Subscribe to an event of this Agent.
+    The provided callback url and method will be invoked when the event is
+    triggered.
+    The callback method is called with the following parameters:
+    <table>
+        <tr>
+            <th>Parameters</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>String subscriptionId</td>
+            <td>The id of the subscription</td>
+        </tr>
+        <tr>
+            <td>String event</td>
+            <td>Name of the triggered event</td>
+        </tr>
+        <tr>
+            <td>String agent</td>
+            <td>Url of the triggered agent</td>
+        </tr>
+        <tr>
+            <td>Object params</td>
+            <td>Event specific parameters</td>
+        </tr>
+    </table>
+    </td>
+</tr>
+<tr>
+    <td>onUnsubscribe</td>
+    <td>
+    String&nbsp;subscriptionId (optional),<br>
+    String&nbsp;event (optional),<br>
+    String&nbsp;callbackUrl (optional),<br>
+    String&nbsp;callbackMethod (optional)<br>
+    </td>
+    <td>none</td>
+    <td>
+    Unsubscribe from one of this agents events. All parameters are optional:
+    <ul>
+        <li>
+            If <code>subscriptionId</code> is provided, the subscription with
+            this id will be deleted. All other parameters are ignored.
+        </li>
+        <li>
+            If <code>callbackUrl</code> is provided,
+            all subscriptions with matching parameters will be deleted.
+            If the parameters <code>event</code> and/or
+            <code>callbackMethod</code> are provided, subscriptions will be
+            filtered by these parameters,
+            else, all subscriptions from this agent will be deleted.
+        </li>
+    </ul>
+    </td>
+</tr>
+</table>
+
+### MethodDescription {#MethodDescription}
+
+The method `getMethods` of Eve agents returns an array with method descriptions.
+The method descriptions have the following structure:
+
+<table>
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>method</td>
+        <td>String</td>
+        <td>Method name</td>
+    </tr>
+    <tr>
+        <td>params[ ]</td>
+        <td>Array</td>
+        <td>Array with parameters</td>
+    </tr>
+    <tr>
+        <td>params[ ].name</td>
+        <td>String</td>
+        <td>Parameter name</td>
+    </tr>
+    <tr>
+        <td>params[ ].type</td>
+        <td>String</td>
+        <td>Parameter type</td>
+    </tr>
+    <tr>
+        <td>params[ ].required</td>
+        <td>Boolean</td>
+        <td>True if the parameter is required, else false.</td>
+    </tr>
+    <tr>
+        <td>result.type</td>
+        <td>String</td>
+        <td>Method return type.</td>
+    </tr>
+</table>
+
+
+For example a method `add(a,b)` can be described as:
+
+    {
+        "result": {
+            "type": "Double"
+        },
+        "method": "add",
+        "params": [
+            {
+                "name": "a",
+                "required": true,
+                "type": "Double"
+            },
+            {
+                "name": "b",
+                "required": true,
+                "type": "Double"
+            }
+        ]
+    }
+
+## AgentFactory API {#AgentFactory_API}
+
+Eve applications contain an AgentFactory which manages the Eve Agents.
+An AgentFactory can be exposed as a REST service.
+An AgentFactory's REST interface has the following API:
+
+- `GET /agents/`
+
+  Returns information on how to use the REST API.
+
+- `GET /agents/{agentId}`
+
+  Returns an agents web interface, allowing easy interaction with the agent.
+  A 404 error will be returned when the agent does not exist.
+
+- `POST /agents/{agentId}`
+
+  Send an RPC call to an agent.
+  The body of the request must contain a JSON-RPC request.
+  The addressed agent will execute the request and return a
+  JSON-RPC response. This response can contain the result or
+  an exception.
+  A 404 error will be returned when the agent does not exist.
+
+- `PUT /agents/{agentId}?type={agentType}`
+
+  Create an agent. `agentId` can be any string. `agentType` describest the
+  type of the agent, for example a Java class path. A 500 error will be
+  thrown when an agent with this id already exists.
+
+- `DELETE /agents/{agentId}`
+
+  Delete an agent by its id.
+
+
+
+## Resources {#Resources}
 
 The JSON-RPC protocol does define a mechanism for invoking an agents methods.
 It does not define the structure of any resources.
@@ -341,7 +559,7 @@ request to another agent, when they have a valid authentication token for this
 agent.
 -->
 
-## Documentation
+## Documentation {#Documentation}
 
 Documentation on the JSON-RPC protocol can be found via the following links:
 

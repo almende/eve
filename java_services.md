@@ -165,8 +165,7 @@ The AgentServlet supports the following request:
 
 - `GET /agents/{agentId}`
 
-  Returns an agents web interface, allowing for easy interaction
-  with the agent.
+  Returns an agents web interface, allowing easy interaction with the agent.
   A 404 error will be returned when the agent does not exist.
 
 - `POST /agents/{agentId}`
