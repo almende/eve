@@ -332,6 +332,7 @@ public class AgentFactory {
 						String id = getAgentId(receiverUrl);
 						if (id != null) {
 							// local agent
+							//TODO: do access check
 							Agent agent = getAgent(id);
 							return method.invoke(agent, args);
 						} else {

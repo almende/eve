@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.agent.annotation.Sender;
 
 public interface AgentInterface {
 	/**
@@ -37,6 +38,18 @@ public interface AgentInterface {
 	 */
 	public List<String> getUrls();
 
+	/**
+	 * Internal method, implementing this method allows adding authorization to your agent. 
+	 * All methods annotated with AccessType.PRIVATE will only be called if this method returns true.
+	 * The function_tag parameter can be used to check against @Access(tag="foobar") annotation on the called method.
+	 * ( e.g. add roles to methods )
+	 * 
+	 * @param senderId
+	 * @param function_tag
+	 * @return
+	 */
+	public boolean onAccess(@Sender String senderId, String function_tag);
+	
 	/**
 	 * Retrieve a list with all the available methods.
 	 * @param asJSON   If true, result is in a JSON format easily parsable by

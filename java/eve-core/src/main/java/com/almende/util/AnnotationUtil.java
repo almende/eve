@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.almende.eve.agent.AgentInterface;
+
 public class AnnotationUtil {
 	private static Map<String, AnnotatedClass> cache = 
 			new ConcurrentHashMap<String, AnnotatedClass>();
@@ -63,8 +65,10 @@ public class AnnotationUtil {
 	 * and super classes (excluding java.lang.Object).
 	 * @param clazz
 	 * @return annotatedClazz
+	 * @throws Exception 
+	 * @throws SecurityException 
 	 */
-	public static AnnotatedClass get(Class<?> clazz) {
+	public static AnnotatedClass get(Class<?> clazz) throws SecurityException, Exception {
 		final boolean includeObject = false;
 		return get(clazz, includeObject);
 	}
@@ -77,8 +81,10 @@ public class AnnotationUtil {
 	 * @param includeObject    If true, methods of java.lang.Object will be 
 	 *                         included in the superclasses too.
 	 * @return annotatedClazz
+	 * @throws Exception 
+	 * @throws SecurityException 
 	 */
-	public static AnnotatedClass get(Class<?> clazz, boolean includeObject) {
+	public static AnnotatedClass get(Class<?> clazz, boolean includeObject) throws SecurityException, Exception {
 		Map<String, AnnotatedClass> _cache = includeObject ? cacheIncludingObject : cache;
 		AnnotatedClass annotatedClazz = _cache.get(clazz.getName());
 		if (annotatedClazz == null) {
@@ -101,8 +107,10 @@ public class AnnotationUtil {
 		 * @param clazz
 		 * @param includeObject  If true, the methods of super class 
 		 *                       java.lang.Object will be included too.
+		 * @throws Exception 
+		 * @throws SecurityException 
 		 */
-		public AnnotatedClass(Class<?> clazz, boolean includeObject) {
+		public AnnotatedClass(Class<?> clazz, boolean includeObject) throws SecurityException, Exception {
 			this.clazz = clazz;
 			merge(clazz, includeObject);
 		}
@@ -114,8 +122,10 @@ public class AnnotationUtil {
 		 * @param clazz
 		 * @param includeObject     if true, superclass java.lang.Object will
 		 *                          be included too.
+		 * @throws Exception 
+		 * @throws SecurityException 
 		 */
-		private void merge(Class<?> clazz, boolean includeObject) {
+		private void merge(Class<?> clazz, boolean includeObject) throws SecurityException, Exception {
 			Class<?> c = clazz;
 			while (c != null && (includeObject || c != Object.class)) {
 				// merge the annotations
@@ -198,14 +208,21 @@ public class AnnotationUtil {
 	public static class AnnotatedMethod {
 		private Method method = null;
 		private String name = null;
+		private Class<AgentInterface> parent = null;
 		private Class<?> returnType = null;
 		private Type genericReturnType = null;
 		private List<Annotation> annotations = new ArrayList<Annotation>();
 		private List<AnnotatedParam> params = new ArrayList<AnnotatedParam>();
 		
-		public AnnotatedMethod(Method method) {
+		@SuppressWarnings("unchecked")
+		public AnnotatedMethod(Method method) throws Exception {
 			this.method = method;
 			this.name = method.getName();
+			if (AgentInterface.class.isAssignableFrom(method.getDeclaringClass())){
+				this.setParent((Class<AgentInterface>) method.getDeclaringClass());
+			} else {
+				throw new Exception("Trying to annotate a non Eve class!");
+			}
 			this.returnType = method.getReturnType();
 			this.genericReturnType = method.getGenericReturnType();
 
@@ -301,6 +318,14 @@ public class AnnotationUtil {
 		public List<AnnotatedParam> getParams() {
 			return params;
 		}
+
+		public Class<AgentInterface> getParent() {
+			return parent;
+		}
+
+		public void setParent(Class<AgentInterface> parent) {
+			this.parent = parent;
+		}
 	}
 	
 	/**
@@ -393,8 +418,9 @@ public class AnnotationUtil {
 	 * annotations (listA)
 	 * @param listA
 	 * @param listB
+	 * @throws Exception 
 	 */
-	private static void merge(List<AnnotatedMethod> listA, Method[] listB) {
+	private static void merge(List<AnnotatedMethod> listA, Method[] listB) throws Exception {
 		for (Method b : listB) {
 			AnnotatedMethod methodAnnotations = null;
 			for (AnnotatedMethod a : listA) {

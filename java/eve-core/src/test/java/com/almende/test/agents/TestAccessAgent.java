@@ -11,11 +11,12 @@ import com.almende.eve.agent.annotation.Sender;
 public class TestAccessAgent extends Agent {
 
 	@Override
-	public boolean onAccess(String sender, String function_tag){
+	public boolean onAccess(@Sender String sender, String function_tag){
+		if (sender == null) return false;
 		if (function_tag != null && !function_tag.equals("")){
 			return "trust".equals(function_tag) && sender.contains("trusted");
 		}
-		return sender.startsWith("trusted");
+		return sender.contains("trusted");
 	}
 	
 	@Access(AccessType.PUBLIC)
@@ -45,7 +46,7 @@ public class TestAccessAgent extends Agent {
 		if (sender != null){ 
 			System.out.println("Sender:"+sender);
 		}
-		if (sender == null || !sender.startsWith("trusted")){ //will always fail in this case.
+		if (sender == null || !sender.contains("trusted")){ //will always fail in this case.
 			return true;
 		}
 		return false;
