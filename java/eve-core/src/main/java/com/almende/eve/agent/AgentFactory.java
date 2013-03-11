@@ -599,9 +599,13 @@ public class AgentFactory {
 				public void run() {
 					JSONResponse response;
 					try {
-						// TODO: provide Sender in requestParams
+						String senderUrl = "local://" + sender.getId();
+						if (sender.getUrls().size() > 0) {
+							senderUrl = sender.getUrls().get(0);
+						}
+						
 						RequestParams requestParams = new RequestParams();
-						requestParams.put(Sender.class, null);
+						requestParams.put(Sender.class, senderUrl);
 						response = invoke(receiverId, request, requestParams);
 						callback.onSuccess(response);
 					} catch (Exception e) {
