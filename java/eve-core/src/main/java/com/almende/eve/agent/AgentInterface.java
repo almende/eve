@@ -52,13 +52,9 @@ public interface AgentInterface {
 	
 	/**
 	 * Retrieve a list with all the available methods.
-	 * @param asJSON   If true, result is in a JSON format easily parsable by
-	 *                 a machine. If false (default), the returned list
-	 *                 contains human readable strings.
 	 * @return methods
 	 */
-	public List<Object> getMethods(
-			@Name("asJSON") @Required(false) Boolean asJSON);
+	public List<Object> getMethods();
 	
 	/**
 	 * Subscribe to an event. The provided callback url and method will be 

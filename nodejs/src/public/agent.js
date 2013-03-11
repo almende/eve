@@ -407,7 +407,7 @@ function Ctrl() {
             {
                 'method': 'getMethods',
                 'field': 'methods',
-                'params': {'asJSON': true},
+                'params': {},
                 'callback': function () {
                     if (self && self.methods && self.methods[0]) {
                         self.methodName = self.methods[0].method;
@@ -464,7 +464,6 @@ function Ctrl() {
         "id": 1,
         "method": "getMethods",
         "params": {
-            "asJSON": false
         }
     };
     this.request = JSON.stringify(defaultRequest, null, 2);

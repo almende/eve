@@ -232,7 +232,7 @@ public class AgentServlet extends HttpServlet {
 	 * initialize the agent factory
 	 * @throws Exception 
 	 */
-	private void initAgentFactory() throws Exception {
+	protected void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
 		if (agentFactory != null) {
@@ -269,7 +269,7 @@ public class AgentServlet extends HttpServlet {
 	 * Initialize an HttpTransport service for the servlet
 	 * @throws Exception 
 	 */
-	private void initHttpTransport () throws Exception {
+	protected void initHttpTransport () throws Exception {
 		// TODO: one servlet must be able to support multiple servlet_urls
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
@@ -295,7 +295,7 @@ public class AgentServlet extends HttpServlet {
 	 * Get a description on how to use this servlet
 	 * @return info
 	 */
-	private String getServletDocs() {
+	protected String getServletDocs() {
 		String servletUrl = httpTransport.getServletUrl();
 		String info = 
 			"EVE AGENTS SERVLET\n" +

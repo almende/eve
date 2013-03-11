@@ -111,7 +111,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * initialize the agent factory
 	 * @throws Exception 
 	 */
-	private void initAgentFactory() throws Exception {
+	protected void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
 		if (agentFactory != null) {
@@ -146,7 +146,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * Register this servlet at the agent factory
 	 * @throws Exception 
 	 */
-	private void initHttpTransport () throws Exception {
+	protected void initHttpTransport () throws Exception {
 		// TODO: one servlet must be able to support multiple servlet_urls
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
@@ -172,7 +172,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * Register this servlet at the agent factory
 	 * @throws Exception 
 	 */
-	private void initAgent () throws Exception {
+	protected void initAgent () throws Exception {
 		// TODO: use agent bootstrap mechanism instead
 		
 		// retrieve the agents id

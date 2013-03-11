@@ -239,24 +239,21 @@ public class JSONRPC {
 	 *            The class to be described
 	 * @param requestParams
 	 *            Optional request parameters.
-	 * @param asJSON
-	 *            If true, the described methods will be in an easy to parse
-	 *            JSON structure. If false, the returned description will be in
-	 *            human readable format.
+	 * @param asString
+	 *            If false (default), the returned description is a JSON 
+	 *            structure. If true, the described methods will be in an easy 
+	 *            to read string. 
 	 * @return
 	 */
 	public static List<Object> describe(Class<?> c,
-			RequestParams requestParams, Boolean asJSON) {
+			RequestParams requestParams, Boolean asString) {
 		try {
 			Map<String, Object> methods = new TreeMap<String, Object>();
-			if (asJSON == null) {
-				asJSON = false;
-			}
 
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
 				if (isAvailable(method, null, requestParams)) {
-					if (asJSON) {
+					if (asString == null || asString != true) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
 						for (AnnotatedParam param : method.getParams()) {

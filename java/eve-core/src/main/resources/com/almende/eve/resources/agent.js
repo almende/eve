@@ -324,7 +324,7 @@ function Controller($scope, $resource) {
         });
 
         // get methods
-        send ('getMethods', {'asJSON': true}, function (err, result) {
+        send ('getMethods', {}, function (err, result) {
             if (!err) {
                 $scope.methods = result;
                 $scope.methodName = $scope.methods[0].method;
@@ -343,7 +343,6 @@ function Controller($scope, $resource) {
         "id": 1,
         "method": "getMethods",
         "params": {
-            "asJSON": false
         }
     };
     $scope.request = JSON.stringify(defaultRequest, null, 2);
