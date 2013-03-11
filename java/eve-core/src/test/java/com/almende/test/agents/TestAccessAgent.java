@@ -16,11 +16,11 @@ public class TestAccessAgent extends Agent {
 	}
 
 	@Override
-	public boolean onAccess(@Sender String sender, String function_tag){
+	public boolean onAccess(@Sender String sender, String functionTag){
 		if (sender == null) return false;
 		String senderLabel = (String) this.getState().get("senderLabel");
-		if (function_tag != null && !function_tag.equals("")){
-			return "trust".equals(function_tag) && sender.contains(senderLabel);
+		if (functionTag != null && !functionTag.equals("")){
+			return "trust".equals(functionTag) && sender.contains(senderLabel);
 		}
 		return sender.contains(senderLabel);
 	}

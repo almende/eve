@@ -45,10 +45,10 @@ public interface AgentInterface {
 	 * ( e.g. add roles to methods )
 	 * 
 	 * @param senderId
-	 * @param function_tag
+	 * @param functionTag
 	 * @return
 	 */
-	public boolean onAccess(@Sender String senderId, String function_tag);
+	public boolean onAccess(@Sender String senderId, String functionTag);
 	
 	/**
 	 * Retrieve a list with all the available methods.

@@ -64,7 +64,7 @@ abstract public class Agent implements AgentInterface {
 	public Agent() {}
 
 	@Access(AccessType.UNAVAILABLE)
-	public boolean onAccess(@Sender String senderId, String function_tag) {
+	public boolean onAccess(@Sender String senderId, String functionTag) {
 		return true;
 	}
 	
