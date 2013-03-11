@@ -247,8 +247,8 @@ For example a method `add(a,b)` can be described as:
 
 ## AgentFactory API {#AgentFactory_API}
 
-Eve applications contain an AgentFactory which manages the Eve Agents.
-An AgentFactory can be exposed as a REST service.
+Eve applications can use an AgentFactory to manage (create, delete, invoke)
+Eve agents. An AgentFactory can be exposed as a REST service.
 An AgentFactory's REST interface has the following API:
 
 - `GET /agents/`
@@ -271,7 +271,7 @@ An AgentFactory's REST interface has the following API:
 
 - `PUT /agents/{agentId}?type={agentType}`
 
-  Create an agent. `agentId` can be any string. `agentType` describest the
+  Create an agent. `agentId` can be any string. `agentType` describes the
   type of the agent, for example a Java class path. A 500 error will be
   thrown when an agent with this id already exists.
 
