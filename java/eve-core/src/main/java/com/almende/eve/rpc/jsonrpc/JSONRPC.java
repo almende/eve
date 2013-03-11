@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
@@ -49,9 +50,9 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(Object object, String request)
+	static public String invoke(AgentInterface destination, String request)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		return invoke(object, request, null);
+		return invoke(destination, request, null);
 	}
 
 	/**
@@ -68,14 +69,14 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(Object object, String request,
+	static public String invoke(AgentInterface destination, String request,
 			RequestParams requestParams) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
 			jsonRequest = new JSONRequest(request);
-			jsonResponse = invoke(object, jsonRequest, requestParams);
+			jsonResponse = invoke(destination, jsonRequest, requestParams);
 		} catch (JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
 		}
@@ -92,8 +93,8 @@ public class JSONRPC {
 	 *            will be invoked on the given object
 	 * @return
 	 */
-	static public JSONResponse invoke(Object object, JSONRequest request) {
-		return invoke(object, request, null);
+	static public JSONResponse invoke(AgentInterface destination, JSONRequest request) {
+		return invoke(destination, request, null);
 	}
 
 	/**
@@ -107,13 +108,13 @@ public class JSONRPC {
 	 *            Optional request parameters
 	 * @return
 	 */
-	static public JSONResponse invoke(Object object, JSONRequest request,
+	static public JSONResponse invoke(AgentInterface destination, JSONRequest request,
 			RequestParams requestParams) {
 		JSONResponse resp = new JSONResponse();
 		resp.setId(request.getId());
 
 		try {
-			AnnotatedMethod annotatedMethod = getMethod(object.getClass(),
+			AnnotatedMethod annotatedMethod = getMethod(destination,
 					request.getMethod(), requestParams);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
@@ -125,7 +126,7 @@ public class JSONRPC {
 
 			Object[] params = castParams(request.getParams(),
 					annotatedMethod.getParams(), requestParams);
-			Object result = method.invoke(object, params);
+			Object result = method.invoke(destination, params);
 			if (result == null) {
 				result = JOM.createNullNode();
 			}
@@ -178,7 +179,7 @@ public class JSONRPC {
 			for (AnnotatedMethod method : ac.getMethods()) {
 				boolean available = false;
 				try {
-					available = isAvailable(method, requestParams);
+					available = isAvailable(method, null, requestParams);
 				} catch (Exception e) {
 					e.printStackTrace();
 					errors.add("Problems running isAvailable method on annotated class.");
@@ -254,7 +255,7 @@ public class JSONRPC {
 
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
-				if (isAvailable(method, requestParams)) {
+				if (isAvailable(method, null, requestParams)) {
 					if (asJSON) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
@@ -375,20 +376,20 @@ public class JSONRPC {
 	 * Find a method by name, which is available for JSON-RPC, and has named
 	 * parameters
 	 * 
-	 * @param objectClass
+	 * @param destination
 	 * @param method
 	 * @param requestParams
 	 * @return methodType meta information on the method, or null if not found
 	 */
-	static private AnnotatedMethod getMethod(Class<?> objectClass,
+	static private AnnotatedMethod getMethod(AgentInterface destination,
 			String method, RequestParams requestParams) {
 		AnnotatedClass annotatedClass;
 		try {
-			annotatedClass = AnnotationUtil.get(objectClass);
+			annotatedClass = AnnotationUtil.get(destination.getClass());
 
 			List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
 			for (AnnotatedMethod m : methods) {
-				if (isAvailable(m, requestParams)) {
+				if (isAvailable(m, destination, requestParams)) {
 					return m;
 				}
 			}
@@ -529,7 +530,7 @@ public class JSONRPC {
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 */
-	private static boolean isAvailable(AnnotatedMethod method,
+	private static boolean isAvailable(AnnotatedMethod method, AgentInterface destination,
 			RequestParams requestParams) throws InstantiationException,
 			IllegalAccessException {
 
@@ -538,6 +539,8 @@ public class JSONRPC {
 		Access ClassAccess = method.getActualMethod().getDeclaringClass()
 				.getAnnotation(Access.class);
 
+		if (destination != null && !method.getActualMethod().getDeclaringClass().isAssignableFrom(destination.getClass()))
+			return false;
 		if (!(Modifier.isPublic(mod) && hasNamedParams(method, requestParams)))
 			return false;
 		if (MethodAccess == null)
@@ -546,12 +549,8 @@ public class JSONRPC {
 			return true;
 		if (MethodAccess.value() == AccessType.UNAVAILABLE)
 			return false;
-		if (MethodAccess.value() == AccessType.PRIVATE) {
-			// TODO: get agent by class?
-			return method
-					.getParent()
-					.newInstance()
-					.onAccess((String) requestParams.get(Sender.class),
+		if (destination != null && MethodAccess.value() == AccessType.PRIVATE) {
+			return destination.onAccess((String) requestParams.get(Sender.class),
 							MethodAccess.tag());
 		}
 		return true;

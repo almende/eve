@@ -332,8 +332,9 @@ public class AgentFactory {
 						String id = getAgentId(receiverUrl);
 						if (id != null) {
 							// local agent
-							//TODO: do access check
+							//TODO: do access check, probably by removing this shortcut and let JSONRPC layer do the shortcuts...
 							Agent agent = getAgent(id);
+							
 							return method.invoke(agent, args);
 						} else {
 							// remote agent
@@ -517,7 +518,6 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	// TOOD: cleanup this method?
 	public JSONResponse invoke(String receiverId, JSONRequest request,
 			RequestParams requestParams) throws Exception {
 		Agent receiver = getAgent(receiverId);
