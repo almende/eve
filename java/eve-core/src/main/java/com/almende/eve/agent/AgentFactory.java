@@ -317,7 +317,7 @@ public class AgentFactory {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T createAgentProxy(final String senderId,
+	public <T> T createAgentProxy(final AgentInterface sender,
 			final String receiverUrl, Class<T> agentInterface) {
 		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
 			throw new IllegalArgumentException("agentInterface must extend "
@@ -329,32 +329,19 @@ public class AgentFactory {
 				new Class[] { agentInterface }, new InvocationHandler() {
 					public Object invoke(Object proxy, Method method,
 							Object[] args) throws Throwable {
-						String id = getAgentId(receiverUrl);
-						if (id != null) {
-							// local agent
-							//TODO: do access check, probably by removing this shortcut and let JSONRPC layer do the shortcuts...
-							Agent agent = getAgent(id);
-							
-							return method.invoke(agent, args);
-						} else {
-							// remote agent
-							JSONRequest request = JSONRPC.createRequest(method,
-									args);
-							JSONResponse response = send(
-									(AgentInterface) proxy, receiverUrl,
-									request);
+						JSONRequest request = JSONRPC.createRequest(method,
+								args);
+						JSONResponse response = send(sender,
+								receiverUrl, request);
 
-							JSONRPCException err = response.getError();
-							if (err != null) {
-								throw err;
-							} else if (response.getResult() != null
-									&& !method.getReturnType()
-											.equals(Void.TYPE)) {
-								return response.getResult(method
-										.getReturnType());
-							} else {
-								return null;
-							}
+						JSONRPCException err = response.getError();
+						if (err != null) {
+							throw err;
+						} else if (response.getResult() != null
+								&& !method.getReturnType().equals(Void.TYPE)) {
+							return response.getResult(method.getReturnType());
+						} else {
+							return null;
 						}
 					}
 				});
@@ -378,9 +365,9 @@ public class AgentFactory {
 	 *            A java Interface, extending AgentInterface
 	 * @return
 	 */
-	public <T> AsyncProxy<T> createAsyncAgentProxy(final String senderId,
+	public <T> AsyncProxy<T> createAsyncAgentProxy(final AgentInterface sender,
 			final String receiverUrl, Class<T> agentInterface) {
-		return new AsyncProxy<T>(createAgentProxy(senderId, receiverUrl,
+		return new AsyncProxy<T>(createAgentProxy(sender, receiverUrl,
 				agentInterface));
 	}
 
@@ -550,9 +537,13 @@ public class AgentFactory {
 		if (agentId != null) {
 			// local agent, invoke locally
 			RequestParams requestParams = new RequestParams();
-			String senderUrl = "local://" + sender.getId();
-			if (sender.getUrls().size() > 0) {
-				senderUrl = sender.getUrls().get(0);
+			String senderUrl=null;
+			if (sender != null){
+				senderUrl = "local://" + sender.getId();
+				if (sender.getUrls().size() > 0) {
+					//Check sender URL against receiverURL transport type.
+					senderUrl = sender.getUrls().get(0);
+				}
 			}
 			requestParams.put(Sender.class, senderUrl);
 			JSONResponse response = invoke(agentId, request, requestParams);
@@ -603,7 +594,7 @@ public class AgentFactory {
 						if (sender.getUrls().size() > 0) {
 							senderUrl = sender.getUrls().get(0);
 						}
-						
+
 						RequestParams requestParams = new RequestParams();
 						requestParams.put(Sender.class, senderUrl);
 						response = invoke(receiverId, request, requestParams);
