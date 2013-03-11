@@ -513,13 +513,11 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		return value;
 	}
 
-	public List<Object> testAgentProxy3(@Name("asJSON") @Required(false) Boolean asJSON) {
+	public List<Object> testAgentProxy3() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		TestAgentInterface other = createAgentProxy(url, TestAgentInterface.class);
 		
-		System.out.println("asJSON=" + asJSON);
-		
-		List<Object> value = other.getMethods(asJSON);
+		List<Object> value = other.getMethods();
 		return value;
 	}
 	

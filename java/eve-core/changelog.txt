@@ -1,10 +1,21 @@
 EVE CORE
 http://almende.github.com/eve/
 
+
+<not yet released>, version 1.0.4
+
+- Agent.getMethods does no longer accept the "asJSON" parameter. The method now
+  always returns JSON format and no String format.
+- All methods in AgentServlet and SingleAgentServlet are now protected instead
+  of private, which makes it easier ot extend these servlets.
+
+
+
 2013-03-05, version 1.0.3
 
 -Fixed: Scheduler racecondition on destroyAgent.
 -Fixed: Timeouts in HTTP enlarged to 60 seconds (was 10s)
+
 
 2013-02-28, version 1.0.1
 

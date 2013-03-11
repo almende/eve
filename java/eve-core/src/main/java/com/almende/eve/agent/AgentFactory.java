@@ -1084,8 +1084,9 @@ public class AgentFactory {
 		return null;
 	}
 
-	public List<Object> getMethods(Agent agent, Boolean asJSON) {
-		return JSONRPC.describe(agent.getClass(), eveRequestParams, asJSON);
+	public List<Object> getMethods(Agent agent) {
+		Boolean asString = false;
+		return JSONRPC.describe(agent.getClass(), eveRequestParams, asString);
 	}
 
 	/**
