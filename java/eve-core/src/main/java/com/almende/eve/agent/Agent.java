@@ -39,6 +39,7 @@ import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
+import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -562,9 +563,19 @@ abstract public class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T createAgentProxy(String url, Class<T> agentInterface) {
-		return getAgentFactory().createAgentProxy(getId(), url, agentInterface);
+		return getAgentFactory().createAgentProxy(this, url, agentInterface);
 	}
-	
+	/**
+	 * Create a proxy to an other agent. Invoked methods will be send to the 
+	 * actual agent via the AgentFactory.
+	 * @param url
+	 * @param agentInterface  A Java Interface, extending AgentInterface
+	 * @return agentProxy
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> AsyncProxy<T> createAsyncAgentProxy(String url, Class<T> agentInterface) {
+		return getAgentFactory().createAsyncAgentProxy(this, url, agentInterface);
+	}	
 	/**
 	 * Send a request to an agent in JSON-RPC format
 	 * @param url    The url of the agent

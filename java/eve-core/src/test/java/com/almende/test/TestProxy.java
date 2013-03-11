@@ -7,8 +7,8 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.test.agents.TestAgent;
 import com.almende.eve.agent.proxy.AsyncProxy;
+import com.almende.test.agents.TestAgent;
 import com.almende.test.agents.TestInterface;
 
 public class TestProxy extends TestCase {
@@ -18,7 +18,6 @@ public class TestProxy extends TestCase {
 		//Create TestAgent according to TestInterface
 		AgentFactory factory = new AgentFactory();
 		factory.createAgent(TestAgent.class, "TestAgent");
-		
 		
 		//generate sync proxy from TestInterface
 		TestInterface proxy = factory.createAgentProxy(null, "local:TestAgent", TestInterface.class);
