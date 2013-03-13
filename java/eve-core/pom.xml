@@ -87,6 +87,19 @@
 								<value>Development</value>
 							</systemProperty>
 						</systemProperties>
+						<connectors>
+							<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
+								<port>8080</port>
+								<maxIdleTime>60000</maxIdleTime>
+							</connector>
+							<connector implementation="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
+								<port>8443</port>
+								<maxIdleTime>60000</maxIdleTime>
+								<keystore>${project.build.directory}/test-classes/jetty-ssl.keystore</keystore>
+								<password>testKey</password>
+								<keyPassword>testKey</keyPassword>
+							</connector>
+						</connectors>
 					</configuration>
 
 					<executions>
