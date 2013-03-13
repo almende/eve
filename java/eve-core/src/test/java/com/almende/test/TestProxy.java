@@ -36,7 +36,7 @@ public class TestProxy extends TestCase {
 		Future<?> intRes = aProxy.call("testPrimitive",5,10);
 		assertEquals(new Integer(15),intRes.get());
 		
-		long delay=10000;
+/*		long delay=10000;
 		
 		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
 		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
@@ -67,7 +67,7 @@ public class TestProxy extends TestCase {
 		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
 		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
 		Thread.sleep(delay);
-		
+*/		
 	}
 
 }

@@ -65,7 +65,6 @@
 	</dependencies>
 
 	<build>
-		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.mortbay.jetty</groupId>
@@ -105,7 +104,7 @@
 					<executions>
 						<execution>
 							<id>start-jetty</id>
-							<phase>pre-integration-test</phase>
+							<phase>test-compile</phase>
 							<goals>
 								<goal>run</goal>
 							</goals>
@@ -124,6 +123,5 @@
 					</executions>
 				</plugin>
 			</plugins>
-		</pluginManagement>
 	</build>
 </project>

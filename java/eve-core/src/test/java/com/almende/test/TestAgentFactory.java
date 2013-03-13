@@ -27,6 +27,17 @@ public class TestAgentFactory extends TestCase {
 		
 		res = agent.multiply(3.1, 4.2);
 		assertEquals(new Double(13.020000000000001),res);
+
+		agent = factory.createAgentProxy(null, 
+				"https://localhost:8443/agents/test/", 
+				Test2AgentInterface.class);
+		
+		res = agent.add(3.1, 4.2);
+		assertEquals(new Double(7.300000000000001),res); //result not exact due to intermediate binary representation
+		
+		res = agent.multiply(3.1, 4.2);
+		assertEquals(new Double(13.020000000000001),res);
+
 		
 	}
 	
