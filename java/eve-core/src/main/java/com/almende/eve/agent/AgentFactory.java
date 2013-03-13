@@ -329,8 +329,8 @@ public class AgentFactory {
 							Object[] args) throws Throwable {
 						JSONRequest request = JSONRPC.createRequest(method,
 								args);
-						JSONResponse response = send(sender,
-								receiverUrl, request);
+						JSONResponse response = send(sender, receiverUrl,
+								request);
 
 						JSONRPCException err = response.getError();
 						if (err != null) {
@@ -535,9 +535,9 @@ public class AgentFactory {
 		if (agentId != null) {
 			// local agent, invoke locally
 			RequestParams requestParams = new RequestParams();
-			String senderUrl=null;
-			if (sender != null){
-				senderUrl=getSenderUrl(sender.getId(),receiverUrl);
+			String senderUrl = null;
+			if (sender != null) {
+				senderUrl = getSenderUrl(sender.getId(), receiverUrl);
 			}
 			requestParams.put(Sender.class, senderUrl);
 			JSONResponse response = invoke(agentId, request, requestParams);
@@ -551,8 +551,10 @@ public class AgentFactory {
 				service = getTransportService(protocol);
 			}
 			if (service != null) {
-				JSONResponse response = service.send(sender.getId(),
-						receiverUrl, request);
+				JSONResponse response = service.send(
+						(sender != null ? sender.getId() : null),
+						receiverUrl,
+						request);
 				return response;
 			} else {
 				throw new ProtocolException(
@@ -585,8 +587,9 @@ public class AgentFactory {
 					JSONResponse response;
 					try {
 						String senderUrl = null;
-						if (sender != null){
-							senderUrl=getSenderUrl(sender.getId(),receiverUrl);
+						if (sender != null) {
+							senderUrl = getSenderUrl(sender.getId(),
+									receiverUrl);
 						}
 						RequestParams requestParams = new RequestParams();
 						requestParams.put(Sender.class, senderUrl);
@@ -649,7 +652,7 @@ public class AgentFactory {
 	 */
 	private String getSenderUrl(String agentId, String receiverUrl) {
 		if (receiverUrl.startsWith("local:")) {
-			return "local://"+agentId;
+			return "local://" + agentId;
 		}
 		for (TransportService service : transportServices) {
 			String receiverId = service.getAgentId(receiverUrl);
@@ -659,7 +662,7 @@ public class AgentFactory {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Retrieve the current environment, using the configured State. Can return
 	 * values like "Production", "Development". If no environment variable is

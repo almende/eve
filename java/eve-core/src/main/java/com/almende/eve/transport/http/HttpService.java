@@ -7,6 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -14,7 +20,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
-import com.almende.util.HttpUtil;
 
 public class HttpService implements TransportService {
 	protected Config config = null;
@@ -110,15 +115,19 @@ public class HttpService implements TransportService {
 	public JSONResponse send(final String senderId, final String receiverUrl, 
 			final JSONRequest request) throws Exception {
 		JSONResponse response;
-
-		// invoke via http request
 		String req = request.toString();
-		String resp = HttpUtil.post(receiverUrl, req);
-
+		
+		// invoke via Apache HttpClient request
+		DefaultHttpClient httpclient = new DefaultHttpClient();
+		HttpPost httpPost = new HttpPost(receiverUrl);
+		httpPost.setEntity(new StringEntity(req));
+		HttpResponse webResp = httpclient.execute(httpPost);
 		try {
-			response = new JSONResponse(resp);
+			response = new JSONResponse(EntityUtils.toString(webResp.getEntity()));
 		} catch (JSONRPCException err) {
 			response = new JSONResponse(err);
+		} finally {
+			httpPost.reset();
 		}
 		return response;
 	}
