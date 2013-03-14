@@ -39,6 +39,11 @@ public interface AgentInterface {
 	public List<String> getUrls();
 
 	/**
+	 * Retrieve an JSON Array with the agents scheduled tasks
+	 */
+	public String getTasks();
+	
+	/**
 	 * Internal method, implementing this method allows adding authorization to your agent. 
 	 * All methods annotated with AccessType.PRIVATE will only be called if this method returns true.
 	 * The function_tag parameter can be used to check against @Access(tag="foobar") annotation on the called method.

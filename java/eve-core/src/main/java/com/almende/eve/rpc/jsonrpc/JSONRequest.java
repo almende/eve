@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -181,6 +182,7 @@ public class JSONRequest implements Serializable {
 		return req.has("callback");
 	}
 
+	@JsonIgnore
 	public ObjectNode getObjectNode() {
 		return req;
 	}

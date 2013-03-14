@@ -18,6 +18,7 @@ import com.almende.eve.clock.Clock;
 import com.almende.eve.clock.RunnableClock;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 
 public class ClockSchedulerFactory implements SchedulerFactory {
 	Map<String, Scheduler> schedulers = new HashMap<String, Scheduler>();
@@ -204,6 +205,14 @@ class ClockScheduler implements Scheduler, Runnable {
 			myClock.requestTrigger(myAgent.getId(), task.due, this);
 		}
 	}
+
+	@Override
+	public String toString() {
+		@SuppressWarnings("unchecked")
+		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent
+				.getState().get("_taskList");
+		return timeline.toString();
+	}
 }
 
 class TaskEntry implements Comparable<TaskEntry>, Serializable {
@@ -242,8 +251,25 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		return due.compareTo(o.due);
 	}
 	
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public JSONRequest getRequest() {
+		return request;
+	}
+
+	public String getDue() {
+		return due.toString();
+	}
+
 	@Override
 	public String toString(){
-		return taskId+" ["+due+"]";
+		try {
+			return JOM.getInstance().writeValueAsString(this);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "{\"taskId\":"+taskId+",\"due\":"+due+"}";
+		}
 	}
 }

@@ -23,6 +23,7 @@ import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -273,6 +274,14 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return params;
 		}
 
+		public String toString(){
+			try {
+				return JOM.getInstance().writeValueAsString(this);
+			} catch (Exception e){
+				e.printStackTrace();
+				return super.toString();
+			}
+		}
 	}
 
 	/**
@@ -328,6 +337,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return new HashSet<String>();
 		}
 
+		@Override
+		public String toString(){
+			return allTasks.toString();
+		}
+		
 		private String agentId = null;
 	}
 

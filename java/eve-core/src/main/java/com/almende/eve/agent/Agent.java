@@ -692,6 +692,15 @@ abstract public class Agent implements AgentInterface {
 		return getClass().getSimpleName();
 	}
 
+
+	/**
+	 * Retrieve a JSON Array with the agents scheduled tasks
+	 */
+	@Override
+	final public String getTasks() {
+		return this.getScheduler().toString();
+	}
+	
 	@Override
 	public String toString() {
 		Map<String, Object> data = new HashMap<String, Object>();

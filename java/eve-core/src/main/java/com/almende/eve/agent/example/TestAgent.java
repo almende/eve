@@ -29,17 +29,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.entity.Person;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.xmpp.XmppService;
@@ -278,10 +277,7 @@ public class TestAgent extends Agent implements TestAgentInterface {
 		String id = getScheduler().createTask(request, delay);
 		return id;
 	}
-	
-	public Set<String> getTasks() {
-		return getScheduler().getTasks();
-	}
+
 	
 	public void myTask(@Name("message") String message) throws Exception {
 		ObjectNode params = JOM.createObjectNode();

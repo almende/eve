@@ -1,7 +1,5 @@
 package com.almende.test;
 
-import java.util.Set;
-
 import junit.framework.TestCase;
 
 import org.joda.time.DateTime;
@@ -53,17 +51,15 @@ public class TestScheduler extends TestCase {
 			agent.setTest(agentIds[0], 900);
 			agent.setTest(agentIds[1], 3300);
 			agent.setTest(agentIds[2], 2300);
-			Set<String> taskList = agent.getScheduler().getTasks();
-			System.err.println("Tasks list:" + taskList + " / "
-					+ taskList.size());
-			// agent.getScheduler().cancelTask(taskList.toArray(new
-			// String[0])[0]);
+			
+			System.err.println(agent.getScheduler().toString());
 		}
 		DateTime start = DateTime.now();
 		System.err.println("Start:" + start);
-		while (start.plus(2000).isAfterNow()) {
+		while (start.plus(5000).isAfterNow()) {
 			Thread.sleep(500);
 		}
+		/*
 		for (String agentId : agentIds) {
 			if (af.hasAgent(agentId)) {
 				System.err
@@ -76,7 +72,7 @@ public class TestScheduler extends TestCase {
 			TestSchedulerAgent agent = (TestSchedulerAgent) af.createAgent(TestSchedulerAgent.class, agentId);
 			agent.getScheduler();
 		}
-/*		for (String agentId : agentIds) {
+		for (String agentId : agentIds) {
 			System.err.println("Agent " + agentId + " ran "
 					+ ((TestSchedulerAgent) af.getAgent(agentId)).getCount()
 					+ " tasks.");
