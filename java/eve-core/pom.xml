@@ -72,9 +72,13 @@
 					<artifactId>jetty-maven-plugin</artifactId>
 					<version>${jetty.version}</version>
 					<configuration>
+						<!-- TODO: http://blog.max.berger.name/2010/02/jetty-7-maven-plugin-authentication.html 
+							http://theholyjava.wordpress.com/2010/09/10/jetty-maven-plugin-running-a-webapp-with-a-datasource-and-security/ 
+							http://docs.oracle.com/cd/E19798-01/821-1841/bncck/index.html -->
 						<scanIntervalSeconds>10</scanIntervalSeconds>
 						<stopKey>testKey</stopKey>
 						<stopPort>9999</stopPort>
+						<useTestClasspath>true</useTestClasspath>
 						<scanTargets>
 							<scanTarget>src/test/webapp</scanTarget>
 						</scanTargets>
