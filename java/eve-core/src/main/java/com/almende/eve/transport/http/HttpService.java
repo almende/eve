@@ -123,6 +123,7 @@ public class HttpService implements TransportService {
 		JSONResponse response;
 		String req = request.toString();
 
+		System.err.println("Sending through httpClient!"+receiverUrl);
 		// invoke via Apache HttpClient request:
 		HttpPost httpPost = new HttpPost(receiverUrl);
 		httpPost.setEntity(new StringEntity(req));
