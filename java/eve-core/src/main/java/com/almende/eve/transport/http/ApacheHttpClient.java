@@ -68,6 +68,8 @@ public class ApacheHttpClient {
 		return httpClient;
 	}
 	class MyCookieStore implements CookieStore {
+		//TODO: make StateFactory and COOKIESTORE config parameters
+		
 		static final String COOKIESTORE = "_CookieStore";
 		State myState = null;
 		

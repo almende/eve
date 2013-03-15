@@ -122,11 +122,15 @@ public class HttpService implements TransportService {
 			final JSONRequest request) throws Exception {
 		JSONResponse response;
 		String req = request.toString();
-
-		System.err.println("Sending through httpClient!"+receiverUrl);
+		
 		// invoke via Apache HttpClient request:
 		HttpPost httpPost = new HttpPost(receiverUrl);
 		httpPost.setEntity(new StringEntity(req));
+		
+		//Add token for HTTP handshake
+		httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
+		httpPost.addHeader("X-Eve-SenderId", senderId);
+		
 		HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
 		try {
 			response = new JSONResponse(EntityUtils.toString(webResp
@@ -272,4 +276,5 @@ public class HttpService implements TransportService {
 		data.put("protocols", protocols);
 		return data.toString();
 	}
+	
 }
