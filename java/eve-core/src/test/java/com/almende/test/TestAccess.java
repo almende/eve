@@ -20,8 +20,6 @@ public class TestAccess extends TestCase {
 			String filename = "eve.yaml";
 			String fullname = "src/test/webapp/WEB-INF/" + filename;
 			Config config = new Config(fullname);
-
-			// TODO: create the agentFactory in a synchronized way
 			agentFactory = AgentFactory.createInstance();
 			agentFactory.setStateFactory(config);
 			agentFactory.addTransportServices(config);
