@@ -60,13 +60,13 @@ public class TestAccessAgent extends Agent {
 	public boolean[] run(String url){
 		boolean[] result = new boolean[0];
 		result = Arrays.copyOf(result, 7);
-		try{ result[0] = send(url,"allowed",Boolean.class); } catch (Exception e){};
+		try{ result[0] = send(url,"allowed",Boolean.class); } catch (Exception e){ e.printStackTrace(); };
 		try{ result[1] = send(url,"forbidden",Boolean.class); } catch (Exception e){};
-		try{ result[2] = send(url,"depends",Boolean.class); } catch (Exception e){};
-		try{ result[3] = send(url,"dependTag",Boolean.class); } catch (Exception e){};
+		try{ result[2] = send(url,"depends",Boolean.class); } catch (Exception e){e.printStackTrace();};
+		try{ result[3] = send(url,"dependTag",Boolean.class); } catch (Exception e){e.printStackTrace();};
 		try{ result[4] = send(url,"dependUnTag",Boolean.class); } catch (Exception e){};
-		try{ result[5] = send(url,"unmodified",Boolean.class); } catch (Exception e){};
-		try{ result[6] = send(url,"param",Boolean.class); } catch (Exception e){};
+		try{ result[5] = send(url,"unmodified",Boolean.class); } catch (Exception e){e.printStackTrace();};
+		try{ result[6] = send(url,"param",Boolean.class); } catch (Exception e){e.printStackTrace();};
 		return result;
 	}
 	
