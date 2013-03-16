@@ -16,8 +16,8 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
-import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.SyncCallback;
+import com.almende.eve.transport.TransportService;
 import com.almende.util.EncryptionUtil;
 
 public class XmppService implements TransportService {
@@ -273,10 +273,10 @@ public class XmppService implements TransportService {
 	 * @param response
 	 */
 	@Override
-	public JSONResponse send(String senderId, String receiver, 
+	public JSONResponse send(String senderUrl, String receiver, 
 			JSONRequest request) throws Exception {
 		SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-		sendAsync(senderId, receiver, request, callback);
+		sendAsync(senderUrl, receiver, request, callback);
 		return callback.get();
 	}
 
@@ -287,9 +287,10 @@ public class XmppService implements TransportService {
 	 * @param callback with a JSONResponse
 	 */
 	@Override
-	public void sendAsync(String senderId, String receiver, JSONRequest request,
+	public void sendAsync(String senderUrl, String receiver, JSONRequest request,
 			AsyncCallback<JSONResponse> callback) throws Exception {
-		AgentConnection connection = connectionsById.get(senderId);
+		
+		AgentConnection connection = connectionsByUrl.get(senderUrl);
 		if (connection != null) {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";

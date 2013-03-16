@@ -30,5 +30,5 @@ scheduler:
 bootstrap:
   agents:
     calc: com.almende.eve.agent.example.CalcAgent
-
+    test: com.almende.test.agents.Test2Agent
 

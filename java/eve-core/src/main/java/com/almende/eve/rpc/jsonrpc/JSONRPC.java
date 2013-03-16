@@ -515,6 +515,14 @@ public class JSONRPC {
 		return new JSONRequest(method.getName(), params);
 	}
 
+	
+	//TODO: create method to determine if agent has Access.PRIVATE annotations.
+	public static boolean hasPrivate(Class<?> clazz){
+		for (Annotation anno: clazz.getAnnotations()){
+			if (anno.annotationType().equals(Access.class) && ((Access)anno).value() == AccessType.PRIVATE) return true;
+		}
+		return false;
+	}
 	/**
 	 * Check whether a method is available for JSON-RPC calls. This is the case
 	 * when it is public, has named parameters, and has no annotation
@@ -552,8 +560,6 @@ public class JSONRPC {
 		}
 		return true;
 	}
-
-	// TODO: new access model
 
 	/**
 	 * Test whether a method has named parameters

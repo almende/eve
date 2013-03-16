@@ -1,12 +1,12 @@
 package com.almende.eve.transport.http;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.FileStateFactory;
 
 /**
  * Simple token system: Each outbound call gets a token, which is newly generated each hour. Last 5 tokens are
@@ -17,41 +17,63 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
  *
  */
 public class TokenStore {
+	static final TokenStore me = new TokenStore();
 	static final int SIZE = 5;
-	static final Map<DateTime,String> TOKENS = new HashMap<DateTime,String>(SIZE+1);
+	static Map<String, Object> TOKENS;
 	static DateTime last = DateTime.now();
+	
+	private TokenStore(){
+		FileStateFactory factory = new FileStateFactory(".evecookies");
+		if (factory.exists("_TokenStore")){
+			TOKENS=factory.get("_TokenStore");
+		} else {
+			try {
+				TOKENS = factory.create("_TokenStore");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	public static String get(String time){
 		try {
-			return TOKENS.get(new DateTime(time));
+			return (String) TOKENS.get(time);
 		} catch (Exception e){
+//			e.printStackTrace();
 			return null;
 		}
 	}
 	public static TokenRet create(){
 		synchronized(TOKENS){
 			TokenRet result;
-			if (TOKENS.size()==0 || last.plus(3600000).isBeforeNow()){
+			if (TOKENS.size()==0 || TOKENS.get(last.toString()) == null || last.plus(3600000).isBeforeNow()){
 				DateTime now = DateTime.now();
 				String token = UUID.randomUUID().toString();
-				result = new TokenStore().new TokenRet(token,now);
-				TOKENS.put(now, token);
-				if (TOKENS.size()> SIZE){
+				result = me.new TokenRet(token,now);
+				TOKENS.put(now.toString(), token);
+				last = now;
+//				System.err.println("TOKENS now:"+TOKENS.values());
+
+				if (TOKENS.size()> SIZE+2){
 					DateTime oldest = last;
-					for (DateTime time: TOKENS.keySet()){
-						if (time.isBefore(oldest)) oldest = time;
+					for (String time: TOKENS.keySet()){
+						try {
+						if (DateTime.parse(time).isBefore(oldest)) oldest = DateTime.parse(time);
+						} catch (Exception e){};
 					}
+//					System.err.println("Removing token:"+oldest);
 					TOKENS.remove(oldest);
 				}
 			} else {
-				result = new TokenStore().new TokenRet(TOKENS.get(last),last);
+//				System.err.println("TOKENS were:"+TOKENS.values());
+				result = me.new TokenRet((String)TOKENS.get(last.toString()),last);
 			}
 			return result;
 		}
 	}
 	class TokenRet {
-		String token;
-		String time;
+		String token=null;
+		String time=null;
 		
 		public TokenRet(String token, DateTime time){
 			this.token=token;

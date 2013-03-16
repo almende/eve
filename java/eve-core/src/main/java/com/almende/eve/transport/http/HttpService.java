@@ -1,7 +1,6 @@
 package com.almende.eve.transport.http;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +54,7 @@ public class HttpService implements TransportService {
 	 *            Available parameters: {String} servlet_url
 	 */
 	public HttpService(Config config) {
+		//TODO: this seems unimplemented at this time.
 		this.config = config;
 	}
 
@@ -78,10 +78,12 @@ public class HttpService implements TransportService {
 		if (!this.servletUrl.endsWith("/")) {
 			this.servletUrl += "/";
 		}
-		protocols = new ArrayList<String>();
 		int separator = this.servletUrl.indexOf(":");
 		if (separator != -1) {
-			protocols.add(this.servletUrl.substring(0, separator));
+			String protocol = this.servletUrl.substring(0, separator);
+			if (!protocols.contains(protocol)){
+				protocols.add(protocol);
+			}
 		}
 	}
 
@@ -118,7 +120,7 @@ public class HttpService implements TransportService {
 	 * @throws Exception
 	 */
 	@Override
-	public JSONResponse send(final String senderId, final String receiverUrl,
+	public JSONResponse send(final String senderUrl, final String receiverUrl,
 			final JSONRequest request) throws Exception {
 		JSONResponse response;
 		String req = request.toString();
@@ -129,7 +131,7 @@ public class HttpService implements TransportService {
 		
 		//Add token for HTTP handshake
 		httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
-		httpPost.addHeader("X-Eve-SenderId", senderId);
+		httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
 		
 		HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
 		try {
@@ -153,7 +155,7 @@ public class HttpService implements TransportService {
 	 * @throws IOException
 	 */
 	@Override
-	public void sendAsync(final String senderId, final String receiverUrl,
+	public void sendAsync(final String senderUrl, final String receiverUrl,
 			final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) {
 		new Thread(new Runnable() {
@@ -161,7 +163,7 @@ public class HttpService implements TransportService {
 			public void run() {
 				JSONResponse response;
 				try {
-					response = send(senderId, receiverUrl, request);
+					response = send(senderUrl, receiverUrl, request);
 					callback.onSuccess(response);
 				} catch (Exception e) {
 					callback.onFailure(e);

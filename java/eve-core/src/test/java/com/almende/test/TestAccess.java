@@ -16,17 +16,17 @@ public class TestAccess extends TestCase {
 	@Test
 	public void testAccess() throws Exception {
 		AgentFactory agentFactory = AgentFactory.getInstance();
+		String filename = "eve.yaml";
+		String fullname = "src/test/webapp/WEB-INF/" + filename;
+		Config config = new Config(fullname);
 		if (agentFactory == null) {
-			String filename = "eve.yaml";
-			String fullname = "src/test/webapp/WEB-INF/" + filename;
-			Config config = new Config(fullname);
 			agentFactory = AgentFactory.createInstance();
-			agentFactory.setStateFactory(config);
-			agentFactory.addTransportServices(config);
-			agentFactory.setConfig(config);
-			agentFactory.setSchedulerFactory(config);
-			agentFactory.addAgents(config);
 		}
+		agentFactory.setStateFactory(config);
+		agentFactory.addTransportServices(config);
+		agentFactory.setConfig(config);
+		agentFactory.setSchedulerFactory(config);
+		agentFactory.addAgents(config);
 		Agent testAgent;
 		if (agentFactory.hasAgent(TEST1)) {
 			testAgent = agentFactory.getAgent(TEST1);

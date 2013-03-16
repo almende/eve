@@ -46,7 +46,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
-// TODO: put TestAgent in a separate unit test project
 public class Test2Agent extends Agent implements Test2AgentInterface {
 	public String ping(@Name("message") String message, 
 			@Sender String sender) throws Exception {

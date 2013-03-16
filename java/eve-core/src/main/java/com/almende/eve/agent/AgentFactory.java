@@ -532,13 +532,14 @@ public class AgentFactory {
 	public JSONResponse send(AgentInterface sender, String receiverUrl,
 			JSONRequest request) throws Exception {
 		String agentId = getAgentId(receiverUrl);
+		String senderUrl = null;
+		if (sender != null) {
+			senderUrl = getSenderUrl(sender.getId(), receiverUrl);
+		}
+		//TODO: provide config option to bypass local invokation
 		if (agentId != null) {
 			// local agent, invoke locally
 			RequestParams requestParams = new RequestParams();
-			String senderUrl = null;
-			if (sender != null) {
-				senderUrl = getSenderUrl(sender.getId(), receiverUrl);
-			}
 			requestParams.put(Sender.class, senderUrl);
 			JSONResponse response = invoke(agentId, request, requestParams);
 			return response;
@@ -552,7 +553,7 @@ public class AgentFactory {
 			}
 			if (service != null) {
 				JSONResponse response = service.send(
-						(sender != null ? sender.getId() : null),
+						senderUrl,
 						receiverUrl,
 						request);
 				return response;
@@ -629,6 +630,7 @@ public class AgentFactory {
 	 * @return agentId
 	 */
 	private String getAgentId(String agentUrl) {
+//		System.err.println("Looking up agent:"+agentUrl);
 		if (agentUrl.startsWith("local:")) {
 			return agentUrl.replaceFirst("local:/?/?", "");
 		}
@@ -642,10 +644,7 @@ public class AgentFactory {
 	}
 
 	/**
-	 * Get the agentId from given agentUrl. The url can be any protocol. If the
-	 * url matches any of the registered transport services, an agentId is
-	 * returned. This means that the url represents a local agent. It is
-	 * possible that no agent with this id exists.
+	 * Determines best senderUrl for this agent, match receiverUrl transport method if possible. (fallback from HTTPS to HTTP included)
 	 * 
 	 * @param agentUrl
 	 * @return agentId
@@ -655,9 +654,16 @@ public class AgentFactory {
 			return "local://" + agentId;
 		}
 		for (TransportService service : transportServices) {
-			String receiverId = service.getAgentId(receiverUrl);
-			if (receiverId != null) {
-				return service.getAgentUrl(agentId);
+			List<String> protocols = service.getProtocols();
+			for (String protocol: protocols){
+//				System.err.println("Checking:"+protocol+ " on "+receiverUrl+ " Would be:'"+service.getAgentUrl(agentId)+"'");
+				if (receiverUrl.startsWith(protocol+"://")){
+					String senderUrl = service.getAgentUrl(agentId);
+					if (senderUrl != null){
+//						System.err.println("Returning:'"+service.getAgentUrl(agentId)+"'");
+						return senderUrl; 
+					}
+				}
 			}
 		}
 		return null;
