@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.agent.annotation.Sender;
 
 public interface AgentInterface {
 	/**
@@ -53,7 +52,7 @@ public interface AgentInterface {
 	 * @param functionTag
 	 * @return
 	 */
-	public boolean onAccess(@Sender String senderId, String functionTag);
+	public boolean onAccess(String senderId, String functionTag);
 	
 	/**
 	 * Retrieve a list with all the available methods.
