@@ -37,6 +37,9 @@ import java.util.Set;
  */
 // TODO: create an in memory cache and reduce the number of reads/writes
 public class OriginalFileState extends FileState {
+	private String filename = null;
+	private Map<String, Object> properties = Collections.synchronizedMap(new HashMap<String, Object>());
+
 	protected OriginalFileState() {}
 
 	public OriginalFileState(String agentId, String filename) {
@@ -231,7 +234,4 @@ public class OriginalFileState extends FileState {
 		}
 	}
 	
-	private String filename = null;
-	private static Map<String, Object> properties = Collections.synchronizedMap(new HashMap<String, Object>());
-
 }
