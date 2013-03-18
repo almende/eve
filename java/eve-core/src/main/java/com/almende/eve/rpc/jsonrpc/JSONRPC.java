@@ -515,11 +515,11 @@ public class JSONRPC {
 		return new JSONRequest(method.getName(), params);
 	}
 
-	
-	//TODO: create method to determine if agent has Access.PRIVATE annotations.
-	public static boolean hasPrivate(Class<?> clazz){
-		for (Annotation anno: clazz.getAnnotations()){
+	public static boolean hasPrivate(Class<?> clazz) throws SecurityException, Exception{
+		AnnotatedClass annotated = AnnotationUtil.get(clazz);
+		for (Annotation anno: annotated.getAnnotations()){
 			if (anno.annotationType().equals(Access.class) && ((Access)anno).value() == AccessType.PRIVATE) return true;
+			if (anno.annotationType().equals(Sender.class)) return true;
 		}
 		return false;
 	}

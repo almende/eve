@@ -16,7 +16,7 @@ public class TestAccessAgent extends Agent {
 	}
 
 	@Override
-	public boolean onAccess(@Sender String sender, String functionTag){
+	public boolean onAccess(String sender, String functionTag){
 		System.err.println("Got sender:"+sender);
 		if (sender == null) return false;
 		String senderLabel = (String) this.getState().get("senderLabel");

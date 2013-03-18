@@ -91,6 +91,8 @@ public class AgentServlet extends HttpServlet {
 	
 	private boolean handleSession(HttpServletRequest req,
 			HttpServletResponse res) {
+		//TODO: HTTPS check!
+		
 		if (req.getSession(false) != null)
 			return true;
 		
@@ -135,7 +137,6 @@ public class AgentServlet extends HttpServlet {
 		//If this is a handshake request, handle it.
 		if (handleHandShake(req,resp)) return;
 		
-		//TODO: should session handling be done here?
 		try {
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass()) && !handleSession(req, resp)) {
 				resp.sendError(403);
@@ -215,7 +216,6 @@ public class AgentServlet extends HttpServlet {
 				return;
 			}
 			
-			//TODO: How about classes that have a separate @Sender annotation?
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass()) && !handleSession(req, resp)) {
 				resp.sendError(403);
 				return;
@@ -258,7 +258,6 @@ public class AgentServlet extends HttpServlet {
 		String agentId = httpTransport.getAgentId(agentUrl);
 		String agentType = req.getParameter("type");
 
-		//TODO: ?? Always, or only on certain requests?
 		if (!handleSession(req, resp)) {
 			resp.sendError(403);
 			return;
@@ -298,7 +297,6 @@ public class AgentServlet extends HttpServlet {
 		String agentUrl = req.getRequestURI();
 		String agentId = httpTransport.getAgentId(agentUrl);
 
-		//TODO: ?? Always, or only on certain requests?
 		if (!handleSession(req, resp)) {
 			resp.sendError(403);
 			return;

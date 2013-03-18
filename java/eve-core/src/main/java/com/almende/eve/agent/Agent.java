@@ -38,7 +38,6 @@ import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -64,12 +63,12 @@ abstract public class Agent implements AgentInterface {
 	public Agent() {}
 
 	@Access(AccessType.UNAVAILABLE)
-	public boolean onAccess(@Sender String senderId, String functionTag) {
+	public boolean onAccess(String senderId, String functionTag) {
 		return true;
 	}
 	
 	@Access(AccessType.UNAVAILABLE)
-	public boolean onAccess(@Sender String senderId) {
+	public boolean onAccess(String senderId) {
 		return onAccess(senderId,null);
 	}
 	

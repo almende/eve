@@ -536,7 +536,6 @@ public class AgentFactory {
 		if (sender != null) {
 			senderUrl = getSenderUrl(sender.getId(), receiverUrl);
 		}
-		//TODO: provide config option to bypass local invokation
 		if (agentId != null) {
 			// local agent, invoke locally
 			RequestParams requestParams = new RequestParams();

@@ -39,7 +39,6 @@ public class TokenStore {
 		try {
 			return (String) TOKENS.get(time);
 		} catch (Exception e){
-//			e.printStackTrace();
 			return null;
 		}
 	}
@@ -52,7 +51,6 @@ public class TokenStore {
 				result = me.new TokenRet(token,now);
 				TOKENS.put(now.toString(), token);
 				last = now;
-//				System.err.println("TOKENS now:"+TOKENS.values());
 
 				if (TOKENS.size()> SIZE+2){
 					DateTime oldest = last;
@@ -61,11 +59,9 @@ public class TokenStore {
 						if (DateTime.parse(time).isBefore(oldest)) oldest = DateTime.parse(time);
 						} catch (Exception e){};
 					}
-//					System.err.println("Removing token:"+oldest);
 					TOKENS.remove(oldest);
 				}
 			} else {
-//				System.err.println("TOKENS were:"+TOKENS.values());
 				result = me.new TokenRet((String)TOKENS.get(last.toString()),last);
 			}
 			return result;
