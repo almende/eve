@@ -19,10 +19,12 @@ public class TestAccessAgent extends Agent {
 	public boolean onAccess(String sender, String functionTag){
 		System.err.println("Got sender:"+sender);
 		if (sender == null) return false;
+		
 		String senderLabel = (String) this.getState().get("senderLabel");
 		if (functionTag != null && !functionTag.equals("")){
 			return "trust".equals(functionTag) && sender.contains(senderLabel);
 		}
+		
 		return sender.contains(senderLabel);
 	}
 	

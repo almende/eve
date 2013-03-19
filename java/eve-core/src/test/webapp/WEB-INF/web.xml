@@ -1,68 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
-  <display-name>EveCore</display-name>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>EveCore</display-name>
 
-  <welcome-file-list>
-    <welcome-file>index.html</welcome-file>
-  </welcome-file-list>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
 
-  <servlet>
-    <servlet-name>SingleAgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.transport.http.SingleAgentServlet</servlet-class>
-    <init-param>
-      <description>servlet configuration (yaml file)</description> 
-      <param-name>config</param-name>
-      <param-value>eve_singleagent.yaml</param-value>
-    </init-param>
-    <init-param>
-      <param-name>servlet_url</param-name>
-      <param-value>http://localhost:8080/testagent/</param-value>
-    </init-param>
-    <init-param>
-      <param-name>agentId</param-name>
-      <param-value>2</param-value>
-    </init-param>
-    <init-param>
-      <param-name>agentClass</param-name>
-      <param-value>com.almende.eve.agent.example.TestAgent</param-value>
-    </init-param>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>SingleAgentServlet</servlet-name>
-    <url-pattern>/testagent/*</url-pattern>
-  </servlet-mapping>
+	<servlet>
+		<servlet-name>SingleAgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.SingleAgentServlet</servlet-class>
+		<init-param>
+			<description>servlet configuration (yaml file)</description>
+			<param-name>config</param-name>
+			<param-value>eve_singleagent.yaml</param-value>
+		</init-param>
+		<init-param>
+			<param-name>servlet_url</param-name>
+			<param-value>http://localhost:8080/testagent/</param-value>
+		</init-param>
+		<init-param>
+			<param-name>agentId</param-name>
+			<param-value>2</param-value>
+		</init-param>
+		<init-param>
+			<param-name>agentClass</param-name>
+			<param-value>com.almende.eve.agent.example.TestAgent</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SingleAgentServlet</servlet-name>
+		<url-pattern>/testagent/*</url-pattern>
+	</servlet-mapping>
 
-  <servlet>
-    <servlet-name>AgentServlet</servlet-name>
-    <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-    <init-param>
-      <description>servlet configuration (yaml file)</description> 
-      <param-name>config</param-name>
-      <param-value>eve.yaml</param-value>
-    </init-param>
-    <init-param>
-      <param-name>servlet_url</param-name>
-      <param-value>http://localhost:8080/agents/</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>AgentServlet</servlet-name>
-    <url-pattern>/agents/*</url-pattern>
-  </servlet-mapping>
+	<servlet>
+		<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<description>servlet configuration (yaml file)</description>
+			<param-name>config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+		<init-param>
+			<param-name>servlet_url</param-name>
+			<param-value>http://localhost:8080/agents/</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
 
-  <servlet>
-    <servlet-name>RESTServlet</servlet-name>
-    <servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
-    <init-param>
-      <description>servlet configuration (yaml file)</description> 
-      <param-name>config</param-name>
-      <param-value>eve.yaml</param-value>
-    </init-param>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>RESTServlet</servlet-name>
-    <url-pattern>/rest/*</url-pattern>
-  </servlet-mapping>
+	<servlet>
+		<servlet-name>RESTServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
+		<init-param>
+			<description>servlet configuration (yaml file)</description>
+			<param-name>config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>RESTServlet</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+
+	<login-config>
+		<auth-method>BASIC</auth-method>
+		<realm-name>Eve Test Environment</realm-name>
+	</login-config>
 
 </web-app>

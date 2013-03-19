@@ -119,7 +119,7 @@ public class JSONRPC {
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
 						JSONRPCException.CODE.METHOD_NOT_FOUND, "Method '"
-								+ request.getMethod() + "' not found");
+								+ request.getMethod() + "' not found. The method does not exist or you are not authorized.");
 			}
 
 			Method method = annotatedMethod.getActualMethod();
@@ -532,26 +532,27 @@ public class JSONRPC {
 	 * @param annotatedMethod
 	 * @param requestParams
 	 * @return available
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
+	 * @throws Exception 
+	 * @throws SecurityException 
 	 */
 	private static boolean isAvailable(AnnotatedMethod method, AgentInterface destination,
-			RequestParams requestParams) throws InstantiationException,
-			IllegalAccessException {
+			RequestParams requestParams) throws SecurityException, Exception {
 
 		int mod = method.getActualMethod().getModifiers();
+		
 		Access MethodAccess = method.getAnnotation(Access.class);
-		Access ClassAccess = method.getActualMethod().getDeclaringClass()
-				.getAnnotation(Access.class);
-
 		if (destination != null && !method.getActualMethod().getDeclaringClass().isAssignableFrom(destination.getClass()))
 			return false;
 		if (!(Modifier.isPublic(mod) && hasNamedParams(method, requestParams)))
 			return false;
+
+		Access ClassAccess = AnnotationUtil.get(destination != null?destination.getClass():method.getActualMethod().getDeclaringClass())
+				.getAnnotation(Access.class);
 		if (MethodAccess == null)
 			MethodAccess = ClassAccess;
 		if (MethodAccess == null)
 			return true;
+		
 		if (MethodAccess.value() == AccessType.UNAVAILABLE)
 			return false;
 		if (destination != null && MethodAccess.value() == AccessType.PRIVATE) {

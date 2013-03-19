@@ -90,8 +90,12 @@ public class AgentServlet extends HttpServlet {
 	}
 	
 	private boolean handleSession(HttpServletRequest req,
-			HttpServletResponse res) {
-		//TODO: HTTPS check!
+			HttpServletResponse res) throws IOException, ServletException {
+		
+		if (!req.isSecure()){
+			res.sendError(400, "Request needs to be secured with SSL for session management!");
+			return false;
+		}
 		
 		if (req.getSession(false) != null)
 			return true;
@@ -99,7 +103,9 @@ public class AgentServlet extends HttpServlet {
 		if (doHandShake(req).equals(Handshake.INVALID)){
 			return false;
 		}
-		//TODO: check basic auth
+		
+		//TODO:  || !req.isUserInRole("ADMIN") 
+		if (!req.authenticate(res)) return false;
 		
 		//generate new session:
 		req.getSession(true);
@@ -139,7 +145,7 @@ public class AgentServlet extends HttpServlet {
 		
 		try {
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass()) && !handleSession(req, resp)) {
-				resp.sendError(403);
+				if (!resp.isCommitted()) resp.sendError(401);
 				return;
 			}
 		} catch (Exception e1) {
@@ -217,13 +223,17 @@ public class AgentServlet extends HttpServlet {
 			}
 			
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass()) && !handleSession(req, resp)) {
-				resp.sendError(403);
+				if (!resp.isCommitted()) resp.sendError(401);
 				return;
 			}
 			// Attach the claimed senderId, or null if not given.
 			RequestParams requestParams = new RequestParams();
-			requestParams.put(Sender.class, req.getHeader("X-Eve-SenderUrl"));
-
+			String senderUrl = req.getHeader("X-Eve-SenderUrl");
+			if (senderUrl == null || senderUrl.equals("")){
+				senderUrl = "web://"+req.getUserPrincipal().getName()+"@"+req.getRemoteAddr();
+			}
+			requestParams.put(Sender.class, senderUrl);
+			
 			// invoke the agent
 			jsonResponse = agentFactory.invoke(agentId, jsonRequest,
 					requestParams);
@@ -259,7 +269,7 @@ public class AgentServlet extends HttpServlet {
 		String agentType = req.getParameter("type");
 
 		if (!handleSession(req, resp)) {
-			resp.sendError(403);
+			if (!resp.isCommitted()) resp.sendError(401);
 			return;
 		}
 		if (agentType == null) {
@@ -298,7 +308,7 @@ public class AgentServlet extends HttpServlet {
 		String agentId = httpTransport.getAgentId(agentUrl);
 
 		if (!handleSession(req, resp)) {
-			resp.sendError(403);
+			if (!resp.isCommitted()) resp.sendError(401);
 			return;
 		}
 		if (agentId == null) {

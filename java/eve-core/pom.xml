@@ -93,6 +93,13 @@
 								<value>Development</value>
 							</systemProperty>
 						</systemProperties>
+						<userRealms>
+							<userRealm implementation="org.eclipse.jetty.security.HashLoginService">
+								<name>Eve Test Environment</name>
+								<config>src/test/resources/jetty-users.properties</config>
+							</userRealm>
+						</userRealms>
+						<webAppXml>src/test/resources/jetty-test.xml</webAppXml>
 						<connectors>
 							<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
 								<port>8080</port>
