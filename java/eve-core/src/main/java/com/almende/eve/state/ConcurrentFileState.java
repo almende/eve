@@ -56,7 +56,7 @@ public class ConcurrentFileState extends FileState {
 	private FileLock lock = null;
 	private InputStream fis = null;
 	private OutputStream fos = null;
-	private List<Boolean> locked = new ArrayList<Boolean>(1);
+	private static List<Boolean> locked = new ArrayList<Boolean>(1);
 
 	private Map<String, Object> properties = Collections
 			.synchronizedMap(new HashMap<String, Object>());
