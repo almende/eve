@@ -104,7 +104,6 @@ public class AgentServlet extends HttpServlet {
 			return false;
 		}
 		
-		//TODO:  || !req.isUserInRole("ADMIN") 
 		if (!req.authenticate(res)) return false;
 		
 		//generate new session:
@@ -230,7 +229,7 @@ public class AgentServlet extends HttpServlet {
 			RequestParams requestParams = new RequestParams();
 			String senderUrl = req.getHeader("X-Eve-SenderUrl");
 			if (senderUrl == null || senderUrl.equals("")){
-				senderUrl = "web://"+req.getUserPrincipal().getName()+"@"+req.getRemoteAddr();
+				senderUrl = "web://"+req.getRemoteUser()+"@"+req.getRemoteAddr();
 			}
 			requestParams.put(Sender.class, senderUrl);
 			
