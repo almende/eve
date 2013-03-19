@@ -23,7 +23,6 @@ import java.util.Set;
  * 
  * @author jos
  */
-// TODO: create an in memory cache and reduce the number of reads/writes
 public abstract class FileState extends AbstractState {
 	protected FileState() {}
 

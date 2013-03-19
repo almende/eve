@@ -84,7 +84,7 @@ public class AgentFactory {
 			"com.almende.eve.runtime.environment" };
 	private static String environment = null;
 
-	private static Map<String, AgentFactory> factories = new ConcurrentHashMap<String, AgentFactory>(); // namespace:factory
+	private final static Map<String, AgentFactory> factories = new ConcurrentHashMap<String, AgentFactory>(); // namespace:factory
 
 	private final static Map<String, String> STATE_FACTORIES = new HashMap<String, String>();
 	static {
@@ -119,13 +119,10 @@ public class AgentFactory {
 		eveRequestParams.put(Sender.class, null);
 	}
 
-	private static AgentCache agents;
-
 	private static Logger logger = Logger.getLogger(AgentFactory.class
 			.getSimpleName());
 
 	public AgentFactory() {
-		agents = new AgentCache();
 		// ensure there is at least a memory state service
 		setStateFactory(new MemoryStateFactory());
 
@@ -142,8 +139,8 @@ public class AgentFactory {
 	public AgentFactory(Config config) throws Exception {
 		this.config = config;
 		if (config != null) {
-			agents = new AgentCache(config);
-
+			AgentCache.configCache(config);
+			
 			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first,
 			// then the state and transport services, and lastly scheduler.
@@ -154,8 +151,6 @@ public class AgentFactory {
 			setSchedulerFactory(config);
 			addAgents(config);
 		} else {
-			agents = new AgentCache();
-
 			// ensure there is always an HttpService for outgoing calls
 			addTransportService(new HttpService());
 		}
@@ -181,6 +176,7 @@ public class AgentFactory {
 		if (namespace == null) {
 			namespace = "default";
 		}
+		
 		return factories.get(namespace);
 	}
 
@@ -217,6 +213,17 @@ public class AgentFactory {
 		return createInstance(namespace, null);
 	}
 
+	public static synchronized void registerInstance(AgentFactory factory){
+		registerInstance(null,factory);
+	}
+
+	public static synchronized void registerInstance(String namespace, AgentFactory factory){
+		if (namespace == null){
+			namespace = "default";
+		}
+		factories.put(namespace, factory);
+	}
+	
 	/**
 	 * Create a shared AgentFactory instance with a specific namespace
 	 * 
@@ -264,7 +271,7 @@ public class AgentFactory {
 		}
 
 		// Check if agent is instantiated already, returning if it is:
-		Agent agent = (Agent) agents.get(agentId);
+		Agent agent = AgentCache.get(agentId);
 		if (agent != null) {
 			// System.err.println("Agent "+agentId+" found in cache!");
 			return agent;
@@ -297,7 +304,7 @@ public class AgentFactory {
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
 			// System.err.println("Agent "+agentId+" is threadSafe, keeping!");
-			agents.put(agentId, agent);
+			AgentCache.put(agentId, agent);
 		}
 
 		return agent;
@@ -425,7 +432,7 @@ public class AgentFactory {
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
 			// System.err.println("Agent "+agentId+" is threadSafe, keeping!");
-			agents.put(agentId, agent);
+			AgentCache.put(agentId, agent);
 		}
 
 		return agent;
@@ -450,7 +457,7 @@ public class AgentFactory {
 			Agent agent = getAgent(agentId);
 			agent.destroy();
 			agent.delete();
-			agents.delete(agentId);
+			AgentCache.delete(agentId);
 			agent = null;
 		} catch (Exception err) {
 			e = err;

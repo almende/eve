@@ -5,6 +5,7 @@ import java.util.Arrays;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
+import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Sender;
 
 @Access(AccessType.PRIVATE)  //defaults to PUBLIC...
@@ -59,8 +60,7 @@ public class TestAccessAgent extends Agent {
 		return false;
 	}
 	
-	@Access(AccessType.UNAVAILABLE)
-	public boolean[] run(String url){
+	public boolean[] run(@Name("url") String url){
 		boolean[] result = new boolean[0];
 		result = Arrays.copyOf(result, 7);
 		try{ result[0] = send(url,"allowed",Boolean.class); } catch (Exception e){ e.printStackTrace(); };

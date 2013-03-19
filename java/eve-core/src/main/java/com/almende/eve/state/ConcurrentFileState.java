@@ -13,13 +13,12 @@ import java.io.RandomAccessFile;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -56,7 +55,7 @@ public class ConcurrentFileState extends FileState {
 	private FileLock lock = null;
 	private InputStream fis = null;
 	private OutputStream fos = null;
-	private static List<Boolean> locked = new ArrayList<Boolean>(1);
+	private static Map<String,Boolean> locked = new ConcurrentHashMap<String,Boolean>();
 
 	private Map<String, Object> properties = Collections
 			.synchronizedMap(new HashMap<String, Object>());
@@ -64,28 +63,38 @@ public class ConcurrentFileState extends FileState {
 	public ConcurrentFileState(String agentId, String filename) {
 		super(agentId);
 		this.filename = filename;
-		synchronized(locked){
-			if (locked.isEmpty()) locked.add(0,false);
-		}
+	}
+	@Override
+	public void finalize(){
+		closeFile();
 	}
 
 	@SuppressWarnings("resource")
 	private void openFile() throws Exception {
 		synchronized (locked) {
-			while (locked.get(0)) {
+			while (locked.containsKey(filename) && locked.get(filename)) {
 //				logger.warning("Starting to wait for locked! "+filename);
 				locked.wait();
 			}
-			locked.set(0, true);
+			locked.put(filename, true);
 			File file = new File(this.filename);
 			if (!file.exists()){
-				locked.set(0, false);
+				locked.put(filename, false);
 				locked.notifyAll();
 				throw new Exception("Warning: File doesn't exist (anymore):'"+this.filename+"'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
-//			logger.warning("Locked set, starting to wait for fileLock! "+filename);
-			lock = channel.lock();
+//			logger.warning("Starting to wait for fileLock! "+filename);
+			try{
+				//TODO: add support for shared locks, allowing parallel reading operations.
+				lock = channel.lock();
+			} catch (Exception e){
+				channel.close();
+				channel = null;
+				locked.put(filename, false);
+				locked.notifyAll();
+				throw new Exception("error, couldn't obtain file lock",e);
+			}
 //			logger.warning("fileLock set! "+filename);
 			fis = Channels.newInputStream(channel);
 			fos = Channels.newOutputStream(channel);
@@ -96,7 +105,7 @@ public class ConcurrentFileState extends FileState {
 		synchronized (locked) {
 			if (channel != null && channel.isOpen()) {
 				try{
-					lock.release();
+					if (lock != null) lock.release();
 //					logger.warning("fileLock released! "+filename);
 
 					fos.close();
@@ -110,7 +119,7 @@ public class ConcurrentFileState extends FileState {
 			fis = null;
 			fos = null;
 			lock = null;
-			locked.set(0, false);
+			locked.put(filename, false);
 			locked.notifyAll();
 //			logger.warning("locked released! "+filename);
 		}

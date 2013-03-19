@@ -30,11 +30,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("serial")
 public class AgentServlet extends HttpServlet {
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	private final static Logger logger = Logger.getLogger(AgentServlet.class.getSimpleName());
 
-	private static String RESOURCES = "/com/almende/eve/resources/";
-	AgentFactory agentFactory = null;
-	HttpService httpTransport = null;
+	private static final String RESOURCES = "/com/almende/eve/resources/";
+	static AgentFactory agentFactory;
+	static HttpService httpTransport;
 
 	@Override
 	public void init() {
@@ -56,11 +56,14 @@ public class AgentServlet extends HttpServlet {
 		String time = req.getHeader("X-Eve-requestToken");
 		if (time == null) return false;
 		
-		String token = TokenStore.get(time);
+		
+		String token = TokenStore.get(time);		
 		if (token == null){
 			res.sendError(400);
 		} else {
 			res.setHeader("X-Eve-replyToken", token);
+//			System.err.println("HandleHandShake called "+time+ ":"+token);
+
 			res.setStatus(HttpServletResponse.SC_OK);
 			res.flushBuffer();
 		}
@@ -77,7 +80,10 @@ public class AgentServlet extends HttpServlet {
 				HttpGet httpGet = new HttpGet(senderUrl);
 				httpGet.setHeader("X-Eve-requestToken", tokenObj.get("time").textValue());
 				HttpResponse response = ApacheHttpClient.get().execute(httpGet);
+//				System.err.println("HandShake response "+response.getLastHeader("X-Eve-replyToken").getValue());
+
 				if (tokenObj.get("token").textValue().equals(response.getLastHeader("X-Eve-replyToken").getValue())){
+//					System.err.println("Returning OK");
 					return Handshake.OK;
 				}
 			}
@@ -90,8 +96,8 @@ public class AgentServlet extends HttpServlet {
 	}
 	
 	private boolean handleSession(HttpServletRequest req,
-			HttpServletResponse res) throws IOException, ServletException {
-		
+			HttpServletResponse res) throws IOException {
+		try {
 		if (!req.isSecure()){
 			res.sendError(400, "Request needs to be secured with SSL for session management!");
 			return false;
@@ -100,14 +106,21 @@ public class AgentServlet extends HttpServlet {
 		if (req.getSession(false) != null)
 			return true;
 		
-		if (doHandShake(req).equals(Handshake.INVALID)){
+		Handshake hs = doHandShake(req);
+		if (hs.equals(Handshake.INVALID)){
 			return false;
 		}
-		
-		if (!req.authenticate(res)) return false;
+		if (hs.equals(Handshake.NAK)){
+			if (!req.authenticate(res)) return false;
+		}
 		
 		//generate new session:
 		req.getSession(true);
+		} catch (Exception e){
+			res.sendError(500,"Exception running HandleSession:"+e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
 		return true;
 	}
 
@@ -238,6 +251,7 @@ public class AgentServlet extends HttpServlet {
 					requestParams);
 		} catch (Exception err) {
 			// generate JSON error response
+			err.printStackTrace();
 			JSONRPCException jsonError = null;
 			if (err instanceof JSONRPCException) {
 				jsonError = (JSONRPCException) err;
@@ -356,7 +370,6 @@ public class AgentServlet extends HttpServlet {
 			agentFactory.setConfig(config);
 			agentFactory.setSchedulerFactory(config);
 			agentFactory.addAgents(config);
-
 		}
 	}
 

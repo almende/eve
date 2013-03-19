@@ -9,25 +9,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.almende.eve.config.Config;
 
 public class AgentCache {
-	Map<String,MetaInfo> cache;
-	List<MetaInfo> scores;
+	static int maxSize = 100;
+	static Map<String,MetaInfo> cache = new ConcurrentHashMap<String, MetaInfo>(maxSize);
+	static List<MetaInfo> scores = new ArrayList<MetaInfo>(maxSize);
 	
-	int maxSize = 100;
-	
-	public AgentCache(){
-		cache = new ConcurrentHashMap<String, MetaInfo>(this.maxSize);
-		scores = new ArrayList<MetaInfo>(this.maxSize);
-	}
-	public AgentCache(Config config){
-		Integer maxSize = config.get("AgentCache","maxSize");
-		if (maxSize != null) this.maxSize=maxSize;
-		//System.err.println("Init AgentCache on maxSize:"+this.maxSize);
-		cache = new ConcurrentHashMap<String, MetaInfo>(this.maxSize+1);
-		scores = new ArrayList<MetaInfo>(this.maxSize);
+	public static void configCache(Config config){
+		synchronized(scores){
+			Integer maxSize = config.get("AgentCache","maxSize");
+			if (maxSize != null) AgentCache.maxSize=maxSize;
+			//System.err.println("Init AgentCache on maxSize:"+this.maxSize);
+			AgentCache.cache = new ConcurrentHashMap<String, MetaInfo>(AgentCache.maxSize+1);
+			AgentCache.scores = new ArrayList<MetaInfo>(AgentCache.maxSize);
+		}
 	}
 	
 	
-	Agent get(String agentId){
+	static Agent get(String agentId){
 		MetaInfo result = cache.get(agentId);
 		if (result != null){
 			result.use();
@@ -37,7 +34,7 @@ public class AgentCache {
 		return null;
 	}
 	
-	void put(String agentId, Agent agent){
+	static void put(String agentId, Agent agent){
 		synchronized(scores){
 			MetaInfo entry = new MetaInfo(agent);
 			cache.put(agentId, entry);
@@ -49,7 +46,7 @@ public class AgentCache {
 			//System.err.println("Added:"+agent.getId());
 		}
 	}
-	private void evict(int amount){
+	static private void evict(int amount){
 		synchronized(scores){
 			Collections.sort(scores);
 			ArrayList<MetaInfo> toEvict = new ArrayList<MetaInfo>(amount);
@@ -64,7 +61,7 @@ public class AgentCache {
 			//System.err.println("Evicted:"+amount+" records");
 		}
 	}
-	public void delete(String agentId) {
+	static public void delete(String agentId) {
 		cache.remove(agentId);
 	}
 }
