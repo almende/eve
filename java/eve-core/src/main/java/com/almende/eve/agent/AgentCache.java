@@ -14,7 +14,7 @@ public class AgentCache {
 	static List<MetaInfo> scores = new ArrayList<MetaInfo>(maxSize);
 	
 	public static void configCache(Config config){
-		synchronized(scores){
+		synchronized(cache){
 			Integer maxSize = config.get("AgentCache","maxSize");
 			if (maxSize != null) AgentCache.maxSize=maxSize;
 			//System.err.println("Init AgentCache on maxSize:"+this.maxSize);
@@ -35,7 +35,7 @@ public class AgentCache {
 	}
 	
 	static void put(String agentId, Agent agent){
-		synchronized(scores){
+		synchronized(cache){
 			MetaInfo entry = new MetaInfo(agent);
 			cache.put(agentId, entry);
 			int overshoot = cache.size()-maxSize;
@@ -47,7 +47,7 @@ public class AgentCache {
 		}
 	}
 	static private void evict(int amount){
-		synchronized(scores){
+		synchronized(cache){
 			Collections.sort(scores);
 			ArrayList<MetaInfo> toEvict = new ArrayList<MetaInfo>(amount);
 			for (int i=0; i<amount; i++){
