@@ -9,9 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.almende.eve.config.Config;
 
 public class AgentCache {
-	static int maxSize = 100;
-	static Map<String,MetaInfo> cache = new ConcurrentHashMap<String, MetaInfo>(maxSize);
-	static List<MetaInfo> scores = new ArrayList<MetaInfo>(maxSize);
+	private static int maxSize = 100;
+	private static Map<String,MetaInfo> cache = new ConcurrentHashMap<String, MetaInfo>(maxSize);
+	protected static List<MetaInfo> scores = new ArrayList<MetaInfo>(maxSize);
 	
 	public static void configCache(Config config){
 		synchronized(cache){
@@ -24,7 +24,7 @@ public class AgentCache {
 	}
 	
 	
-	static Agent get(String agentId){
+	public static Agent get(String agentId){
 		MetaInfo result = cache.get(agentId);
 		if (result != null){
 			result.use();
@@ -34,7 +34,7 @@ public class AgentCache {
 		return null;
 	}
 	
-	static void put(String agentId, Agent agent){
+	public static void put(String agentId, Agent agent){
 		synchronized(cache){
 			MetaInfo entry = new MetaInfo(agent);
 			cache.put(agentId, entry);
@@ -46,7 +46,7 @@ public class AgentCache {
 			//System.err.println("Added:"+agent.getId());
 		}
 	}
-	static private void evict(int amount){
+	static protected void evict(int amount){
 		synchronized(cache){
 			Collections.sort(scores);
 			ArrayList<MetaInfo> toEvict = new ArrayList<MetaInfo>(amount);

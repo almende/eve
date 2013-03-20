@@ -119,10 +119,10 @@ public class AgentFactory {
 		eveRequestParams.put(Sender.class, null);
 	}
 
-	private static Logger logger = Logger.getLogger(AgentFactory.class
+	private final static Logger logger = Logger.getLogger(AgentFactory.class
 			.getSimpleName());
 
-	public AgentFactory() {
+	protected AgentFactory() {
 		// ensure there is at least a memory state service
 		setStateFactory(new MemoryStateFactory());
 
@@ -136,7 +136,7 @@ public class AgentFactory {
 	 * @param config
 	 * @throws Exception
 	 */
-	public AgentFactory(Config config) throws Exception {
+	protected AgentFactory(Config config) throws Exception {
 		this.config = config;
 		if (config != null) {
 			AgentCache.configCache(config);
@@ -150,6 +150,7 @@ public class AgentFactory {
 			addTransportService(new HttpService());
 			setSchedulerFactory(config);
 			addAgents(config);
+			
 		} else {
 			// ensure there is always an HttpService for outgoing calls
 			addTransportService(new HttpService());
@@ -303,7 +304,6 @@ public class AgentFactory {
 
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			// System.err.println("Agent "+agentId+" is threadSafe, keeping!");
 			AgentCache.put(agentId, agent);
 		}
 

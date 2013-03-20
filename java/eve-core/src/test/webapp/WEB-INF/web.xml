@@ -9,6 +9,15 @@
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
 
+	<context-param>
+		<description>servlet configuration (yaml file)</description>
+		<param-name>config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
+
 	<servlet>
 		<servlet-name>SingleAgentServlet</servlet-name>
 		<servlet-class>com.almende.eve.transport.http.SingleAgentServlet</servlet-class>
@@ -39,11 +48,6 @@
 		<servlet-name>AgentServlet</servlet-name>
 		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
 		<init-param>
-			<description>servlet configuration (yaml file)</description>
-			<param-name>config</param-name>
-			<param-value>eve.yaml</param-value>
-		</init-param>
-		<init-param>
 			<param-name>servlet_url</param-name>
 			<param-value>http://localhost:8080/agents/</param-value>
 		</init-param>
@@ -57,11 +61,6 @@
 	<servlet>
 		<servlet-name>RESTServlet</servlet-name>
 		<servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
-		<init-param>
-			<description>servlet configuration (yaml file)</description>
-			<param-name>config</param-name>
-			<param-value>eve.yaml</param-value>
-		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>RESTServlet</servlet-name>

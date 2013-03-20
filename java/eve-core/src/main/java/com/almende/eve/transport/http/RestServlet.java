@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
-import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -23,11 +22,11 @@ public class RestServlet extends HttpServlet {
 	
 	@Override
 	public void init() {
-		try {
-			initAgentFactory();	
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (AgentFactory.getInstance() == null){
+			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
+			AgentListener.init(getServletContext());
 		}
+		factory = AgentFactory.getInstance();
 	}
 	
 	@Override
@@ -68,29 +67,5 @@ public class RestServlet extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		doGet(req, resp);
-	}
-
-	/**
-	 * initialize the agent factory
-	 * @throws Exception 
-	 */
-	private void initAgentFactory() throws Exception {
-		factory = AgentFactory.getInstance();
-		if (factory == null) {
-			// instance not yet loaded. initiate a new instance
-			String filename = getInitParameter("config");
-			if (filename == null) {
-				filename = "eve.yaml";
-				logger.warning(
-					"Init parameter 'config' missing in servlet configuration web.xml. " +
-					"Trying default filename '" + filename + "'.");
-			}
-			String fullname = "/WEB-INF/" + filename;
-			logger.info("loading configuration file '" + 
-					getServletContext().getRealPath(fullname) + "'...");
-			Config config = new Config(getServletContext().getResourceAsStream(fullname));
-
-			factory = AgentFactory.createInstance(config);
-		}
 	}
 }

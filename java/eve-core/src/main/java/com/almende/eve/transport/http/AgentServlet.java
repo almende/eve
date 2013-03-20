@@ -17,7 +17,6 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.log.Log;
-import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -38,12 +37,29 @@ public class AgentServlet extends HttpServlet {
 
 	@Override
 	public void init() {
-		try {
-			initHttpTransport();
-			initAgentFactory();
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (AgentFactory.getInstance() == null){
+			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
+			AgentListener.init(getServletContext());
 		}
+		agentFactory = AgentFactory.getInstance();
+
+		String environment = AgentFactory.getEnvironment();
+		String envParam = "environment." + environment + ".servlet_url";
+		String globalParam = "servlet_url";
+		String servletUrl = getInitParameter(envParam);
+		if (servletUrl == null) {
+			// if no environment specific servlet_url is defined, read
+			// the global servlet_url
+			servletUrl = getInitParameter(globalParam);
+		}
+		if (servletUrl == null) {
+			logger.severe("Cannot initialize HttpTransport: "
+					+ "Init Parameter '" + globalParam + "' or '"
+					+ envParam + "' "
+					+ "missing in context configuration web.xml.");
+		}
+		httpTransport = new HttpService(servletUrl);
+		agentFactory.addTransportService(httpTransport);
 	}
 
 	enum Handshake{
@@ -337,70 +353,7 @@ public class AgentServlet extends HttpServlet {
 		}
 	}
 
-	/**
-	 * initialize the agent factory
-	 * 
-	 * @throws Exception
-	 */
-	protected void initAgentFactory() throws Exception {
-		// TODO: be able to choose a different namespace
-		agentFactory = AgentFactory.getInstance();
-		if (agentFactory != null) {
-			// agentFactory already exists. Add our http transport service
-			agentFactory.addTransportService(httpTransport);
-		} else {
-			// if the agent factory is not yet loaded, load it from config
-			String filename = getInitParameter("config");
-			if (filename == null) {
-				filename = "eve.yaml";
-				logger.warning("Init parameter 'config' missing in servlet configuration web.xml. "
-						+ "Trying default filename '" + filename + "'.");
-			}
-			String fullname = "/WEB-INF/" + filename;
-			logger.info("loading configuration file '"
-					+ getServletContext().getRealPath(fullname) + "'...");
-			Config config = new Config(getServletContext().getResourceAsStream(
-					fullname));
 
-			// TODO: create the agentFactory in a synchronized way
-			agentFactory = AgentFactory.createInstance();
-			agentFactory.setStateFactory(config);
-			agentFactory.addTransportServices(config);
-			agentFactory.addTransportService(httpTransport);
-			agentFactory.setConfig(config);
-			agentFactory.setSchedulerFactory(config);
-			agentFactory.addAgents(config);
-		}
-	}
-
-	/**
-	 * Initialize an HttpTransport service for the servlet
-	 * 
-	 * @throws Exception
-	 */
-	protected void initHttpTransport() throws Exception {
-		// TODO: one servlet must be able to support multiple servlet_urls
-
-		// try to read servlet url from init parameter
-		// environment.<environment>.servlet_url
-		// String environment = agentFactory.getEnvironment();
-		String environment = "Production"; // TODO: get real environment
-		String envParam = "environment." + environment + ".servlet_url";
-		String globalParam = "servlet_url";
-		String servletUrl = getInitParameter(envParam);
-		if (servletUrl == null) {
-			// if no environment specific servlet_url is defined, read the
-			// global servlet_url
-			servletUrl = getInitParameter(globalParam);
-		}
-		if (servletUrl == null) {
-			throw new Exception("Cannot initialize HttpTransport: "
-					+ "Init Parameter '" + globalParam + "' or '" + envParam
-					+ "' " + "missing in servlet configuration web.xml.");
-		}
-
-		httpTransport = new HttpService(servletUrl);
-	}
 
 	/**
 	 * Get a description on how to use this servlet
