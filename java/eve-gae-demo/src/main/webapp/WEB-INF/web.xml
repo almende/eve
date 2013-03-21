@@ -9,14 +9,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
 
+	<context-param>
+		<description>eve configuration (yaml file)</description>
+		<param-name>config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
+
 	<servlet>
 		<servlet-name>AgentServlet</servlet-name>
 		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-		<init-param>
-			<description>eve agent factory configuration (yaml file)</description>
-			<param-name>config</param-name>
-			<param-value>eve.yaml</param-value>
-		</init-param>
 		<init-param>
 			<param-name>environment.Development.servlet_url</param-name>
 			<param-value>http://localhost:8080/agents</param-value>
@@ -50,10 +54,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet>
 		<servlet-name>RestServlet</servlet-name>
 		<servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
-		<init-param>
-			<param-name>config</param-name>
-			<param-value>eve.yaml</param-value>
-		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>RestServlet</servlet-name>

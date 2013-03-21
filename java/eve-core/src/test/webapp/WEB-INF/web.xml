@@ -10,7 +10,7 @@
 	</welcome-file-list>
 
 	<context-param>
-		<description>servlet configuration (yaml file)</description>
+		<description>eve configuration (yaml file)</description>
 		<param-name>config</param-name>
 		<param-value>eve.yaml</param-value>
 	</context-param>
