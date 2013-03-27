@@ -663,7 +663,7 @@ public class AgentFactory {
 			List<String> protocols = service.getProtocols();
 			for (String protocol: protocols){
 //				System.err.println("Checking:"+protocol+ " on "+receiverUrl+ " Would be:'"+service.getAgentUrl(agentId)+"'");
-				if (receiverUrl.startsWith(protocol+"://")){
+				if (receiverUrl.startsWith(protocol+":")){
 					String senderUrl = service.getAgentUrl(agentId);
 					if (senderUrl != null){
 //						System.err.println("Returning:'"+service.getAgentUrl(agentId)+"'");
