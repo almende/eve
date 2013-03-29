@@ -1,5 +1,6 @@
 package com.almende.eve.state;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,15 +68,9 @@ public class MemoryStateFactory implements StateFactory {
 		return states.containsKey(agentId);
 	}
 
-	/**
-	 * Get the current environment, "Production" or "Development". 
-	 * In case of a memory state, this will always return "Production".
-	 * @return environment
-	 */
-	/* TODO: cleanup getEnvironment
 	@Override
-	public String getEnvironment() {
-		return "Production";
+	public Iterator<String> getAllAgentIds() {
+		return states.keySet().iterator();
 	}
-	*/
+
 }

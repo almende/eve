@@ -114,4 +114,9 @@ public class GaeXmppService implements TransportService {
 	public List<String> getProtocols() {
 		return protocols;
 	}
+
+	@Override
+	public void reconnect(String agentId) throws Exception {
+		//Nothing todo here
+	}
 }

@@ -10,7 +10,9 @@ import com.almende.test.agents.Test2AgentInterface;
 public class TestAgentFactory extends TestCase {
 
 	@Test
-	public void testAgentCall() {
+	public void testAgentCall() throws Exception {
+
+		System.err.println(this.getClass().getName() + ":"+this.getClass().getClassLoader().hashCode());
 		AgentFactory factory = AgentFactory.getInstance();
 		
 		Test2AgentInterface agent = factory.createAgentProxy(null, 

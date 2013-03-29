@@ -53,7 +53,7 @@ public class RestServlet extends HttpServlet {
 			requestParams.put(Sender.class, null);
 			
 			// invoke the agent
-			JSONResponse response = factory.invoke(agentId, request, requestParams);
+			JSONResponse response = factory.receive(agentId, request, requestParams);
 
 			// return response
 			resp.addHeader("Content-Type", "application/json");

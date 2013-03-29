@@ -1,5 +1,6 @@
 package com.almende.eve.state.google;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
@@ -69,10 +70,10 @@ public class DatastoreStateFactory implements StateFactory {
 		return (get(agentId) != null);
 	}
 
-	/* TODO: cleanup getEnvironment
-	@Override 
-	public String getEnvironment() {
-		return SystemProperty.environment.get(); // "Development" or "Production"
+	@Override
+	public Iterator<String> getAllAgentIds() {
+		//TODO: This needs to be implemented.
+		return null;
 	}
-	*/
+
 }

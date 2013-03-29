@@ -87,7 +87,7 @@ public class SingleAgentServlet extends HttpServlet {
 			requestParams.put(Sender.class, null);
 
 			// invoke the agent
-			jsonResponse = agentFactory.invoke(agentId, jsonRequest, requestParams);
+			jsonResponse = agentFactory.receive(agentId, jsonRequest, requestParams);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;

@@ -28,6 +28,8 @@ public class TestXMPP extends TestCase {
 		XmppService xmppService = new XmppService(factory, host, port, serviceName);
 		factory.addTransportService(xmppService);
 		
+		AgentFactory.setDoesShortcut(false);
+		
 		// instantiate an agent and connect it to a messenger service
 		String agentId = "alex";
 		String agentPassword = "alex";
@@ -36,6 +38,7 @@ public class TestXMPP extends TestCase {
 			System.out.println("Create agent " + agentId );
 			agent = (Test2Agent) factory.createAgent(Test2Agent.class, agentId);
 		}
+		xmppService.disconnect(agentId);
 		xmppService.connect(agentId, agentId, agentPassword);
 
 		// instantiate an agent
@@ -46,12 +49,14 @@ public class TestXMPP extends TestCase {
 			System.out.println("Create agent " + agentId );
 			agent2 = factory.createAgent(Test2Agent.class, agentId);
 		}
+		xmppService.disconnect(agentId);
 		xmppService.connect(agentId, agentId, agentPassword);
 
 		agent.testAsyncXMPP(xmppService.getAgentUrl(agent2.getId()));
-		
-        agent.destroy();
-        agent2.destroy();
+
+		Thread.sleep(2000);
+		xmppService.disconnect("gloria");
+		xmppService.disconnect("alex");
 	}
 
 }

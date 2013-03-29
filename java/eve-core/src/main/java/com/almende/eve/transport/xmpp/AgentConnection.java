@@ -267,7 +267,7 @@ public class AgentConnection {
 						params.put(Sender.class, senderUrl);
 
 						// invoke the agent
-						response = agentFactory.invoke(agentId, request, params);
+						response = agentFactory.receive(agentId, request, params);
 					} catch (Exception err) {
 						// generate JSON error response
 						JSONRPCException jsonError = new JSONRPCException(

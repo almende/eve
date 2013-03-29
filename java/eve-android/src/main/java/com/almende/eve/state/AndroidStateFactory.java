@@ -5,6 +5,8 @@ package com.almende.eve.state;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
@@ -79,6 +81,13 @@ public class AndroidStateFactory implements StateFactory {
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("class", this.getClass().getName());
 			return data.toString();
+		}
+
+
+		@Override
+		public Iterator<String> getAllAgentIds() {
+			List<String> files = Arrays.asList(appCtx.fileList());
+			return files.iterator();
 		}
 
 	}

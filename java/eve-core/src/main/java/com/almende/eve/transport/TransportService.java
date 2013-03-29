@@ -42,16 +42,18 @@ public interface TransportService {
 			final JSONRequest request, 
 			final AsyncCallback<JSONResponse> callback) throws Exception;
 	
-	/*
-	// TODO: implement new send async method
-	public abstract void sendAsync (final String senderId, final String receiver, 
-			final JSONRequest request, final String callback) throws Exception;
-	*/
 
 	/**
 	 * Get the protocols supported by this service
 	 * @return protocols
 	 */
 	public abstract List<String> getProtocols();
+	
+	/**
+	 * (re)Connect this url (if applicable for this transport type)
+	 * @param url
+	 */
+	public abstract void reconnect(String agentId) throws Exception;
+
 }
 

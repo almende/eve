@@ -17,6 +17,9 @@ public class TestProxy extends TestCase {
 	public void testProxy() throws Exception {
 		//Create TestAgent according to TestInterface
 		AgentFactory factory = AgentFactory.getInstance();
+		if (factory == null){
+			factory = AgentFactory.createInstance();
+		}
 		factory.createAgent(TestAgent.class, "TestAgent");
 		
 		//generate sync proxy from TestInterface

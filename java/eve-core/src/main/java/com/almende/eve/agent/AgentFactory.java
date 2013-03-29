@@ -6,6 +6,7 @@ import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,6 +84,7 @@ public class AgentFactory {
 			"com.google.appengine.runtime.environment",
 			"com.almende.eve.runtime.environment" };
 	private static String environment = null;
+	private static boolean doesShortcut = true;
 
 	private final static Map<String, AgentFactory> factories = new ConcurrentHashMap<String, AgentFactory>(); // namespace:factory
 
@@ -152,6 +154,8 @@ public class AgentFactory {
 			addAgents(config);
 			
 		} else {
+			// ensure there is at least a memory state service
+			setStateFactory(new MemoryStateFactory());
 			// ensure there is always an HttpService for outgoing calls
 			addTransportService(new HttpService());
 		}
@@ -252,10 +256,29 @@ public class AgentFactory {
 
 		AgentFactory factory = new AgentFactory(config);
 		factories.put(namespace, factory);
-
+		factory.boot();
 		return factory;
 	}
 
+	/**
+	 * Should be called every time a new AgentFactory is started or if new agents become available (through setStateFactory())
+	 * 
+	 */
+	public void boot() {
+		if (stateFactory != null){
+			Iterator<String> iter = stateFactory.getAllAgentIds();
+			while (iter.hasNext()){
+				try {
+					Agent agent = getAgent(iter.next());
+					if (agent != null){
+						agent.boot();
+					}
+				} catch (Exception e) {}
+			}
+		}
+	}
+	
+	
 	/**
 	 * Get an agent by its id. Returns null if the agent does not exist
 	 * 
@@ -510,7 +533,7 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONResponse invoke(String receiverId, JSONRequest request,
+	public JSONResponse receive(String receiverId, JSONRequest request,
 			RequestParams requestParams) throws Exception {
 		Agent receiver = getAgent(receiverId);
 		if (receiver != null) {
@@ -523,6 +546,23 @@ public class AgentFactory {
 		}
 	}
 
+//	public JSONResponse receive(String SenderId, String receiverUrl,
+//			JSONRequest request) throws Exception {
+//		
+//		String agentId = getAgentId(receiverUrl);
+//		if (agentId != null){
+//			String senderUrl = null;
+//			if (SenderId != null) {
+//				senderUrl = getSenderUrl(SenderId, receiverUrl);
+//			}
+//			RequestParams requestParams = new RequestParams();
+//			requestParams.put(Sender.class, senderUrl);
+//			JSONResponse response = invoke(agentId, request, requestParams);
+//			return response;
+//		} else {
+//			throw new Exception("Agent for '" + receiverUrl + "' not found");
+//		}
+//	}
 	/**
 	 * Invoke a local or remote agent. In case of an local agent, the agent is
 	 * invoked immediately. In case of an remote agent, an HTTP Request is sent
@@ -538,17 +578,16 @@ public class AgentFactory {
 	 */
 	public JSONResponse send(AgentInterface sender, String receiverUrl,
 			JSONRequest request) throws Exception {
-		String agentId = getAgentId(receiverUrl);
+		String receiverId = getAgentId(receiverUrl);
 		String senderUrl = null;
 		if (sender != null) {
 			senderUrl = getSenderUrl(sender.getId(), receiverUrl);
 		}
-		if (agentId != null) {
-			// local agent, invoke locally
+		if (doesShortcut && receiverId != null) {
+			//local shortcut
 			RequestParams requestParams = new RequestParams();
 			requestParams.put(Sender.class, senderUrl);
-			JSONResponse response = invoke(agentId, request, requestParams);
-			return response;
+			return receive(receiverId,request,requestParams);
 		} else {
 			TransportService service = null;
 			String protocol = null;
@@ -587,7 +626,8 @@ public class AgentFactory {
 			final String receiverUrl, final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) throws Exception {
 		final String receiverId = getAgentId(receiverUrl);
-		if (receiverId != null) {
+		if (doesShortcut && receiverId != null) {
+			//local shortcut
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -595,12 +635,11 @@ public class AgentFactory {
 					try {
 						String senderUrl = null;
 						if (sender != null) {
-							senderUrl = getSenderUrl(sender.getId(),
-									receiverUrl);
+							senderUrl = getSenderUrl(sender.getId(), receiverUrl);
 						}
 						RequestParams requestParams = new RequestParams();
 						requestParams.put(Sender.class, senderUrl);
-						response = invoke(receiverId, request, requestParams);
+						response = receive(receiverId,request,requestParams);
 						callback.onSuccess(response);
 					} catch (Exception e) {
 						callback.onFailure(e);
@@ -610,13 +649,17 @@ public class AgentFactory {
 		} else {
 			TransportService service = null;
 			String protocol = null;
+			String senderUrl = null;
+			if (sender != null) {
+				senderUrl = getSenderUrl(sender.getId(), receiverUrl);
+			}
 			int separator = receiverUrl.indexOf(":");
 			if (separator != -1) {
 				protocol = receiverUrl.substring(0, separator);
 				service = getTransportService(protocol);
 			}
 			if (service != null) {
-				service.sendAsync(sender.getId(), receiverUrl, request,
+				service.sendAsync(senderUrl, receiverUrl, request,
 						callback);
 			} else {
 				throw new ProtocolException(
@@ -737,6 +780,14 @@ public class AgentFactory {
 	 */
 	public Config getConfig() {
 		return config;
+	}
+
+	public static boolean isDoesShortcut() {
+		return doesShortcut;
+	}
+
+	public static void setDoesShortcut(boolean doesShortcut) {
+		AgentFactory.doesShortcut = doesShortcut;
 	}
 
 	/**
@@ -869,11 +920,7 @@ public class AgentFactory {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
-		String className = config.get("environment", getEnvironment(),
-				"scheduler", "class");
-		if (className == null) {
-			className = config.get("scheduler", "class");
-		}
+		String className = config.get("scheduler", "class");
 		if (className == null) {
 			throw new IllegalArgumentException(
 					"Config parameter 'scheduler.class' missing in Eve configuration.");
@@ -905,11 +952,7 @@ public class AgentFactory {
 
 		// read all scheduler params (will be fed to the scheduler factory
 		// on construction)
-		Map<String, Object> params = config.get("environment",
-				getEnvironment(), "scheduler");
-		if (params == null) {
-			params = config.get("scheduler");
-		}
+		Map<String, Object> params = config.get("scheduler");
 
 		try {
 			// get the class
@@ -947,36 +990,15 @@ public class AgentFactory {
 			return;
 		}
 
-		// create a list to hold both global and environment specific transport
-		List<Map<String, Object>> allTransportParams = new ArrayList<Map<String, Object>>();
-
 		// read global service params
-		List<Map<String, Object>> globalTransportParams = config
+		List<Map<String, Object>> allTransportParams = config
 				.get("transport_services");
-		if (globalTransportParams == null) {
+		if (allTransportParams == null) {
 			// TODO: cleanup some day. deprecated since 2013-01-17
-			globalTransportParams = config.get("services");
-			if (globalTransportParams != null) {
+			allTransportParams = config.get("services");
+			if (allTransportParams != null) {
 				logger.warning("Property 'services' is deprecated. Use 'transport_services' instead.");
 			}
-		}
-		if (globalTransportParams != null) {
-			allTransportParams.addAll(globalTransportParams);
-		}
-
-		// read service params for the current environment
-		List<Map<String, Object>> environmentTransportParams = config.get(
-				"environment", getEnvironment(), "transport_services");
-		if (environmentTransportParams == null) {
-			// TODO: cleanup some day. deprecated since 2013-01-17
-			environmentTransportParams = config.get("environment",
-					getEnvironment(), "services");
-			if (environmentTransportParams != null) {
-				logger.warning("Property 'services' is deprecated. Use 'transport_services' instead.");
-			}
-		}
-		if (environmentTransportParams != null) {
-			allTransportParams.addAll(environmentTransportParams);
 		}
 
 		int index = 0;

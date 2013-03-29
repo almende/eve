@@ -110,6 +110,28 @@ abstract public class Agent implements AgentInterface {
 		state=null; //forget local reference, as it can keep the State alive even if the agentFactory removes the file. 
 	}
 	
+
+	/**
+	 * This method is called when the containing AgentFactory is started. 
+	 * It can be overridden and used to perform some action (like alerting owners about the reboot),
+	 * in that case super.boot() should be called in 
+	 * the overridden boot().
+	 * @throws Exception 
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void boot() throws Exception {
+		//init scheduler tasks
+		getScheduler();
+		//if applicable reconnect existing connections.
+		List<TransportService> services = agentFactory.getTransportServices();
+		if (services != null){
+			for (TransportService service : services){
+				service.reconnect(getId());
+			}
+		}
+	}
+
+	
 	/**
 	 * This method is called directly after the agent and its state is 
 	 * initiated. 

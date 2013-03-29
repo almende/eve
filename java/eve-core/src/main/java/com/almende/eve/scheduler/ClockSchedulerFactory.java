@@ -129,7 +129,7 @@ class ClockScheduler implements Scheduler, Runnable {
 					String senderUrl = "local://" + myAgent.getId();
 					params.put(Sender.class,senderUrl);
 
-					myAgent.getAgentFactory().invoke(myAgent.getId(),
+					myAgent.getAgentFactory().receive(myAgent.getId(),
 							task.request, params);
 				} catch (Exception e) {
 					e.printStackTrace();

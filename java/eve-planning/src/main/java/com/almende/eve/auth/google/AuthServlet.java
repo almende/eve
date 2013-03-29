@@ -21,9 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -72,20 +73,11 @@ public class AuthServlet extends HttpServlet {
 				throw new Exception("Parameter 'google.client_secret' missing in config");
 			}
 
-			// first read the servlet url from the current environment settings,
-			// if not available, read it from the global settings.
-			String environment = AgentFactory.getEnvironment(); 
-			REDIRECT_URI = config.get("environment", environment, "google_auth_servlet_url");
-			if (REDIRECT_URI == null) {
-				REDIRECT_URI = config.get("google_auth_servlet_url");
-			}
+			REDIRECT_URI = config.get("google_auth_servlet_url");
 			
 			// TODO: cleanup deprecated parameter some day (deprecated since 2013-02-15)
 			if (REDIRECT_URI == null) {
-				REDIRECT_URI = config.get("environment", environment, "auth_google_servlet_url");
-				if (REDIRECT_URI == null) {
-					REDIRECT_URI = config.get("auth_google_servlet_url");
-				}
+				REDIRECT_URI = config.get("auth_google_servlet_url");
 				if (REDIRECT_URI != null) {
 					logger.warning("Parameter 'auth_google_servlet_url' is deprecated. " +
 							"Use 'google_auth_servlet_url' instead.");
@@ -93,7 +85,7 @@ public class AuthServlet extends HttpServlet {
 			}
 
 			if (REDIRECT_URI == null) {
-				String path = "environment." + environment + ".auth_google_servlet_url";
+				String path = "auth_google_servlet_url";
 				Exception e = new Exception("Config parameter '" + path + "' is missing");
 				e.printStackTrace();
 			}			

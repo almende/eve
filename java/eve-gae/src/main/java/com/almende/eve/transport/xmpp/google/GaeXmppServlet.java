@@ -66,7 +66,7 @@ public class GaeXmppServlet extends HttpServlet {
 
 					// invoke the agent
 					JSONRequest request = new JSONRequest(json);
-					JSONResponse response = agentFactory.invoke(agentId, request, params);
+					JSONResponse response = agentFactory.receive(agentId, request, params);
 
 					// reply to message
 			        Message msg = new MessageBuilder()

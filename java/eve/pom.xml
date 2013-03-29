@@ -194,7 +194,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
+					<useSystemClassLoader>false</useSystemClassLoader>
 					<skipTests>${skipTests}</skipTests>
+					<forkMode>never</forkMode>
 					<parallel>methods</parallel>
 					<threadCount>10</threadCount>
 				</configuration>

@@ -278,5 +278,10 @@ public class HttpService implements TransportService {
 		data.put("protocols", protocols);
 		return data.toString();
 	}
+
+	@Override
+	public void reconnect(String agentId) throws Exception {
+		//Nothing todo at this point
+	}
 	
 }

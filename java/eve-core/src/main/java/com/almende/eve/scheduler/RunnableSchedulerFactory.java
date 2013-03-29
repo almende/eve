@@ -83,7 +83,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		// set a state for the service, where the service can
 		// persist its state.
 		if (stateId == null) {
-			stateId = "_runnablescheduler";
+			stateId = "_runnableScheduler";
 			logger.info("No id specified for RunnableSchedulerFactory. "
 					+ "Using '" + stateId + "' as id.");
 		}
@@ -202,7 +202,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						String senderUrl = "local://" + agentId;
 						params.put(Sender.class, senderUrl); // TODO: provide itself
 
-						agentFactory.invoke(agentId, request, params);
+						agentFactory.receive(agentId, request, params);
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {

@@ -1,5 +1,7 @@
 package com.almende.eve.state;
 
+import java.util.Iterator;
+
 public abstract interface StateFactory {
 	/**
 	 * Get state with given id. Returns null if not found
@@ -28,4 +30,10 @@ public abstract interface StateFactory {
 	 * @return exists
 	 */
 	public abstract boolean exists(String agentId);
+	
+	/**
+	 * Get an interator on all agents
+	 * @return Iterator<Agent>
+	 */
+	public abstract Iterator<String> getAllAgentIds();
 }

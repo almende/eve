@@ -263,7 +263,7 @@ public class AgentServlet extends HttpServlet {
 			requestParams.put(Sender.class, senderUrl);
 			
 			// invoke the agent
-			jsonResponse = agentFactory.invoke(agentId, jsonRequest,
+			jsonResponse = agentFactory.receive(agentId, jsonRequest,
 					requestParams);
 		} catch (Exception err) {
 			// generate JSON error response

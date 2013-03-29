@@ -2,7 +2,10 @@ package com.almende.eve.state;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -124,43 +127,6 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 	}
 
 	/**
-	 * Get the current environment. 
-	 * In case of a file state, it tries to read the environment name from a 
-	 * file called "_environment", on error/non-existence this will return "Production".
-	 * 
-	 * @return environment
-	 */
-	/* TODO: cleanup getEnvironment
-	@Override
-	public String getEnvironment() {
-		String environment = "Production";
-		File file = new File((path != null ? path : "") + "_environment");
-		if (file.exists()){
-			BufferedReader reader = null;
-			try {
-				reader = new BufferedReader(new FileReader(file));
-				String line = reader.readLine();
-				if (line != null && !"".equals(line)){
-					environment = line;
-				}
-			} catch (Exception e){ 
-				//TODO: How to handle this error? (File not readable, not containing text, etc.)			
-			}
-			finally {
-				if (reader != null) {
-					try {
-						reader.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-		return environment;
-	}
-	*/
-
-	/**
 	 * Get the filename of the saved
 	 * @param agentId
 	 * @return
@@ -175,5 +141,30 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 		data.put("class", this.getClass().getName());
 		data.put("path", path);
 		return data.toString();
+	}
+
+	@Override
+	public Iterator<String> getAllAgentIds() {
+		File folder = new File(path);
+		File[] files = folder.listFiles();
+		final List<File> list = Arrays.asList(files);
+		return new Iterator<String>(){
+			private int pivot=0;
+			
+			@Override
+			public boolean hasNext() {
+				return pivot<list.size();
+			}
+
+			@Override
+			public String next() {
+				return (list.get(pivot++).getName());
+			}
+
+			@Override
+			public void remove() {
+				list.remove(pivot);
+			}
+		};
 	}
 }
