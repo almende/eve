@@ -70,6 +70,11 @@ public class AgentConnection {
 	public void connect(String agentId, String host, Integer port, 
 			String serviceName, String username, String password, 
 			String resource) throws Exception {
+		
+		if (isConnected()){
+			//this is a reconnect.
+			disconnect();
+		}
 		this.agentId = agentId;
 		this.username = username;
 		this.resource = resource;
@@ -109,7 +114,7 @@ public class AgentConnection {
 	 * Disconnect the agent from the messaging service
 	 */
 	public void disconnect() {
-		if (conn != null) {
+		if (isConnected()) {
 			conn.disconnect();
 			conn = null;
 		}

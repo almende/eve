@@ -30,9 +30,6 @@ public class XmppService implements TransportService {
 	private Integer							port				= null;
 	private String							service				= null;
 	
-	private Map<String, AgentConnection>	connectionsById		= new ConcurrentHashMap<String, AgentConnection>(); // agentId
-																													// as
-																													// key
 	private Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>(); // xmpp
 																													// url
 																													// as
@@ -89,9 +86,8 @@ public class XmppService implements TransportService {
 		init();
 	}
 	
-	
 	/**
-	 * Get the url of an agent from its id.
+	 * Get the first XMPP url of an agent from its id.
 	 * If no agent with given id is connected via XMPP, null is returned.
 	 * 
 	 * @param agentId
@@ -100,10 +96,36 @@ public class XmppService implements TransportService {
 	 */
 	@Override
 	public String getAgentUrl(String agentId) {
-		AgentConnection connection = connectionsById.get(agentId);
-		if (connection != null) {
-			return generateUrl(connection.getUsername(), host,
-					connection.getResource());
+		try {
+			State state = agentFactory.getStateFactory().get(agentId);
+			ArrayNode conns = null;
+			if (state.containsKey("_XMPP_Connections")) {
+				conns = (ArrayNode) JOM.getInstance().readTree(
+						(String) state.get("_XMPP_Connections"));
+			}
+			if (conns != null) {
+				for (JsonNode conn : conns) {
+					ObjectNode params = (ObjectNode) conn;
+					
+					String encryptedUsername = params.has("username") ? params
+							.get("username").textValue() : null;
+					String encryptedResource = params.has("resource") ? params
+							.get("resource").textValue() : null;
+					if (encryptedUsername != null) {
+						String username = EncryptionUtil
+								.decrypt(encryptedUsername);
+						String resource = null;
+						if (encryptedResource != null) {
+							resource = EncryptionUtil
+									.decrypt(encryptedResource);
+						}
+						
+						return generateUrl(username, host, resource);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -175,15 +197,7 @@ public class XmppService implements TransportService {
 			String resource) throws Exception {
 		String agentUrl = generateUrl(username, host, resource);
 		if (connectionsByUrl.containsKey(agentUrl)) {
-			throw new Exception("Connection for url '" + agentUrl
-					+ "' is already open. " + "Close this connection first.");
-		}
-		if (connectionsById.containsKey(agentId)) {
-			AgentConnection c = connectionsById.get(agentId);
-			String url = generateUrl(c.getUsername(), host, c.getResource());
-			throw new Exception("Agent with id '" + agentId + "' already has "
-					+ "an open xmpp connection (" + url + "). "
-					+ "Close this connection first.");
+			logger.warning("Warning, agent was already connected, reconnecting.");
 		}
 		
 		// instantiate open the connection
@@ -191,8 +205,6 @@ public class XmppService implements TransportService {
 		connection.connect(agentId, host, port, service, username, password,
 				resource);
 		
-		// register the connection
-		connectionsById.put(agentId, connection);
 		connectionsByUrl.put(agentUrl, connection);
 		storeConnection(agentId, username, password, resource);
 	}
@@ -201,10 +213,10 @@ public class XmppService implements TransportService {
 			String password, String resource) throws Exception {
 		
 		State state = agentFactory.getStateFactory().get(agentId);
-
+		
 		String conns = (String) state.get("_XMPP_Connections");
 		ArrayNode newConns;
-		if (conns != null){
+		if (conns != null) {
 			newConns = (ArrayNode) JOM.getInstance().readTree(conns);
 		} else {
 			newConns = JOM.createArrayNode();
@@ -216,13 +228,14 @@ public class XmppService implements TransportService {
 		if (resource != null && !resource.isEmpty()) {
 			params.put("resource", EncryptionUtil.encrypt(resource));
 		}
-		for (JsonNode item: newConns){
-			if (item.get("username").equals(params.get("username"))){
-				return; 
+		for (JsonNode item : newConns) {
+			if (item.get("username").equals(params.get("username"))) {
+				return;
 			}
 		}
 		newConns.add(params);
-		if (!state.putIfUnchanged("_XMPP_Connections", JOM.getInstance().writeValueAsString(newConns), conns)) {
+		if (!state.putIfUnchanged("_XMPP_Connections", JOM.getInstance()
+				.writeValueAsString(newConns), conns)) {
 			// recursive retry
 			storeConnection(agentId, username, password, resource);
 		}
@@ -240,21 +253,43 @@ public class XmppService implements TransportService {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void disconnect(String agentId) {
-		AgentConnection connection = connectionsById.get(agentId);
-		if (connection != null) {
-			connection.disconnect();
-			
-			String agentUrl = generateUrl(connection.getUsername(), host,
-					connection.getResource());
-			connectionsById.remove(agentId);
-			connectionsByUrl.remove(agentUrl);
-			
-			// remove the connection parameters from the persisted state
-			try {
-				delConnections(agentId);
-			} catch (Exception e) {
-				e.printStackTrace();
+		
+		try {
+			State state = agentFactory.getStateFactory().get(agentId);
+			ArrayNode conns = null;
+			if (state.containsKey("_XMPP_Connections")) {
+				conns = (ArrayNode) JOM.getInstance().readTree(
+						(String) state.get("_XMPP_Connections"));
 			}
+			if (conns != null) {
+				for (JsonNode conn : conns) {
+					ObjectNode params = (ObjectNode) conn;
+					
+					String encryptedUsername = params.has("username") ? params
+							.get("username").textValue() : null;
+					String encryptedResource = params.has("resource") ? params
+							.get("resource").textValue() : null;
+					if (encryptedUsername != null) {
+						String username = EncryptionUtil
+								.decrypt(encryptedUsername);
+						String resource = null;
+						if (encryptedResource != null) {
+							resource = EncryptionUtil
+									.decrypt(encryptedResource);
+						}
+						
+						String url = generateUrl(username, host, resource);
+						AgentConnection connection = connectionsByUrl.get(url);
+						if (connection != null) {
+							connection.disconnect();
+							connectionsByUrl.remove(url);
+						}
+					}
+				}
+			}
+			delConnections(agentId);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -338,16 +373,24 @@ public class XmppService implements TransportService {
 	@Override
 	public void reconnect(String agentId) throws Exception {
 		State state = agentFactory.getStateFactory().get(agentId);
-		ArrayNode conns = (ArrayNode) JOM.getInstance().readTree((String)state.get("_XMPP_Connections"));
+		ArrayNode conns = null;
+		if (state.containsKey("_XMPP_Connections")) {
+			conns = (ArrayNode) JOM.getInstance().readTree(
+					(String) state.get("_XMPP_Connections"));
+		}
 
 		if (conns != null) {
 			for (JsonNode conn : conns) {
 				ObjectNode params = (ObjectNode) conn;
-				logger.info("Initializing connection:"+agentId+" --> "+params);
+				logger.info("Initializing connection:" + agentId + " --> "
+						+ params);
 				try {
-					String encryptedUsername = params.has("username")?params.get("username").textValue():null;
-					String encryptedPassword = params.has("password")?params.get("password").textValue():null;
-					String encryptedResource = params.has("resource")?params.get("resource").textValue():null;
+					String encryptedUsername = params.has("username") ? params
+							.get("username").textValue() : null;
+					String encryptedPassword = params.has("password") ? params
+							.get("password").textValue() : null;
+					String encryptedResource = params.has("resource") ? params
+							.get("resource").textValue() : null;
 					if (encryptedUsername != null && encryptedPassword != null) {
 						String username = EncryptionUtil
 								.decrypt(encryptedUsername);
