@@ -1001,61 +1001,64 @@ public class AgentFactory {
 			}
 		}
 
-		int index = 0;
-		for (Map<String, Object> transportParams : allTransportParams) {
-			String className = (String) transportParams.get("class");
-			try {
-				if (className != null) {
-					// Recognize known classes by their short name,
-					// and replace the short name for the full class path
-
-					// TODO: remove deprecation warning some day (added
-					// 2013-01-24)
-					if (className.toLowerCase().equals(
-							"XmppTransportService".toLowerCase())) {
-						logger.warning("Deprecated class XmppTransportService, use XmppService instead.");
-						className = "XmppService";
-					}
-					if (className.toLowerCase().equals(
-							"HttpTransportService".toLowerCase())) {
-						logger.warning("Deprecated class HttpTransportService, use HttpService instead.");
-						className = "HttpService";
-					}
-
-					for (String name : TRANSPORT_SERVICES.keySet()) {
-						if (className.toLowerCase().equals(name.toLowerCase())) {
-							className = TRANSPORT_SERVICES.get(name);
-							break;
+		if (allTransportParams != null) {
+			int index = 0;
+			for (Map<String, Object> transportParams : allTransportParams) {
+				String className = (String) transportParams.get("class");
+				try {
+					if (className != null) {
+						// Recognize known classes by their short name,
+						// and replace the short name for the full class path
+						
+						// TODO: remove deprecation warning some day (added
+						// 2013-01-24)
+						if (className.toLowerCase().equals(
+								"XmppTransportService".toLowerCase())) {
+							logger.warning("Deprecated class XmppTransportService, use XmppService instead.");
+							className = "XmppService";
 						}
+						if (className.toLowerCase().equals(
+								"HttpTransportService".toLowerCase())) {
+							logger.warning("Deprecated class HttpTransportService, use HttpService instead.");
+							className = "HttpService";
+						}
+						
+						for (String name : TRANSPORT_SERVICES.keySet()) {
+							if (className.toLowerCase().equals(
+									name.toLowerCase())) {
+								className = TRANSPORT_SERVICES.get(name);
+								break;
+							}
+						}
+						
+						// get class
+						Class<?> transportClass = Class.forName(className);
+						if (!ClassUtil.hasInterface(transportClass,
+								TransportService.class)) {
+							throw new IllegalArgumentException(
+									"TransportService class "
+											+ transportClass.getName()
+											+ " must implement "
+											+ TransportService.class.getName());
+						}
+						
+						// initialize the transport service
+						TransportService transport = (TransportService) transportClass
+								.getConstructor(AgentFactory.class, Map.class)
+								.newInstance(this, transportParams);
+						
+						// register the service with the agent factory
+						addTransportService(transport);
+					} else {
+						logger.warning("Cannot load transport service at index "
+								+ index + ": no class defined.");
 					}
-
-					// get class
-					Class<?> transportClass = Class.forName(className);
-					if (!ClassUtil.hasInterface(transportClass,
-							TransportService.class)) {
-						throw new IllegalArgumentException(
-								"TransportService class "
-										+ transportClass.getName()
-										+ " must implement "
-										+ TransportService.class.getName());
-					}
-
-					// initialize the transport service
-					TransportService transport = (TransportService) transportClass
-							.getConstructor(AgentFactory.class, Map.class)
-							.newInstance(this, transportParams);
-
-					// register the service with the agent factory
-					addTransportService(transport);
-				} else {
-					logger.warning("Cannot load transport service at index "
-							+ index + ": no class defined.");
+				} catch (Exception e) {
+					logger.warning("Cannot load service at index " + index
+							+ ": " + e.getMessage());
 				}
-			} catch (Exception e) {
-				logger.warning("Cannot load service at index " + index + ": "
-						+ e.getMessage());
+				index++;
 			}
-			index++;
 		}
 	}
 
