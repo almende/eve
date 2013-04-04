@@ -138,12 +138,14 @@ public class JSONRPC {
 					&& err.getCause() instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) err.getCause());
 			} else {
+				err.printStackTrace(); // TODO: cleanup printing stacktrace
+				
 				JSONRPCException jsonError = new JSONRPCException(
 						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
 				// TODO: return useful, readable stacktrace
 				jsonError.setData(err);
 				resp.setError(jsonError);
-				err.printStackTrace(); // TODO: cleanup printing stacktrace
+				
 			}
 		}
 

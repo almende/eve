@@ -75,6 +75,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (myAgent == null) {
 			Logger.getLogger("ClockScheduler").severe(
 					"Error: Agent not found:" + agentId);
+			throw new Exception("Trying to getScheduler() on a not existing agent:"+agentId);
 		}
 		myClock = new RunnableClock();
 		TaskEntry task = getFirstTask(false);

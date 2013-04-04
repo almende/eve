@@ -135,8 +135,13 @@ public class HttpService implements TransportService {
 		
 		HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
 		try {
-			response = new JSONResponse(EntityUtils.toString(webResp
-					.getEntity()));
+			String result = EntityUtils.toString(webResp
+					.getEntity());
+			if (result != null){
+				response = new JSONResponse(result);
+			} else {
+				response = new JSONResponse();
+			}
 		} catch (JSONRPCException err) {
 			response = new JSONResponse(err);
 		} finally {

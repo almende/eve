@@ -472,12 +472,14 @@ public class AgentFactory {
 		if (agentId == null) {
 			return;
 		}
+		Agent agent = getAgent(agentId);
+		if (agent == null) return;
+		
 		if (getScheduler(agentId) != null) {
 			schedulerFactory.destroyScheduler(agentId);
 		}
 		try {
 			// get the agent and execute the delete method
-			Agent agent = getAgent(agentId);
 			agent.destroy();
 			agent.delete();
 			AgentCache.delete(agentId);
