@@ -14,6 +14,7 @@ import com.almende.eve.agent.AgentFactory;
 public class FileStateFactory implements StateFactory {
 
 private String path = null;
+private Boolean json = false;
 private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 private Map<String,FileState> states = new HashMap<String,FileState>();
 	
@@ -24,11 +25,17 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 	 */
 	public FileStateFactory (AgentFactory agentFactory, Map<String, Object> params) {
 		// built the path where the agents will be stored
-		this((params != null) ? (String) params.get("path") : null);
+		if (params == null) params = new HashMap<String,Object>();
+		if (params.containsKey("json")) this.json = (Boolean) params.get("json");
+		if (params.containsKey("path")) setPath((String)params.get("path"));
 	}
 	
-	public FileStateFactory (String path) {
+	public FileStateFactory (String path,Boolean json) {
+		this.json=json;
 		setPath(path);
+	}
+	public FileStateFactory (String path) {
+		this(path,false);
 	}
 	
 	/**
@@ -56,7 +63,7 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 		} catch (IOException e) {
 			info += path;
 		}
-        logger.info(info);
+        logger.info(info+". "+(this.json?"(stored in JSON format)":"(stored in JavaObject format)"));
 	}
 	
 	/**
@@ -71,7 +78,7 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 			if (states.containsKey(agentId)){
 				state = states.get(agentId);
 			} else {
-				state = new ConcurrentFileState(agentId, getFilename(agentId));
+				state = new ConcurrentFileState(agentId, getFilename(agentId),this.json);
 				states.put(agentId, state);
 			}
 		}
@@ -98,7 +105,7 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 		file.createNewFile();
 		
 		// instantiate the state
-		FileState state =  new ConcurrentFileState(agentId, filename);
+		FileState state =  new ConcurrentFileState(agentId, filename,this.json);
 		states.put(agentId, state);
 		return state;
 	}

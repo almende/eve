@@ -2,6 +2,7 @@ package com.almende.eve.state;
 
 import java.util.Map;
 
+//TODO: shouldn't this be a Map<String,Serializable> instead? At least for the non JSON states.
 public interface State extends Map<String, Object> {
 	public static String KEY_AGENT_TYPE = "_type"; // key name for agent type
 

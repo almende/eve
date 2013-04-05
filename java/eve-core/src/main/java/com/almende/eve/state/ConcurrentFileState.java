@@ -21,6 +21,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @class FileState
  * 
@@ -50,11 +56,13 @@ public class ConcurrentFileState extends FileState {
 	protected ConcurrentFileState() {
 	}
 
+	private boolean json = false;
 	private String filename = null;
 	private FileChannel channel = null;
 	private FileLock lock = null;
 	private InputStream fis = null;
 	private OutputStream fos = null;
+	private ObjectMapper om = null;
 	private static Map<String,Boolean> locked = new ConcurrentHashMap<String,Boolean>();
 
 	private Map<String, Object> properties = Collections
@@ -64,6 +72,15 @@ public class ConcurrentFileState extends FileState {
 		super(agentId);
 		this.filename = filename;
 	}
+	public ConcurrentFileState(String agentId, String filename, boolean json) {
+		super(agentId);
+		this.filename = filename;
+		this.json = json;
+		if (this.json) om = JOM.getInstance();
+		om.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+		om.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+	}
+
 	@Override
 	public void finalize(){
 		closeFile();
@@ -133,9 +150,14 @@ public class ConcurrentFileState extends FileState {
 	 */
 	private void write() throws Exception {
 		channel.position(0);
-		ObjectOutput out = new ObjectOutputStream(fos);
-		out.writeObject(properties);
-		out.flush();
+		if (json){
+			om.writeValue(fos, properties);
+			fos.flush();
+		} else {
+			ObjectOutput out = new ObjectOutputStream(fos);
+			out.writeObject(properties);
+			out.flush();
+		}
 	}
 
 	/**
@@ -149,12 +171,22 @@ public class ConcurrentFileState extends FileState {
 	private void read() throws Exception {
 		try {
 			channel.position(0);
-			ObjectInput in = new ObjectInputStream(fis);
 			properties.clear();
-			properties.putAll((Map<String, Object>) in.readObject());
+			if (json){
+				properties.putAll(om.readValue(fis, HashMap.class));
+			} else {
+				ObjectInput in = new ObjectInputStream(fis);
+				properties.putAll((Map<String, Object>) in.readObject());
+			}
 		} catch (EOFException eof){
 			//empty file, new agent?
-		};
+		} catch (JsonMappingException map){
+			if (channel.position() != 0){
+				//Real trouble!
+				throw map;
+			}
+			//empty file, new agent?
+		}
 	}
 
 	/**
