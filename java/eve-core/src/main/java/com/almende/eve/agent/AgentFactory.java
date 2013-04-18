@@ -443,7 +443,7 @@ public class AgentFactory {
 		// create the state
 		State state = getStateFactory().create(agentId);
 		state.setAgentType(agentType);
-		state.destroy();
+		state.init();
 
 		// instantiate the agent
 		Agent agent = (Agent) agentType.getConstructor().newInstance();
