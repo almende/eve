@@ -211,7 +211,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		@SuppressWarnings("unchecked")
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent
 				.getState().get("_taskList");
-		return timeline.toString();
+		return (timeline != null)?timeline.toString():"[]";
 	}
 }
 
