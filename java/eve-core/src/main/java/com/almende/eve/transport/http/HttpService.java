@@ -1,6 +1,8 @@
 package com.almende.eve.transport.http;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,15 +22,15 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 
 public class HttpService implements TransportService {
-	protected Config config = null;
-	protected String servletUrl = null;
-	protected List<String> protocols = Arrays.asList("http", "https");
-
+	protected Config		config		= null;
+	protected String		servletUrl	= null;
+	protected List<String>	protocols	= Arrays.asList("http", "https");
+	
 	// protected List<String> protocols = new ArrayList<String>();
-
+	
 	public HttpService() {
 	}
-
+	
 	/**
 	 * Construct an HttpService This constructor is called when the
 	 * TransportService is constructed by the AgentFactory
@@ -42,7 +44,7 @@ public class HttpService implements TransportService {
 			setServletUrl((String) params.get("servlet_url"));
 		}
 	}
-
+	
 	/**
 	 * Construct an HttpService from a config The config can contain parameters:
 	 * environment.Production.servlet_url environment.Development.servlet_url
@@ -54,10 +56,10 @@ public class HttpService implements TransportService {
 	 *            Available parameters: {String} servlet_url
 	 */
 	public HttpService(Config config) {
-		//TODO: this seems unimplemented at this time.
+		// TODO: this seems unimplemented at this time.
 		this.config = config;
 	}
-
+	
 	/**
 	 * Construct an HttpService
 	 * 
@@ -66,7 +68,7 @@ public class HttpService implements TransportService {
 	public HttpService(String servletUrl) {
 		setServletUrl(servletUrl);
 	}
-
+	
 	/**
 	 * Set the servlet url for the transport service. This determines the
 	 * mapping between an agentId and agentUrl.
@@ -81,12 +83,12 @@ public class HttpService implements TransportService {
 		int separator = this.servletUrl.indexOf(":");
 		if (separator != -1) {
 			String protocol = this.servletUrl.substring(0, separator);
-			if (!protocols.contains(protocol)){
+			if (!protocols.contains(protocol)) {
 				protocols.add(protocol);
 			}
 		}
 	}
-
+	
 	/**
 	 * Return the configured servlet url corresponding to this transport
 	 * service. The servlet url is loaded from the parameter servlet_url in the
@@ -97,7 +99,7 @@ public class HttpService implements TransportService {
 	public String getServletUrl() {
 		return servletUrl;
 	}
-
+	
 	/**
 	 * Retrieve the protocols supported by the transport service. This can be
 	 * "http" or "https", depending on the configuration.
@@ -108,7 +110,7 @@ public class HttpService implements TransportService {
 	public List<String> getProtocols() {
 		return protocols;
 	}
-
+	
 	/**
 	 * Send a JSON-RPC request to an agent via HTTP
 	 * 
@@ -129,15 +131,14 @@ public class HttpService implements TransportService {
 		HttpPost httpPost = new HttpPost(receiverUrl);
 		httpPost.setEntity(new StringEntity(req));
 		
-		//Add token for HTTP handshake
+		// Add token for HTTP handshake
 		httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
 		httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
 		
 		HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
 		try {
-			String result = EntityUtils.toString(webResp
-					.getEntity());
-			if (result != null){
+			String result = EntityUtils.toString(webResp.getEntity());
+			if (result != null) {
 				response = new JSONResponse(result);
 			} else {
 				response = new JSONResponse();
@@ -149,7 +150,7 @@ public class HttpService implements TransportService {
 		}
 		return response;
 	}
-
+	
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent via HTTP
 	 * 
@@ -176,7 +177,7 @@ public class HttpService implements TransportService {
 			}
 		}).start();
 	}
-
+	
 	/**
 	 * Get the url of an agent from its id.
 	 * 
@@ -191,7 +192,7 @@ public class HttpService implements TransportService {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Get the id of an agent from its url. If the id cannot be extracted, null
 	 * is returned. A typical url is "http://myserver.com/agents/agentid/"
@@ -208,20 +209,27 @@ public class HttpService implements TransportService {
 				// provided url is only containing the path (not the domain)
 				agentUrl = getDomain(servletUrl) + agentUrl;
 			}
-
+			
 			if (agentUrl.startsWith(servletUrl)) {
 				int separator = agentUrl.indexOf("/", servletUrl.length());
-				if (separator != -1) {
-					return agentUrl.substring(servletUrl.length(), separator);
-				} else {
-					return agentUrl.substring(servletUrl.length());
+				try {
+					if (separator != -1) {
+						return URLDecoder.decode(agentUrl.substring(
+								servletUrl.length(), separator), "UTF-8");
+					} else {
+						return URLDecoder.decode(
+								agentUrl.substring(servletUrl.length()),
+								"UTF-8");
+					}
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
 				}
 			}
 		}
-
+		
 		return null;
 	}
-
+	
 	/**
 	 * Get the resource from the end of an agentUrl, for example
 	 * "http://myserver.com/agents/agentid/index.html" will return "index.html"
@@ -239,7 +247,7 @@ public class HttpService implements TransportService {
 				// provided url is only containing the path (not the domain)
 				agentUrl = getDomain(servletUrl) + agentUrl;
 			}
-
+			
 			if (agentUrl.startsWith(servletUrl)) {
 				int separator = agentUrl.indexOf("/", servletUrl.length());
 				if (separator != -1) {
@@ -249,10 +257,10 @@ public class HttpService implements TransportService {
 				}
 			}
 		}
-
+		
 		return null;
 	}
-
+	
 	/**
 	 * Get the domain part of given url. For example
 	 * "http://localhost:8080/EveCore/agents/testagent/1/" will return
@@ -274,7 +282,7 @@ public class HttpService implements TransportService {
 		}
 		return "";
 	}
-
+	
 	@Override
 	public String toString() {
 		Map<String, Object> data = new HashMap<String, Object>();
@@ -283,10 +291,10 @@ public class HttpService implements TransportService {
 		data.put("protocols", protocols);
 		return data.toString();
 	}
-
+	
 	@Override
 	public void reconnect(String agentId) throws Exception {
-		//Nothing todo at this point
+		// Nothing todo at this point
 	}
 	
 }
