@@ -85,8 +85,7 @@ class ClockScheduler implements Scheduler, Runnable {
 
 	@SuppressWarnings("unchecked")
 	public TaskEntry getFirstTask(boolean remove) {
-		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get("_taskList");
+		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState().get("_taskList");
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
 			if (remove) {

@@ -14,6 +14,9 @@ public class TestAgentFactory extends TestCase {
 
 		System.err.println(this.getClass().getName() + ":"+this.getClass().getClassLoader().hashCode());
 		AgentFactory factory = AgentFactory.getInstance();
+		if (factory == null){
+			factory = AgentFactory.createInstance();
+		}
 		
 		Test2AgentInterface agent = factory.createAgentProxy(null, 
 				"http://eveagents.appspot.com/agents/test/", 

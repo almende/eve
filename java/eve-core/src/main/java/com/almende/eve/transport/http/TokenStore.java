@@ -1,5 +1,6 @@
 package com.almende.eve.transport.http;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ import com.almende.eve.state.FileStateFactory;
 public class TokenStore {
 	static final TokenStore me = new TokenStore();
 	static final int SIZE = 5;
-	static Map<String, Object> TOKENS;
+	static Map<String, Serializable> TOKENS;
 	static DateTime last = DateTime.now();
 	
 	private TokenStore(){

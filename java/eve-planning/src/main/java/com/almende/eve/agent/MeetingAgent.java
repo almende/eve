@@ -798,8 +798,8 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Issue> getIssues() {
-		List<Issue> issues = (List<Issue>) getState().get("issues");
+	public ArrayList<Issue> getIssues() {
+		ArrayList<Issue> issues = (ArrayList<Issue>) getState().get("issues");
 		if (issues == null) {
 			issues = new ArrayList<Issue>();
 		}
@@ -819,7 +819,7 @@ public class MeetingAgent extends Agent {
 	 * @param issue
 	 */
 	private void addIssue(Issue issue) {
-		List<Issue> issues = getIssues();
+		ArrayList<Issue> issues = getIssues();
 		issues.add(issue);
 		getState().put("issues", issues);
 		
@@ -882,8 +882,8 @@ public class MeetingAgent extends Agent {
 	@SuppressWarnings("unchecked")
 	private void putAgentData(String agentUrl, AgentData data) {
 		State state = getState();
-		Map<String, AgentData> calendarAgents = 
-				(Map<String, AgentData>) state.get("calendarAgents");
+		HashMap<String, AgentData> calendarAgents = 
+				(HashMap<String, AgentData>) state.get("calendarAgents");
 		if (calendarAgents == null) {
 			calendarAgents = new HashMap<String, AgentData>();
 		}
@@ -900,7 +900,7 @@ public class MeetingAgent extends Agent {
 	@SuppressWarnings("unchecked")
 	private void removeAgentData(String agent) {
 		State state = getState();
-		Map<String, AgentData> calendarAgents = (Map<String, AgentData>) state
+		HashMap<String, AgentData> calendarAgents = (HashMap<String, AgentData>) state
 				.get("calendarAgents");
 		if (calendarAgents != null && calendarAgents.containsKey(agent)) {
 			calendarAgents.remove(agent);
@@ -1130,8 +1130,8 @@ public class MeetingAgent extends Agent {
 	 * Merge the busy intervals of all attendees, and the preferred intervals
 	 */
 	private void mergeTimeConstraints() {
-		List<Interval> infeasibleIntervals = new ArrayList<Interval>();
-		List<Weight> preferredIntervals = new ArrayList<Weight>();
+		ArrayList<Interval> infeasibleIntervals = new ArrayList<Interval>();
+		ArrayList<Weight> preferredIntervals = new ArrayList<Weight>();
 
 		Activity activity = getActivity();
 		if (activity != null) {

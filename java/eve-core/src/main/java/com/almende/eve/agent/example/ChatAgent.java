@@ -152,16 +152,16 @@ public class ChatAgent extends Agent {
 	@SuppressWarnings("unchecked")
 	public void connect(@Name("url") String url) throws Exception {
 		boolean otherAlreadyConnected = false;
-		List<String> newConnections = new ArrayList<String>();
+		ArrayList<String> newConnections = new ArrayList<String>();
 		
 		// retrieve all connections that the other agent has, and synchronize
 		// my own list with it.
-		List<String> type = new ArrayList<String>();
-		List<String> otherConnections = send(url, "getConnections", type.getClass());
+		ArrayList<String> type = new ArrayList<String>();
+		ArrayList<String> otherConnections = send(url, "getConnections", type.getClass());
 
 		// get my own connections from the state
 		String urlSelf = getMyUrl();
-		List<String> connections = (List<String>) getState().get("connections"); 
+		ArrayList<String> connections = (ArrayList<String>) getState().get("connections"); 
 		if (connections == null) {	
 			connections = new ArrayList<String>();
 		}
@@ -252,7 +252,7 @@ public class ChatAgent extends Agent {
 	 */
 	@SuppressWarnings("unchecked")
 	public void removeConnection(@Name("url") String url) throws Exception {
-		List<String> connections = (List<String>) getState().get("connections");
+		ArrayList<String> connections = (ArrayList<String>) getState().get("connections");
 		if (connections != null) {
 			connections.remove(url);
 			getState().put("connections", connections);	

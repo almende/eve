@@ -14,7 +14,7 @@ public class LogAgent extends Agent {
 		@SuppressWarnings("unchecked")
 		// TODO: use a database instead of the state - when you register
 		//       more and more logs this will be very unreliable.
-		List<Log> logs = (List<Log>) getState().get("logs");
+		ArrayList<Log> logs = (ArrayList<Log>) getState().get("logs");
 		if (logs == null) {
 			logs = new ArrayList<Log>();
 		}

@@ -1,6 +1,7 @@
 package com.almende.eve.state.google;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class DatastoreState extends AbstractState {
 	private boolean loadFromCache() {
 		cacheValue = cache.getIdentifiable(agentId);
 		if (cacheValue != null && cacheValue.getValue() != null) {
-			properties = (Map<String, Object>) cacheValue.getValue();
+			properties = (Map<String, Serializable>) cacheValue.getValue();
 			return true;
 		}
 		
@@ -165,12 +166,12 @@ public class DatastoreState extends AbstractState {
 			
 			@SuppressWarnings("rawtypes")
 			Class<? extends HashMap> MAP_OBJECT_CLASS = 
-				(new HashMap<String, Object>()).getClass();
+				(new HashMap<String, Serializable>()).getClass();
 			
 			if (entity != null) {
 				// TODO: can this be simplified with the following?:
 				//       Map<String, Object> newProperties = entity.getValue(Map.class);
-				Map<String, Object> newProperties = entity.getValue(MAP_OBJECT_CLASS);
+				Map<String, Serializable> newProperties = entity.getValue(MAP_OBJECT_CLASS);
 				if (newProperties != null) {
 					properties = newProperties;
 				}
@@ -254,15 +255,15 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public Object get(Object key) {
+	public Serializable get(Object key) {
 		refresh();
 		return properties.get(key);
 	}
 
 	@Override
-	public Object put(String key, Object value) {
+	public Serializable put(String key, Serializable value) {
 		refresh();
-		Object ret = properties.put(key, value);
+		Serializable ret = properties.put(key, value);
 		boolean success = update();
 		if (!success) {
 			ret = null;
@@ -277,9 +278,9 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public Object remove(Object key) {
+	public Serializable remove(Object key) {
 		refresh();
-		Object value = properties.remove(key);
+		Serializable value = properties.remove(key);
 		update();
 		return value;
 	}
@@ -302,7 +303,7 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
 		refresh();
 		return properties.entrySet();
 	}
@@ -320,14 +321,14 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Object> map) {
+	public void putAll(Map<? extends String, ? extends Serializable> map) {
 		refresh();
 		properties.putAll(map);
 		update();
 	}
 
 	@Override
-	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		boolean result=false;
 		refresh();
 		if ((oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
@@ -345,12 +346,12 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public Collection<Object> values() {
+	public Collection<Serializable> values() {
 		refresh();
 		return properties.values();
 	}
 
-	private Map<String, Object> properties = new HashMap<String, Object>();
+	private Map<String, Serializable> properties = new HashMap<String, Serializable>();
 	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 	private IdentifiableValue cacheValue = null;
 	private boolean isChanged = false;

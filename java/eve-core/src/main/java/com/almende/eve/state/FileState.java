@@ -1,5 +1,6 @@
 package com.almende.eve.state;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -56,27 +57,28 @@ public abstract class FileState extends AbstractState {
 	abstract public boolean containsValue(Object value);
 	
 	@Override
-	abstract public Set<java.util.Map.Entry<String, Object>> entrySet();
+	abstract public Set<java.util.Map.Entry<String, Serializable>> entrySet();
 
 	@Override
-	abstract public Object get(Object key);
+	abstract public Serializable get(Object key);
 
 	@Override
 	abstract public boolean isEmpty();
 
 	@Override
-	abstract public Object put(String key, Object value);
+	abstract public Serializable put(String key, Serializable value);
 
 	@Override
-	abstract public void putAll(Map<? extends String, ? extends Object> map);
+	abstract public void putAll(Map<? extends String, ? extends Serializable> map);
 
 	@Override
-	abstract public Object remove(Object key);
+	abstract public Serializable remove(Object key);
 
+	
 	@Override
 	abstract public int size();
 	
 	@Override
-	abstract public Collection<Object> values();
+	abstract public Collection<Serializable> values();
 	
 }

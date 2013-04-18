@@ -13,6 +13,8 @@ transport_services:
   host: openid.almende.org
   port: 5222
   service: openid.almende.org
+- class: HttpService
+  servlet_url: http://localhost:8080/agents/
 
 # state settings
 # the state is used to persist the agents state.

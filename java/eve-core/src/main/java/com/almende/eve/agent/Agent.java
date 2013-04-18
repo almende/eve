@@ -257,8 +257,8 @@ abstract public class Agent implements AgentInterface {
 	 */
 	@SuppressWarnings("unchecked")
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
-		Map<String, List<Callback> > allSubscriptions = 
-			(Map<String, List<Callback> >) state.get("subscriptions");
+		HashMap<String, List<Callback> > allSubscriptions = 
+			(HashMap<String, List<Callback> >) state.get("subscriptions");
 		if (allSubscriptions == null) {
 			allSubscriptions = new HashMap<String, List<Callback>> ();
 		}
@@ -321,8 +321,8 @@ abstract public class Agent implements AgentInterface {
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
 		@SuppressWarnings("unchecked")
-		Map<String, List<Callback> > allSubscriptions = 
-				(Map<String, List<Callback> >) state.get("subscriptions");
+		HashMap<String, List<Callback> > allSubscriptions = 
+				(HashMap<String, List<Callback> >) state.get("subscriptions");
 		if (allSubscriptions == null) {
 			return;
 		}
@@ -693,6 +693,8 @@ abstract public class Agent implements AgentInterface {
 					urls.add(url);
 				}
 			}
+		} else {
+			System.err.println("AgentFactory not initialized?!?");
 		}
 		return urls;
 	}

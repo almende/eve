@@ -1,5 +1,6 @@
 package com.almende.eve.transport.http;
 
+import java.io.Serializable;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +26,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
@@ -84,22 +86,22 @@ public class ApacheHttpClient {
 		
 		@Override
 		public void addCookie(Cookie cookie) {
-			myState.put(new Integer(COOKIESTORE.hashCode()).toString(),cookie);
+			myState.put(new Integer(COOKIESTORE.hashCode()).toString(),(BasicClientCookie)cookie);
 		}
 		@Override
 		public List<Cookie> getCookies() {
 			List<Cookie> result = new ArrayList<Cookie>(myState.size());
-			for (Entry<String,Object> entry : myState.entrySet()){
+			for (Entry<String,Serializable> entry : myState.entrySet()){
 				result.add((Cookie) entry.getValue());
 			}
 			return result;
 		}
 		@Override
 		public boolean clearExpired(Date date) {
-			Iterator<Entry<String, Object>> iter = myState.entrySet().iterator();
+			Iterator<Entry<String, Serializable>> iter = myState.entrySet().iterator();
 			boolean result=false;
 			while (iter.hasNext()){
-				Entry<String,Object> next= iter.next();
+				Entry<String,Serializable> next= iter.next();
 				if (((Cookie)next.getValue()).isExpired(date)){
 					iter.remove();
 					result=true;

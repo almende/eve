@@ -1,5 +1,6 @@
 package com.almende.eve.state;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jos
  */
 public class MemoryState extends AbstractState {
-	private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
+	private Map<String, Serializable> properties = new ConcurrentHashMap<String, Serializable>();
 
 	public MemoryState() {}
 	
@@ -56,12 +57,12 @@ public class MemoryState extends AbstractState {
 	}
 
 	@Override
-	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
 		return properties.entrySet();
 	}
 
 	@Override
-	public Object get(Object key) {
+	public Serializable get(Object key) {
 		return properties.get(key);
 	}
 
@@ -71,17 +72,17 @@ public class MemoryState extends AbstractState {
 	}
 
 	@Override
-	public Object put(String key, Object value) {
+	public Serializable put(String key, Serializable value) {
 		return properties.put(key, value);
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Object> map) {
+	public void putAll(Map<? extends String, ? extends Serializable> map) {
 		properties.putAll(map);
 	}
 
 	@Override
-	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		boolean result=false;
 		if (!(oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 			properties.put(key, newVal);
@@ -91,7 +92,7 @@ public class MemoryState extends AbstractState {
 	}
 	
 	@Override
-	public Object remove(Object key) {
+	public Serializable remove(Object key) {
 		return properties.remove(key);
 	}
 
@@ -101,7 +102,7 @@ public class MemoryState extends AbstractState {
 	}
 
 	@Override
-	public Collection<Object> values() {
+	public Collection<Serializable> values() {
 		return properties.values();
 	}
 

@@ -1,6 +1,7 @@
 package com.almende.eve.scheduler;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -129,7 +130,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 
 	// TODO: make the class Task serializable (and auto-restart when
 	// initializing again?)
-	private class Task {
+	private class Task implements Serializable {
+		private static final long	serialVersionUID	= -2250937108323878021L;
 		private String agentId = null;
 		private String taskId = null;
 		private JSONRequest request = null;
@@ -389,7 +391,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * Persist all currently running tasks
 	 */
 	private void storeTasks() {
-		List<Map<String, String>> serializedTasks = new ArrayList<Map<String, String>>();
+		ArrayList<Map<String, String>> serializedTasks = new ArrayList<Map<String, String>>();
 
 		for (Entry<String, Map<String, Task>> allEntry : allTasks.entrySet()) {
 			Map<String, Task> tasks = allEntry.getValue();

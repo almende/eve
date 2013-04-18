@@ -9,6 +9,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,15 +18,15 @@ import java.util.Set;
 
 import android.content.Context;
 
-public class AndroidState extends com.almende.eve.state.AbstractState {
+public class AndroidState extends AbstractState {
 
 	public AndroidState() {
 	}
 
 	Context appCtx = null;
 	private String filename = null;
-	private Map<String, Object> properties = Collections
-			.synchronizedMap(new HashMap<String, Object>());
+	private Map<String, Serializable> properties = Collections
+			.synchronizedMap(new HashMap<String, Serializable>());
 
 	public AndroidState(String agentId, Context appContext) {
 		super(agentId);
@@ -72,9 +73,7 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 			FileInputStream fis = appCtx.openFileInput(filename);
 			ObjectInput in = new ObjectInputStream(fis);
 			properties.clear();
-			properties.putAll((Map<String, Object>) in.readObject());
-			// Always provide a copy of the AppContext in the properties
-			properties.put("AppContext", appCtx);
+			properties.putAll((Map<String, Serializable>) in.readObject());
 			fis.close();
 			in.close();
 			return true;
@@ -112,6 +111,10 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 			properties.clear();
 		}
 	}
+	
+	public Context getContext(){
+		return appCtx;
+	}
 
 	@Override
 	public Set<String> keySet() {
@@ -138,7 +141,7 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 	}
 
 	@Override
-	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
 		synchronized (properties) {
 			read();
 			return properties.entrySet();
@@ -146,7 +149,7 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 	}
 
 	@Override
-	public Object get(Object key) {
+	public Serializable get(Object key) {
 		synchronized (properties) {
 			read();
 			return properties.get(key);
@@ -162,17 +165,17 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 	}
 
 	@Override
-	public Object put(String key, Object value) {
+	public Serializable put(String key, Serializable value) {
 		synchronized (properties) {
 			read();
-			Object ret = properties.put(key, value);
+			Serializable ret = properties.put(key, value);
 			write();
 			return ret;
 		}
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Object> map) {
+	public void putAll(Map<? extends String, ? extends Serializable> map) {
 		synchronized (properties) {
 			read();
 			properties.putAll(map);
@@ -181,7 +184,7 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 	}
 
 	@Override
-	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		synchronized (properties) {
 			boolean result = false;
 			read();
@@ -195,10 +198,10 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 	}
 
 	@Override
-	public Object remove(Object key) {
+	public Serializable remove(Object key) {
 		synchronized (properties) {
 			read();
-			Object value = properties.remove(key);
+			Serializable value = properties.remove(key);
 			write();
 			return value;
 		}
@@ -213,7 +216,7 @@ public class AndroidState extends com.almende.eve.state.AbstractState {
 	}
 
 	@Override
-	public Collection<Object> values() {
+	public Collection<Serializable> values() {
 		synchronized (properties) {
 			read();
 			return properties.values();

@@ -9,6 +9,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.nio.channels.FileLock;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +39,7 @@ import java.util.Set;
 // TODO: create an in memory cache and reduce the number of reads/writes
 public class OriginalFileState extends FileState {
 	private String filename = null;
-	private Map<String, Object> properties = Collections.synchronizedMap(new HashMap<String, Object>());
+	private Map<String, Serializable> properties = Collections.synchronizedMap(new HashMap<String, Serializable>());
 
 	protected OriginalFileState() {}
 
@@ -87,7 +88,7 @@ public class OriginalFileState extends FileState {
 				FileInputStream fis = new FileInputStream(filename);
 				ObjectInput in = new ObjectInputStream(fis);
 				properties.clear();
-				properties.putAll((Map<String, Object>) in.readObject());
+				properties.putAll((Map<String, Serializable>) in.readObject());
 				in.close();
 				fis.close();
 				return true;
@@ -152,7 +153,7 @@ public class OriginalFileState extends FileState {
 	}
 
 	@Override
-	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
 		synchronized(properties){
 			read();
 			return properties.entrySet();
@@ -160,7 +161,7 @@ public class OriginalFileState extends FileState {
 	}
 
 	@Override
-	public Object get(Object key) {
+	public Serializable get(Object key) {
 		synchronized(properties){
 			read();
 			return properties.get(key);
@@ -176,17 +177,17 @@ public class OriginalFileState extends FileState {
 	}
 
 	@Override
-	public Object put(String key, Object value) {
+	public Serializable put(String key, Serializable value) {
 		synchronized(properties){
 			read();
-			Object ret = properties.put(key, value);
+			Serializable ret = properties.put(key, value);
 			write();
 			return ret;
 		}
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Object> map) {
+	public void putAll(Map<? extends String, ? extends Serializable> map) {
 		synchronized(properties){
 			read();
 			properties.putAll(map);
@@ -195,7 +196,7 @@ public class OriginalFileState extends FileState {
 	}
 
 	@Override
-	public boolean putIfUnchanged(String key, Object newVal, Object oldVal) {
+	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		synchronized(properties){
 			boolean result=false;
 			read();
@@ -209,10 +210,10 @@ public class OriginalFileState extends FileState {
 	}
 	
 	@Override
-	public Object remove(Object key) {
+	public Serializable remove(Object key) {
 		synchronized(properties){
 			read();
-			Object value = properties.remove(key);
+			Serializable value = properties.remove(key);
 			write();
 			return value; 
 		}
@@ -227,7 +228,7 @@ public class OriginalFileState extends FileState {
 	}
 
 	@Override
-	public Collection<Object> values() {
+	public Collection<Serializable> values() {
 		synchronized(properties){
 			read();
 			return properties.values();

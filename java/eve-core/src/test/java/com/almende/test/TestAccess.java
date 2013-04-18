@@ -33,6 +33,7 @@ public class TestAccess extends TestCase {
 		} else {
 			testAgent = agentFactory.createAgent(TestAccessAgent.class, TEST1);
 		}
+		System.err.println("testAgent:"+testAgent.getId()+":"+testAgent.getUrls());
 		TestAccessAgent agent;
 		if (agentFactory.hasAgent(TEST2)) {
 			agent = (TestAccessAgent) agentFactory.getAgent(TEST2);

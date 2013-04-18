@@ -8,7 +8,8 @@
 		<Get id="DefaultIdentityService" name="identityService" />
 	</New>
 
-	<!-- will probably leak the old identity service and associated components upon many restarts of the maven plugin -->
+	<!-- will probably leak the old identity service and associated components 
+		upon many restarts of the maven plugin -->
 	<Get name="securityHandler">
 		<Set name="identityService">
 			<Ref id="DefaultIdentityService" />
