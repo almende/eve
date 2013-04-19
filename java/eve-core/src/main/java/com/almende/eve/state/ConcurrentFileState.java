@@ -367,6 +367,7 @@ public class ConcurrentFileState extends FileState {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			result = true; //Don't let users loop if exception is thrown. They would get into a deadlock....
 		}
 		closeFile();
 		return result;
