@@ -196,12 +196,15 @@ public class XmppService implements TransportService {
 	final public void connect(String agentId, String username, String password,
 			String resource) throws Exception {
 		String agentUrl = generateUrl(username, host, resource);
+		AgentConnection connection;
 		if (connectionsByUrl.containsKey(agentUrl)) {
 			logger.warning("Warning, agent was already connected, reconnecting.");
+			connection = connectionsByUrl.get(agentUrl);
+		} else {
+			// instantiate open the connection
+			connection = new AgentConnection(agentFactory);
 		}
 		
-		// instantiate open the connection
-		AgentConnection connection = new AgentConnection(agentFactory);
 		connection.connect(agentId, host, port, service, username, password,
 				resource);
 		
