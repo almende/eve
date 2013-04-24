@@ -66,6 +66,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 			this.agentId = agentId;
 		}
 		
+
 		/**
 		 * Schedule a task
 		 * @param request   A JSONRequest with method and params
@@ -74,7 +75,25 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 		 */
 		@Override
 		public String createTask(JSONRequest request, long delay) {
+			return createTask(request, delay, false, false);
+		}
+		/**
+		 * Schedule a task
+		 * @param request   A JSONRequest with method and params
+		 * @param delay     The delay in milliseconds
+		 * @param interval   Should the task be repeated at an interval?
+		 * @param sequential Should (long running) tasks run sequential, or may they run in parallel?
+		 * @return taskId
+		 */
+		@Override
+		public String createTask(JSONRequest request, long delay, boolean interval, boolean sequential) {
 			try {
+				
+				if (interval){
+					//TODO: fix this!
+					System.err.println("WARNING: interval scheduling is not supported by Eve on Google App Engine, only running once!");
+				}
+				
 				// TODO: getting an arbitrary http service which knows this agent
 				//       is not safe
 				//       -> Scheduler should be configured with the servlet_url 

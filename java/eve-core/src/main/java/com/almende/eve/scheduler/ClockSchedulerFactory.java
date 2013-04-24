@@ -121,6 +121,10 @@ class ClockScheduler implements Scheduler, Runnable {
 	}
 
 	public void runTask(final TaskEntry task) {
+		if (task.interval>0 && !task.sequential){
+			task.due = DateTime.now().plus(task.interval);
+			putTask(task);
+		}
 		myClock.runInPool(new Runnable() {
 			@Override
 			public void run() {
@@ -131,6 +135,10 @@ class ClockScheduler implements Scheduler, Runnable {
 
 					myAgent.getAgentFactory().receive(myAgent.getId(),
 							task.request, params);
+					if (task.interval>0 && task.sequential){
+						task.due = DateTime.now().plus(task.interval);
+						putTask(task);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -141,7 +149,12 @@ class ClockScheduler implements Scheduler, Runnable {
 
 	@Override
 	public String createTask(JSONRequest request, long delay) {
-		TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request);
+		return createTask(request,delay,false,false);
+	}
+	
+	@Override
+	public String createTask(JSONRequest request, long delay, boolean interval, boolean sequential) {
+		TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request, (interval?delay:0), sequential);
 		if (delay <= 0) {
 			runTask(task);
 		} else {
@@ -222,11 +235,15 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	String taskId;
 	JSONRequest request;
 	DateTime due;
+	long interval=0;
+	boolean sequential=true;
 
-	public TaskEntry(DateTime due, JSONRequest request) {
+	public TaskEntry(DateTime due, JSONRequest request, long interval, boolean sequential) {
 		taskId = UUID.randomUUID().toString();
 		this.request = request;
 		this.due = due;
+		this.interval=interval;
+		this.sequential=sequential;
 	}
 
 	@Override
