@@ -411,10 +411,12 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public Agent createAgent(String agentType, String agentId) throws Exception {
-		return (Agent) createAgent(Class.forName(agentType), agentId);
+	public <T> T createAgent(String agentType, String agentId) throws Exception {
+		return createAgent(agentType, agentId);
 	}
 
+	
+	
 	/**
 	 * Create an agent.
 	 * 
@@ -426,7 +428,7 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public Agent createAgent(Class<?> agentType, String agentId)
+	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
 			throws Exception {
 		if (!ClassUtil.hasSuperClass(agentType, Agent.class)) {
 			throw new Exception("Class " + agentType
@@ -446,7 +448,7 @@ public class AgentFactory {
 		state.init();
 
 		// instantiate the agent
-		Agent agent = (Agent) agentType.getConstructor().newInstance();
+		T agent = (T) agentType.getConstructor().newInstance();
 		agent.setAgentFactory(this);
 		agent.setState(state);
 		agent.create();
