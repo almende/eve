@@ -1,6 +1,7 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONResponse {
 	protected ObjectNode resp = JOM.createObjectNode();
+	private static final Logger logger = Logger.getLogger(JSONResponse.class.getName());
 
 	public JSONResponse () {
 		init(null, null, null);
@@ -20,7 +22,12 @@ public class JSONResponse {
 			throws JSONRPCException, JsonParseException, JsonMappingException, 
 			IOException {
 		ObjectMapper mapper = JOM.getInstance();
-		init(mapper.readValue(json, ObjectNode.class));
+		try {
+			init(mapper.readValue(json, ObjectNode.class));
+		} catch (JsonParseException e){
+			logger.warning("Failed to parse JSON: '"+json+"'");
+			throw e;
+		}
 	}
 
 	public JSONResponse (ObjectNode response) throws JSONRPCException {
