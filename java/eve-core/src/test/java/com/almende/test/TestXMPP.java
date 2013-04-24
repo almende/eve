@@ -57,6 +57,8 @@ public class TestXMPP extends TestCase {
 		Thread.sleep(2000);
 		xmppService.disconnect("gloria");
 		xmppService.disconnect("alex");
+		
+		AgentFactory.setDoesShortcut(true);
 	}
 
 }
