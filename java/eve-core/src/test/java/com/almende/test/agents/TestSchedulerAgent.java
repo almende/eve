@@ -13,26 +13,34 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestSchedulerAgent extends Agent {
+	static final Logger log = Logger.getLogger("testScheduler");
 	
 	public void setTest(@Name("agentId") String agentId,
-			@Name("delay") int delay) {
+			@Name("delay") int delay, @Name("interval") boolean interval,@Name("sequential") boolean sequential) {
 		ObjectNode params = JOM.getInstance().createObjectNode();
 		params.put("time", DateTime.now().toString());
 		params.put("expected", DateTime.now().plus(delay).toString());
+		params.put("interval", interval);
+		params.put("sequential", sequential);
 		JSONRequest request = new JSONRequest("doTest", params);
-		getScheduler().createTask(request, delay);
+		getScheduler().createTask(request, delay, interval, sequential);
 	}
 
 	public void doTest(@Name("time") String startStr,
-			@Name("expected") String expectedStr) {
+			@Name("expected") String expectedStr,
+			@Name("interval") Boolean interval,
+			@Name("sequential") Boolean sequential) {
 		DateTime startTime = new DateTime(startStr);
 		DateTime expected = new DateTime(expectedStr);
 
-		Logger log = Logger.getLogger("testScheduler");
 		log.info("Duration since schedule:"
 				+ (new Duration(startTime, DateTime.now()).getMillis()));
-		log.info("Delay after expected runtime:"
+		if (interval){
+			log.info("Interval seq:"+sequential);
+		} else {
+			log.info("Delay after expected runtime:"
 				+ (new Duration(expected,DateTime.now()).getMillis()));
+		}
 		Serializable oldCnt = getState().get("runCount");
 		Integer newCnt = 1;
 		if (oldCnt != null){

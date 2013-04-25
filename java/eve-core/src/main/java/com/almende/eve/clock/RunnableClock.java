@@ -32,7 +32,7 @@ public class RunnableClock implements Runnable, Clock {
 					future.cancel(false);
 					future = null;
 				}
-				// log.warning("Delaying next trigger until:"+ce.due);
+				//log.warning("Delaying next trigger until:"+ce.due);
 				long interval = new Interval(now, ce.due).toDurationMillis();
 				future = pool.schedule(this, interval, TimeUnit.MILLISECONDS);
 				break;
@@ -46,7 +46,7 @@ public class RunnableClock implements Runnable, Clock {
 			ClockEntry ce = new ClockEntry(agentId, due, callback);
 			ClockEntry oldVal = timeline.get(ce);
 			if (oldVal == null || oldVal.due.isAfter(due)) {
-				// log.warning("Adding/replacing "+agentId+"'s trigger to:"+due);
+//				 log.warning("Adding/replacing "+agentId+"'s trigger to:"+due);
 				timeline.put(ce, ce);
 				run();
 			}

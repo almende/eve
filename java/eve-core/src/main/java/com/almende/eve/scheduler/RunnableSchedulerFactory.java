@@ -157,7 +157,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			// 0
 			this.agentId = agentId;
 			this.request = request;
-			if (interval){
+			if (interval) {
 				this.interval = delay;
 				this.sequential = sequential;
 			}
@@ -205,29 +205,32 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		private void start(final long delay) {
 			// create the task
 			timestamp = DateTime.now().plus(delay);
-			taskId = createTaskId();
+			if (taskId == null) taskId = createTaskId();
 			future = scheduler.schedule(new Runnable() {
 				@Override
 				public void run() {
 					try {
-						if (interval>0 && !sequential) {
+						if (cancelled()) return;
+						if (interval > 0 && !sequential) {
 							start(interval);
 						}
+						
 						RequestParams params = new RequestParams();
 						String senderUrl = "local://" + agentId;
 						params.put(Sender.class, senderUrl); // TODO: provide
 																// itself
 						
 						agentFactory.receive(agentId, request, params);
-						
-						if (interval>0 && sequential) {
+
+						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
 						}
-						
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {
-						remove();
+						if (interval <= 0){
+							remove();
+						}
 					}
 				}
 			}, delay, TimeUnit.MILLISECONDS);
@@ -286,14 +289,27 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				storeTasks();
 			}
 		}
+		/**
+		 * Check if this task is still on the global Task list. If missing (e.g. due to cancel) returns true;
+		 */
+		private boolean cancelled(){
+			Map<String, Task> tasks = allTasks.get(agentId);
+			if (tasks != null){
+				Task storedTask = tasks.get(taskId);
+				if (storedTask != null){
+					return false;
+				}
+			}
+			return true;
+		}
 		
 		public Map<String, String> getParams() {
 			Map<String, String> params = new HashMap<String, String>();
 			params.put("agentId", agentId);
 			params.put("request", request.toString());
 			params.put("timestamp", timestamp.toString());
-			params.put("interval",new Long(interval).toString());
-			params.put("sequential",new Boolean(sequential).toString());
+			params.put("interval", new Long(interval).toString());
+			params.put("sequential", new Boolean(sequential).toString());
 			return params;
 		}
 		
