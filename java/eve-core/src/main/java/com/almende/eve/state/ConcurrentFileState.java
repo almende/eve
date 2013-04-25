@@ -96,7 +96,7 @@ public class ConcurrentFileState extends FileState {
 	private void openFile() throws Exception {
 		synchronized (locked) {
 			while (locked.containsKey(filename) && locked.get(filename)) {
-				// logger.warning("Starting to wait for locked! "+filename);
+//				logger.warning("Starting to wait for locked! "+filename);
 				locked.wait();
 			}
 			locked.put(filename, true);
@@ -108,7 +108,7 @@ public class ConcurrentFileState extends FileState {
 						+ this.filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
-			// logger.warning("Starting to wait for fileLock! "+filename);
+//			logger.warning("Starting to wait for fileLock! "+filename);
 			try {
 				// TODO: add support for shared locks, allowing parallel reading
 				// operations.
@@ -118,9 +118,9 @@ public class ConcurrentFileState extends FileState {
 				channel = null;
 				locked.put(filename, false);
 				locked.notifyAll();
-				throw new Exception("error, couldn't obtain file lock", e);
+				throw new Exception("error, couldn't obtain file lock on:"+filename, e);
 			}
-			// logger.warning("fileLock set! "+filename);
+//			logger.warning("fileLock set! "+filename);
 			fis = Channels.newInputStream(channel);
 			fos = Channels.newOutputStream(channel);
 		}
@@ -131,7 +131,7 @@ public class ConcurrentFileState extends FileState {
 			if (channel != null && channel.isOpen()) {
 				try {
 					if (lock != null) lock.release();
-					// logger.warning("fileLock released! "+filename);
+//					logger.warning("fileLock released! "+filename);
 					
 					fos.close();
 					fis.close();
@@ -146,7 +146,7 @@ public class ConcurrentFileState extends FileState {
 			lock = null;
 			locked.put(filename, false);
 			locked.notifyAll();
-			// logger.warning("locked released! "+filename);
+//			logger.warning("locked released! "+filename);
 		}
 	}
 	

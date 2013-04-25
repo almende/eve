@@ -4,7 +4,6 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 import com.almende.test.agents.TestAccessAgent;
@@ -27,9 +26,9 @@ public class TestAccess extends TestCase {
 		agentFactory.setConfig(config);
 		agentFactory.setSchedulerFactory(config);
 		agentFactory.addAgents(config);
-		Agent testAgent;
+		TestAccessAgent testAgent;
 		if (agentFactory.hasAgent(TEST1)) {
-			testAgent = agentFactory.getAgent(TEST1);
+			testAgent = (TestAccessAgent) agentFactory.getAgent(TEST1);
 		} else {
 			testAgent = agentFactory.createAgent(TestAccessAgent.class, TEST1);
 		}
@@ -41,7 +40,7 @@ public class TestAccess extends TestCase {
 			agent = (TestAccessAgent) agentFactory.createAgent(
 					TestAccessAgent.class, TEST2);
 		}
-		boolean[] result = agent.run(testAgent.getUrls().get(0));
+		boolean[] result = agent.run((String)testAgent.getUrls().get(0));
 		assertEquals(7, result.length);
 		assertEquals(true, result[0]);// allowed
 		assertEquals(false, result[1]);// forbidden
