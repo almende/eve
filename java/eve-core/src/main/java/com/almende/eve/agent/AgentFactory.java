@@ -411,8 +411,9 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T createAgent(String agentType, String agentId) throws Exception {
-		return createAgent(agentType, agentId);
+	@SuppressWarnings("unchecked")
+	public <T extends Agent> T createAgent(String agentType, String agentId) throws Exception {
+		return (T) createAgent((Class<T>)Class.forName(agentType), agentId);
 	}
 
 	
