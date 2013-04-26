@@ -80,11 +80,9 @@ public class ConcurrentFileState extends FileState {
 		super(agentId);
 		this.filename = filename;
 		this.json = json;
-		if (this.json) {
-			om = JOM.getInstance();
-			om.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
-			om.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-		}
+		om = JOM.getInstance();
+		om.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+		om.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
 	}
 	
 	@Override
