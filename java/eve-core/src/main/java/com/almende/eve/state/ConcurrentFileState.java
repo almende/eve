@@ -68,7 +68,7 @@ public class ConcurrentFileState extends FileState {
 	private ObjectMapper				om			= null;
 	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
 	
-	private Map<String, Serializable>			properties	= Collections
+	private Map<String, Serializable>	properties	= Collections
 															.synchronizedMap(new HashMap<String, Serializable>());
 	
 	public ConcurrentFileState(String agentId, String filename) {
@@ -96,7 +96,7 @@ public class ConcurrentFileState extends FileState {
 	private void openFile() throws Exception {
 		synchronized (locked) {
 			while (locked.containsKey(filename) && locked.get(filename)) {
-//				logger.warning("Starting to wait for locked! "+filename);
+				// logger.warning("Starting to wait for locked! "+filename);
 				locked.wait();
 			}
 			locked.put(filename, true);
@@ -108,7 +108,7 @@ public class ConcurrentFileState extends FileState {
 						+ this.filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
-//			logger.warning("Starting to wait for fileLock! "+filename);
+			// logger.warning("Starting to wait for fileLock! "+filename);
 			try {
 				// TODO: add support for shared locks, allowing parallel reading
 				// operations.
@@ -116,11 +116,13 @@ public class ConcurrentFileState extends FileState {
 			} catch (Exception e) {
 				channel.close();
 				channel = null;
+				lock = null;
 				locked.put(filename, false);
 				locked.notifyAll();
-				throw new Exception("error, couldn't obtain file lock on:"+filename, e);
+				throw new Exception("error, couldn't obtain file lock on:"
+						+ filename, e);
 			}
-//			logger.warning("fileLock set! "+filename);
+			// logger.warning("fileLock set! "+filename);
 			fis = Channels.newInputStream(channel);
 			fos = Channels.newOutputStream(channel);
 		}
@@ -128,17 +130,20 @@ public class ConcurrentFileState extends FileState {
 	
 	private void closeFile() {
 		synchronized (locked) {
-			if (channel != null && channel.isOpen()) {
+			if (lock.isValid()) {
 				try {
-					if (lock != null) lock.release();
-//					logger.warning("fileLock released! "+filename);
 					
-					fos.close();
-					fis.close();
-					channel.close();
-				} catch (Exception e) {
+					lock.release();
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}
+			try {
+				fos.close();
+				fis.close();
+				channel.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			channel = null;
 			fis = null;
@@ -146,7 +151,7 @@ public class ConcurrentFileState extends FileState {
 			lock = null;
 			locked.put(filename, false);
 			locked.notifyAll();
-//			logger.warning("locked released! "+filename);
+			// logger.warning("locked released! "+filename);
 		}
 	}
 	
@@ -192,9 +197,9 @@ public class ConcurrentFileState extends FileState {
 			}
 		} catch (EOFException eof) {
 			// empty file, new agent?
-		} catch (StreamCorruptedException sce){
-			if (channel.position() != 0){
-				if (!retry){
+		} catch (StreamCorruptedException sce) {
+			if (channel.position() != 0) {
+				if (!retry) {
 					_read(true);
 				} else {
 					throw sce;
@@ -203,7 +208,7 @@ public class ConcurrentFileState extends FileState {
 			// empty file, new agent?
 		} catch (JsonMappingException map) {
 			if (channel.position() != 0) {
-				if (!retry){
+				if (!retry) {
 					_read(true);
 				} else {
 					throw map;
@@ -340,7 +345,8 @@ public class ConcurrentFileState extends FileState {
 	}
 	
 	@Override
-	public synchronized void putAll(Map<? extends String, ? extends Serializable> map) {
+	public synchronized void putAll(
+			Map<? extends String, ? extends Serializable> map) {
 		try {
 			openFile();
 			read();
@@ -367,7 +373,8 @@ public class ConcurrentFileState extends FileState {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			result = true; //Don't let users loop if exception is thrown. They would get into a deadlock....
+			result = true; // Don't let users loop if exception is thrown. They
+							// would get into a deadlock....
 		}
 		closeFile();
 		return result;
