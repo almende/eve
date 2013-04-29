@@ -2,6 +2,7 @@ package com.almende.eve.state;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -154,7 +155,23 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 	public Iterator<String> getAllAgentIds() {
 		File folder = new File(path);
 		File[] files = folder.listFiles();
-		final List<File> list = Arrays.asList(files);
+		List<File> totalList = Arrays.asList(files);
+		final List<File> list = new ArrayList<File>(totalList.size());
+		for (File file : totalList){
+			if (file.isFile() && file.canRead() && !file.isHidden() && file.length()>2 ){
+				try {
+					if (!json && file.toURI().toURL().openConnection().getContentType().endsWith("java-serialized-object")){
+						list.add(file);
+					}
+					if (json && file.toURI().toURL().openConnection().getContentType().contains("json")){
+						list.add(file);
+					}
+				} catch (Exception e) {
+					logger.warning("Couldn't check contentType of potential state file:"+file.getName());
+				}
+			}
+		}
+		
 		return new Iterator<String>(){
 			private int pivot=0;
 			
