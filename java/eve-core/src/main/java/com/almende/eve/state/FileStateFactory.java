@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import sun.net.www.protocol.file.FileURLConnection;
+
 import com.almende.eve.agent.AgentFactory;
 
+@SuppressWarnings("restriction")
 public class FileStateFactory implements StateFactory {
 
 private String path = null;
@@ -160,12 +163,14 @@ private Map<String,FileState> states = new HashMap<String,FileState>();
 		for (File file : totalList){
 			if (file.isFile() && file.canRead() && !file.isHidden() && file.length()>2 ){
 				try {
-					if (!json && file.toURI().toURL().openConnection().getContentType().endsWith("java-serialized-object")){
+					FileURLConnection conn = (FileURLConnection) file.toURI().toURL().openConnection();
+					if (!json && conn.getContentType().endsWith("java-serialized-object")){
 						list.add(file);
 					}
-					if (json && file.toURI().toURL().openConnection().getContentType().contains("json")){
+					if (json && conn.getContentType().contains("json")){
 						list.add(file);
 					}
+					conn.close();
 				} catch (Exception e) {
 					logger.warning("Couldn't check contentType of potential state file:"+file.getName());
 				}
