@@ -305,7 +305,7 @@ There are two environments available:
   development mode.
 - `Production`, which is used when the project is deployed on App Engine.
 
-There is one state facctory available on Google App Engine:
+There is one state factory available on Google App Engine:
 `DatastoreStateFactory`, which uses Google Datastore to persist the state of
 the agents. The Datastore state does not need any additional configuration.
 There is one scheduler available: `AppEngineSchedulerFactory`.
@@ -320,16 +320,21 @@ Example file: **war/WEB-INF/web.inf**
             http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
         <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+            <welcome-file>index.html</welcome-file>
         </welcome-file-list>
+
+        <context-param>
+            <description>eve configuration (yaml file)</description>
+            <param-name>config</param-name>
+            <param-value>eve.yaml</param-value>
+        </context-param>
+        <listener>
+            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+        </listener>
 
         <servlet>
             <servlet-name>AgentServlet</servlet-name>
             <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>config</param-name>
-                <param-value>eve.yaml</param-value>
-            </init-param>
             <init-param>
                 <param-name>environment.Development.servlet_url</param-name>
                 <param-value>http://localhost:8888/agents</param-value>
@@ -382,16 +387,21 @@ Example file: **war/WEB-INF/web.inf**
             http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
         <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+            <welcome-file>index.html</welcome-file>
         </welcome-file-list>
+
+        <context-param>
+            <description>eve configuration (yaml file)</description>
+            <param-name>config</param-name>
+            <param-value>eve.yaml</param-value>
+        </context-param>
+        <listener>
+            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+        </listener>
 
         <servlet>
             <servlet-name>AgentServlet</servlet-name>
             <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>config</param-name>
-                <param-value>eve.yaml</param-value>
-            </init-param>
             <init-param>
                 <param-name>servlet_url</param-name>
                 <param-value>http://localhost:8888/MyProject/agents</param-value>
@@ -449,16 +459,21 @@ Example file: **war/WEB-INF/web.inf**
             http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
         <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+            <welcome-file>index.html</welcome-file>
         </welcome-file-list>
+
+        <context-param>
+            <description>eve configuration (yaml file)</description>
+            <param-name>config</param-name>
+            <param-value>eve.yaml</param-value>
+        </context-param>
+        <listener>
+            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+        </listener>
 
         <servlet>
             <servlet-name>AgentServlet</servlet-name>
             <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>config</param-name>
-                <param-value>eve.yaml</param-value>
-            </init-param>
             <init-param>
                 <param-name>environment.Development.servlet_url</param-name>
                 <param-value>http://localhost:8888/agents</param-value>

@@ -95,34 +95,40 @@ web servlet.
   
 - Right-click the added jars in Eclipse, and click Build Path, "Add to Build Path". 
 
-- Now, you need to configure a web-servlet which will host your agents. 
+- Now, you need to configure a web-servlet which will host your agents.
   Open the file web.xml under war/WEB-INF. Insert the following lines
   inside the &lt;web-app&gt; tag:
 
-      <servlet>
-        <servlet-name>AgentServlet</servlet-name>
-        <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-        <init-param>
+      <context-param>
+          <description>eve configuration (yaml file)</description>
           <param-name>config</param-name>
           <param-value>eve.yaml</param-value>
-        </init-param>
-        <init-param>
-          <param-name>environment.Development.servlet_url</param-name>
-          <param-value>http://localhost:8888/agents/</param-value>
-        </init-param>
-        <init-param>
-          <param-name>environment.Production.servlet_url</param-name>
-          <param-value>http://myeveproject.appspot.com/agents/</param-value>
-        </init-param>
+      </context-param>
+      <listener>
+          <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+      </listener>
+
+      <servlet>
+          <servlet-name>AgentServlet</servlet-name>
+          <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+          <init-param>
+              <param-name>environment.Development.servlet_url</param-name>
+              <param-value>http://localhost:8888/agents/</param-value>
+          </init-param>
+          <init-param>
+              <param-name>environment.Production.servlet_url</param-name>
+              <param-value>http://myeveproject.appspot.com/agents/</param-value>
+          </init-param>
       </servlet>
       <servlet-mapping>
-        <servlet-name>AgentServlet</servlet-name>
-        <url-pattern>/agents/*</url-pattern>
+          <servlet-name>AgentServlet</servlet-name>
+          <url-pattern>/agents/*</url-pattern>
       </servlet-mapping>
-      
+
   Note that we have added a number of init parameters.
-  The init-param `config` points to an eve configuration file eve.yaml,
-  which we will create next.
+  The context-param `config` points to an eve configuration file eve.yaml,
+  which we will create next. This configuration file is used to load an agent
+  factory which manages all agents.
   Furthermore, the servlet needs a parameter `servlet_url`. This url is needed
   in order to be able to built an agents full url.
   The `servlet_url` parameter can be defined separately for different

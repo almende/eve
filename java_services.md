@@ -26,23 +26,44 @@ Java servlet. A specific agent can be addressed via this servlet by specifying
 its id in the servlet url.
 
 To use the AgentServlet, the servlet must be configured in the web.xml file
-of the Java project, and an Eve configuration file must be created.
+of the Java project, and a context listener must be configured to start an
+Eve AgentFactory.
 
 ### Configuration
 
 #### Servlet configuration
 
-An AgentServlet is a regular Java servlet.
-To configure the servlet, add the following lines to the **web.xml** file of
-the Java project, inside the &lt;web-app&gt; tag:
+When running Eve in a servlet environment like in Jetty or Tomcat, two
+things needs to be configured:
+
+- **AgentListener**
+  A servlet context listener needs to be set up to load a singleton
+  AgentFactory on startup of the web application.
+  This AgentFactory manages all agents.
+- **AgentServlet**
+  At least one servlet needs to be set up to route incoming requests for agents.
+  One can use the provided `AgentServlet` for this, or build something customized.
+  An AgentServlet will automatically create an HttpService with its configured
+  servlet url, and register this transport service to the AgentFactory.
+  It is possible to configure multiple Agent servlets, and they will all share
+  the same AgentFactory.
+
+To configure the servlet and context listener,
+add the following lines to the **web.xml** file of the Java project,
+inside the &lt;web-app&gt; tag:
+
+	<context-param>
+		<description>eve configuration (yaml file)</description>
+		<param-name>config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
 
     <servlet>
         <servlet-name>AgentServlet</servlet-name>
         <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-        <init-param>
-            <param-name>config</param-name>
-            <param-value>eve.yaml</param-value>
-        </init-param>
         <init-param>
             <param-name>environment.Development.servlet_url</param-name>
             <param-value>http://localhost:8888/agents/</param-value>
@@ -63,9 +84,8 @@ This determines the url at which the servlet is running.
 It is important to end the url with the pattern /\*,
 as the url of the servlet will end with the id of the agent.
 
-The servlet configuration can contain the following init parameters:
+The AgentListener supports the following context parameters:
 
-<p></p>
 <table>
     <tr>
         <th>Name</th>
@@ -74,10 +94,22 @@ The servlet configuration can contain the following init parameters:
     <tr>
         <td>config</td>
         <td>
-            The init-param `config` points to an eve configuration file
+            The context-param `config` points to an eve configuration file
             (for example eve.yaml). The configuration file is used by the AgentFactory
             and contains configuration for the state, scheduler, and services.
+            The configuration of the AgentFactory is described on the page
+            <a href="java_configuration.html">Configuration</a>.
         </td>
+    </tr>
+</table>
+
+
+The AgentServlet configuration can contain the following init parameters:
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>servlet_url</td>
@@ -108,51 +140,6 @@ The servlet configuration can contain the following init parameters:
 
 </table>
 <p></p>
-
-
-
-#### Eve configuration
-
-The servlet configuration points to an Eve configuration file.
-The configuration file is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
-The file can have any name and is normally located in the same folder as
-web.xml, typically war/WEB-INF. Standard file name is **eve.yaml**.
-Create a file eve.yaml and insert the following text:
-
-    # Eve configuration
-
-    # state settings (for persistency)
-    state:
-      class: FileStateFactory
-      path: .eveagents
-
-    # scheduler settings (for tasks)
-    scheduler:
-      class: AppEngineSchedulerFactory
-
-The configuration contains:
-
-<!-- TODO: cleanup
-- A parameter *environment*.
-  A project typically has two different environments:
-  *Development* and *Production*. All Eve settings can be defined for a
-  specific environment, or globally.
-
-- Parameters *services*. One can define one or multiple communication services
-  via which the agents can be accessed, for example HTTP and XMPP.
--->
-
-- A parameter *state* specifying the type of state factory that will be
-  available for the agents to read and write persistent data.
-  Agents themselves are stateless. They can use a state to persist data.
-
-- A parameter *scheduler* specifying the scheduler that will be used to
-  let agents schedule tasks for themselves.
-
-Each agent has access has access to this configuration file via its
-AgentFactory.
-If your agent needs specific settings (for example for database access),
-you can add these settings to the configuration file.
 
 
 ### Usage
