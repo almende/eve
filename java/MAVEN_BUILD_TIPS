@@ -40,7 +40,7 @@ Requirements:
 3: git commit -a
 4: git push --all
 
-5: git tag <ver>
+5: git tag <ver>  //(version with prefix 'v', e.g. v1.1.0)
 6: git push --tags
 7: mvn clean deploy -Prelease
 

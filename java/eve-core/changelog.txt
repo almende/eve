@@ -1,15 +1,22 @@
 EVE CORE
 http://almende.github.com/eve/
 
+2013-05-02, version 1.1.0
 
-<not yet released>, version 1.0.4
-
+- State only accepts Serializable (in most (new) error cases just cast to (Serializable))
+- Authorization model introduced, plus HTTPS support
+- Restart of AgentFactory now informs agents (agent.boot()), default implementation 
+  restarts Scheduler tasks and XMPP connections
+- Introduced new ClockScheduler (not yet default), which stores data per agent, 
+  i.s.o. in global file
+- Introduced "interval" scheduler
+- XMPP improvements
+- AgentFactory is now initialized from a contextListener (in webapps)
 - Agent.getMethods does no longer accept the "asJSON" parameter. The method now
   always returns JSON format and no String format.
 - All methods in AgentServlet and SingleAgentServlet are now protected instead
   of private, which makes it easier ot extend these servlets.
-
-
+- Introduction of "local://"-url support
 
 2013-03-05, version 1.0.3
 
