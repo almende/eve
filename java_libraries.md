@@ -57,6 +57,11 @@ They can be downloaded at the
   The core is independent from the deployment platform.
   
   *Dependencies: 
+
+    commons-codec-1.6.jar,
+    commons-logging-1.1.1.jar,
+    httpclient-4.2.3.jar,
+    httpcore-4.2.2.jar,
     jackson-databind-2.0.0.jar,
     jackson-core-2.0.0.jar, 
     jackson-annotations-2.0.0.jar,
@@ -65,8 +70,7 @@ They can be downloaded at the
     smack-3.1.0.jar, smackx-3.1.0.jar.
     Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
-  *
-  
+
 - **eve-gae.jar**
   Library needed for hosting Eve agents on Google App Engine.
   This libary contains platform dependent functionality:
@@ -75,8 +79,9 @@ They can be downloaded at the
 
   *Dependencies: 
     eve-core.jar,
-    twig-persist-2.0-rc.jar,
-    guava-10.0.jar.
+    guava-10.0.jar,
+    guice-3.0.jar,
+    twig-persist-2.0-rc.jar.
     Also depending on the Google App Engine libraries, which are automatically
     included when the project is set up as a GAE project.
   *

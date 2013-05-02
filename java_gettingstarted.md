@@ -4,8 +4,7 @@ title: Getting Started
 ---
 
 
-{% assign eve_core_version = '0.18' %}
-{% assign eve_gae_version = '0.18' %}
+{% assign version = '1.1.0' %}
 
 
 # Getting Started
@@ -70,8 +69,12 @@ web servlet.
 - Download the following jar files, and put them in your Eclipse project
   in the folder war/WEB-INF/lib. 
 
-  - [eve-core-{{eve_core_version}}.jar](files/java/eve-core-{{eve_core_version}}.jar)
-  
+  - [eve-core-{{version}}.jar](http://search.maven.org/remotecontent?filepath=com/almende/eve/eve-core/{{version}}/eve-core-{{version}}.jar)
+
+    - [commons-codec-1.6.jar](http://commons.apache.org/proper/commons-codec/)
+    - [commons-logging-1.1.1.jar](http://commons.apache.org/proper/commons-logging/)
+    - [httpclient-4.2.3.jar](http://hc.apache.org/downloads.cgi)
+    - [httpcore-4.2.2.jar](http://hc.apache.org/downloads.cgi)
     - [jackson-databind-2.0.0.jar](http://jackson.codehaus.org)
     - [jackson-core-2.0.0.jar](http://jackson.codehaus.org)
     - [jackson-annotations-2.0.0.jar](http://jackson.codehaus.org)
@@ -82,16 +85,15 @@ web servlet.
       (optional, only needed for XMPP support)
     - [snakeyaml-1.11.jar](http://snakeyaml.org)
 
-  - [eve-gae-{{eve_gae_version}}.jar](files/java/eve-gae-{{eve_gae_version}}.jar)
+  - [eve-gae-{{version}}.jar](http://search.maven.org/remotecontent?filepath=com/almende/eve/eve-gae/{{version}}/eve-gae-{{version}}.jar)
   
     - [twig-persist-2.0-rc.jar](http://code.google.com/p/twig-persist)
     - [guava-10.0.jar](http://code.google.com/p/guava-libraries)
-  
-  If you don't want to download all libraries individually, you can download the
-  zip files 
-  [eve-core-{{eve_core_version}}-bundle.zip](files/java/eve-core-{{eve_core_version}}-bundle.zip) and 
-  [eve-gae-{{eve_gae_version}}-bundle.zip](files/java/eve-gae-{{eve_gae_version}}-bundle.zip)
-  containing all dependent libraries. 
+    - [guice-3.0.jar](https://code.google.com/p/google-guice/wiki/Guice30)
+
+  In stead of downloading all libraries individually, it is easier to create a
+  maven project and add eve-gae as dependency. This will automatically resolve
+  all dependencies. See [Downloads](java_downloads.html).
   
 - Right-click the added jars in Eclipse, and click Build Path, "Add to Build Path". 
 
