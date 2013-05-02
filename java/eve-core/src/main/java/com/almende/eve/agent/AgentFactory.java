@@ -267,13 +267,15 @@ public class AgentFactory {
 	public void boot() {
 		if (stateFactory != null){
 			Iterator<String> iter = stateFactory.getAllAgentIds();
-			while (iter.hasNext()){
-				try {
-					Agent agent = getAgent(iter.next());
-					if (agent != null){
-						agent.boot();
-					}
-				} catch (Exception e) {}
+			if (iter != null) {
+				while (iter.hasNext()){
+					try {
+						Agent agent = getAgent(iter.next());
+						if (agent != null){
+							agent.boot();
+						}
+					} catch (Exception e) {}
+				}
 			}
 		}
 	}
