@@ -1,6 +1,7 @@
 package com.almende.test.agents;
 
 import java.util.Arrays;
+import java.util.List;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.Access;
@@ -14,6 +15,12 @@ public class TestAccessAgent extends Agent {
 	@Override
 	public void create(){
 		this.getState().put("senderLabel", "trusted");
+	}
+	
+	@Override
+	@Access(AccessType.PUBLIC)
+	public List<Object> getMethods() {
+		return super.getMethods();
 	}
 
 	@Override
@@ -72,13 +79,26 @@ public class TestAccessAgent extends Agent {
 		try{ result[6] = send(url,"param",Boolean.class); } catch (Exception e){e.printStackTrace();};
 		return result;
 	}
+
+	@Override
+	@Access(AccessType.PUBLIC)
+	public List<String> getUrls(){
+		return super.getUrls();
+	}
+	@Override
+	@Access(AccessType.PUBLIC)
+	public String getType(){
+		return super.getType();
+	}
 	
 	@Override
+	@Access(AccessType.PUBLIC)
 	public String getDescription() {
 		return "Agent to test the access control features of Eve";
 	}
 
 	@Override
+	@Access(AccessType.PUBLIC)
 	public String getVersion() {
 		return "0.1";
 	}

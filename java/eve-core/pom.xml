@@ -78,7 +78,8 @@
 						<scanIntervalSeconds>10</scanIntervalSeconds>
 						<stopKey>testKey</stopKey>
 						<stopPort>9999</stopPort>
-						<daemon>true</daemon>
+						<daemon>false</daemon>
+						<reload>manual</reload>
 						<useTestClasspath>true</useTestClasspath>
 						<scanTargets>
 							<scanTarget>src/test/webapp</scanTarget>
@@ -135,21 +136,17 @@
 						<groupId>org.mortbay.jetty</groupId>
 						<artifactId>jetty-maven-plugin</artifactId>
 						<version>${jetty.version}</version>
+						<configuration>
+							<daemon>false</daemon>
+						</configuration>
 						<executions>
-							<execution>
-								<id>start-jetty</id>
-								<phase>test-compile</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>stop-jetty</id>
-								<phase>post-integration-test</phase>
-								<goals>
-									<goal>stop</goal>
-								</goals>
-							</execution>
+                                                        <execution>
+                                                                <id>start-jetty</id>
+                                                                <phase>test-compile</phase>
+                                                                <goals>
+                                                                        <goal>run</goal>
+                                                                </goals>
+                                                        </execution>
 						</executions>
 					</plugin>
 				</plugins>

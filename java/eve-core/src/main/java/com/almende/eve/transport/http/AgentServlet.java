@@ -126,8 +126,9 @@ public class AgentServlet extends HttpServlet {
 		if (hs.equals(Handshake.INVALID)){
 			return false;
 		}
+		Boolean doAuthentication = Boolean.parseBoolean(AgentListener.getParam("doAuthentication", "true"));
 		if (hs.equals(Handshake.NAK)){
-			if (!req.authenticate(res)) return false;
+			if ( doAuthentication && !req.authenticate(res)) return false;
 		}
 		
 		//generate new session:
@@ -182,12 +183,13 @@ public class AgentServlet extends HttpServlet {
 		// get the resource name from the end of the url
 		if (resource == null || resource.isEmpty()) {
 			if (!uri.endsWith("/")) {
-				String redirect = uri + "/";
-				resp.sendRedirect(redirect);
-				return;
-			} else {
-				resource = "index.html";
+				if (!resp.isCommitted()){
+					String redirect = uri + "/";
+					resp.sendRedirect(redirect);
+					return;
+				}
 			}
+			resource = "index.html";
 		}
 		String extension = resource.substring(resource.lastIndexOf(".") + 1);
 

@@ -503,7 +503,7 @@ abstract public class Agent implements AgentInterface {
 	 * Get all available methods of this agent
 	 * @return array
 	 */
-	final public List<Object> getMethods() {
+	public List<Object> getMethods() {
 		return getAgentFactory().getMethods(this);
 	}
 	
@@ -683,7 +683,7 @@ abstract public class Agent implements AgentInterface {
 	 * services, such as HTTP and XMPP.
 	 * @return urls
 	 */
-	final public List<String> getUrls() {
+	public List<String> getUrls() {
 		List<String> urls = new ArrayList<String>();
 		if (agentFactory != null) {
 			String agentId = getId();
@@ -703,7 +703,7 @@ abstract public class Agent implements AgentInterface {
 	 * Get the Id of this agent
 	 * @return
 	 */
-	final public String getId() {
+	public String getId() {
 		return state.getAgentId();
 	}
 	
@@ -711,7 +711,7 @@ abstract public class Agent implements AgentInterface {
 	 * Retrieve the type name of this agent, its class
 	 * @return classname
 	 */
-	final public String getType() {
+	public String getType() {
 		return getClass().getSimpleName();
 	}
 
@@ -720,7 +720,7 @@ abstract public class Agent implements AgentInterface {
 	 * Retrieve a JSON Array with the agents scheduled tasks
 	 */
 	@Override
-	final public String getTasks() {
+	public String getTasks() {
 		return this.getScheduler().toString();
 	}
 	
