@@ -102,9 +102,9 @@ class ClockScheduler implements Scheduler, Runnable {
 	
 	@SuppressWarnings("unchecked")
 	public void putTask(TaskEntry task, boolean onlyIfExists) {
-		TreeSet<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent
+		Set<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent
 				.getState().get("_taskList");
-		TreeSet<TaskEntry> timeline = null;
+		Set<TaskEntry> timeline = null;
 		boolean found = false;
 		if (oldTimeline != null) {
 			timeline = new TreeSet<TaskEntry>();
@@ -122,8 +122,8 @@ class ClockScheduler implements Scheduler, Runnable {
 			if (timeline == null) timeline = new TreeSet<TaskEntry>();
 			timeline.add(task);
 		}
-		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
-				oldTimeline)) {
+		if (!myAgent.getState().putIfUnchanged("_taskList", (Serializable)timeline,
+				(Serializable) oldTimeline)) {
 			logger.severe("need to retry putTask...");
 			putTask(task, onlyIfExists); // recursive retry....
 			return;
