@@ -7,6 +7,7 @@ import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Poll;
 import com.almende.eve.entity.Push;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestMemoQueryAgent extends Agent {
 	
@@ -23,12 +24,19 @@ public class TestMemoQueryAgent extends Agent {
 		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
 				null, new Push(1000, false), new Cache());
 		if (repeatID != null) getState().put("pushKey", repeatID);
+
+		repeatID = initRepeat("local://bob", "getData",
+				JOM.createObjectNode(), null, new Poll(800));
 		
+		if (repeatID != null) getState().put("LazyPollKey", repeatID);
+
 	}
 	
 	public Integer get_result() {
 		try {
-			return getRepeat((String) getState().get("pollKey"), 20000,
+			ObjectNode params = JOM.createObjectNode();
+			params.put("maxAge", 3000);
+			return getRepeat((String) getState().get("pollKey"), params,
 					Integer.class);
 		} catch (Exception e) {
 			

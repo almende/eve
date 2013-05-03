@@ -1,28 +1,33 @@
 /**
  * @file Agent.java
  * 
- * @brief 
- * Agent is the abstract base class for all Eve agents.
- * It provides basic functionality such as id, url, getting methods,
- * subscribing to events, etc. 
- *
+ * @brief
+ *        Agent is the abstract base class for all Eve agents.
+ *        It provides basic functionality such as id, url, getting methods,
+ *        subscribing to events, etc.
+ * 
  * @license
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy 
- * of the License at
+ *          Licensed under the Apache License, Version 2.0 (the "License"); you
+ *          may not
+ *          use this file except in compliance with the License. You may obtain
+ *          a copy
+ *          of the License at
  * 
- * http://www.apache.org/licenses/LICENSE-2.0
+ *          http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- *
- * Copyright © 2010-2012 Almende B.V.
- *
- * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2012-12-12
+ *          Unless required by applicable law or agreed to in writing, software
+ *          distributed under the License is distributed on an "AS IS" BASIS,
+ *          WITHOUT
+ *          WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+ *          the
+ *          License for the specific language governing permissions and
+ *          limitations under
+ *          the License.
+ * 
+ *          Copyright © 2010-2012 Almende B.V.
+ * 
+ * @author Jos de Jong, <jos@almende.org>
+ * @date 2012-12-12
  */
 
 package com.almende.eve.agent;
@@ -39,7 +44,11 @@ import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.proxy.AsyncProxy;
+import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Callback;
+import com.almende.eve.entity.Poll;
+import com.almende.eve.entity.Push;
+import com.almende.eve.entity.Repeat;
 import com.almende.eve.entity.RepeatConfigType;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -52,17 +61,18 @@ import com.almende.eve.transport.TransportService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-
 abstract public class Agent implements AgentInterface {
-	private AgentFactory agentFactory = null;
-	private State state = null;
-	private Scheduler scheduler = null;
+	private AgentFactory	agentFactory	= null;
+	private State			state			= null;
+	private Scheduler		scheduler		= null;
 	
 	public abstract String getDescription();
+	
 	public abstract String getVersion();
-
-	public Agent() {}
-
+	
+	public Agent() {
+	}
+	
 	@Access(AccessType.UNAVAILABLE)
 	public boolean onAccess(String senderId, String functionTag) {
 		return true;
@@ -70,34 +80,34 @@ abstract public class Agent implements AgentInterface {
 	
 	@Access(AccessType.UNAVAILABLE)
 	public boolean onAccess(String senderId) {
-		return onAccess(senderId,null);
+		return onAccess(senderId, null);
 	}
-	
 	
 	/**
 	 * This method is called once in the life time of an agent, at the moment
 	 * the agent is being created by the AgentFactory.
 	 * It can be overridden and used to perform some action when the agent
-	 * is create, in that case super.create() should be called in 
+	 * is create, in that case super.create() should be called in
 	 * the overridden create().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void create() {}
-
+	public void create() {
+	}
+	
 	/**
 	 * This method is called once in the life time of an agent, at the moment
 	 * the agent is being deleted by the AgentFactory.
 	 * It can be overridden and used to perform some action when the agent
-	 * is deleted, in that case super.delete() should be called in 
+	 * is deleted, in that case super.delete() should be called in
 	 * the overridden delete().
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void delete() {
-		// TODO: unsubscribe from all subscriptions 
+		// TODO: unsubscribe from all subscriptions
 		
 		// cancel all scheduled tasks.
 		Scheduler scheduler = getScheduler();
-		if (scheduler != null){
+		if (scheduler != null) {
 			for (String taskId : scheduler.getTasks()) {
 				scheduler.cancelTask(taskId);
 			}
@@ -108,46 +118,48 @@ abstract public class Agent implements AgentInterface {
 		
 		// save the agents class again in the state
 		state.put(State.KEY_AGENT_TYPE, getClass().getName());
-		state=null; //forget local reference, as it can keep the State alive even if the agentFactory removes the file. 
+		state = null; // forget local reference, as it can keep the State alive
+						// even if the agentFactory removes the file.
 	}
 	
-
 	/**
-	 * This method is called when the containing AgentFactory is started. 
-	 * It can be overridden and used to perform some action (like alerting owners about the reboot),
-	 * in that case super.boot() should be called in 
+	 * This method is called when the containing AgentFactory is started.
+	 * It can be overridden and used to perform some action (like alerting
+	 * owners about the reboot),
+	 * in that case super.boot() should be called in
 	 * the overridden boot().
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public void boot() throws Exception {
-		//init scheduler tasks
+		// init scheduler tasks
 		getScheduler();
-		//if applicable reconnect existing connections.
+		// if applicable reconnect existing connections.
 		List<TransportService> services = agentFactory.getTransportServices();
-		if (services != null){
-			for (TransportService service : services){
+		if (services != null) {
+			for (TransportService service : services) {
 				service.reconnect(getId());
 			}
 		}
 	}
-
 	
 	/**
-	 * This method is called directly after the agent and its state is 
-	 * initiated. 
+	 * This method is called directly after the agent and its state is
+	 * initiated.
 	 * It can be overridden and used to perform some action when the agent
-	 * is initialized, in that case super.init() should be called in 
+	 * is initialized, in that case super.init() should be called in
 	 * the overridden init().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void init() {}
-
+	public void init() {
+	}
+	
 	/**
-	 * This method can is called when the agent is uninitialized, and is 
+	 * This method can is called when the agent is uninitialized, and is
 	 * needed finalize the state of the agent.
 	 * It can be overridden and used to perform some action when the agent
-	 * is uninitialized, in that case super.destroy() should be called in 
+	 * is uninitialized, in that case super.destroy() should be called in
 	 * the overridden destroy().
 	 */
 	@Access(AccessType.UNAVAILABLE)
@@ -164,8 +176,9 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	/**
-	 * Set the state of the agent instance. This method is used by the 
+	 * Set the state of the agent instance. This method is used by the
 	 * AgentFactory.
+	 * 
 	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
@@ -176,16 +189,18 @@ abstract public class Agent implements AgentInterface {
 	/**
 	 * Get the agents state. The state contains methods get, put, etc. to
 	 * write properties into a persistent state.
+	 * 
 	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public State getState() {
 		return state;
 	}
-
+	
 	/**
 	 * Get the agents state. The state contains methods get, put, etc. to
 	 * write properties into a persistent state.
+	 * 
 	 * @param state
 	 * @deprecated Use getState() instead
 	 */
@@ -197,6 +212,7 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Get a scheduler to schedule tasks for the agent to be executed later on.
+	 * 
 	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
@@ -206,14 +222,15 @@ abstract public class Agent implements AgentInterface {
 		}
 		return scheduler;
 	}
-
+	
 	@Access(AccessType.UNAVAILABLE)
 	final public void setAgentFactory(AgentFactory agentFactory) {
 		this.agentFactory = agentFactory;
 	}
-
+	
 	/**
-	 * Get the agent factory. The agent factory can create/delete agents. 
+	 * Get the agent factory. The agent factory can create/delete agents.
+	 * 
 	 * @return
 	 */
 	@Access(AccessType.UNAVAILABLE)
@@ -222,15 +239,16 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	/**
-	 * Clear the agents state, unsubscribe from all subscribed events, 
+	 * Clear the agents state, unsubscribe from all subscribed events,
 	 * cancel all running tasks
+	 * 
 	 * @Deprecated use delete() instead.
 	 */
 	@Deprecated
 	public void clear() throws Exception {
 		delete();
 	}
-
+	
 	/**
 	 * Sets up a repeated RPC call subscription.
 	 * 
@@ -241,44 +259,97 @@ abstract public class Agent implements AgentInterface {
 	 * @param confs
 	 * @return
 	 */
-	public String initRepeat(String url, String method, ObjectNode params, String callbackMethod, RepeatConfigType... confs){
-		return null;
+	public String initRepeat(String url, String method, ObjectNode params,
+			String callbackMethod, RepeatConfigType... confs) {
+		// Prepare and store configuration
+		// foreach poll conf:
+		// Local poll scheduler task, which includes url, method, params
+		// foreach push conf:
+		// Remote url, "remoteID"
+		// foreach cache conf:
+		// Store existance (for re-init on reboot)
+		
+		Repeat repeat = new Repeat(getId(), url, method, params);
+		for (RepeatConfigType config : confs) {
+			System.err.println("Checking:" + config.getClass().getName());
+			if (config instanceof Cache) {
+				System.err.println("Adding cache");
+				repeat.addCache((Cache) config);
+			}
+			if (config instanceof Poll) {
+				repeat.addPoll((Poll) config);
+			}
+			if (config instanceof Push) {
+				repeat.addPush((Push) config);
+			}
+		}
+		
+		repeat.store();
+		return repeat.id;
 	}
 	
 	/**
-	 * Gets an actual return value of this repeat subscription. If a cache is available, 
-	 * this will return the cached value if the maxAge filter allows this. Otherwise it will run the actual RPC call (similar to "send");
+	 * Gets an actual return value of this repeat subscription. If a cache is
+	 * available,
+	 * this will return the cached value if the maxAge filter allows this.
+	 * Otherwise it will run the actual RPC call (similar to "send");
 	 * 
 	 * @param repeatId
-	 * @param maxAge
+	 * @param filter_parms
 	 * @param returnType
 	 * @return
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
+	 * @throws Exception
 	 */
-	public <T> T getRepeat(String repeatId, int maxAge, Class<T> returnType) throws InstantiationException, IllegalAccessException{
-		return returnType.newInstance();
+	@SuppressWarnings("unchecked")
+	public <T> T getRepeat(String repeatId, ObjectNode filter_parms,
+			Class<T> returnType) throws Exception {
+		T result = null;
+		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
+		if (repeat != null) {
+			if (repeat.hasCache()) {
+				if (repeat.getCache() != null
+						&& repeat.getCache().filter(filter_parms)) {
+					result = (T) repeat.getCache().get();
+				}
+			}
+			if (result == null) {
+				result = send(repeat.url, repeat.method, repeat.params,
+						returnType);
+				if (repeat.hasCache()) {
+					repeat.getCache().store(result);
+				}
+			}
+		} else {
+			System.err.println("Failed to find repeat!" + repeatId);
+		}
+		return result;
+		
 	}
 	
 	/**
 	 * Cancels a running repeat subscription.
+	 * 
 	 * @param repeatId
 	 */
-	public void cancelRepeat(String repeatId){
-		
+	public void cancelRepeat(String repeatId) {
+		// foreach (cache) unload cache, remove cache config
+		// foreach (push) unsubscribe remote task
+		// foreach (poll) cancel local task
+		// remove base configuration.
 	}
 	
 	/**
 	 * Retrieve the list with subscriptions on given event.
 	 * If there are no subscriptions for this event, an empty list is returned
+	 * 
 	 * @param event
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	@Deprecated
 	private List<Callback> getSubscriptions(String event) {
-		Map<String, List<Callback> > allSubscriptions = 
-			(Map<String, List<Callback> >) state.get("subscriptions");
+		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) state
+				.get("subscriptions");
 		if (allSubscriptions != null) {
 			List<Callback> eventSubscriptions = allSubscriptions.get(event);
 			if (eventSubscriptions != null) {
@@ -291,16 +362,17 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Store a list with subscriptions for an event
+	 * 
 	 * @param event
 	 * @param subscriptions
 	 */
 	@SuppressWarnings("unchecked")
 	@Deprecated
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
-		HashMap<String, List<Callback> > allSubscriptions = 
-			(HashMap<String, List<Callback> >) state.get("subscriptions");
+		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) state
+				.get("subscriptions");
 		if (allSubscriptions == null) {
-			allSubscriptions = new HashMap<String, List<Callback>> ();
+			allSubscriptions = new HashMap<String, List<Callback>>();
 		}
 		allSubscriptions.put(event, subscriptions);
 		state.put("subscriptions", allSubscriptions);
@@ -310,23 +382,23 @@ abstract public class Agent implements AgentInterface {
 	 * Let an other agent subscribe to one of this agents events
 	 * When the event is triggered, a callback will be send to the provided
 	 * callbackUrl.
+	 * 
 	 * @param event
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 * @return subscriptionId
 	 */
 	@Deprecated
-	final public String onSubscribe (
-			@Name("event") String event, 
-			@Name("callbackUrl") String callbackUrl, 
+	final public String onSubscribe(@Name("event") String event,
+			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
-			if (subscription.url == null || subscription.method == null){
+			if (subscription.url == null || subscription.method == null) {
 				continue;
 			}
-			if (subscription.url.equals(callbackUrl) && 
-					subscription.method.equals(callbackMethod)) {
+			if (subscription.url.equals(callbackUrl)
+					&& subscription.method.equals(callbackMethod)) {
 				// The callback already exists. do not duplicate it
 				return subscription.id;
 			}
@@ -334,7 +406,8 @@ abstract public class Agent implements AgentInterface {
 		
 		// the callback does not yet exist. create it and store it
 		String subscriptionId = UUID.randomUUID().toString();
-		Callback callback = new Callback(subscriptionId, callbackUrl, callbackMethod);
+		Callback callback = new Callback(subscriptionId, callbackUrl,
+				callbackMethod);
 		subscriptions.add(callback);
 		
 		// store the subscriptions
@@ -346,11 +419,13 @@ abstract public class Agent implements AgentInterface {
 	/**
 	 * Let an other agent unsubscribe from one of this agents events
 	 * - If subscriptionId is provided, the subscription with this id will be
-	 *   deleted
-	 * - If the parameter callbackUrl and optionally event and/or callbackMethod,
-	 *   all subscriptions with matching parameters will be deleted. 
-	 *   (if only  callbackUrl is provided, all subscriptions from this agent 
-	 *   will be deleted).
+	 * deleted
+	 * - If the parameter callbackUrl and optionally event and/or
+	 * callbackMethod,
+	 * all subscriptions with matching parameters will be deleted.
+	 * (if only callbackUrl is provided, all subscriptions from this agent
+	 * will be deleted).
+	 * 
 	 * @param subscriptionId
 	 * @param event
 	 * @param callbackUrl
@@ -359,12 +434,12 @@ abstract public class Agent implements AgentInterface {
 	@Deprecated
 	final public void onUnsubscribe(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
-			@Required(false) @Name("event") String event, 
+			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
 		@SuppressWarnings("unchecked")
-		HashMap<String, List<Callback> > allSubscriptions = 
-				(HashMap<String, List<Callback> >) state.get("subscriptions");
+		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) state
+				.get("subscriptions");
 		if (allSubscriptions == null) {
 			return;
 		}
@@ -377,13 +452,16 @@ abstract public class Agent implements AgentInterface {
 				while (i < subscriptions.size()) {
 					Callback subscription = subscriptions.get(i);
 					boolean matched = false;
-					if (subscriptionId != null && subscriptionId.equals(subscription.id)) {
+					if (subscriptionId != null
+							&& subscriptionId.equals(subscription.id)) {
 						// callback with given subscriptionId is found
 						matched = true;
-					}
-					else if (callbackUrl != null && callbackUrl.equals(subscription.url)){
-						if ((callbackMethod == null || callbackMethod.equals(subscription.method)) &&
-								(event == null || event.equals(subscriptionEvent))) {
+					} else if (callbackUrl != null
+							&& callbackUrl.equals(subscription.url)) {
+						if ((callbackMethod == null || callbackMethod
+								.equals(subscription.method))
+								&& (event == null || event
+										.equals(subscriptionEvent))) {
 							// callback with matching properties is found
 							matched = true;
 						}
@@ -391,8 +469,7 @@ abstract public class Agent implements AgentInterface {
 					
 					if (matched) {
 						subscriptions.remove(i);
-					}
-					else {
+					} else {
 						i++;
 					}
 				}
@@ -406,18 +483,18 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Asynchronously trigger an event.
-	 * the onTrigger method is called from a scheduled task, initiated in the 
+	 * the onTrigger method is called from a scheduled task, initiated in the
 	 * method trigger
+	 * 
 	 * @param url
 	 * @param method
 	 * @param params
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@Deprecated
-	final public void onTrigger (
-			@Name("url") String url, 
-			@Name("method") String method, 
-			@Name("params") ObjectNode params) throws Exception {
+	final public void onTrigger(@Name("url") String url,
+			@Name("method") String method, @Name("params") ObjectNode params)
+			throws Exception {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
 		// TODO: catch exceptions and log them here?
 		send(url, method, params);
@@ -425,6 +502,7 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Subscribe to an other agents event
+	 * 
 	 * @param url
 	 * @param event
 	 * @param callbackMethod
@@ -432,7 +510,7 @@ abstract public class Agent implements AgentInterface {
 	 * @throws Exception
 	 */
 	@Deprecated
-	protected String subscribe(String url, String event, String callbackMethod) 
+	protected String subscribe(String url, String event, String callbackMethod)
 			throws Exception {
 		String method = "onSubscribe";
 		ObjectNode params = JOM.createObjectNode();
@@ -442,15 +520,17 @@ abstract public class Agent implements AgentInterface {
 		// TODO: store the agents subscriptions locally
 		return send(url, method, params, String.class);
 	}
-
+	
 	/**
 	 * Unsubscribe from an other agents event
+	 * 
 	 * @param url
 	 * @param subscriptionId
 	 * @throws Exception
 	 */
 	@Deprecated
-	protected void unsubscribe(String url, String subscriptionId) throws Exception {
+	protected void unsubscribe(String url, String subscriptionId)
+			throws Exception {
 		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
@@ -459,13 +539,14 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Unsubscribe from an other agents event
+	 * 
 	 * @param url
 	 * @param event
 	 * @param callbackMethod
 	 * @throws Exception
 	 */
 	@Deprecated
-	protected void unsubscribe(String url, String event, String callbackMethod) 
+	protected void unsubscribe(String url, String event, String callbackMethod)
 			throws Exception {
 		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
@@ -474,26 +555,28 @@ abstract public class Agent implements AgentInterface {
 		params.put("callbackMethod", callbackMethod);
 		send(url, method, params);
 	}
-
+	
 	/**
 	 * Trigger an event
+	 * 
 	 * @param event
-	 * @param params   An ObjectNode, Map, or POJO
-	 * @throws Exception 
-	 * @throws JSONRPCException 
+	 * @param params
+	 *            An ObjectNode, Map, or POJO
+	 * @throws Exception
+	 * @throws JSONRPCException
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
-	final public void trigger(@Name("event") String event, 
+	final public void trigger(@Name("event") String event,
 			@Name("params") Object params) throws Exception {
 		// TODO: user first url is very dangerous! can cause a mismatch
 		String url = getFirstUrl();
 		List<Callback> subscriptions = new ArrayList<Callback>();
-
+		
 		if (event.equals("*")) {
 			throw new Exception("Cannot trigger * event");
 		}
-
+		
 		// send a trigger to the agent factory
 		getAgentFactory().getEventLogger().log(getId(), event, params);
 		
@@ -511,18 +594,25 @@ abstract public class Agent implements AgentInterface {
 		callbackParams.put("event", event);
 		if (params instanceof JsonNode) {
 			callbackParams.put("params", (ObjectNode) params);
-		}
-		else {
-			ObjectNode jsonParams = JOM.getInstance().convertValue(params, ObjectNode.class);
+		} else {
+			ObjectNode jsonParams = JOM.getInstance().convertValue(params,
+					ObjectNode.class);
 			callbackParams.put("params", jsonParams);
 		}
 		
 		for (Callback subscription : subscriptions) {
-			// create a task to send this trigger. 
+			// create a task to send this trigger.
 			// This way, it is sent asynchronously and cannot block this
 			// trigger method
-			callbackParams.put("subscriptionId", subscription.id); // TODO: test if changing subscriptionId works with multiple tasks
-
+			callbackParams.put("subscriptionId", subscription.id); // TODO: test
+																	// if
+																	// changing
+																	// subscriptionId
+																	// works
+																	// with
+																	// multiple
+																	// tasks
+			
 			ObjectNode taskParams = JOM.createObjectNode();
 			taskParams.put("url", subscription.url);
 			taskParams.put("method", subscription.method);
@@ -532,10 +622,11 @@ abstract public class Agent implements AgentInterface {
 			getScheduler().createTask(request, delay);
 		}
 	}
-
+	
 	/**
 	 * Get the first url of the agents urls. Returns null if the agent does not
 	 * have any urls.
+	 * 
 	 * @return firstUrl
 	 */
 	private String getFirstUrl() {
@@ -548,6 +639,7 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Get all available methods of this agent
+	 * 
 	 * @return array
 	 */
 	public List<Object> getMethods() {
@@ -556,25 +648,31 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Send a request to an agent in JSON-RPC format
-	 * @param url    The url of the agent
-	 * @param method The name of the method
-	 * @param params A Object containing the parameter values of the method.
-	 *               This can be an ObjectNode, Map, or POJO.
-	 * @param type   The return type of the method
-	 * @return       
-	 * @throws Exception 
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @param params
+	 *            A Object containing the parameter values of the method.
+	 *            This can be an ObjectNode, Map, or POJO.
+	 * @param type
+	 *            The return type of the method
+	 * @return
+	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, Object params, 
+	final public <T> T send(String url, String method, Object params,
 			Class<T> type) throws Exception {
-		// TODO: implement support for adding custom http headers (for authorization for example)
-	
+		// TODO: implement support for adding custom http headers (for
+		// authorization for example)
+		
 		ObjectNode jsonParams;
 		if (params instanceof ObjectNode) {
 			jsonParams = (ObjectNode) params;
-		}
-		else {
-			jsonParams = JOM.getInstance().convertValue(params, ObjectNode.class);
+		} else {
+			jsonParams = JOM.getInstance().convertValue(params,
+					ObjectNode.class);
 		}
 		
 		// invoke the other agent via the state, allowing the state
@@ -592,86 +690,110 @@ abstract public class Agent implements AgentInterface {
 		
 		return null;
 	}
-
+	
 	/**
 	 * Send a request to an agent in JSON-RPC format
-	 * @param url    The url of the agent
-	 * @param method The name of the method
-	 * @return       
-	 * @throws Exception 
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @return
+	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, Class<T> type) 
+	final public <T> T send(String url, String method, Class<T> type)
 			throws Exception {
 		return send(url, method, null, type);
 	}
 	
 	/**
 	 * Send a request to an agent in JSON-RPC format
-	 * @param url    The url of the agent
-	 * @param method The name of the method
-	 * @param params A Object containing the parameter values of the method.
-	 *               This can be an ObjectNode, Map, or POJO.
-	 * @return 
-	 * @throws Exception 
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @param params
+	 *            A Object containing the parameter values of the method.
+	 *            This can be an ObjectNode, Map, or POJO.
+	 * @return
+	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void send(String url, String method, Object params) 
+	final public void send(String url, String method, Object params)
 			throws Exception {
 		send(url, method, params, void.class);
 	}
 	
 	/**
-	 * Create a proxy to an other agent. Invoked methods will be send to the 
+	 * Create a proxy to an other agent. Invoked methods will be send to the
 	 * actual agent via the AgentFactory.
+	 * 
 	 * @param url
-	 * @param agentInterface  A Java Interface, extending AgentInterface
+	 * @param agentInterface
+	 *            A Java Interface, extending AgentInterface
 	 * @return agentProxy
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T createAgentProxy(String url, Class<T> agentInterface) {
 		return getAgentFactory().createAgentProxy(this, url, agentInterface);
 	}
+	
 	/**
-	 * Create a proxy to an other agent. Invoked methods will be send to the 
+	 * Create a proxy to an other agent. Invoked methods will be send to the
 	 * actual agent via the AgentFactory.
+	 * 
 	 * @param url
-	 * @param agentInterface  A Java Interface, extending AgentInterface
+	 * @param agentInterface
+	 *            A Java Interface, extending AgentInterface
 	 * @return agentProxy
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> AsyncProxy<T> createAsyncAgentProxy(String url, Class<T> agentInterface) {
-		return getAgentFactory().createAsyncAgentProxy(this, url, agentInterface);
-	}	
+	final public <T> AsyncProxy<T> createAsyncAgentProxy(String url,
+			Class<T> agentInterface) {
+		return getAgentFactory().createAsyncAgentProxy(this, url,
+				agentInterface);
+	}
+	
 	/**
 	 * Send a request to an agent in JSON-RPC format
-	 * @param url    The url of the agent
-	 * @param method The name of the method
-	 * @return 
-	 * @throws Exception 
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @return
+	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void send(String url, String method) 
-			throws Exception {
+	final public void send(String url, String method) throws Exception {
 		send(url, method, null, void.class);
 	}
-
+	
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent
 	 * sendAsync is not supported on Google App Engine
-	 * @param url             The url of the agent to be called
-	 * @param method          The name of the method
-	 * @param params          A JSONObject containing the parameter 
-	 *                         values of the method
-	 * @param callback        An AsyncCallback of which the onSuccess or
-	 *                         onFailure method will be executed on callback.
-	 * @param type            The type of result coming from the callback.                        
-	 * @throws Exception 
-	 * @throws JSONException 
+	 * 
+	 * @param url
+	 *            The url of the agent to be called
+	 * @param method
+	 *            The name of the method
+	 * @param params
+	 *            A JSONObject containing the parameter
+	 *            values of the method
+	 * @param callback
+	 *            An AsyncCallback of which the onSuccess or
+	 *            onFailure method will be executed on callback.
+	 * @param type
+	 *            The type of result coming from the callback.
+	 * @throws Exception
+	 * @throws JSONException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> void sendAsync(String url, String method, ObjectNode params,
-			final AsyncCallback<T> callback, final Class<T> type) throws Exception {
+	final public <T> void sendAsync(String url, String method,
+			ObjectNode params, final AsyncCallback<T> callback,
+			final Class<T> type) throws Exception {
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, type);
@@ -680,22 +802,27 @@ abstract public class Agent implements AgentInterface {
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent
 	 * sendAsync is not supported on Google App Engine
-	 * @param url             The url of the agent to be called
-	 * @param request         JSON-RPC request containing method and params
-	 * @param callback        An AsyncCallback of which the onSuccess or
-	 *                         onFailure method will be executed on callback.
-	 * @param type            The type of result coming from the callback.                        
-	 * @throws Exception 
-	 * @throws JSONException 
+	 * 
+	 * @param url
+	 *            The url of the agent to be called
+	 * @param request
+	 *            JSON-RPC request containing method and params
+	 * @param callback
+	 *            An AsyncCallback of which the onSuccess or
+	 *            onFailure method will be executed on callback.
+	 * @param type
+	 *            The type of result coming from the callback.
+	 * @throws Exception
+	 * @throws JSONException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> void sendAsync(final String url, final JSONRequest request,
-			final AsyncCallback<T> callback, final Class<T> type) throws Exception {
-
+	final public <T> void sendAsync(final String url,
+			final JSONRequest request, final AsyncCallback<T> callback,
+			final Class<T> type) throws Exception {
+		
 		// Create a callback to retrieve a JSONResponse and extract the result
 		// or error from this.
-		final AsyncCallback<JSONResponse> responseCallback = 
-				new AsyncCallback<JSONResponse>() {
+		final AsyncCallback<JSONResponse> responseCallback = new AsyncCallback<JSONResponse>() {
 			@Override
 			public void onSuccess(JSONResponse response) {
 				Exception err;
@@ -709,12 +836,11 @@ abstract public class Agent implements AgentInterface {
 				}
 				if (type != null && type != void.class) {
 					callback.onSuccess(response.getResult(type));
-				}
-				else {
+				} else {
 					callback.onSuccess(null);
 				}
 			}
-
+			
 			@Override
 			public void onFailure(Exception exception) {
 				callback.onFailure(exception);
@@ -723,11 +849,12 @@ abstract public class Agent implements AgentInterface {
 		
 		getAgentFactory().sendAsync(this, url, request, responseCallback);
 	}
-
+	
 	/**
 	 * Get the urls of this agent, for example "http://mysite.com/agents/key".
 	 * An agent can have multiple urls for different configured communication
 	 * services, such as HTTP and XMPP.
+	 * 
 	 * @return urls
 	 */
 	public List<String> getUrls() {
@@ -748,6 +875,7 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Get the Id of this agent
+	 * 
 	 * @return
 	 */
 	public String getId() {
@@ -756,13 +884,13 @@ abstract public class Agent implements AgentInterface {
 	
 	/**
 	 * Retrieve the type name of this agent, its class
+	 * 
 	 * @return classname
 	 */
 	public String getType() {
 		return getClass().getSimpleName();
 	}
-
-
+	
 	/**
 	 * Retrieve a JSON Array with the agents scheduled tasks
 	 */
