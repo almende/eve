@@ -40,6 +40,7 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.entity.Callback;
+import com.almende.eve.entity.RepeatConfigType;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -231,12 +232,50 @@ abstract public class Agent implements AgentInterface {
 	}
 
 	/**
+	 * Sets up a repeated RPC call subscription.
+	 * 
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @param callbackMethod
+	 * @param confs
+	 * @return
+	 */
+	public String initRepeat(String url, String method, ObjectNode params, String callbackMethod, RepeatConfigType... confs){
+		return null;
+	}
+	
+	/**
+	 * Gets an actual return value of this repeat subscription. If a cache is available, 
+	 * this will return the cached value if the maxAge filter allows this. Otherwise it will run the actual RPC call (similar to "send");
+	 * 
+	 * @param repeatId
+	 * @param maxAge
+	 * @param returnType
+	 * @return
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 */
+	public <T> T getRepeat(String repeatId, int maxAge, Class<T> returnType) throws InstantiationException, IllegalAccessException{
+		return returnType.newInstance();
+	}
+	
+	/**
+	 * Cancels a running repeat subscription.
+	 * @param repeatId
+	 */
+	public void cancelRepeat(String repeatId){
+		
+	}
+	
+	/**
 	 * Retrieve the list with subscriptions on given event.
 	 * If there are no subscriptions for this event, an empty list is returned
 	 * @param event
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	private List<Callback> getSubscriptions(String event) {
 		Map<String, List<Callback> > allSubscriptions = 
 			(Map<String, List<Callback> >) state.get("subscriptions");
@@ -256,6 +295,7 @@ abstract public class Agent implements AgentInterface {
 	 * @param subscriptions
 	 */
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
 		HashMap<String, List<Callback> > allSubscriptions = 
 			(HashMap<String, List<Callback> >) state.get("subscriptions");
@@ -275,6 +315,7 @@ abstract public class Agent implements AgentInterface {
 	 * @param callbackMethod
 	 * @return subscriptionId
 	 */
+	@Deprecated
 	final public String onSubscribe (
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
@@ -315,6 +356,7 @@ abstract public class Agent implements AgentInterface {
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
+	@Deprecated
 	final public void onUnsubscribe(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
 			@Required(false) @Name("event") String event, 
@@ -371,6 +413,7 @@ abstract public class Agent implements AgentInterface {
 	 * @param params
 	 * @throws Exception 
 	 */
+	@Deprecated
 	final public void onTrigger (
 			@Name("url") String url, 
 			@Name("method") String method, 
@@ -388,6 +431,7 @@ abstract public class Agent implements AgentInterface {
 	 * @return subscriptionId
 	 * @throws Exception
 	 */
+	@Deprecated
 	protected String subscribe(String url, String event, String callbackMethod) 
 			throws Exception {
 		String method = "onSubscribe";
@@ -405,6 +449,7 @@ abstract public class Agent implements AgentInterface {
 	 * @param subscriptionId
 	 * @throws Exception
 	 */
+	@Deprecated
 	protected void unsubscribe(String url, String subscriptionId) throws Exception {
 		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
@@ -419,6 +464,7 @@ abstract public class Agent implements AgentInterface {
 	 * @param callbackMethod
 	 * @throws Exception
 	 */
+	@Deprecated
 	protected void unsubscribe(String url, String event, String callbackMethod) 
 			throws Exception {
 		String method = "onUnsubscribe";
@@ -437,6 +483,7 @@ abstract public class Agent implements AgentInterface {
 	 * @throws JSONRPCException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
+	@Deprecated
 	final public void trigger(@Name("event") String event, 
 			@Name("params") Object params) throws Exception {
 		// TODO: user first url is very dangerous! can cause a mismatch
