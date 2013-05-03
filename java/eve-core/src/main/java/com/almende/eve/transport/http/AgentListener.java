@@ -18,8 +18,6 @@ public class AgentListener implements ServletContextListener {
 	
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		System.err.println(this.getClass().getName() + ":"+this.getClass().getClassLoader().hashCode());
-		
 		c = sce.getServletContext();
 		init(c);
 	}
