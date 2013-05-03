@@ -19,18 +19,21 @@ public class Repeat implements Serializable {
 	public String									url;
 	public String									method;
 	public ObjectNode								params;
+	public String									callbackMethod;
 	public List<String>								schedulerIds		= new ArrayList<String>();
 	public List<String>								remoteIds			= new ArrayList<String>();
 	public String									cacheType;
 	
 	transient private static HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
 	
-	public Repeat(String agentId, String url, String method, ObjectNode params) {
+	public <T> Repeat(String agentId, String url, String method, ObjectNode params,
+			String callbackMethod) {
 		this.id = UUID.randomUUID().toString();
 		this.agentId = agentId;
 		this.url = url;
 		this.method = method;
 		this.params = params;
+		this.callbackMethod = callbackMethod;
 	}
 	
 	public boolean hasCache() {
@@ -51,7 +54,16 @@ public class Repeat implements Serializable {
 	}
 	
 	public void addPoll(Poll config) {
+		AgentFactory factory = AgentFactory.getInstance();
 		
+		try {
+			Agent agent = factory.getAgent(agentId);
+			String taskId = config.init(id, agent);
+			schedulerIds.add(taskId);
+		} catch (Exception e){
+			System.err.println("Couldn't init polling!");
+			e.printStackTrace();
+		}
 	}
 	
 	public void addPush(Push config) {
@@ -93,10 +105,9 @@ public class Repeat implements Serializable {
 				repeats = new HashMap<String, Repeat>();
 			}
 			Repeat result = repeats.get(id);
-			if (	result != null && 
-					!caches.containsKey(id) &&
-					result.cacheType != null) 
-				result.addCache((Cache) Class.forName(result.cacheType).newInstance());
+			if (result != null && !caches.containsKey(id)
+					&& result.cacheType != null) result.addCache((Cache) Class
+					.forName(result.cacheType).newInstance());
 			return result;
 			
 		} catch (Exception e) {

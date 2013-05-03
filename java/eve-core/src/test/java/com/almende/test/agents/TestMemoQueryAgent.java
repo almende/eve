@@ -3,6 +3,7 @@ package com.almende.test.agents;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Poll;
 import com.almende.eve.entity.Push;
@@ -26,10 +27,14 @@ public class TestMemoQueryAgent extends Agent {
 		if (repeatID != null) getState().put("pushKey", repeatID);
 
 		repeatID = initRepeat("local://bob", "getData",
-				JOM.createObjectNode(), null, new Poll(800));
+				JOM.createObjectNode(), "returnRes", new Poll(800));
 		
 		if (repeatID != null) getState().put("LazyPollKey", repeatID);
 
+	}
+	
+	public void returnRes(@Name("result") int result){
+		System.err.println("Received callback result:"+result);
 	}
 	
 	public Integer get_result() {

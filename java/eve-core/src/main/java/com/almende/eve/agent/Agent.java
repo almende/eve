@@ -259,21 +259,11 @@ abstract public class Agent implements AgentInterface {
 	 * @param confs
 	 * @return
 	 */
-	public String initRepeat(String url, String method, ObjectNode params,
+	public <T> String initRepeat(String url, String method, ObjectNode params,
 			String callbackMethod, RepeatConfigType... confs) {
-		// Prepare and store configuration
-		// foreach poll conf:
-		// Local poll scheduler task, which includes url, method, params
-		// foreach push conf:
-		// Remote url, "remoteID"
-		// foreach cache conf:
-		// Store existance (for re-init on reboot)
-		
-		Repeat repeat = new Repeat(getId(), url, method, params);
+		Repeat repeat = new Repeat(getId(), url, method, params, callbackMethod);
 		for (RepeatConfigType config : confs) {
-			System.err.println("Checking:" + config.getClass().getName());
 			if (config instanceof Cache) {
-				System.err.println("Adding cache");
 				repeat.addCache((Cache) config);
 			}
 			if (config instanceof Poll) {
@@ -283,9 +273,26 @@ abstract public class Agent implements AgentInterface {
 				repeat.addPush((Push) config);
 			}
 		}
-		
 		repeat.store();
 		return repeat.id;
+	}
+	
+	public void doPoll(@Name("repeatId") String repeatId) throws Exception{
+		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
+		if (repeat != null) {
+			//TODO: Shouldn't this be a method in Repeat (or even better: overrideable in a Poll object, like Cache does?)
+			Object result = send(repeat.url, repeat.method, repeat.params,
+					Object.class);
+			if (repeat.callbackMethod != null){
+				//TODO: inefficient, is there no direct method to invoke this method?!
+				ObjectNode params = JOM.createObjectNode();
+				params.put("result", JOM.getInstance().writeValueAsString(result));
+				send("local://"+getId(),repeat.callbackMethod,params);
+			}
+			if (repeat.hasCache()) {
+				repeat.getCache().store(result);
+			}
+		}
 	}
 	
 	/**
@@ -675,7 +682,7 @@ abstract public class Agent implements AgentInterface {
 					ObjectNode.class);
 		}
 		
-		// invoke the other agent via the state, allowing the state
+		// invoke the other agent via the agentFactory, allowing the factory
 		// to route the request internally or externally
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, jsonParams);

@@ -5,6 +5,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.test.agents.TestMemoQueryAgent;
 
 public class TestMemoQuery extends TestCase {
@@ -14,6 +15,7 @@ public class TestMemoQuery extends TestCase {
 		AgentFactory factory = AgentFactory.getInstance();
 		if (factory == null){
 			factory = AgentFactory.createInstance();
+			factory.setSchedulerFactory(new ClockSchedulerFactory(factory,""));
 		}
 
 		if (factory.hasAgent("alice")) factory.deleteAgent("alice");
