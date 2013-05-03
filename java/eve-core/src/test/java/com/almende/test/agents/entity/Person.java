@@ -1,4 +1,4 @@
-package com.almende.eve.entity;
+package com.almende.test.agents.entity;
 
 import java.util.ArrayList;
 import java.util.List;

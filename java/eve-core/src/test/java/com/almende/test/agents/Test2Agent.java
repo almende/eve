@@ -35,13 +35,13 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
-import com.almende.eve.entity.Person;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.xmpp.XmppService;
+import com.almende.test.agents.entity.Person;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
