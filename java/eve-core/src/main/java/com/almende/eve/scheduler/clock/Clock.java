@@ -1,4 +1,4 @@
-package com.almende.eve.clock;
+package com.almende.eve.scheduler.clock;
 
 import org.joda.time.DateTime;
 

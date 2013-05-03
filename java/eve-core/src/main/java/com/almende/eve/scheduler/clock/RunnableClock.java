@@ -1,4 +1,4 @@
-package com.almende.eve.clock;
+package com.almende.eve.scheduler.clock;
 
 import java.util.TreeMap;
 import java.util.concurrent.Executors;

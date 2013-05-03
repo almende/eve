@@ -14,11 +14,11 @@ import org.joda.time.DateTime;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
-import com.almende.eve.clock.Clock;
-import com.almende.eve.clock.RunnableClock;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.scheduler.clock.Clock;
+import com.almende.eve.scheduler.clock.RunnableClock;
 
 public class ClockSchedulerFactory implements SchedulerFactory {
 	Map<String, Scheduler>	schedulers		= new HashMap<String, Scheduler>();
