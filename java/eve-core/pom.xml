@@ -137,7 +137,7 @@
 						<artifactId>jetty-maven-plugin</artifactId>
 						<version>${jetty.version}</version>
 						<configuration>
-							<daemon>false</daemon>
+							<daemon>true</daemon>
 						</configuration>
 						<executions>
                                                         <execution>
