@@ -93,6 +93,30 @@ public class Repeat implements Serializable {
 		}
 	}
 	
+	public void delete(){
+		AgentFactory factory = AgentFactory.getInstance();
+		
+		try {
+			Agent agent = factory.getAgent(agentId);
+			@SuppressWarnings("unchecked")
+			Map<String, Repeat> repeats = (Map<String, Repeat>) agent
+					.getState().get("_repeats");
+			Map<String, Repeat> newRepeats = new HashMap<String, Repeat>();
+			if (repeats != null) {
+				newRepeats.putAll(repeats);
+			}
+			newRepeats.remove(id);
+			
+			if (!agent.getState().putIfUnchanged("_repeats",
+					(Serializable) newRepeats, (Serializable) repeats)) {
+				delete(); // recursive retry.
+			}
+		} catch (Exception e) {
+			System.err.println("Couldn't delete repeat:" + agentId + "." + id);
+			e.printStackTrace();
+		}
+	}
+	
 	public static Repeat getRepeatById(String agentId, String id) {
 		AgentFactory factory = AgentFactory.getInstance();
 		
@@ -115,4 +139,5 @@ public class Repeat implements Serializable {
 		}
 		return null;
 	}
+	
 }

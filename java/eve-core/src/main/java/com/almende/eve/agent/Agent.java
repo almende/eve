@@ -339,9 +339,16 @@ abstract public class Agent implements AgentInterface {
 	 * @param repeatId
 	 */
 	public void cancelRepeat(String repeatId) {
+		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
+		if (repeat != null) {
+			// foreach (poll) cancel local task
+			for (String task: repeat.schedulerIds){
+				getScheduler().cancelTask(task);
+			}
+		}
+		repeat.delete();
 		// foreach (cache) unload cache, remove cache config
 		// foreach (push) unsubscribe remote task
-		// foreach (poll) cancel local task
 		// remove base configuration.
 	}
 	
