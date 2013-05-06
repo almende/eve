@@ -5,6 +5,8 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.test.agents.TestMemoQueryAgent;
 
@@ -22,9 +24,10 @@ public class TestMemoQuery extends TestCase {
 		if (factory.hasAgent("bob"))factory.deleteAgent("bob");
 
 		TestMemoQueryAgent alice = factory.createAgent(TestMemoQueryAgent.class, "alice");
-		factory.createAgent(TestMemoQueryAgent.class, "bob");
+		TestMemoQueryAgent bob = factory.createAgent(TestMemoQueryAgent.class, "bob");
 		
 		alice.prepare();
+		bob.getScheduler().createTask(new JSONRequest("bobEvent",JOM.createObjectNode()), 1000, true, false);
 		
 		System.out.println("0 Alice, from bob:"+alice.get_result());
 		int count=0;

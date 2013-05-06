@@ -58,7 +58,7 @@ public class Repeat implements Serializable {
 		
 		try {
 			Agent agent = factory.getAgent(agentId);
-			String taskId = config.init(id, agent);
+			String taskId = config.init(this, agent);
 			schedulerIds.add(taskId);
 		} catch (Exception e){
 			System.err.println("Couldn't init polling!");
@@ -67,7 +67,16 @@ public class Repeat implements Serializable {
 	}
 	
 	public void addPush(Push config) {
+		AgentFactory factory = AgentFactory.getInstance();
 		
+		try {
+			Agent agent = factory.getAgent(agentId);
+			List<String> remoteIds = config.init(this, agent);
+			remoteIds.addAll(remoteIds);
+		} catch (Exception e){
+			System.err.println("Couldn't init Pushing!");
+			e.printStackTrace();
+		}
 	}
 	
 	public void store() {

@@ -3,6 +3,7 @@ package com.almende.test.agents;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.annotation.EventTriggered;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Poll;
@@ -12,8 +13,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TestMemoQueryAgent extends Agent {
 	
-	public int getData() {
+	@EventTriggered("Go")
+	public Integer getData() {
 		return DateTime.now().getSecondOfDay();
+	}
+	
+	public void bobEvent() throws Exception {
+		trigger("Go", JOM.createObjectNode());
 	}
 	
 	public void prepare() {
@@ -25,26 +31,33 @@ public class TestMemoQueryAgent extends Agent {
 		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
 				null, new Push(1000, false), new Cache());
 		if (repeatID != null) getState().put("pushKey", repeatID);
-
-		repeatID = initRepeat("local://bob", "getData",
-				JOM.createObjectNode(), "returnRes", new Poll(800));
+		
+		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
+				null, new Push(-1, true), new Cache());
+		if (repeatID != null) getState().put("LazyPushKey", repeatID);
+		
+		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
+				"returnRes", new Poll(800));
 		
 		if (repeatID != null) getState().put("LazyPollKey", repeatID);
-
+		
 	}
 	
-	public void returnRes(@Name("result") int result){
-		System.err.println("Received callback result:"+result);
+	public void returnRes(@Name("result") int result) {
+		System.err.println("Received callback result:" + result);
 	}
 	
 	public Integer get_result() {
 		try {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
-			return getRepeat((String) getState().get("pollKey"), params,
-					Integer.class);
+			String repeatID = (String) getState().get("LazyPushKey");
+			Object res = getRepeat(repeatID, params, Integer.class);
+			System.err.println("Res:'" + res + "' : "
+					+ res.getClass().getName());
+			return (Integer) res;
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 		return null;
 	}

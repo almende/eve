@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface AgentInterface {
 	/**
@@ -77,7 +78,8 @@ public interface AgentInterface {
 	public String onSubscribe (
 			@Name("event") String event, 
 			@Name("callbackUrl") String callbackUrl, 
-			@Name("callbackMethod") String callbackMethod);
+			@Name("callbackMethod") String callbackMethod,
+			@Required(false) @Name("callbackParams") ObjectNode params);
 	
 	/**
 	 * Let an other agent unsubscribe from one of this agents events

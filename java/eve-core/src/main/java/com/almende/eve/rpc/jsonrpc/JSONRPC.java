@@ -87,8 +87,8 @@ public class JSONRPC {
 	/**
 	 * Invoke a method on an object
 	 * 
-	 * @param sender
-	 *            Sender url
+	 * @param destination
+	 *            destination url
 	 * @param obj
 	 *            will be invoked on the given object
 	 * @return

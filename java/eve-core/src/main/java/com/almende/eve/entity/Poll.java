@@ -12,9 +12,9 @@ public class Poll implements RepeatConfigType {
 		this.interval=interval;
 	};
 	
-	public String init(String repeatId, Agent agent){
+	public String init(Repeat repeat, Agent agent){
 		ObjectNode params = JOM.createObjectNode();
-		params.put("repeatId",repeatId);
+		params.put("repeatId",repeat.id);
 		JSONRequest request = new JSONRequest("doPoll",params);
 		
 		System.err.println("Setting scheduler task");
