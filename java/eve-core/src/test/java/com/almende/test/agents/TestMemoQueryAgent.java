@@ -53,8 +53,6 @@ public class TestMemoQueryAgent extends Agent {
 			params.put("maxAge", 3000);
 			String repeatID = (String) getState().get("LazyPushKey");
 			Object res = getRepeat(repeatID, params, Integer.class);
-			System.err.println("Res:'" + res + "' : "
-					+ res.getClass().getName());
 			return (Integer) res;
 		} catch (Exception e) {
 			e.printStackTrace();
