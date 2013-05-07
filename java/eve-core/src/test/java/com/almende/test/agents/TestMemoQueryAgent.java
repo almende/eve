@@ -1,5 +1,8 @@
 package com.almende.test.agents;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
@@ -47,13 +50,28 @@ public class TestMemoQueryAgent extends Agent {
 		System.err.println("Received callback result:" + result);
 	}
 	
-	public Integer get_result() {
+	public List<Integer> get_result() {
 		try {
+			List<Integer> result = new ArrayList<Integer>();
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
-			String repeatID = (String) getState().get("LazyPushKey");
+			String repeatID = (String) getState().get("pushKey");
 			Object res = getRepeat(repeatID, params, Integer.class);
-			return (Integer) res;
+			result.add((Integer) res);
+			
+			repeatID = (String) getState().get("pollKey");
+			res = getRepeat(repeatID, params, Integer.class);
+			result.add((Integer) res);
+			
+			repeatID = (String) getState().get("LazyPushKey");
+			res = getRepeat(repeatID, params, Integer.class);
+			result.add((Integer) res);
+			
+			repeatID = (String) getState().get("LazyPollKey");
+			res = getRepeat(repeatID, params, Integer.class);
+			result.add((Integer) res);
+			
+			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

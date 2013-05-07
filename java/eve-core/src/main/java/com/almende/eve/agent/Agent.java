@@ -329,7 +329,6 @@ abstract public class Agent implements AgentInterface {
 	public void cancelRepeat(String repeatId) {
 		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
 		if (repeat != null) {
-			// foreach (poll) cancel local task
 			for (String task : repeat.schedulerIds) {
 				getScheduler().cancelTask(task);
 			}
@@ -344,11 +343,7 @@ abstract public class Agent implements AgentInterface {
 				}
 			}
 		}
-		
 		repeat.delete();
-		
-		// foreach (push) unsubscribe remote task
-		// remove base configuration.
 	}
 	
 	public void doPoll(@Name("repeatId") String repeatId) throws Exception {
@@ -373,7 +368,8 @@ abstract public class Agent implements AgentInterface {
 	public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
-		JSONResponse res = JSONRPC.invoke(this, new JSONRequest(method,params));
+		JSONResponse res = JSONRPC
+				.invoke(this, new JSONRequest(method, params));
 		
 		ObjectNode parms = JOM.createObjectNode();
 		parms.put("result", res.getResult());
@@ -392,7 +388,8 @@ abstract public class Agent implements AgentInterface {
 					ObjectNode params = JOM.createObjectNode();
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
-					JSONRPC.invoke(this, new JSONRequest(repeat.callbackMethod,params));
+					JSONRPC.invoke(this, new JSONRequest(repeat.callbackMethod,
+							params));
 				}
 				if (repeat.hasCache()) {
 					repeat.getCache().store(result);
@@ -421,7 +418,7 @@ abstract public class Agent implements AgentInterface {
 		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
 			String event = "change"; // default
 			if (pushParams.has("event")) {
-				event = pushParams.get("event").textValue();
+				event = pushParams.get("event").textValue(); //Event param overrules
 			} else {
 				AnnotatedClass ac = null;
 				try {
@@ -431,7 +428,7 @@ abstract public class Agent implements AgentInterface {
 						EventTriggered annotation = method
 								.getAnnotation(EventTriggered.class);
 						if (annotation != null) {
-							event = annotation.value();
+							event = annotation.value();  //If no Event param, get it from annotation, else default.
 						}
 					}
 				} catch (Exception e) {
@@ -450,9 +447,10 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	public void unregisterPush(@Name("pushId") String id) {
+		//Just assume that id is either a taskId or an Event subscription Id. Both allow unknown ids, Postel's law rules!
 		getScheduler().cancelTask(id);
 		try {
-			unsubscribe("", id);
+			unsubscribe(getFirstUrl(), id);
 		} catch (Exception e) {
 			System.err.println("Failed to unsubscribe push:" + e);
 		}
@@ -517,8 +515,8 @@ abstract public class Agent implements AgentInterface {
 			}
 			if (subscription.url.equals(callbackUrl)
 					&& subscription.method.equals(callbackMethod)
-					&& ((subscription.params == null && params == null) || subscription.params.equals(params))) {
-				//TODO: this still goes wrong is either subscription.params or params is null and the other not.
+					&& ((subscription.params == null && params == null) || subscription.params != null) 
+					&& subscription.params.equals(params)) {
 				// The callback already exists. do not duplicate it
 				return subscription.id;
 			}
@@ -749,8 +747,11 @@ abstract public class Agent implements AgentInterface {
 			taskParams.put("url", subscription.url);
 			taskParams.put("method", subscription.method);
 			if (subscription.params != null) {
-				ObjectNode parms = (ObjectNode) JOM.getInstance().readTree(subscription.params).get("params");
-				callbackParams.put("params", parms.putAll((ObjectNode)callbackParams.get("params")));
+				ObjectNode parms = (ObjectNode) JOM.getInstance()
+						.readTree(subscription.params).get("params");
+				callbackParams
+						.put("params", parms.putAll((ObjectNode) callbackParams
+								.get("params")));
 			} else {
 				System.err.println("subscription.params empty");
 			}
