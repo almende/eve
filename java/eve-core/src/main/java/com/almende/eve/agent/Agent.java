@@ -349,8 +349,6 @@ abstract public class Agent implements AgentInterface {
 	public void doPoll(@Name("monitorId") String monitorId) throws Exception {
 		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
 		if (monitor != null) {
-			// TODO: Shouldn't this be a method in monitor (or even better:
-			// overrideable in a Poll object, like Cache does?)
 			Object result = send(monitor.url, monitor.method, monitor.params,
 					Object.class);
 			if (monitor.callbackMethod != null) {
