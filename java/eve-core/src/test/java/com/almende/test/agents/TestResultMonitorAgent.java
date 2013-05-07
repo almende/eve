@@ -11,6 +11,7 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Poll;
 import com.almende.eve.entity.Push;
+import com.almende.eve.entity.ResultMonitor;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -31,12 +32,12 @@ public class TestResultMonitorAgent extends Agent {
 		
 		if (monitorID != null) getState().put("pollKey", monitorID);
 		
+		Cache testCache = new Cache();
 		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
-				null, new Push(1000, false), new Cache());
+				null, new Push(1000, false), testCache);
 		if (monitorID != null) getState().put("pushKey", monitorID);
 		
-		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
-				null, new Push(-1, true), new Cache());
+		monitorID = new ResultMonitor(getId(),"local://bob", "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
 		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),

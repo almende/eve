@@ -46,10 +46,7 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.proxy.AsyncProxy;
-import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Callback;
-import com.almende.eve.entity.Poll;
-import com.almende.eve.entity.Push;
 import com.almende.eve.entity.ResultMonitor;
 import com.almende.eve.entity.ResultMonitorConfigType;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
@@ -232,7 +229,8 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	/**
-	 * Sets up a monitored RPC call subscription.
+	 * Sets up a monitored RPC call subscription. Conveniency method, which can also be expressed as:
+	 * new ResultMonitor(getId(), url,method,params).add(ResultMonitorConfigType config).add(ResultMonitorConfigType config).store();
 	 * 
 	 * @param url
 	 * @param method
@@ -241,22 +239,13 @@ abstract public class Agent implements AgentInterface {
 	 * @param confs
 	 * @return
 	 */
-	public <T> String initResultMonitor(String url, String method, ObjectNode params,
+	public String initResultMonitor(String url, String method, ObjectNode params,
 			String callbackMethod, ResultMonitorConfigType... confs) {
 		ResultMonitor monitor = new ResultMonitor(getId(), url, method, params, callbackMethod);
 		for (ResultMonitorConfigType config : confs) {
-			if (config instanceof Cache) {
-				monitor.addCache((Cache) config);
-			}
-			if (config instanceof Poll) {
-				monitor.addPoll((Poll) config);
-			}
-			if (config instanceof Push) {
-				monitor.addPush((Push) config);
-			}
+			monitor.add(config);
 		}
-		monitor.store();
-		return monitor.id;
+		return monitor.store();
 	}
 	
 	/**

@@ -26,7 +26,7 @@ public class ResultMonitor implements Serializable {
 	
 	transient private static HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
 	
-	public <T> ResultMonitor(String agentId, String url, String method, ObjectNode params,
+	public ResultMonitor(String agentId, String url, String method, ObjectNode params,
 			String callbackMethod) {
 		this.id = UUID.randomUUID().toString();
 		this.agentId = agentId;
@@ -34,6 +34,22 @@ public class ResultMonitor implements Serializable {
 		this.method = method;
 		this.params = params;
 		this.callbackMethod = callbackMethod;
+	}
+	public ResultMonitor(String agentId, String url, String method, ObjectNode params) {
+		this(agentId,url,method,params,null);
+	}
+	
+	public ResultMonitor add(ResultMonitorConfigType config) {
+			if (config instanceof Cache) {
+				this.addCache((Cache) config);
+			}
+			if (config instanceof Poll) {
+				this.addPoll((Poll) config);
+			}
+			if (config instanceof Push) {
+				this.addPush((Push) config);
+			}
+		return this;
 	}
 	
 	public boolean hasCache() {
@@ -79,7 +95,7 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
-	public void store() {
+	public String store() {
 		AgentFactory factory = AgentFactory.getInstance();
 		
 		try {
@@ -100,6 +116,7 @@ public class ResultMonitor implements Serializable {
 		} catch (Exception e) {
 			System.err.println("Couldn't find monitors:" + agentId + "." + id);
 		}
+		return id;
 	}
 	
 	public void delete(){
