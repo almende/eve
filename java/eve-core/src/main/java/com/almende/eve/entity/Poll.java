@@ -5,16 +5,16 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Poll implements RepeatConfigType {
+public class Poll implements ResultMonitorConfigType {
 	int interval;
 	
 	public Poll(int interval){
 		this.interval=interval;
 	};
 	
-	public String init(Repeat repeat, Agent agent){
+	public String init(ResultMonitor monitor, Agent agent){
 		ObjectNode params = JOM.createObjectNode();
-		params.put("repeatId",repeat.id);
+		params.put("monitorId",monitor.id);
 		JSONRequest request = new JSONRequest("doPoll",params);
 		
 		System.err.println("Setting scheduler task");

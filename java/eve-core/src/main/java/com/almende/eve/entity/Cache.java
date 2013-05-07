@@ -4,7 +4,7 @@ import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Cache implements RepeatConfigType {
+public class Cache implements ResultMonitorConfigType {
 	DateTime stored= null;
 	Object value = null;
 	

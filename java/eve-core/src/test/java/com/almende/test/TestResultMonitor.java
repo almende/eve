@@ -10,9 +10,9 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
-import com.almende.test.agents.TestMemoQueryAgent;
+import com.almende.test.agents.TestResultMonitorAgent;
 
-public class TestMemoQuery extends TestCase {
+public class TestResultMonitor extends TestCase {
 	
 	@Test
 	public void test() throws Exception {
@@ -25,9 +25,9 @@ public class TestMemoQuery extends TestCase {
 		if (factory.hasAgent("alice")) factory.deleteAgent("alice");
 		if (factory.hasAgent("bob")) factory.deleteAgent("bob");
 		
-		TestMemoQueryAgent alice = factory.createAgent(
-				TestMemoQueryAgent.class, "alice");
-		TestMemoQueryAgent bob = factory.createAgent(TestMemoQueryAgent.class,
+		TestResultMonitorAgent alice = factory.createAgent(
+				TestResultMonitorAgent.class, "alice");
+		TestResultMonitorAgent bob = factory.createAgent(TestResultMonitorAgent.class,
 				"bob");
 		
 		alice.prepare();

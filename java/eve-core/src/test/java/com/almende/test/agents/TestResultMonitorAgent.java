@@ -14,7 +14,7 @@ import com.almende.eve.entity.Push;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class TestMemoQueryAgent extends Agent {
+public class TestResultMonitorAgent extends Agent {
 	
 	@EventTriggered("Go")
 	public Integer getData() {
@@ -26,23 +26,23 @@ public class TestMemoQueryAgent extends Agent {
 	}
 	
 	public void prepare() {
-		String repeatID = initRepeat("local://bob", "getData",
+		String monitorID = initResultMonitor("local://bob", "getData",
 				JOM.createObjectNode(), null, new Poll(1000), new Cache());
 		
-		if (repeatID != null) getState().put("pollKey", repeatID);
+		if (monitorID != null) getState().put("pollKey", monitorID);
 		
-		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
+		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
 				null, new Push(1000, false), new Cache());
-		if (repeatID != null) getState().put("pushKey", repeatID);
+		if (monitorID != null) getState().put("pushKey", monitorID);
 		
-		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
+		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
 				null, new Push(-1, true), new Cache());
-		if (repeatID != null) getState().put("LazyPushKey", repeatID);
+		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
-		repeatID = initRepeat("local://bob", "getData", JOM.createObjectNode(),
-				"returnRes", new Poll(800));
+		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
+				"returnRes", new Poll(800), new Poll(1500));
 		
-		if (repeatID != null) getState().put("LazyPollKey", repeatID);
+		if (monitorID != null) getState().put("LazyPollKey", monitorID);
 		
 	}
 	
@@ -55,20 +55,20 @@ public class TestMemoQueryAgent extends Agent {
 			List<Integer> result = new ArrayList<Integer>();
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
-			String repeatID = (String) getState().get("pushKey");
-			Object res = getRepeat(repeatID, params, Integer.class);
+			String monitorID = (String) getState().get("pushKey");
+			Object res = getResult(monitorID, params, Integer.class);
 			result.add((Integer) res);
 			
-			repeatID = (String) getState().get("pollKey");
-			res = getRepeat(repeatID, params, Integer.class);
+			monitorID = (String) getState().get("pollKey");
+			res = getResult(monitorID, params, Integer.class);
 			result.add((Integer) res);
 			
-			repeatID = (String) getState().get("LazyPushKey");
-			res = getRepeat(repeatID, params, Integer.class);
+			monitorID = (String) getState().get("LazyPushKey");
+			res = getResult(monitorID, params, Integer.class);
 			result.add((Integer) res);
 			
-			repeatID = (String) getState().get("LazyPollKey");
-			res = getRepeat(repeatID, params, Integer.class);
+			monitorID = (String) getState().get("LazyPollKey");
+			res = getResult(monitorID, params, Integer.class);
 			result.add((Integer) res);
 			
 			return result;
@@ -79,7 +79,7 @@ public class TestMemoQueryAgent extends Agent {
 	}
 	
 	public void tear_down() {
-		cancelRepeat((String) getState().get("pushKey"));
+		cancelResultMonitor((String) getState().get("pushKey"));
 	}
 	
 	@Override

@@ -50,8 +50,8 @@ import com.almende.eve.entity.Cache;
 import com.almende.eve.entity.Callback;
 import com.almende.eve.entity.Poll;
 import com.almende.eve.entity.Push;
-import com.almende.eve.entity.Repeat;
-import com.almende.eve.entity.RepeatConfigType;
+import com.almende.eve.entity.ResultMonitor;
+import com.almende.eve.entity.ResultMonitorConfigType;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -256,7 +256,7 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	/**
-	 * Sets up a repeated RPC call subscription.
+	 * Sets up a monitored RPC call subscription.
 	 * 
 	 * @param url
 	 * @param method
@@ -265,102 +265,102 @@ abstract public class Agent implements AgentInterface {
 	 * @param confs
 	 * @return
 	 */
-	public <T> String initRepeat(String url, String method, ObjectNode params,
-			String callbackMethod, RepeatConfigType... confs) {
-		Repeat repeat = new Repeat(getId(), url, method, params, callbackMethod);
-		for (RepeatConfigType config : confs) {
+	public <T> String initResultMonitor(String url, String method, ObjectNode params,
+			String callbackMethod, ResultMonitorConfigType... confs) {
+		ResultMonitor monitor = new ResultMonitor(getId(), url, method, params, callbackMethod);
+		for (ResultMonitorConfigType config : confs) {
 			if (config instanceof Cache) {
-				repeat.addCache((Cache) config);
+				monitor.addCache((Cache) config);
 			}
 			if (config instanceof Poll) {
-				repeat.addPoll((Poll) config);
+				monitor.addPoll((Poll) config);
 			}
 			if (config instanceof Push) {
-				repeat.addPush((Push) config);
+				monitor.addPush((Push) config);
 			}
 		}
-		repeat.store();
-		return repeat.id;
+		monitor.store();
+		return monitor.id;
 	}
 	
 	/**
-	 * Gets an actual return value of this repeat subscription. If a cache is
+	 * Gets an actual return value of this monitor subscription. If a cache is
 	 * available,
 	 * this will return the cached value if the maxAge filter allows this.
 	 * Otherwise it will run the actual RPC call (similar to "send");
 	 * 
-	 * @param repeatId
+	 * @param monitorId
 	 * @param filter_parms
 	 * @param returnType
 	 * @return
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getRepeat(String repeatId, ObjectNode filter_parms,
+	public <T> T getResult(String monitorId, ObjectNode filter_parms,
 			Class<T> returnType) throws Exception {
 		T result = null;
-		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
-		if (repeat != null) {
-			if (repeat.hasCache()) {
-				if (repeat.getCache() != null
-						&& repeat.getCache().filter(filter_parms)) {
-					result = (T) repeat.getCache().get();
+		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
+		if (monitor != null) {
+			if (monitor.hasCache()) {
+				if (monitor.getCache() != null
+						&& monitor.getCache().filter(filter_parms)) {
+					result = (T) monitor.getCache().get();
 				}
 			}
 			if (result == null) {
-				result = send(repeat.url, repeat.method, repeat.params,
+				result = send(monitor.url, monitor.method, monitor.params,
 						returnType);
-				if (repeat.hasCache()) {
-					repeat.getCache().store(result);
+				if (monitor.hasCache()) {
+					monitor.getCache().store(result);
 				}
 			}
 		} else {
-			System.err.println("Failed to find repeat!" + repeatId);
+			System.err.println("Failed to find monitor!" + monitorId);
 		}
 		return result;
 		
 	}
 	
 	/**
-	 * Cancels a running repeat subscription.
+	 * Cancels a running monitor subscription.
 	 * 
-	 * @param repeatId
+	 * @param monitorId
 	 */
-	public void cancelRepeat(String repeatId) {
-		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
-		if (repeat != null) {
-			for (String task : repeat.schedulerIds) {
+	public void cancelResultMonitor(String monitorId) {
+		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
+		if (monitor != null) {
+			for (String task : monitor.schedulerIds) {
 				getScheduler().cancelTask(task);
 			}
-			for (String remote : repeat.remoteIds) {
+			for (String remote : monitor.remoteIds) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("pushId", remote);
 				try {
-					send(repeat.url, "unregisterPush", params);
+					send(monitor.url, "unregisterPush", params);
 				} catch (Exception e) {
 					System.err.println("Failed to unregister Push");
 					e.printStackTrace();
 				}
 			}
 		}
-		repeat.delete();
+		monitor.delete();
 	}
 	
-	public void doPoll(@Name("repeatId") String repeatId) throws Exception {
-		Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
-		if (repeat != null) {
-			// TODO: Shouldn't this be a method in Repeat (or even better:
+	public void doPoll(@Name("monitorId") String monitorId) throws Exception {
+		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
+		if (monitor != null) {
+			// TODO: Shouldn't this be a method in monitor (or even better:
 			// overrideable in a Poll object, like Cache does?)
-			Object result = send(repeat.url, repeat.method, repeat.params,
+			Object result = send(monitor.url, monitor.method, monitor.params,
 					Object.class);
-			if (repeat.callbackMethod != null) {
+			if (monitor.callbackMethod != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",
 						JOM.getInstance().writeValueAsString(result));
-				send("local://" + getId(), repeat.callbackMethod, params);
+				send("local://" + getId(), monitor.callbackMethod, params);
 			}
-			if (repeat.hasCache()) {
-				repeat.getCache().store(result);
+			if (monitor.hasCache()) {
+				monitor.getCache().store(result);
 			}
 		}
 	}
@@ -373,31 +373,31 @@ abstract public class Agent implements AgentInterface {
 		
 		ObjectNode parms = JOM.createObjectNode();
 		parms.put("result", res.getResult());
-		parms.put("repeatId", pushParams.get("repeatId").textValue());
+		parms.put("monitorId", pushParams.get("monitorId").textValue());
 		
 		send(pushParams.get("url").textValue(), "callbackPush", parms);
 		// If callback reports "old", unregisterPush();
 	}
 	
 	public void callbackPush(@Name("result") Object result,
-			@Name("repeatId") String repeatId) {
+			@Name("monitorId") String monitorId) {
 		try {
-			Repeat repeat = Repeat.getRepeatById(getId(), repeatId);
-			if (repeat != null) {
-				if (repeat.callbackMethod != null) {
+			ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
+			if (monitor != null) {
+				if (monitor.callbackMethod != null) {
 					ObjectNode params = JOM.createObjectNode();
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
-					JSONRPC.invoke(this, new JSONRequest(repeat.callbackMethod,
+					JSONRPC.invoke(this, new JSONRequest(monitor.callbackMethod,
 							params));
 				}
-				if (repeat.hasCache()) {
-					repeat.getCache().store(result);
+				if (monitor.hasCache()) {
+					monitor.getCache().store(result);
 				}
 			}
 		} catch (Exception e) {
 			System.err.println("Couldn't run local callbackMethod for push!"
-					+ repeatId);
+					+ monitorId);
 			e.printStackTrace();
 		}
 	}

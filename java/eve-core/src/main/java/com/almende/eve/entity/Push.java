@@ -6,7 +6,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Push implements RepeatConfigType {
+public class Push implements ResultMonitorConfigType {
 	int		interval	= -1;
 	boolean	onEvent	= false;
 	
@@ -16,20 +16,20 @@ public class Push implements RepeatConfigType {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<String> init(Repeat repeat, Agent agent) throws Exception {
+	public List<String> init(ResultMonitor monitor, Agent agent) throws Exception {
 		ObjectNode wrapper = JOM.createObjectNode();
 		ObjectNode params = JOM.createObjectNode();
 		
-		params.put("repeatId", repeat.id);
+		params.put("monitorId", monitor.id);
 		if (interval > 0) {
 			params.put("interval", interval);
 		}
 		params.put("onEvent", onEvent);
-		params.put("method", repeat.method);
-		params.put("params", repeat.params);
+		params.put("method", monitor.method);
+		params.put("params", monitor.params);
 		
 		wrapper.put("params", params);
-		return agent.send(repeat.url, "registerPush", wrapper, List.class);
+		return agent.send(monitor.url, "registerPush", wrapper, List.class);
 		
 	}
 }

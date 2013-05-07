@@ -11,7 +11,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Repeat implements Serializable {
+public class ResultMonitor implements Serializable {
 	private static final long						serialVersionUID	= -6738643681425840533L;
 	
 	public String									id;
@@ -26,7 +26,7 @@ public class Repeat implements Serializable {
 	
 	transient private static HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
 	
-	public <T> Repeat(String agentId, String url, String method, ObjectNode params,
+	public <T> ResultMonitor(String agentId, String url, String method, ObjectNode params,
 			String callbackMethod) {
 		this.id = UUID.randomUUID().toString();
 		this.agentId = agentId;
@@ -85,20 +85,20 @@ public class Repeat implements Serializable {
 		try {
 			Agent agent = factory.getAgent(agentId);
 			@SuppressWarnings("unchecked")
-			Map<String, Repeat> repeats = (Map<String, Repeat>) agent
-					.getState().get("_repeats");
-			Map<String, Repeat> newRepeats = new HashMap<String, Repeat>();
-			if (repeats != null) {
-				newRepeats.putAll(repeats);
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
+					.getState().get("_monitors");
+			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
+			if (monitors != null) {
+				newmonitors.putAll(monitors);
 			}
-			newRepeats.put(id, this);
+			newmonitors.put(id, this);
 			
-			if (!agent.getState().putIfUnchanged("_repeats",
-					(Serializable) newRepeats, (Serializable) repeats)) {
+			if (!agent.getState().putIfUnchanged("_monitors",
+					(Serializable) newmonitors, (Serializable) monitors)) {
 				store(); // recursive retry.
 			}
 		} catch (Exception e) {
-			System.err.println("Couldn't find repeats:" + agentId + "." + id);
+			System.err.println("Couldn't find monitors:" + agentId + "." + id);
 		}
 	}
 	
@@ -108,43 +108,43 @@ public class Repeat implements Serializable {
 		try {
 			Agent agent = factory.getAgent(agentId);
 			@SuppressWarnings("unchecked")
-			Map<String, Repeat> repeats = (Map<String, Repeat>) agent
-					.getState().get("_repeats");
-			Map<String, Repeat> newRepeats = new HashMap<String, Repeat>();
-			if (repeats != null) {
-				newRepeats.putAll(repeats);
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
+					.getState().get("_monitors");
+			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
+			if (monitors != null) {
+				newmonitors.putAll(monitors);
 			}
-			newRepeats.remove(id);
+			newmonitors.remove(id);
 			
-			if (!agent.getState().putIfUnchanged("_repeats",
-					(Serializable) newRepeats, (Serializable) repeats)) {
+			if (!agent.getState().putIfUnchanged("_monitors",
+					(Serializable) newmonitors, (Serializable) monitors)) {
 				delete(); // recursive retry.
 			}
 		} catch (Exception e) {
-			System.err.println("Couldn't delete repeat:" + agentId + "." + id);
+			System.err.println("Couldn't delete monitor:" + agentId + "." + id);
 			e.printStackTrace();
 		}
 	}
 	
-	public static Repeat getRepeatById(String agentId, String id) {
+	public static ResultMonitor getMonitorById(String agentId, String id) {
 		AgentFactory factory = AgentFactory.getInstance();
 		
 		try {
 			Agent agent = factory.getAgent(agentId);
 			@SuppressWarnings("unchecked")
-			Map<String, Repeat> repeats = (Map<String, Repeat>) agent
-					.getState().get("_repeats");
-			if (repeats == null) {
-				repeats = new HashMap<String, Repeat>();
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
+					.getState().get("_monitors");
+			if (monitors == null) {
+				monitors = new HashMap<String, ResultMonitor>();
 			}
-			Repeat result = repeats.get(id);
+			ResultMonitor result = monitors.get(id);
 			if (result != null && !caches.containsKey(id)
 					&& result.cacheType != null) result.addCache((Cache) Class
 					.forName(result.cacheType).newInstance());
 			return result;
 			
 		} catch (Exception e) {
-			System.err.println("Couldn't find repeat:" + agentId + "." + id);
+			System.err.println("Couldn't find monitor:" + agentId + "." + id);
 		}
 		return null;
 	}
