@@ -8,15 +8,42 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
 	int		interval	= -1;
-	boolean	onEvent	= false;
+	boolean	onEvent		= false;
+	boolean	onChange	= false;
+	String	event		= "";
 	
 	public Push(int interval, boolean onEvent) {
 		this.interval = interval;
 		this.onEvent = onEvent;
 	}
 	
+	public Push() {
+	}
+	
+	public Push onInterval(int interval) {
+		this.interval = interval;
+		return this;
+	}
+	
+	public Push onEvent() {
+		this.onEvent = true;
+		return this;
+	}
+	
+	public Push onEvent(String event) {
+		this.onEvent = true;
+		this.event = event;
+		return this;
+	}
+	
+	public Push onChange() {
+		this.onChange = true;
+		return this;
+	}
+	
 	@SuppressWarnings("unchecked")
-	public List<String> init(ResultMonitor monitor, Agent agent) throws Exception {
+	public List<String> init(ResultMonitor monitor, Agent agent)
+			throws Exception {
 		ObjectNode wrapper = JOM.createObjectNode();
 		ObjectNode params = JOM.createObjectNode();
 		
@@ -25,6 +52,8 @@ public class Push implements ResultMonitorConfigType {
 			params.put("interval", interval);
 		}
 		params.put("onEvent", onEvent);
+		if (!event.equals("")) params.put("event", event);
+		params.put("onChange", onChange);
 		params.put("method", monitor.method);
 		params.put("params", monitor.params);
 		

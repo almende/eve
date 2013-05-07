@@ -328,14 +328,23 @@ abstract public class Agent implements AgentInterface {
 		}
 	}
 	
+	private JsonNode lastRes=null;
 	public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC
 				.invoke(this, new JSONRequest(method, params));
-		//TODO: onChange variant!
+		
+		JsonNode result = res.getResult();
+		if (pushParams.has("onChange") && pushParams.get("onChange").asBoolean()){
+			if (lastRes != null && lastRes.equals(result)){
+				return;
+			}
+			lastRes = result;
+		}
+		
 		ObjectNode parms = JOM.createObjectNode();
-		parms.put("result", res.getResult());
+		parms.put("result", result);
 		parms.put("monitorId", pushParams.get("monitorId").textValue());
 		
 		send(pushParams.get("url").textValue(), "callbackPush", parms);

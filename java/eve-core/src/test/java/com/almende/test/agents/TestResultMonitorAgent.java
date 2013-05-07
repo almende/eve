@@ -34,7 +34,7 @@ public class TestResultMonitorAgent extends Agent {
 		
 		Cache testCache = new Cache();
 		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
-				null, new Push(1000, false), testCache);
+				null, new Push().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("pushKey", monitorID);
 		
 		monitorID = new ResultMonitor(getId(),"local://bob", "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
