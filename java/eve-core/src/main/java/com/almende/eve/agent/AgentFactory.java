@@ -323,8 +323,7 @@ public class AgentFactory {
 
 		// instantiate the agent
 		agent = (Agent) agentType.getConstructor().newInstance();
-		agent.setAgentFactory(this);
-		agent.setState(state);
+		agent.constr(this,state);
 		agent.init();
 
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
@@ -452,8 +451,7 @@ public class AgentFactory {
 
 		// instantiate the agent
 		T agent = (T) agentType.getConstructor().newInstance();
-		agent.setAgentFactory(this);
-		agent.setState(state);
+		agent.constr(this,state);
 		agent.create();
 		agent.init();
 
@@ -480,7 +478,7 @@ public class AgentFactory {
 		Agent agent = getAgent(agentId);
 		if (agent == null) return;
 		
-		if (getScheduler(agentId) != null) {
+		if (getScheduler(agent) != null) {
 			schedulerFactory.destroyScheduler(agentId);
 		}
 		try {
@@ -1160,7 +1158,7 @@ public class AgentFactory {
 	 * @param agentId
 	 * @return scheduler
 	 */
-	public synchronized Scheduler getScheduler(String agentId) {
+	public synchronized Scheduler getScheduler(Agent agent) {
 		DateTime start = DateTime.now();
 		while (schedulerFactory == null && start.plus(30000).isBeforeNow()) {
 			try {
@@ -1170,11 +1168,11 @@ public class AgentFactory {
 			}
 		}
 		if (schedulerFactory == null) {
-			logger.severe("SchedulerFactory is null, while agent " + agentId
+			logger.severe("SchedulerFactory is null, while agent " + agent.getId()
 					+ " calls for getScheduler");
 			return null;
 		}
-		return schedulerFactory.getScheduler(agentId);
+		return schedulerFactory.getScheduler(agent);
 	}
 
 }

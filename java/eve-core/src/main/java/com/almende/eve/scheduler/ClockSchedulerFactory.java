@@ -40,13 +40,13 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	}
 	
 	@Override
-	public Scheduler getScheduler(String agentId) {
+	public Scheduler getScheduler(Agent agent) {
 		synchronized (schedulers) {
-			if (schedulers.containsKey(agentId)) return schedulers.get(agentId);
+			if (schedulers.containsKey(agent.getId())) return schedulers.get(agent.getId());
 			Scheduler scheduler;
 			try {
-				scheduler = new ClockScheduler(agentId, agentFactory);
-				schedulers.put(agentId, scheduler);
+				scheduler = new ClockScheduler(agent, agentFactory);
+				schedulers.put(agent.getId(), scheduler);
 				return scheduler;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -68,16 +68,9 @@ class ClockScheduler implements Scheduler, Runnable {
 	final Agent			myAgent;
 	final Clock			myClock;
 	
-	public ClockScheduler(String agentId, AgentFactory factory)
+	public ClockScheduler(Agent myAgent, AgentFactory factory)
 			throws Exception {
-		myAgent = factory.getAgent(agentId);
-		if (myAgent == null) {
-			Logger.getLogger("ClockScheduler").severe(
-					"Error: Agent not found:" + agentId);
-			throw new Exception(
-					"Trying to getScheduler() on a not existing agent:"
-							+ agentId);
-		}
+		this.myAgent=myAgent;
 		myClock = new RunnableClock();
 		run();
 	}

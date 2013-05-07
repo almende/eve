@@ -56,20 +56,16 @@ public class TestResultMonitorAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
 			String monitorID = (String) getState().get("pushKey");
-			Object res = getResult(monitorID, params, Integer.class);
-			result.add((Integer) res);
+			result.add(getMonitorResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("pollKey");
-			res = getResult(monitorID, params, Integer.class);
-			result.add((Integer) res);
+			result.add(getMonitorResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("LazyPushKey");
-			res = getResult(monitorID, params, Integer.class);
-			result.add((Integer) res);
+			result.add(getMonitorResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("LazyPollKey");
-			res = getResult(monitorID, params, Integer.class);
-			result.add((Integer) res);
+			result.add(getMonitorResult(monitorID, params, Integer.class));
 			
 			return result;
 		} catch (Exception e) {

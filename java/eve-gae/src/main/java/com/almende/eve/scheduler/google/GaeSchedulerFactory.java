@@ -1,5 +1,7 @@
 package com.almende.eve.scheduler.google;
 
+import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
@@ -8,22 +10,20 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 
+import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.TwigUtil;
-
-import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
-
-import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 public class GaeSchedulerFactory implements SchedulerFactory {
 	private AgentFactory agentFactory = null;
@@ -48,8 +48,8 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	 * @param agentId
 	 * @return scheduler
 	 */
-	public AppEngineScheduler getScheduler(String agentId) {
-		return new AppEngineScheduler(agentId);
+	public AppEngineScheduler getScheduler(Agent agent) {
+		return new AppEngineScheduler(agent.getId());
 	}
 
 	/**

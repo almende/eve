@@ -68,15 +68,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 abstract public class Agent implements AgentInterface {
-	private AgentFactory	agentFactory	= null;
-	private State			state			= null;
-	private Scheduler		scheduler		= null;
+	protected AgentFactory	agentFactory	= null;
+	protected State			state			= null;
+	protected Scheduler		scheduler		= null;
 	
 	public abstract String getDescription();
 	
 	public abstract String getVersion();
 	
-	public Agent() {
+	public Agent() {}
+	
+	public void constr(AgentFactory factory, State state){
+		if (this.state == null){
+			this.agentFactory=factory;
+			this.state=state;
+			this.scheduler=factory.getScheduler(this);
+		}
 	}
 	
 	@Access(AccessType.UNAVAILABLE)
@@ -180,18 +187,7 @@ abstract public class Agent implements AgentInterface {
 		// called.
 		getState().destroy();
 	}
-	
-	/**
-	 * Set the state of the agent instance. This method is used by the
-	 * AgentFactory.
-	 * 
-	 * @param state
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	final public void setState(State state) {
-		this.state = state;
-	}
-	
+		
 	/**
 	 * Get the agents state. The state contains methods get, put, etc. to
 	 * write properties into a persistent state.
@@ -203,18 +199,6 @@ abstract public class Agent implements AgentInterface {
 		return state;
 	}
 	
-	/**
-	 * Get the agents state. The state contains methods get, put, etc. to
-	 * write properties into a persistent state.
-	 * 
-	 * @param state
-	 * @deprecated Use getState() instead
-	 */
-	@Deprecated
-	@Access(AccessType.UNAVAILABLE)
-	final public State getContext() {
-		return getState();
-	}
 	
 	/**
 	 * Get a scheduler to schedule tasks for the agent to be executed later on.
@@ -223,15 +207,7 @@ abstract public class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public Scheduler getScheduler() {
-		if (scheduler == null && agentFactory != null) {
-			scheduler = agentFactory.getScheduler(getId());
-		}
 		return scheduler;
-	}
-	
-	@Access(AccessType.UNAVAILABLE)
-	final public void setAgentFactory(AgentFactory agentFactory) {
-		this.agentFactory = agentFactory;
 	}
 	
 	/**
@@ -296,7 +272,7 @@ abstract public class Agent implements AgentInterface {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+	public <T> T getMonitorResult(String monitorId, ObjectNode filter_parms,
 			Class<T> returnType) throws Exception {
 		T result = null;
 		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
@@ -368,7 +344,7 @@ abstract public class Agent implements AgentInterface {
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC
 				.invoke(this, new JSONRequest(method, params));
-		
+		//TODO: onChange variant!
 		ObjectNode parms = JOM.createObjectNode();
 		parms.put("result", res.getResult());
 		parms.put("monitorId", pushParams.get("monitorId").textValue());

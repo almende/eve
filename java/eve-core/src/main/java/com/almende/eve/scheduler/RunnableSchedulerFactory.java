@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.rpc.RequestParams;
@@ -109,8 +110,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * @param agentId
 	 */
 	@Override
-	public Scheduler getScheduler(String agentId) {
-		return new RunnableScheduler(agentId);
+	public Scheduler getScheduler(Agent agent) {
+		return new RunnableScheduler(agent.getId());
 	}
 	
 	@Override
