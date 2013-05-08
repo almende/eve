@@ -40,15 +40,12 @@ import java.util.UUID;
 
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.agent.annotation.EventTriggered;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsFactory;
-import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.monitor.ResultMonitorFactory;
-import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -57,10 +54,6 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
-import com.almende.util.AnnotationUtil;
-import com.almende.util.AnnotationUtil.AnnotatedClass;
-import com.almende.util.AnnotationUtil.AnnotatedMethod;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 abstract public class Agent implements AgentInterface {
@@ -238,132 +231,26 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	public void doPoll(@Name("monitorId") String monitorId) throws Exception {
-		ResultMonitor monitor = ResultMonitor
-				.getMonitorById(getId(), monitorId);
-		if (monitor != null) {
-			Object result = send(monitor.url, monitor.method, monitor.params,
-					Object.class);
-			if (monitor.callbackMethod != null) {
-				ObjectNode params = JOM.createObjectNode();
-				params.put("result",
-						JOM.getInstance().writeValueAsString(result));
-				send("local://" + getId(), monitor.callbackMethod, params);
-			}
-			if (monitor.hasCache()) {
-				monitor.getCache().store(result);
-			}
-		}
+		monitorFactory.doPoll(monitorId);
 	}
 	
-	private JsonNode	lastRes	= null;
-	
 	public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
-		String method = pushParams.get("method").textValue();
-		ObjectNode params = (ObjectNode) pushParams.get("params");
-		JSONResponse res = JSONRPC
-				.invoke(this, new JSONRequest(method, params));
-		
-		JsonNode result = res.getResult();
-		if (pushParams.has("onChange")
-				&& pushParams.get("onChange").asBoolean()) {
-			if (lastRes != null && lastRes.equals(result)) {
-				return;
-			}
-			lastRes = result;
-		}
-		
-		ObjectNode parms = JOM.createObjectNode();
-		parms.put("result", result);
-		parms.put("monitorId", pushParams.get("monitorId").textValue());
-		
-		send(pushParams.get("url").textValue(), "callbackPush", parms);
-		// If callback reports "old", unregisterPush();
+		monitorFactory.doPush(pushParams);
 	}
 	
 	public void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId) {
-		try {
-			ResultMonitor monitor = ResultMonitor.getMonitorById(getId(),
-					monitorId);
-			if (monitor != null) {
-				if (monitor.callbackMethod != null) {
-					ObjectNode params = JOM.createObjectNode();
-					params.put("result",
-							JOM.getInstance().writeValueAsString(result));
-					JSONRPC.invoke(this, new JSONRequest(
-							monitor.callbackMethod, params));
-				}
-				if (monitor.hasCache()) {
-					monitor.getCache().store(result);
-				}
-			}
-		} catch (Exception e) {
-			System.err.println("Couldn't run local callbackMethod for push!"
-					+ monitorId);
-			e.printStackTrace();
-		}
+		monitorFactory.callbackPush(result, monitorId);
 	}
 	
 	public List<String> registerPush(@Name("params") ObjectNode pushParams,
 			@Sender String senderUrl) {
-		List<String> result = new ArrayList<String>();
-		pushParams.put("url", senderUrl);
-		ObjectNode parms = JOM.createObjectNode();
-		parms.put("params", pushParams);
-		
-		if (pushParams.has("interval")) {
-			int interval = pushParams.get("interval").intValue();
-			JSONRequest request = new JSONRequest("doPush", parms);
-			result.add(getScheduler()
-					.createTask(request, interval, true, false));
-		}
-		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
-			String event = "change"; // default
-			if (pushParams.has("event")) {
-				event = pushParams.get("event").textValue(); // Event param
-																// overrules
-			} else {
-				AnnotatedClass ac = null;
-				try {
-					ac = AnnotationUtil.get(getClass());
-					for (AnnotatedMethod method : ac.getMethods(pushParams.get(
-							"method").textValue())) {
-						EventTriggered annotation = method
-								.getAnnotation(EventTriggered.class);
-						if (annotation != null) {
-							event = annotation.value(); // If no Event param,
-														// get it from
-														// annotation, else
-														// default.
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			try {
-				result.add(eventsFactory.subscribe(getFirstUrl(), event, "doPush",
-						parms));
-			} catch (Exception e) {
-				System.err.println("Failed to register push Event");
-				e.printStackTrace();
-			}
-		}
-		return result;
+		return monitorFactory.registerPush(pushParams, senderUrl);
 	}
 	
 	public void unregisterPush(@Name("pushId") String id) {
-		// Just assume that id is either a taskId or an Event subscription Id.
-		// Both allow unknown ids, Postel's law rules!
-		getScheduler().cancelTask(id);
-		try {
-			eventsFactory.unsubscribe(getFirstUrl(), id);
-		} catch (Exception e) {
-			System.err.println("Failed to unsubscribe push:" + e);
-		}
+		monitorFactory.unregisterPush(id);
 	}
-	
-
 	
 	/**
 	 * Let an other agent subscribe to one of this agents events
@@ -379,7 +266,8 @@ abstract public class Agent implements AgentInterface {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params) {
-		return eventsFactory.onSubscribe(event, callbackUrl, callbackMethod, params);
+		return eventsFactory.onSubscribe(event, callbackUrl, callbackMethod,
+				params);
 	}
 	
 	/**
@@ -402,7 +290,8 @@ abstract public class Agent implements AgentInterface {
 			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
-		eventsFactory.onUnsubscribe(subscriptionId, event, callbackUrl, callbackMethod);
+		eventsFactory.onUnsubscribe(subscriptionId, event, callbackUrl,
+				callbackMethod);
 	}
 	
 	/**
@@ -422,8 +311,6 @@ abstract public class Agent implements AgentInterface {
 		// TODO: catch exceptions and log them here?
 		send(url, method, params);
 	}
-	
-
 	
 	/**
 	 * Get the first url of the agents urls. Returns local://<agentId> if the
