@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.almende.eve.agent.annotation.Access;
@@ -46,7 +45,6 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.proxy.AsyncProxy;
-import com.almende.eve.event.Callback;
 import com.almende.eve.event.EventsFactory;
 import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.monitor.ResultMonitorFactory;
@@ -404,48 +402,7 @@ abstract public class Agent implements AgentInterface {
 			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
-		@SuppressWarnings("unchecked")
-		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) state
-				.get("subscriptions");
-		if (allSubscriptions == null) {
-			return;
-		}
-		
-		for (Entry<String, List<Callback>> entry : allSubscriptions.entrySet()) {
-			String subscriptionEvent = entry.getKey();
-			List<Callback> subscriptions = entry.getValue();
-			if (subscriptions != null) {
-				int i = 0;
-				while (i < subscriptions.size()) {
-					Callback subscription = subscriptions.get(i);
-					boolean matched = false;
-					if (subscriptionId != null
-							&& subscriptionId.equals(subscription.id)) {
-						// callback with given subscriptionId is found
-						matched = true;
-					} else if (callbackUrl != null
-							&& callbackUrl.equals(subscription.url)) {
-						if ((callbackMethod == null || callbackMethod
-								.equals(subscription.method))
-								&& (event == null || event
-										.equals(subscriptionEvent))) {
-							// callback with matching properties is found
-							matched = true;
-						}
-					}
-					
-					if (matched) {
-						subscriptions.remove(i);
-					} else {
-						i++;
-					}
-				}
-			}
-			// TODO: cleanup event list when empty
-		}
-		
-		// store state again
-		state.put("subscriptions", allSubscriptions);
+		eventsFactory.onUnsubscribe(subscriptionId, event, callbackUrl, callbackMethod);
 	}
 	
 	/**

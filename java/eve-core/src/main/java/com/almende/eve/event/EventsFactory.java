@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.almende.eve.agent.Agent;
@@ -17,10 +18,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class EventsFactory {
-	Agent myAgent=null;
+	Agent	myAgent	= null;
 	
-	public EventsFactory(Agent agent){
-		this.myAgent=agent;
+	public EventsFactory(Agent agent) {
+		this.myAgent = agent;
 	}
 	
 	/**
@@ -32,8 +33,8 @@ public class EventsFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	private List<Callback> getSubscriptions(String event) {
-		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) myAgent.getState()
-				.get("subscriptions");
+		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) myAgent
+				.getState().get("subscriptions");
 		if (allSubscriptions != null) {
 			List<Callback> eventSubscriptions = allSubscriptions.get(event);
 			if (eventSubscriptions != null) {
@@ -52,8 +53,8 @@ public class EventsFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
-		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent.getState()
-				.get("subscriptions");
+		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent
+				.getState().get("subscriptions");
 		if (allSubscriptions == null) {
 			allSubscriptions = new HashMap<String, List<Callback>>();
 		}
@@ -106,8 +107,7 @@ public class EventsFactory {
 	 * @param subscriptionId
 	 * @throws Exception
 	 */
-	public void unsubscribe(String url, String subscriptionId)
-			throws Exception {
+	public void unsubscribe(String url, String subscriptionId) throws Exception {
 		String method = "onUnsubscribe";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
@@ -153,7 +153,8 @@ public class EventsFactory {
 		}
 		
 		// send a trigger to the agent factory
-		myAgent.getAgentFactory().getEventLogger().log(myAgent.getId(), event, params);
+		myAgent.getAgentFactory().getEventLogger()
+				.log(myAgent.getId(), event, params);
 		
 		// retrieve subscriptions from the event
 		List<Callback> valueEvent = getSubscriptions(event);
@@ -207,10 +208,8 @@ public class EventsFactory {
 		}
 	}
 	
-	public String onSubscribe(String event,
-			String callbackUrl,
-			String callbackMethod,
-			ObjectNode params){
+	public String onSubscribe(String event, String callbackUrl,
+			String callbackMethod, ObjectNode params) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
 			if (subscription.url == null || subscription.method == null) {
@@ -235,5 +234,51 @@ public class EventsFactory {
 		putSubscriptions(event, subscriptions);
 		
 		return subscriptionId;
+	}
+	
+	public void onUnsubscribe(String subscriptionId, String event,
+			String callbackUrl, String callbackMethod) {
+		@SuppressWarnings("unchecked")
+		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent.getState()
+				.get("subscriptions");
+		if (allSubscriptions == null) {
+			return;
+		}
+		
+		for (Entry<String, List<Callback>> entry : allSubscriptions.entrySet()) {
+			String subscriptionEvent = entry.getKey();
+			List<Callback> subscriptions = entry.getValue();
+			if (subscriptions != null) {
+				int i = 0;
+				while (i < subscriptions.size()) {
+					Callback subscription = subscriptions.get(i);
+					boolean matched = false;
+					if (subscriptionId != null
+							&& subscriptionId.equals(subscription.id)) {
+						// callback with given subscriptionId is found
+						matched = true;
+					} else if (callbackUrl != null
+							&& callbackUrl.equals(subscription.url)) {
+						if ((callbackMethod == null || callbackMethod
+								.equals(subscription.method))
+								&& (event == null || event
+										.equals(subscriptionEvent))) {
+							// callback with matching properties is found
+							matched = true;
+						}
+					}
+					
+					if (matched) {
+						subscriptions.remove(i);
+					} else {
+						i++;
+					}
+				}
+			}
+			// TODO: cleanup event list when empty
+		}
+		
+		// store state again
+		myAgent.getState().put("subscriptions", allSubscriptions);
 	}
 }
