@@ -1,4 +1,4 @@
-package com.almende.eve.entity;
+package com.almende.eve.monitor;
 
 import java.io.Serializable;
 import java.util.ArrayList;

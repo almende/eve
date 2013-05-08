@@ -1,7 +1,7 @@
 /**
  * Helper class to store a callback url and method
  */
-package com.almende.eve.entity;
+package com.almende.eve.event;
 
 import java.io.Serializable;
 

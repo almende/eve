@@ -1,4 +1,4 @@
-package com.almende.eve.entity;
+package com.almende.eve.monitor;
 
 import org.joda.time.DateTime;
 

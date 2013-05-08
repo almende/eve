@@ -53,7 +53,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		params.put("message", message);
 		params.put("sender", sender);
 		
-		trigger("message", params);
+		eventsFactory.trigger("message", params);
 		return message;
 	}
 
@@ -243,11 +243,11 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void registerPingEvent() throws Exception {
-		subscribe(getMyUrl(), "ping", "pingCallback");
+		eventsFactory.subscribe(getMyUrl(), "ping", "pingCallback");
 	}
 	
 	public void unregisterPingEvent() throws Exception {
-		subscribe(getMyUrl(), "ping", "pingCallback");
+		eventsFactory.subscribe(getMyUrl(), "ping", "pingCallback");
 	}
 	
 	public void pingCallback(@Name("params") ObjectNode params) {
@@ -262,7 +262,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			params = JOM.createObjectNode();
 			params.put("message", message);
 		}
-		trigger(event, params);
+		eventsFactory.trigger(event, params);
 	}
 
 	public void cancelTask(@Name("id") String id) {
@@ -280,7 +280,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	public void myTask(@Name("message") String message) throws Exception {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", message);
-		trigger("task", params);
+		eventsFactory.trigger("task", params);
 		System.out.println("myTask is executed. Message: " + message);
 	}
 
@@ -310,7 +310,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		}
 		String event = "dataChanged";
 		String callback = "onEvent";
-		return subscribe(url, event, callback);
+		return eventsFactory.subscribe(url, event, callback);
 	}
 
 	public void unsubscribeFromAgent(@Required(false) @Name("url") String url,
@@ -320,11 +320,11 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		}
 		//String event = "dataChanged";
 		//String callback = "onEvent";
-		unsubscribe(url, subscriptionId);
+		eventsFactory.unsubscribe(url, subscriptionId);
 	}
 	
 	public void triggerDataChanged() throws Exception {
-		trigger("dataChanged", null);
+		eventsFactory.trigger("dataChanged", null);
 	}
 	
 	public Object getEverything() {
@@ -347,7 +347,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	    data.put("agent", agent);
 	    data.put("event", event);
 	    data.put("params", params);
-	    trigger ("onEvent", data);
+	    eventsFactory.trigger ("onEvent", data);
 	}
 
 	private String privateMethod() {
@@ -381,7 +381,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result", result);
 				try {
-					trigger("message", params);
+					eventsFactory.trigger("message", params);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -407,7 +407,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		try {
 			ObjectNode messageParams = JOM.createObjectNode();
 			messageParams.put("result", result);
-			trigger("message", messageParams);
+			eventsFactory.trigger("message", messageParams);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -427,7 +427,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result", result);
 				try {
-					trigger("message", params);
+					eventsFactory.trigger("message", params);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

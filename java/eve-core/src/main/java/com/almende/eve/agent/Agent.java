@@ -46,9 +46,10 @@ import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.proxy.AsyncProxy;
-import com.almende.eve.entity.Callback;
-import com.almende.eve.entity.ResultMonitor;
-import com.almende.eve.entity.ResultMonitorConfigType;
+import com.almende.eve.event.Callback;
+import com.almende.eve.event.EventsFactory;
+import com.almende.eve.monitor.ResultMonitor;
+import com.almende.eve.monitor.ResultMonitorFactory;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -65,21 +66,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 abstract public class Agent implements AgentInterface {
-	protected AgentFactory	agentFactory	= null;
-	protected State			state			= null;
-	protected Scheduler		scheduler		= null;
+	protected AgentFactory			agentFactory	= null;
+	protected State					state			= null;
+	protected Scheduler				scheduler		= null;
+	protected ResultMonitorFactory	monitorFactory	= null;
+	protected EventsFactory			eventsFactory	= null;
 	
 	public abstract String getDescription();
 	
 	public abstract String getVersion();
 	
-	public Agent() {}
+	public Agent() {
+	}
 	
-	public void constr(AgentFactory factory, State state){
-		if (this.state == null){
-			this.agentFactory=factory;
-			this.state=state;
-			this.scheduler=factory.getScheduler(this);
+	public void constr(AgentFactory factory, State state) {
+		if (this.state == null) {
+			this.agentFactory = factory;
+			this.state = state;
+			this.scheduler = factory.getScheduler(this);
+			this.monitorFactory = new ResultMonitorFactory(this);
+			this.eventsFactory = new EventsFactory(this);
 		}
 	}
 	
@@ -184,7 +190,7 @@ abstract public class Agent implements AgentInterface {
 		// called.
 		getState().destroy();
 	}
-		
+	
 	/**
 	 * Get the agents state. The state contains methods get, put, etc. to
 	 * write properties into a persistent state.
@@ -196,11 +202,10 @@ abstract public class Agent implements AgentInterface {
 		return state;
 	}
 	
-	
 	/**
-	 * Get a scheduler to schedule tasks for the agent to be executed later on.
+	 * Get the scheduler to schedule tasks for the agent to be executed later
+	 * on.
 	 * 
-	 * @param state
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public Scheduler getScheduler() {
@@ -218,101 +223,25 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	/**
-	 * Clear the agents state, unsubscribe from all subscribed events,
-	 * cancel all running tasks
-	 * 
-	 * @Deprecated use delete() instead.
+	 * Get the resultMonitorFactory, which can be used to register push/poll RPC
+	 * result monitors.
 	 */
-	@Deprecated
-	public void clear() throws Exception {
-		delete();
+	@Access(AccessType.UNAVAILABLE)
+	final public ResultMonitorFactory getResultMonitorFactory() {
+		return monitorFactory;
 	}
 	
 	/**
-	 * Sets up a monitored RPC call subscription. Conveniency method, which can also be expressed as:
-	 * new ResultMonitor(getId(), url,method,params).add(ResultMonitorConfigType config).add(ResultMonitorConfigType config).store();
-	 * 
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @param callbackMethod
-	 * @param confs
-	 * @return
+	 * Get the eventsFactory, which can be used to subscribe and trigger events.
 	 */
-	public String initResultMonitor(String url, String method, ObjectNode params,
-			String callbackMethod, ResultMonitorConfigType... confs) {
-		ResultMonitor monitor = new ResultMonitor(getId(), url, method, params, callbackMethod);
-		for (ResultMonitorConfigType config : confs) {
-			monitor.add(config);
-		}
-		return monitor.store();
-	}
-	
-	/**
-	 * Gets an actual return value of this monitor subscription. If a cache is
-	 * available,
-	 * this will return the cached value if the maxAge filter allows this.
-	 * Otherwise it will run the actual RPC call (similar to "send");
-	 * 
-	 * @param monitorId
-	 * @param filter_parms
-	 * @param returnType
-	 * @return
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public <T> T getMonitorResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws Exception {
-		T result = null;
-		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
-		if (monitor != null) {
-			if (monitor.hasCache()) {
-				if (monitor.getCache() != null
-						&& monitor.getCache().filter(filter_parms)) {
-					result = (T) monitor.getCache().get();
-				}
-			}
-			if (result == null) {
-				result = send(monitor.url, monitor.method, monitor.params,
-						returnType);
-				if (monitor.hasCache()) {
-					monitor.getCache().store(result);
-				}
-			}
-		} else {
-			System.err.println("Failed to find monitor!" + monitorId);
-		}
-		return result;
-		
-	}
-	
-	/**
-	 * Cancels a running monitor subscription.
-	 * 
-	 * @param monitorId
-	 */
-	public void cancelResultMonitor(String monitorId) {
-		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
-		if (monitor != null) {
-			for (String task : monitor.schedulerIds) {
-				getScheduler().cancelTask(task);
-			}
-			for (String remote : monitor.remoteIds) {
-				ObjectNode params = JOM.createObjectNode();
-				params.put("pushId", remote);
-				try {
-					send(monitor.url, "unregisterPush", params);
-				} catch (Exception e) {
-					System.err.println("Failed to unregister Push");
-					e.printStackTrace();
-				}
-			}
-		}
-		monitor.delete();
+	@Access(AccessType.UNAVAILABLE)
+	final public EventsFactory getEventsFactory() {
+		return eventsFactory;
 	}
 	
 	public void doPoll(@Name("monitorId") String monitorId) throws Exception {
-		ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
+		ResultMonitor monitor = ResultMonitor
+				.getMonitorById(getId(), monitorId);
 		if (monitor != null) {
 			Object result = send(monitor.url, monitor.method, monitor.params,
 					Object.class);
@@ -328,7 +257,8 @@ abstract public class Agent implements AgentInterface {
 		}
 	}
 	
-	private JsonNode lastRes=null;
+	private JsonNode	lastRes	= null;
+	
 	public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
@@ -336,8 +266,9 @@ abstract public class Agent implements AgentInterface {
 				.invoke(this, new JSONRequest(method, params));
 		
 		JsonNode result = res.getResult();
-		if (pushParams.has("onChange") && pushParams.get("onChange").asBoolean()){
-			if (lastRes != null && lastRes.equals(result)){
+		if (pushParams.has("onChange")
+				&& pushParams.get("onChange").asBoolean()) {
+			if (lastRes != null && lastRes.equals(result)) {
 				return;
 			}
 			lastRes = result;
@@ -354,14 +285,15 @@ abstract public class Agent implements AgentInterface {
 	public void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId) {
 		try {
-			ResultMonitor monitor = ResultMonitor.getMonitorById(getId(), monitorId);
+			ResultMonitor monitor = ResultMonitor.getMonitorById(getId(),
+					monitorId);
 			if (monitor != null) {
 				if (monitor.callbackMethod != null) {
 					ObjectNode params = JOM.createObjectNode();
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
-					JSONRPC.invoke(this, new JSONRequest(monitor.callbackMethod,
-							params));
+					JSONRPC.invoke(this, new JSONRequest(
+							monitor.callbackMethod, params));
 				}
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);
@@ -390,7 +322,8 @@ abstract public class Agent implements AgentInterface {
 		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
 			String event = "change"; // default
 			if (pushParams.has("event")) {
-				event = pushParams.get("event").textValue(); //Event param overrules
+				event = pushParams.get("event").textValue(); // Event param
+																// overrules
 			} else {
 				AnnotatedClass ac = null;
 				try {
@@ -400,7 +333,10 @@ abstract public class Agent implements AgentInterface {
 						EventTriggered annotation = method
 								.getAnnotation(EventTriggered.class);
 						if (annotation != null) {
-							event = annotation.value();  //If no Event param, get it from annotation, else default.
+							event = annotation.value(); // If no Event param,
+														// get it from
+														// annotation, else
+														// default.
 						}
 					}
 				} catch (Exception e) {
@@ -408,7 +344,7 @@ abstract public class Agent implements AgentInterface {
 				}
 			}
 			try {
-				result.add(subscribe("local://" + getId(), event, "doPush",
+				result.add(eventsFactory.subscribe(getFirstUrl(), event, "doPush",
 						parms));
 			} catch (Exception e) {
 				System.err.println("Failed to register push Event");
@@ -419,52 +355,17 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	public void unregisterPush(@Name("pushId") String id) {
-		//Just assume that id is either a taskId or an Event subscription Id. Both allow unknown ids, Postel's law rules!
+		// Just assume that id is either a taskId or an Event subscription Id.
+		// Both allow unknown ids, Postel's law rules!
 		getScheduler().cancelTask(id);
 		try {
-			unsubscribe(getFirstUrl(), id);
+			eventsFactory.unsubscribe(getFirstUrl(), id);
 		} catch (Exception e) {
 			System.err.println("Failed to unsubscribe push:" + e);
 		}
 	}
 	
-	/**
-	 * Retrieve the list with subscriptions on given event.
-	 * If there are no subscriptions for this event, an empty list is returned
-	 * 
-	 * @param event
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	private List<Callback> getSubscriptions(String event) {
-		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) state
-				.get("subscriptions");
-		if (allSubscriptions != null) {
-			List<Callback> eventSubscriptions = allSubscriptions.get(event);
-			if (eventSubscriptions != null) {
-				return eventSubscriptions;
-			}
-		}
-		
-		return new ArrayList<Callback>();
-	}
-	
-	/**
-	 * Store a list with subscriptions for an event
-	 * 
-	 * @param event
-	 * @param subscriptions
-	 */
-	@SuppressWarnings("unchecked")
-	private void putSubscriptions(String event, List<Callback> subscriptions) {
-		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) state
-				.get("subscriptions");
-		if (allSubscriptions == null) {
-			allSubscriptions = new HashMap<String, List<Callback>>();
-		}
-		allSubscriptions.put(event, subscriptions);
-		state.put("subscriptions", allSubscriptions);
-	}
+
 	
 	/**
 	 * Let an other agent subscribe to one of this agents events
@@ -480,30 +381,7 @@ abstract public class Agent implements AgentInterface {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params) {
-		List<Callback> subscriptions = getSubscriptions(event);
-		for (Callback subscription : subscriptions) {
-			if (subscription.url == null || subscription.method == null) {
-				continue;
-			}
-			if (subscription.url.equals(callbackUrl)
-					&& subscription.method.equals(callbackMethod)
-					&& ((subscription.params == null && params == null) || subscription.params != null) 
-					&& subscription.params.equals(params)) {
-				// The callback already exists. do not duplicate it
-				return subscription.id;
-			}
-		}
-		
-		// the callback does not yet exist. create it and store it
-		String subscriptionId = UUID.randomUUID().toString();
-		Callback callback = new Callback(subscriptionId, callbackUrl,
-				callbackMethod, params);
-		subscriptions.add(callback);
-		
-		// store the subscriptions
-		putSubscriptions(event, subscriptions);
-		
-		return subscriptionId;
+		return eventsFactory.onSubscribe(event, callbackUrl, callbackMethod, params);
 	}
 	
 	/**
@@ -588,151 +466,7 @@ abstract public class Agent implements AgentInterface {
 		send(url, method, params);
 	}
 	
-	/**
-	 * Subscribe to an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
-	 * @return subscriptionId
-	 * @throws Exception
-	 */
-	protected String subscribe(String url, String event, String callbackMethod)
-			throws Exception {
-		return subscribe(url, event, callbackMethod, null);
-	}
-	
-	/**
-	 * Subscribe to an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
-	 * @return subscriptionId
-	 * @throws Exception
-	 */
-	protected String subscribe(String url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws Exception {
-		String method = "onSubscribe";
-		ObjectNode params = JOM.createObjectNode();
-		params.put("event", event);
-		params.put("callbackUrl", getFirstUrl());
-		params.put("callbackMethod", callbackMethod);
-		if (callbackParams != null) {
-			params.put("callbackParams", callbackParams);
-		}
-		
-		// TODO: store the agents subscriptions locally
-		return send(url, method, params, String.class);
-	}
-	
-	/**
-	 * Unsubscribe from an other agents event
-	 * 
-	 * @param url
-	 * @param subscriptionId
-	 * @throws Exception
-	 */
-	protected void unsubscribe(String url, String subscriptionId)
-			throws Exception {
-		String method = "onUnsubscribe";
-		ObjectNode params = JOM.createObjectNode();
-		params.put("subscriptionId", subscriptionId);
-		send(url, method, params);
-	}
-	
-	/**
-	 * Unsubscribe from an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
-	 * @throws Exception
-	 */
-	protected void unsubscribe(String url, String event, String callbackMethod)
-			throws Exception {
-		String method = "onUnsubscribe";
-		ObjectNode params = JOM.createObjectNode();
-		params.put("event", event);
-		params.put("callbackUrl", getFirstUrl());
-		params.put("callbackMethod", callbackMethod);
-		send(url, method, params);
-	}
-	
-	/**
-	 * Trigger an event
-	 * 
-	 * @param event
-	 * @param params
-	 *            An ObjectNode, Map, or POJO
-	 * @throws Exception
-	 * @throws JSONRPCException
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	final public void trigger(@Name("event") String event,
-			@Name("params") Object params) throws Exception {
-		// TODO: user first url is very dangerous! can cause a mismatch
-		String url = getFirstUrl();
-		List<Callback> subscriptions = new ArrayList<Callback>();
-		
-		if (event.equals("*")) {
-			throw new Exception("Cannot trigger * event");
-		}
-		
-		// send a trigger to the agent factory
-		getAgentFactory().getEventLogger().log(getId(), event, params);
-		
-		// retrieve subscriptions from the event
-		List<Callback> valueEvent = getSubscriptions(event);
-		subscriptions.addAll(valueEvent);
-		
-		// retrieve subscriptions from the all event "*"
-		List<Callback> valueAll = getSubscriptions("*");
-		subscriptions.addAll(valueAll);
-		
-		// TODO: smartly remove double entries?
-		ObjectNode callbackParams = JOM.createObjectNode();
-		callbackParams.put("agent", url);
-		callbackParams.put("event", event);
-		if (params instanceof JsonNode) {
-			callbackParams.put("params", (ObjectNode) params);
-		} else {
-			ObjectNode jsonParams = JOM.getInstance().convertValue(params,
-					ObjectNode.class);
-			callbackParams.put("params", jsonParams);
-		}
-		
-		for (Callback subscription : subscriptions) {
-			// create a task to send this trigger.
-			// This way, it is sent asynchronously and cannot block this
-			// trigger method
-			callbackParams.put("subscriptionId", subscription.id); // TODO: test
-																	// if
-																	// changing
-																	// subscriptionId
-																	// works
-																	// with
-																	// multiple
-																	// tasks
-			
-			ObjectNode taskParams = JOM.createObjectNode();
-			taskParams.put("url", subscription.url);
-			taskParams.put("method", subscription.method);
-			if (subscription.params != null) {
-				ObjectNode parms = (ObjectNode) JOM.getInstance()
-						.readTree(subscription.params).get("params");
-				callbackParams
-						.put("params", parms.putAll((ObjectNode) callbackParams
-								.get("params")));
-			} else {
-				System.err.println("subscription.params empty");
-			}
-			taskParams.put("params", callbackParams);
-			JSONRequest request = new JSONRequest("onTrigger", taskParams);
-			long delay = 0;
-			getScheduler().createTask(request, delay);
-		}
-	}
+
 	
 	/**
 	 * Get the first url of the agents urls. Returns local://<agentId> if the
@@ -741,7 +475,7 @@ abstract public class Agent implements AgentInterface {
 	 * 
 	 * @return firstUrl
 	 */
-	private String getFirstUrl() {
+	public String getFirstUrl() {
 		List<String> urls = getUrls();
 		if (urls.size() > 0) {
 			return urls.get(0);

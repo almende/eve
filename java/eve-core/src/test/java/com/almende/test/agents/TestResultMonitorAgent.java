@@ -8,10 +8,10 @@ import org.joda.time.DateTime;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
 import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.entity.Cache;
-import com.almende.eve.entity.Poll;
-import com.almende.eve.entity.Push;
-import com.almende.eve.entity.ResultMonitor;
+import com.almende.eve.monitor.Cache;
+import com.almende.eve.monitor.Poll;
+import com.almende.eve.monitor.Push;
+import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -23,24 +23,24 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void bobEvent() throws Exception {
-		trigger("Go", JOM.createObjectNode());
+		eventsFactory.trigger("Go", JOM.createObjectNode());
 	}
 	
 	public void prepare() {
-		String monitorID = initResultMonitor("local://bob", "getData",
+		String monitorID = getResultMonitorFactory().create("local://bob", "getData",
 				JOM.createObjectNode(), null, new Poll(1000), new Cache());
 		
 		if (monitorID != null) getState().put("pollKey", monitorID);
 		
 		Cache testCache = new Cache();
-		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("local://bob", "getData", JOM.createObjectNode(),
 				null, new Push().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("pushKey", monitorID);
 		
 		monitorID = new ResultMonitor(getId(),"local://bob", "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
-		monitorID = initResultMonitor("local://bob", "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("local://bob", "getData", JOM.createObjectNode(),
 				"returnRes", new Poll(800), new Poll(1500));
 		
 		if (monitorID != null) getState().put("LazyPollKey", monitorID);
@@ -57,16 +57,16 @@ public class TestResultMonitorAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
 			String monitorID = (String) getState().get("pushKey");
-			result.add(getMonitorResult(monitorID, params, Integer.class));
+			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("pollKey");
-			result.add(getMonitorResult(monitorID, params, Integer.class));
+			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("LazyPushKey");
-			result.add(getMonitorResult(monitorID, params, Integer.class));
+			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("LazyPollKey");
-			result.add(getMonitorResult(monitorID, params, Integer.class));
+			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
 			return result;
 		} catch (Exception e) {
@@ -76,7 +76,7 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void tear_down() {
-		cancelResultMonitor((String) getState().get("pushKey"));
+		getResultMonitorFactory().cancel((String) getState().get("pushKey"));
 	}
 	
 	@Override

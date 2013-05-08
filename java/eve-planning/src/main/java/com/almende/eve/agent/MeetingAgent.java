@@ -832,7 +832,7 @@ public class MeetingAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("description", issue.getMessage());
 			params.put("data", data);
-			trigger(event, params);
+			eventsFactory.trigger(event, params);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1492,18 +1492,6 @@ public class MeetingAgent extends Agent {
 		return array;
 	}
 
-	/**
-	 * Get the first url of the agents urls. Returns null if the agent does not
-	 * have any urls.
-	 * @return firstUrl
-	 */
-	private String getFirstUrl() {
-		List<String> urls = getUrls();
-		if (urls.size() > 0) {
-			return urls.get(0);
-		}
-		return null;
-	}
 	
 	@Override
 	public String getDescription() {

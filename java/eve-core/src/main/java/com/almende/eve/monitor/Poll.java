@@ -1,4 +1,4 @@
-package com.almende.eve.entity;
+package com.almende.eve.monitor;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -11,6 +11,13 @@ public class Poll implements ResultMonitorConfigType {
 	public Poll(int interval){
 		this.interval=interval;
 	};
+	
+	public Poll(){}
+	
+	public Poll onInterval(int interval){
+		this.interval=interval;
+		return this;
+	}
 	
 	public String init(ResultMonitor monitor, Agent agent){
 		ObjectNode params = JOM.createObjectNode();
