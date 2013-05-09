@@ -27,6 +27,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.HttpParams;
 
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
@@ -60,8 +62,14 @@ public class ApacheHttpClient {
 			System.err.println("Failed to initialize persistent cookieStore!");
 			e.printStackTrace();
 		}
-		httpClient.getParams().setParameter(ClientPNames.COOKIE_POLICY,
+		HttpParams params = httpClient.getParams();
+		
+		params.setParameter(ClientPNames.COOKIE_POLICY,
 				CookiePolicy.BROWSER_COMPATIBILITY);
+		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, 60000);
+		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
+		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
+		httpClient.setParams(params);
 	}
 	static DefaultHttpClient get() throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
 		if (httpClient == null) {
