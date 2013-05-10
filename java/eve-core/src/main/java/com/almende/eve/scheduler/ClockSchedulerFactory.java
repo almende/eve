@@ -67,6 +67,7 @@ class ClockScheduler implements Scheduler, Runnable {
 	static final Logger	logger	= Logger.getLogger("ClockScheduler");
 	final Agent			myAgent;
 	final Clock			myClock;
+	final ClockScheduler _this = this;
 	
 	public ClockScheduler(Agent myAgent, AgentFactory factory)
 			throws Exception {
@@ -147,6 +148,7 @@ class ClockScheduler implements Scheduler, Runnable {
 	}
 	
 	public void runTask(final TaskEntry task) {
+		
 		// logger.warning("Running "+task.taskId+" at "+DateTime.now().toString()+" Due: "+task.due.toString());
 		if (task.interval <= 0) {
 			cancelTask(task.taskId); // Remove from list
@@ -156,7 +158,8 @@ class ClockScheduler implements Scheduler, Runnable {
 			} else {
 				task.active = true;
 			}
-			putTask(task, true);
+			_this.putTask(task, true);
+			_this.run();
 		}
 		myClock.runInPool(new Runnable() {
 			@Override
@@ -173,7 +176,8 @@ class ClockScheduler implements Scheduler, Runnable {
 					if (task.interval > 0 && task.sequential) {
 						task.due = DateTime.now().plus(task.interval);
 						task.active = false;
-						putTask(task, true);
+						_this.putTask(task, true);
+						_this.run();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -233,6 +237,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		@SuppressWarnings("unchecked")
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
 				.get("_taskList");
+//		System.err.println("ClockSchedulerFactory to String called:"+((timeline != null) ? timeline.toString() : "[]"));
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
@@ -289,6 +294,18 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		return due.toString();
 	}
 	
+	public long getInterval() {
+		return interval;
+	}
+
+	public boolean isSequential() {
+		return sequential;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
 	@Override
 	public String toString() {
 		try {

@@ -132,7 +132,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	
 	// TODO: make the class Task serializable (and auto-restart when
 	// initializing again?)
-	private class Task implements Serializable {
+	class Task implements Serializable {
 		private static final long	serialVersionUID	= -2250937108323878021L;
 		private String				agentId				= null;
 		private String				taskId				= null;
@@ -244,6 +244,30 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return taskId;
 		}
 		
+		public String getAgentId() {
+			return agentId;
+		}
+
+		public JSONRequest getRequest() {
+			return request;
+		}
+
+		public DateTime getTimestamp() {
+			return timestamp;
+		}
+
+		public ScheduledFuture<?> getFuture() {
+			return future;
+		}
+
+		public long getInterval() {
+			return interval;
+		}
+
+		public boolean isSequential() {
+			return sequential;
+		}
+
 		public void cancel() {
 			if (future != null) {
 				boolean mayInterruptIfRunning = false;
