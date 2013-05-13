@@ -63,8 +63,10 @@ abstract public class Agent implements AgentInterface {
 	protected ResultMonitorFactory	monitorFactory	= null;
 	protected EventsFactory			eventsFactory	= null;
 	
+	@Access(AccessType.PUBLIC)
 	public abstract String getDescription();
 	
+	@Access(AccessType.PUBLIC)
 	public abstract String getVersion();
 	
 	public Agent() {
@@ -230,38 +232,34 @@ abstract public class Agent implements AgentInterface {
 		return eventsFactory;
 	}
 	
-	public void doPoll(@Name("monitorId") String monitorId) throws Exception {
+	@Access(AccessType.PUBLIC)
+	final public void doPoll(@Name("monitorId") String monitorId) throws Exception {
 		monitorFactory.doPoll(monitorId);
 	}
 	
-	public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
+	@Access(AccessType.PUBLIC)
+	final public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
 		monitorFactory.doPush(pushParams);
 	}
 	
-	public void callbackPush(@Name("result") Object result,
+	@Access(AccessType.PUBLIC)
+	final public void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId) {
 		monitorFactory.callbackPush(result, monitorId);
 	}
 	
-	public List<String> registerPush(@Name("params") ObjectNode pushParams,
+	@Access(AccessType.PUBLIC)
+	final public List<String> registerPush(@Name("params") ObjectNode pushParams,
 			@Sender String senderUrl) {
 		return monitorFactory.registerPush(pushParams, senderUrl);
 	}
 	
-	public void unregisterPush(@Name("pushId") String id) {
+	@Access(AccessType.PUBLIC)
+	final public void unregisterPush(@Name("pushId") String id) {
 		monitorFactory.unregisterPush(id);
 	}
 	
-	/**
-	 * Let an other agent subscribe to one of this agents events
-	 * When the event is triggered, a callback will be send to the provided
-	 * callbackUrl.
-	 * 
-	 * @param event
-	 * @param callbackUrl
-	 * @param callbackMethod
-	 * @return subscriptionId
-	 */
+	@Access(AccessType.PUBLIC)
 	final public String onSubscribe(@Name("event") String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
@@ -270,21 +268,7 @@ abstract public class Agent implements AgentInterface {
 				params);
 	}
 	
-	/**
-	 * Let an other agent unsubscribe from one of this agents events
-	 * - If subscriptionId is provided, the subscription with this id will be
-	 * deleted
-	 * - If the parameter callbackUrl and optionally event and/or
-	 * callbackMethod,
-	 * all subscriptions with matching parameters will be deleted.
-	 * (if only callbackUrl is provided, all subscriptions from this agent
-	 * will be deleted).
-	 * 
-	 * @param subscriptionId
-	 * @param event
-	 * @param callbackUrl
-	 * @param callbackMethod
-	 */
+	@Access(AccessType.PUBLIC)
 	final public void onUnsubscribe(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
 			@Required(false) @Name("event") String event,
@@ -294,16 +278,7 @@ abstract public class Agent implements AgentInterface {
 				callbackMethod);
 	}
 	
-	/**
-	 * Asynchronously trigger an event.
-	 * the onTrigger method is called from a scheduled task, initiated in the
-	 * method trigger
-	 * 
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @throws Exception
-	 */
+	@Access(AccessType.PUBLIC)
 	final public void onTrigger(@Name("url") String url,
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws Exception {
@@ -319,6 +294,7 @@ abstract public class Agent implements AgentInterface {
 	 * 
 	 * @return firstUrl
 	 */
+	@Access(AccessType.PUBLIC)
 	public String getFirstUrl() {
 		List<String> urls = getUrls();
 		if (urls.size() > 0) {
@@ -332,6 +308,7 @@ abstract public class Agent implements AgentInterface {
 	 * 
 	 * @return array
 	 */
+	@Access(AccessType.PUBLIC)
 	public List<Object> getMethods() {
 		return getAgentFactory().getMethods(this);
 	}
@@ -547,6 +524,7 @@ abstract public class Agent implements AgentInterface {
 	 * 
 	 * @return urls
 	 */
+	@Access(AccessType.PUBLIC)
 	public List<String> getUrls() {
 		List<String> urls = new ArrayList<String>();
 		if (agentFactory != null) {
@@ -568,6 +546,7 @@ abstract public class Agent implements AgentInterface {
 	 * 
 	 * @return
 	 */
+	@Access(AccessType.PUBLIC)
 	public String getId() {
 		return state.getAgentId();
 	}
@@ -577,6 +556,7 @@ abstract public class Agent implements AgentInterface {
 	 * 
 	 * @return classname
 	 */
+	@Access(AccessType.PUBLIC)
 	public String getType() {
 		return getClass().getSimpleName();
 	}
@@ -585,11 +565,13 @@ abstract public class Agent implements AgentInterface {
 	 * Retrieve a JSON Array with the agents scheduled tasks
 	 */
 	@Override
+	@Access(AccessType.PUBLIC)
 	public String getTasks() {
 		return this.getScheduler().toString();
 	}
 	
 	@Override
+	@Access(AccessType.PUBLIC)
 	public String toString() {
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("class", this.getClass().getName());
