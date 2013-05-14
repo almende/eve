@@ -1,0 +1,28 @@
+CAPTION
+An Eve agent contains logic, communication facilities, a clock, and a memory.
+
+DESCRIPTION
+
+What is a software agent? 
+
+A computer program with: "an agreement to act on one's behalf" (Wikipedia)
+
+Properties of an agent:
+
+- An agent is autonomous. 
+- An agent can communicate with other agents and/or humans.
+- An agent has memory to store its state and history, his view of the world.
+- An agent is interactive: it can take initiative to perform some task.
+- An agent is reactive: it can respond to other agents or humans.
+- An agent has a goal, a purpose which the agent aims to fullfill.
+
+To support these properties, an Eve agent consists of:
+
+- Code containing the agents logic. This allows an agent to perform its tasks,
+  take initiative, learn, react, cooperate, negotiate, etcetera.
+- Communication facilities allowing the agent to interact with other agents.
+  Eve supports multiple transport layers (currently over HTTP and XMPP), 
+  allowing agents to reach each other in various ways.
+- Clock, enabling the agent to schedule tasks for itself.
+- Memory, a place where the agent can store its state and history.
+
