@@ -1,0 +1,15 @@
+Example scenario: dynamic scheduling of meetings
+
+One domain where Eve has proven to be a powerful solution is calendaring and planning. People spend quite some time on administrative tasks, such as scheduling their tasks, planning meetings, planning trips and travel time, reporting progress of projects, time management, and more. They could work more efficiently and with more fun when they could focus on their “real” job instead of all these overhead tasks. 
+
+For example planning a meeting can be complicated. It becomes more complex the more participants are involved, or the more fully planned calendars the participants have. People have to communicate with each other to find a suitable date and location. For humans, communication takes time and effort. People tend to plan a meeting once, and try not to move the event again, as this is a tedious task with a social barrier as others may find it very annoying to be questioned for a new planning again and again. This leads to a non-optimal, rigid planning, which cannot easily adapt to changing circumstances.
+
+Software Agents are perfect candidates to support humans with these kind of administrative tasks. Almende has developed a solution for dynamic scheduling of meetings using Eve. The solutions consists of PersonalAgents and MeetingAgents. A PersonalAgent can be given access to a users calendar, and can reckon and learn their user’s preferences. A MeetingAgent has the task of planning a single meeting, involving one or multiple participants. The agent will negotiate with the PersonalAgents of all participants, and with other MeetingAgents, to find the best time-slot and location for the meeting. MeetingAgents can schedule and reschedule a meeting as often as needed, when circumstances change. They don’t have to bother the user with this and do all communication behind the scenes.
+In order to find the optimal location for the meeting from a given set of locations, a MeetingAgent incorporates the participants location, and consults a DirectionsAgent to calculate travel time between the locations. This information is used, together with the participants preferences, to calculate the most convenient location. When applicable, a MeetingAgent will automatically plan the required travel time in a users calendar.
+An important aspect of software agents acting on a users behalf is the control that a user has over his agents. A user should always be able to know what his agents are doing, and be able to override decisions made by his agents. The agents can utilize these interventions to better learn their user’s preferences. In case of situations that the agents cannot resolve themselves, they will escape to their user. 
+
+The presented solution does not replace existing planning or calendaring systems, but works on top of them. It offers a decentralized and open solution, which works over system boundaries. The Eve agents form an interactive bridge between calendaring systems and other information services, acting on behalf of the user they represent.
+
+
+
+
