@@ -114,10 +114,7 @@ public class AgentServlet extends HttpServlet {
 	private boolean handleSession(HttpServletRequest req,
 			HttpServletResponse res) throws IOException {
 		try {
-		if (!req.isSecure()){
-			res.sendError(400, "Request needs to be secured with SSL for session management!");
-			return false;
-		}
+	
 		
 		if (req.getSession(false) != null)
 			return true;
@@ -126,11 +123,14 @@ public class AgentServlet extends HttpServlet {
 		if (hs.equals(Handshake.INVALID)){
 			return false;
 		}
-		Boolean doAuthentication = Boolean.parseBoolean(AgentListener.getParam("doAuthentication", "true"));
+		Boolean doAuthentication = Boolean.parseBoolean(AgentListener.getParam("authentication", "true"));
 		if (hs.equals(Handshake.NAK)){
+			if (!req.isSecure()){
+				res.sendError(400, "Request needs to be secured with SSL for session management!");
+				return false;
+			}
 			if ( doAuthentication && !req.authenticate(res)) return false;
 		}
-		
 		//generate new session:
 		req.getSession(true);
 		} catch (Exception e){
