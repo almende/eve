@@ -68,12 +68,12 @@ public class DirectoryAgent extends Agent {
 			@Name("email") @Required(false) String email) throws Exception {
 		// remove registrations with this url
 		if (agent != null) {
-			delete("agent", agent);
+			remove("agent", agent);
 		}
 
 		// remove registrations with this email
 		if (email != null) {
-			delete("email", email);
+			remove("email", email);
 		}
 	}
 	
@@ -126,7 +126,7 @@ public class DirectoryAgent extends Agent {
 	 * @param value
 	 * @throws Exception 
 	 */
-	private void delete (String field, String value) throws Exception {
+	private void remove (String field, String value) throws Exception {
 		if (field == null || value == null) {
 			return;
 		}		
@@ -149,7 +149,7 @@ public class DirectoryAgent extends Agent {
 	 * Remove all registrations stored by this DirectoryAgent
 	 */
 	@Override
-	public void clear() throws Exception {
+	public void delete () {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		QueryResultIterator<Registration> it = datastore.find()
 			.type(Registration.class)
@@ -161,21 +161,10 @@ public class DirectoryAgent extends Agent {
 			datastore.delete(registration);
 			// TODO: bulk delete all registrations instead of one by one
 		}
+		
+		super.delete();
 	}
 
-	/**
-	 * Get the first url of the agents urls. Returns null if the agent does not
-	 * have any urls.
-	 * @return firstUrl
-	 */
-	private String getFirstUrl() {
-		List<String> urls = getUrls();
-		if (urls.size() > 0) {
-			return urls.get(0);
-		}
-		return null;
-	}
-	
 	@Override
 	public String getDescription() {
 		return "DirectoryAgent stores a list with registered agents.";
