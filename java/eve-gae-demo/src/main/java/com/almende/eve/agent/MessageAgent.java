@@ -105,7 +105,7 @@ public class MessageAgent extends Agent {
 		String event = "receive";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", JOM.getInstance().convertValue(message, ObjectNode.class));
-		trigger(event, params);
+		eventsFactory.trigger(event, params);
 	}
 	
 	/**
@@ -152,7 +152,7 @@ public class MessageAgent extends Agent {
 		String event = "send";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", JOM.getInstance().convertValue(message, ObjectNode.class));
-		trigger(event, params);		
+		eventsFactory.trigger(event, params);
 	}
 
 	/**
@@ -242,7 +242,7 @@ public class MessageAgent extends Agent {
 	 * Clear inbox and outbox and everything the agent has stored.
 	 */
 	@Override
-	public void clear() throws Exception {
+	public void delete() {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		QueryResultIterator<Message> it = datastore.find()
 			.type(Message.class)
@@ -254,21 +254,10 @@ public class MessageAgent extends Agent {
 			datastore.delete(message);
 			// TODO: bulk delete all messages instead of one by one
 		}
+		
+		super.delete();
 	}
 
-	/**
-	 * Get the first url of the agents urls. Returns null if the agent does not
-	 * have any urls.
-	 * @return firstUrl
-	 */
-	private String getFirstUrl() {
-		List<String> urls = getUrls();
-		if (urls.size() > 0) {
-			return urls.get(0);
-		}
-		return null;
-	}
-	
 	@Override
 	public String getDescription() {
 		return "The MessageAgent can send and receive messages from other " +
