@@ -128,13 +128,13 @@ public class AgentServlet extends HttpServlet {
 			}
 			Boolean doAuthentication = Boolean.parseBoolean(AgentListener
 					.getParam("authentication", "true"));
-			if (hs.equals(Handshake.NAK)) {
+			if (hs.equals(Handshake.NAK) && doAuthentication) {
 				if (!req.isSecure()) {
 					res.sendError(400,
 							"Request needs to be secured with SSL for session management!");
 					return false;
 				}
-				if (doAuthentication && !req.authenticate(res)) return false;
+				if (!req.authenticate(res)) return false;
 			}
 			// generate new session:
 			req.getSession(true);
