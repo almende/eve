@@ -87,7 +87,7 @@ public class EventsFactory {
 	 */
 	public String subscribe(String url, String event, String callbackMethod,
 			ObjectNode callbackParams) throws Exception {
-		String method = "onSubscribe";
+		String method = "createSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
 		params.put("callbackUrl", myAgent.getFirstUrl());
@@ -108,7 +108,7 @@ public class EventsFactory {
 	 * @throws Exception
 	 */
 	public void unsubscribe(String url, String subscriptionId) throws Exception {
-		String method = "onUnsubscribe";
+		String method = "deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
 		myAgent.send(url, method, params);
@@ -124,7 +124,7 @@ public class EventsFactory {
 	 */
 	public void unsubscribe(String url, String event, String callbackMethod)
 			throws Exception {
-		String method = "onUnsubscribe";
+		String method = "deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
 		params.put("callbackUrl", myAgent.getFirstUrl());
@@ -202,13 +202,13 @@ public class EventsFactory {
 				System.err.println("subscription.params empty");
 			}
 			taskParams.put("params", callbackParams);
-			JSONRequest request = new JSONRequest("onTrigger", taskParams);
+			JSONRequest request = new JSONRequest("doTrigger", taskParams);
 			long delay = 0;
 			myAgent.getScheduler().createTask(request, delay);
 		}
 	}
 	
-	public String onSubscribe(String event, String callbackUrl,
+	public String createSubscription(String event, String callbackUrl,
 			String callbackMethod, ObjectNode params) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
@@ -236,7 +236,7 @@ public class EventsFactory {
 		return subscriptionId;
 	}
 	
-	public void onUnsubscribe(String subscriptionId, String event,
+	public void deleteSubscription(String subscriptionId, String event,
 			String callbackUrl, String callbackMethod) {
 		@SuppressWarnings("unchecked")
 		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent.getState()

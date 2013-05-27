@@ -260,26 +260,33 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public String onSubscribe(@Name("event") String event,
+	final public String createSubscription(@Name("event") String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params) {
-		return eventsFactory.onSubscribe(event, callbackUrl, callbackMethod,
+		return eventsFactory.createSubscription(event, callbackUrl, callbackMethod,
 				params);
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public void onUnsubscribe(
+	final public void deleteSubscription(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
 			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
-		eventsFactory.onUnsubscribe(subscriptionId, event, callbackUrl,
+		eventsFactory.deleteSubscription(subscriptionId, event, callbackUrl,
 				callbackMethod);
 	}
 	
+	/**
+	 * Work-method for trigger: called by scheduler for asynchronous and/or delayed behaviour 
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @throws Exception
+	 */
 	@Access(AccessType.PUBLIC)
-	final public void onTrigger(@Name("url") String url,
+	final public void doTrigger(@Name("url") String url,
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws Exception {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification

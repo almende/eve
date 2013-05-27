@@ -87,7 +87,7 @@ public interface AgentInterface {
 	 * @param callbackMethod
 	 * @return subscriptionId
 	 */
-	public String onSubscribe(@Name("event") String event,
+	public String createSubscription(@Name("event") String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params);
@@ -107,7 +107,7 @@ public interface AgentInterface {
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
-	public void onUnsubscribe(
+	public void deleteSubscription(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
 			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
@@ -123,7 +123,7 @@ public interface AgentInterface {
 	 * @param params
 	 * @throws Exception
 	 */
-	public void onTrigger(@Name("url") String url,
+	public void doTrigger(@Name("url") String url,
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws Exception;
 	
