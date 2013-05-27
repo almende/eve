@@ -29,20 +29,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("serial")
 public class AgentServlet extends HttpServlet {
-	private final static Logger logger = Logger.getLogger(AgentServlet.class.getSimpleName());
-
-	private static final String RESOURCES = "/com/almende/eve/resources/";
-	static AgentFactory agentFactory;
-	static HttpService httpTransport;
-
+	private final static Logger	logger		= Logger.getLogger(AgentServlet.class
+													.getSimpleName());
+	
+	private static final String	RESOURCES	= "/com/almende/eve/resources/";
+	static AgentFactory			agentFactory;
+	static HttpService			httpTransport;
+	
 	@Override
 	public void init() {
-		if (AgentFactory.getInstance() == null){
+		if (AgentFactory.getInstance() == null) {
 			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
 		agentFactory = AgentFactory.getInstance();
-
+		
 		String environment = AgentFactory.getEnvironment();
 		String envParam = "environment." + environment + ".servlet_url";
 		String globalParam = "servlet_url";
@@ -54,57 +55,61 @@ public class AgentServlet extends HttpServlet {
 		}
 		if (servletUrl == null) {
 			logger.severe("Cannot initialize HttpTransport: "
-					+ "Init Parameter '" + globalParam + "' or '"
-					+ envParam + "' "
-					+ "missing in context configuration web.xml.");
+					+ "Init Parameter '" + globalParam + "' or '" + envParam
+					+ "' " + "missing in context configuration web.xml.");
 		}
 		httpTransport = new HttpService(servletUrl);
 		agentFactory.addTransportService(httpTransport);
 	}
-
-	enum Handshake{
-		OK,
-		NAK,
-		INVALID
+	
+	enum Handshake {
+		OK, NAK, INVALID
 	}
+	
 	private boolean handleHandShake(HttpServletRequest req,
-			HttpServletResponse res) throws IOException{
+			HttpServletResponse res) throws IOException {
 		String time = req.getHeader("X-Eve-requestToken");
 		if (time == null) return false;
 		
-		
-		String token = TokenStore.get(time);		
-		if (token == null){
+		String token = TokenStore.get(time);
+		if (token == null) {
 			res.sendError(400);
 		} else {
 			res.setHeader("X-Eve-replyToken", token);
-//			System.err.println("HandleHandShake called "+time+ ":"+token);
-
+			// System.err.println("HandleHandShake called "+time+ ":"+token);
+			
 			res.setStatus(HttpServletResponse.SC_OK);
 			res.flushBuffer();
 		}
 		return true;
 	}
-	private Handshake doHandShake(HttpServletRequest req){
+	
+	private Handshake doHandShake(HttpServletRequest req) {
 		String tokenTupple = req.getHeader("X-Eve-Token");
 		if (tokenTupple == null) return Handshake.NAK;
 		
 		try {
 			String senderUrl = req.getHeader("X-Eve-SenderUrl");
-			if (senderUrl != null && !senderUrl.equals("")){
-				ObjectNode tokenObj = (ObjectNode) JOM.getInstance().readTree(tokenTupple);
+			if (senderUrl != null && !senderUrl.equals("")) {
+				ObjectNode tokenObj = (ObjectNode) JOM.getInstance().readTree(
+						tokenTupple);
 				HttpGet httpGet = new HttpGet(senderUrl);
-				httpGet.setHeader("X-Eve-requestToken", tokenObj.get("time").textValue());
+				httpGet.setHeader("X-Eve-requestToken", tokenObj.get("time")
+						.textValue());
 				HttpResponse response = ApacheHttpClient.get().execute(httpGet);
-//				System.err.println("HandShake response "+response.getLastHeader("X-Eve-replyToken").getValue());
-
-				if (tokenObj.get("token").textValue().equals(response.getLastHeader("X-Eve-replyToken").getValue())){
-//					System.err.println("Returning OK");
+				// System.err.println("HandShake response "+response.getLastHeader("X-Eve-replyToken").getValue());
+				
+				if (tokenObj
+						.get("token")
+						.textValue()
+						.equals(response.getLastHeader("X-Eve-replyToken")
+								.getValue())) {
+					// System.err.println("Returning OK");
 					return Handshake.OK;
 				}
 			}
 		} catch (Exception e) {
-			//Print trace, but is warning only.
+			// Print trace, but is warning only.
 			e.printStackTrace();
 		}
 		
@@ -114,33 +119,34 @@ public class AgentServlet extends HttpServlet {
 	private boolean handleSession(HttpServletRequest req,
 			HttpServletResponse res) throws IOException {
 		try {
-	
-		
-		if (req.getSession(false) != null)
-			return true;
-		
-		Handshake hs = doHandShake(req);
-		if (hs.equals(Handshake.INVALID)){
-			return false;
-		}
-		Boolean doAuthentication = Boolean.parseBoolean(AgentListener.getParam("authentication", "true"));
-		if (hs.equals(Handshake.NAK)){
-			if (!req.isSecure()){
-				res.sendError(400, "Request needs to be secured with SSL for session management!");
+			
+			if (req.getSession(false) != null) return true;
+			
+			Handshake hs = doHandShake(req);
+			if (hs.equals(Handshake.INVALID)) {
 				return false;
 			}
-			if ( doAuthentication && !req.authenticate(res)) return false;
-		}
-		//generate new session:
-		req.getSession(true);
-		} catch (Exception e){
-			res.sendError(500,"Exception running HandleSession:"+e.getMessage());
+			Boolean doAuthentication = Boolean.parseBoolean(AgentListener
+					.getParam("authentication", "true"));
+			if (hs.equals(Handshake.NAK)) {
+				if (!req.isSecure()) {
+					res.sendError(400,
+							"Request needs to be secured with SSL for session management!");
+					return false;
+				}
+				if (doAuthentication && !req.authenticate(res)) return false;
+			}
+			// generate new session:
+			req.getSession(true);
+		} catch (Exception e) {
+			res.sendError(500,
+					"Exception running HandleSession:" + e.getMessage());
 			e.printStackTrace();
 			return false;
 		}
 		return true;
 	}
-
+	
 	/**
 	 * Get an agents web interface Usage: GET /servlet/{agentId}
 	 */
@@ -150,14 +156,14 @@ public class AgentServlet extends HttpServlet {
 		String uri = req.getRequestURI();
 		String agentId = httpTransport.getAgentId(uri);
 		String resource = httpTransport.getAgentResource(uri);
-
+		
 		// if no agentId is found, return generic information on servlet usage
 		if (agentId == null || agentId.isEmpty()) {
 			resp.getWriter().write(getServletDocs());
 			resp.setContentType("text/plain");
 			return;
 		}
-
+		
 		// check if the agent exists
 		try {
 			if (!agentFactory.hasAgent(agentId)) {
@@ -168,12 +174,13 @@ public class AgentServlet extends HttpServlet {
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
-
-		//If this is a handshake request, handle it.
-		if (handleHandShake(req,resp)) return;
+		
+		// If this is a handshake request, handle it.
+		if (handleHandShake(req, resp)) return;
 		
 		try {
-			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass()) && !handleSession(req, resp)) {
+			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
+					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) resp.sendError(401);
 				return;
 			}
@@ -183,7 +190,7 @@ public class AgentServlet extends HttpServlet {
 		// get the resource name from the end of the url
 		if (resource == null || resource.isEmpty()) {
 			if (!uri.endsWith("/")) {
-				if (!resp.isCommitted()){
+				if (!resp.isCommitted()) {
 					String redirect = uri + "/";
 					resp.sendRedirect(redirect);
 					return;
@@ -192,7 +199,7 @@ public class AgentServlet extends HttpServlet {
 			resource = "index.html";
 		}
 		String extension = resource.substring(resource.lastIndexOf(".") + 1);
-
+		
 		if (resource.equals("events")) {
 			// retrieve the agents logs
 			String sinceStr = req.getParameter("since");
@@ -205,7 +212,7 @@ public class AgentServlet extends HttpServlet {
 							+ "'");
 				}
 			}
-
+			
 			try {
 				List<Log> logs = agentFactory.getEventLogger().getLogs(agentId,
 						since);
@@ -227,7 +234,7 @@ public class AgentServlet extends HttpServlet {
 			}
 		}
 	}
-
+	
 	/**
 	 * Send a JSON-RPC message to an agent Usage: POST /servlet/{agentId} With a
 	 * JSON-RPC request as body. Response will be a JSON-RPC response.
@@ -244,7 +251,7 @@ public class AgentServlet extends HttpServlet {
 			// retrieve the agent url and the request body
 			body = StringUtil.streamToString(req.getInputStream());
 			jsonRequest = new JSONRequest(body);
-
+			
 			agentUrl = req.getRequestURI();
 			agentId = httpTransport.getAgentId(agentUrl);
 			if (agentId == null || agentId.isEmpty()) {
@@ -252,15 +259,17 @@ public class AgentServlet extends HttpServlet {
 				return;
 			}
 			
-			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass()) && !handleSession(req, resp)) {
+			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
+					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) resp.sendError(401);
 				return;
 			}
 			// Attach the claimed senderId, or null if not given.
 			RequestParams requestParams = new RequestParams();
 			String senderUrl = req.getHeader("X-Eve-SenderUrl");
-			if (senderUrl == null || senderUrl.equals("")){
-				senderUrl = "web://"+req.getRemoteUser()+"@"+req.getRemoteAddr();
+			if (senderUrl == null || senderUrl.equals("")) {
+				senderUrl = "web://" + req.getRemoteUser() + "@"
+						+ req.getRemoteAddr();
 			}
 			requestParams.put(Sender.class, senderUrl);
 			
@@ -280,13 +289,13 @@ public class AgentServlet extends HttpServlet {
 			}
 			jsonResponse = new JSONResponse(jsonError);
 		}
-
+		
 		// return response
 		resp.addHeader("Content-Type", "application/json");
 		resp.getWriter().println(jsonResponse.toString());
 		resp.getWriter().close();
 	}
-
+	
 	/**
 	 * Create a new agent Usage: PUT /servlet/{agentId}?type={agentType} Where
 	 * agentType is the full class path of the agent. Returns a list with the
@@ -298,7 +307,7 @@ public class AgentServlet extends HttpServlet {
 		String agentUrl = req.getRequestURI();
 		String agentId = httpTransport.getAgentId(agentUrl);
 		String agentType = req.getParameter("type");
-
+		
 		if (!handleSession(req, resp)) {
 			if (!resp.isCommitted()) resp.sendError(401);
 			return;
@@ -308,7 +317,7 @@ public class AgentServlet extends HttpServlet {
 			agentType = req.getParameter("class");
 			logger.warning("Query parameter 'class' is deprecated. Use 'type' instead.");
 		}
-
+		
 		if (agentId == null) {
 			resp.sendError(400, "No agentId found in url.");
 			return;
@@ -317,7 +326,7 @@ public class AgentServlet extends HttpServlet {
 			resp.sendError(400, "Query parameter 'type' missing in url.");
 			return;
 		}
-
+		
 		try {
 			Agent agent = agentFactory.createAgent(agentType, agentId);
 			for (String url : agent.getUrls()) {
@@ -328,7 +337,7 @@ public class AgentServlet extends HttpServlet {
 			throw new ServletException(e);
 		}
 	}
-
+	
 	/**
 	 * Delete an agent usage: DELETE /servlet/agentId
 	 */
@@ -337,7 +346,7 @@ public class AgentServlet extends HttpServlet {
 			throws ServletException, IOException {
 		String agentUrl = req.getRequestURI();
 		String agentId = httpTransport.getAgentId(agentUrl);
-
+		
 		if (!handleSession(req, resp)) {
 			if (!resp.isCommitted()) resp.sendError(401);
 			return;
@@ -346,7 +355,7 @@ public class AgentServlet extends HttpServlet {
 			resp.sendError(400, "No agentId found in url.");
 			return;
 		}
-
+		
 		try {
 			agentFactory.deleteAgent(agentId);
 			resp.getWriter().write("Agent " + agentId + " deleted");
@@ -354,9 +363,7 @@ public class AgentServlet extends HttpServlet {
 			throw new ServletException(e);
 		}
 	}
-
-
-
+	
 	/**
 	 * Get a description on how to use this servlet
 	 * 
@@ -365,7 +372,7 @@ public class AgentServlet extends HttpServlet {
 	protected String getServletDocs() {
 		String servletUrl = httpTransport.getServletUrl();
 		String info = "EVE AGENTS SERVLET\n" + "\n" + "Usage:\n" + "\n" +
-
+		
 		"GET "
 				+ servletUrl
 				+ "\n"
@@ -373,7 +380,7 @@ public class AgentServlet extends HttpServlet {
 				+ "    Returns information on how to use this servlet.\n"
 				+ "\n"
 				+
-
+				
 				"GET "
 				+ servletUrl
 				+ "{agentId}\n"
@@ -383,7 +390,7 @@ public class AgentServlet extends HttpServlet {
 				+ "    A 404 error will be returned when the agent does not exist.\n"
 				+ "\n"
 				+
-
+				
 				"POST "
 				+ servletUrl
 				+ "{agentId}\n"
@@ -396,7 +403,7 @@ public class AgentServlet extends HttpServlet {
 				+ "    A 404 error will be returned when the agent does not exist.\n"
 				+ "\n"
 				+
-
+				
 				"PUT "
 				+ servletUrl
 				+ "{agentId}?type={agentType}\n"
@@ -405,10 +412,10 @@ public class AgentServlet extends HttpServlet {
 				+ "    be a full java class path of an Agent. A 500 error will be\n"
 				+ "    thrown when an agent with this id already exists.\n"
 				+ "\n" +
-
+				
 				"DELETE " + servletUrl + "{agentId}\n" + "\n"
 				+ "    Delete an agent by its id.";
-
+		
 		return info;
 	}
 }
