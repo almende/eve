@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ResultMonitor implements Serializable {
@@ -88,7 +89,7 @@ public class ResultMonitor implements Serializable {
 		try {
 			Agent agent = factory.getAgent(agentId);
 			List<String> remoteIds = config.init(this, agent);
-			remoteIds.addAll(remoteIds);
+			this.remoteIds = remoteIds;
 		} catch (Exception e){
 			System.err.println("Couldn't init Pushing!");
 			e.printStackTrace();
@@ -108,7 +109,6 @@ public class ResultMonitor implements Serializable {
 				newmonitors.putAll(monitors);
 			}
 			newmonitors.put(id, this);
-			
 			if (!agent.getState().putIfUnchanged("_monitors",
 					(Serializable) newmonitors, (Serializable) monitors)) {
 				store(); // recursive retry.
@@ -166,4 +166,12 @@ public class ResultMonitor implements Serializable {
 		return null;
 	}
 	
+	public String toString(){
+		try {
+			return JOM.getInstance().writeValueAsString(this);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
 }

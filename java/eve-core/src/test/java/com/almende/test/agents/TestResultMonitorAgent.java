@@ -26,7 +26,11 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void bobEvent() throws Exception {
-		eventsFactory.trigger("Go", JOM.createObjectNode());
+		System.err.println("BobEvent triggered!");
+		ObjectNode params = JOM.createObjectNode();
+		params.put("hello", "world");
+		eventsFactory.trigger("Go", params);
+		
 	}
 	
 	public void prepare() {
@@ -45,13 +49,19 @@ public class TestResultMonitorAgent extends Agent {
 		
 		monitorID = getResultMonitorFactory().create("local://bob", "getData", JOM.createObjectNode(),
 				"returnRes", new Poll(800), new Poll(1500));
-		
 		if (monitorID != null) getState().put("LazyPollKey", monitorID);
 		
+		monitorID = getResultMonitorFactory().create("local://bob", "getData", JOM.createObjectNode(),
+				"returnResParm", new Push().onEvent("Go"));
+		if (monitorID != null) getState().put("EventPushKey", monitorID);
+
 	}
 	
 	public void returnRes(@Name("result") int result) {
 		System.err.println("Received callback result:" + result);
+	}
+	public void returnResParm(@Name("result") int result, @Name("hello") String world) {
+		System.err.println("Received callback result:" + result+ " : "+ world);
 	}
 	
 	public List<Integer> get_result() {

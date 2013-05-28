@@ -37,7 +37,7 @@ public interface ResultMonitorInterface {
 	 * @param monitorId
 	 */
 	public void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId);
+			@Name("monitorId") String monitorId, @Name("callbackParams") ObjectNode callbackParams);
 	
 	/**
 	 * Register a Push request as part of the monitoring framework. The sender

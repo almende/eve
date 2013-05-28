@@ -160,6 +160,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		ObjectNode parms = JOM.createObjectNode();
 		parms.put("result", result);
 		parms.put("monitorId", pushParams.get("monitorId").textValue());
+		parms.put("callbackParams", pushParams);
 		
 		myAgent.send(pushParams.get("url").textValue(), "monitor.callbackPush", parms);
 		// If callback reports "old", unregisterPush();
@@ -167,21 +168,28 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	
 	@Access(AccessType.PUBLIC)
 	final public void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId) {
+			@Name("monitorId") String monitorId, @Name("callbackParams") ObjectNode callbackParams) {
+		//TODO: add params
 		try {
 			ResultMonitor monitor = ResultMonitor.getMonitorById(
 					myAgent.getId(), monitorId);
 			if (monitor != null) {
 				if (monitor.callbackMethod != null) {
+					
 					ObjectNode params = JOM.createObjectNode();
+					if (callbackParams != null){
+						params=callbackParams;
+					}
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
-					JSONRPC.invoke(myAgent, new JSONRequest(
-							monitor.callbackMethod, params),myAgent);
+					myAgent.send("local://" + myAgent.getId(),
+							monitor.callbackMethod, params);
 				}
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);
 				}
+			} else {
+				System.err.println("Couldn't find local monitor by id:"+monitorId);
 			}
 		} catch (Exception e) {
 			System.err.println("Couldn't run local callbackMethod for push!"
@@ -229,6 +237,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					e.printStackTrace();
 				}
 			}
+			
 			try {
 				result.add(myAgent.getEventsFactory().subscribe(
 						myAgent.getFirstUrl(), event, "monitor.doPush", parms));

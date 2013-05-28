@@ -54,13 +54,20 @@ public class EventsFactory implements EventsInterface {
 	 */
 	@SuppressWarnings("unchecked")
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
+		
 		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent
 				.getState().get("subscriptions");
-		if (allSubscriptions == null) {
-			allSubscriptions = new HashMap<String, List<Callback>>();
+		
+		HashMap<String, List<Callback>> newSubscriptions = new HashMap<String, List<Callback>>();
+		if (allSubscriptions != null){
+			newSubscriptions.putAll(allSubscriptions);
 		}
-		allSubscriptions.put(event, subscriptions);
-		myAgent.getState().put("subscriptions", allSubscriptions);
+		newSubscriptions.put(event, subscriptions);
+		if (!myAgent.getState().putIfUnchanged("subscriptions", newSubscriptions, allSubscriptions)){
+			//Recursive retry.
+			putSubscriptions(event,subscriptions);
+			return;
+		}
 	}
 	
 	/**
@@ -181,7 +188,9 @@ public class EventsFactory implements EventsInterface {
 			// create a task to send this trigger.
 			// This way, it is sent asynchronously and cannot block this
 			// trigger method
-			callbackParams.put("subscriptionId", subscription.id);
+			ObjectNode newParms = callbackParams.deepCopy();
+			
+			newParms.put("subscriptionId", subscription.id);
 			// TODO: test if changing subscriptionId works with multiple tasks
 			
 			ObjectNode taskParams = JOM.createObjectNode();
@@ -190,13 +199,13 @@ public class EventsFactory implements EventsInterface {
 			if (subscription.params != null) {
 				ObjectNode parms = (ObjectNode) JOM.getInstance()
 						.readTree(subscription.params).get("params");
-				callbackParams
-						.put("params", parms.putAll((ObjectNode) callbackParams
+				newParms
+						.put("params", parms.putAll((ObjectNode) newParms
 								.get("params")));
 			} else {
 				System.err.println("subscription.params empty");
 			}
-			taskParams.put("params", callbackParams);
+			taskParams.put("params", newParms);
 			JSONRequest request = new JSONRequest("event.doTrigger", taskParams);
 			long delay = 0;
 			myAgent.getScheduler().createTask(request, delay);
@@ -208,7 +217,7 @@ public class EventsFactory implements EventsInterface {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params) {
-			List<Callback> subscriptions = getSubscriptions(event);
+		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
 			if (subscription.url == null || subscription.method == null) {
 				continue;
@@ -229,7 +238,7 @@ public class EventsFactory implements EventsInterface {
 		subscriptions.add(callback);
 		
 		// store the subscriptions
-		putSubscriptions(event, subscriptions);
+		putSubscriptions(event, subscriptions);//FIXME: Race condition on subscriptions!
 		
 		return subscriptionId;
 	}
@@ -281,7 +290,7 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// store state again
-		myAgent.getState().put("subscriptions", allSubscriptions);
+		myAgent.getState().put("subscriptions", allSubscriptions); //TODO: Race condition!
 	}
 	
 	/**
