@@ -41,6 +41,7 @@ import java.util.UUID;
 import com.almende.eve.agent.annotation.Access;
 import com.almende.eve.agent.annotation.AccessType;
 import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.proxy.AsyncProxy;
@@ -56,6 +57,7 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@Access(AccessType.UNAVAILABLE)
 abstract public class Agent implements AgentInterface {
 	protected AgentFactory			agentFactory	= null;
 	protected State					state			= null;
@@ -200,7 +202,7 @@ abstract public class Agent implements AgentInterface {
 	 * on.
 	 * 
 	 */
-	@Access(AccessType.UNAVAILABLE)
+	@Namespace("scheduler")
 	final public Scheduler getScheduler() {
 		return scheduler;
 	}
@@ -219,7 +221,7 @@ abstract public class Agent implements AgentInterface {
 	 * Get the resultMonitorFactory, which can be used to register push/poll RPC
 	 * result monitors.
 	 */
-	@Access(AccessType.UNAVAILABLE)
+	@Namespace("monitor")
 	final public ResultMonitorFactory getResultMonitorFactory() {
 		return monitorFactory;
 	}
@@ -227,7 +229,7 @@ abstract public class Agent implements AgentInterface {
 	/**
 	 * Get the eventsFactory, which can be used to subscribe and trigger events.
 	 */
-	@Access(AccessType.UNAVAILABLE)
+	@Namespace("event")
 	final public EventsFactory getEventsFactory() {
 		return eventsFactory;
 	}

@@ -51,8 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.almende.eve.agent.AgentInterface;
-
 public class AnnotationUtil {
 	private static Map<String, AnnotatedClass> cache = 
 			new ConcurrentHashMap<String, AnnotatedClass>();
@@ -177,6 +175,21 @@ public class AnnotationUtil {
 		}
 
 		/**
+		 * Get all methods including methods declared in superclasses, filtered
+		 * by annotation
+		 * @param annotation
+		 * @return filteredMethods
+		 */
+		public <T> List<AnnotatedMethod> getAnnotatedMethods (Class<T> annotation) {
+			List<AnnotatedMethod> filteredMethods = new ArrayList<AnnotatedMethod>();
+			for (AnnotatedMethod method : methods) {
+				if (method.getAnnotation(annotation) != null) {
+					filteredMethods.add(method);
+				}
+			}
+			return filteredMethods;
+		}
+		/**
 		 * Get all annotations defined on this class, its superclasses, and its
 		 * interfaces
 		 * @return annotations
@@ -208,21 +221,14 @@ public class AnnotationUtil {
 	public static class AnnotatedMethod {
 		private Method method = null;
 		private String name = null;
-		private Class<AgentInterface> parent = null;
 		private Class<?> returnType = null;
 		private Type genericReturnType = null;
 		private List<Annotation> annotations = new ArrayList<Annotation>();
 		private List<AnnotatedParam> params = new ArrayList<AnnotatedParam>();
 		
-		@SuppressWarnings("unchecked")
 		public AnnotatedMethod(Method method) throws Exception {
 			this.method = method;
 			this.name = method.getName();
-			if (AgentInterface.class.isAssignableFrom(method.getDeclaringClass())){
-				this.setParent((Class<AgentInterface>) method.getDeclaringClass());
-			} else {
-				throw new Exception("Trying to annotate a non Eve class!");
-			}
 			this.returnType = method.getReturnType();
 			this.genericReturnType = method.getGenericReturnType();
 
@@ -317,14 +323,6 @@ public class AnnotationUtil {
 		 */
 		public List<AnnotatedParam> getParams() {
 			return params;
-		}
-
-		public Class<AgentInterface> getParent() {
-			return parent;
-		}
-
-		public void setParent(Class<AgentInterface> parent) {
-			this.parent = parent;
 		}
 	}
 	

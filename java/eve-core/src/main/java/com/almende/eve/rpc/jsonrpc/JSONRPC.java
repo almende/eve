@@ -26,6 +26,8 @@ import com.almende.util.AnnotationUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.AnnotationUtil.AnnotatedParam;
+import com.almende.util.NamespaceUtil.CallTuple;
+import com.almende.util.NamespaceUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -114,8 +116,13 @@ public class JSONRPC {
 		resp.setId(request.getId());
 
 		try {
-			AnnotatedMethod annotatedMethod = getMethod(destination,
-					request.getMethod(), requestParams);
+			//TODO: Get real destination and method from NamespaceCache:
+			CallTuple tuple = NamespaceUtil.get(destination,request.getMethod());
+			Object realDest = tuple.destination;
+			String realMethod = tuple.methodName;
+			
+			AnnotatedMethod annotatedMethod = getMethod(realDest,
+					realMethod, requestParams,destination);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
 						JSONRPCException.CODE.METHOD_NOT_FOUND, "Method '"
@@ -123,10 +130,9 @@ public class JSONRPC {
 			}
 
 			Method method = annotatedMethod.getActualMethod();
-
 			Object[] params = castParams(request.getParams(),
 					annotatedMethod.getParams(), requestParams);
-			Object result = method.invoke(destination, params);
+			Object result = method.invoke(realDest, params);
 			if (result == null) {
 				result = JOM.createNullNode();
 			}
@@ -181,7 +187,7 @@ public class JSONRPC {
 			for (AnnotatedMethod method : ac.getMethods()) {
 				boolean available = false;
 				try {
-					available = isAvailable(method, null, requestParams);
+					available = isAvailable(method, null, requestParams, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 					errors.add("Problems running isAvailable method on annotated class.");
@@ -254,7 +260,7 @@ public class JSONRPC {
 
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
-				if (isAvailable(method, null, requestParams)) {
+				if (isAvailable(method, null, requestParams, null)) {
 					if (asString == null || asString != true) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
@@ -380,15 +386,15 @@ public class JSONRPC {
 	 * @param requestParams
 	 * @return methodType meta information on the method, or null if not found
 	 */
-	static private AnnotatedMethod getMethod(AgentInterface destination,
-			String method, RequestParams requestParams) {
+	static private AnnotatedMethod getMethod(Object destination,
+			String method, RequestParams requestParams, AgentInterface agent) {
 		AnnotatedClass annotatedClass;
 		try {
 			annotatedClass = AnnotationUtil.get(destination.getClass());
 
 			List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
 			for (AnnotatedMethod m : methods) {
-				if (isAvailable(m, destination, requestParams)) {
+				if (isAvailable(m, destination, requestParams, agent)) {
 					return m;
 				}
 			}
@@ -537,10 +543,10 @@ public class JSONRPC {
 	 * @throws Exception 
 	 * @throws SecurityException 
 	 */
-	private static boolean isAvailable(AnnotatedMethod method, AgentInterface destination,
-			RequestParams requestParams) throws SecurityException, Exception {
+	private static boolean isAvailable(AnnotatedMethod method, Object destination,
+			RequestParams requestParams, AgentInterface agent) throws SecurityException, Exception {
 
-		int mod = method.getActualMethod().getModifiers();
+		int mod = method.getActualMethod().getModifiers(); 
 		
 		Access MethodAccess = method.getAnnotation(Access.class);
 		if (destination != null && !method.getActualMethod().getDeclaringClass().isAssignableFrom(destination.getClass()))
@@ -558,7 +564,7 @@ public class JSONRPC {
 		if (MethodAccess.value() == AccessType.UNAVAILABLE)
 			return false;
 		if (destination != null && MethodAccess.value() == AccessType.PRIVATE) {
-			return destination.onAccess((String) requestParams.get(Sender.class),
+			return agent.onAccess((String) requestParams.get(Sender.class),
 							MethodAccess.tag());
 		}
 		return true;
