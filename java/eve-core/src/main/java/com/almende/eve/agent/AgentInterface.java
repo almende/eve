@@ -5,9 +5,10 @@ import java.util.List;
 import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.agent.annotation.Sender;
+import com.almende.eve.rpc.jsonrpc.JSONAuthorizor;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public interface AgentInterface {
+public interface AgentInterface extends JSONAuthorizor {
 	/**
 	 * Retrieve the agents id
 	 * 
@@ -49,22 +50,7 @@ public interface AgentInterface {
 	 */
 	public String getTasks();
 	
-	/**
-	 * Internal method, implementing this method allows adding authorization to
-	 * your agent.
-	 * All methods annotated with AccessType.PRIVATE will only be called if this
-	 * method returns true.
-	 * The function_tag parameter can be used to check against
-	 * 
-	 * @Access(tag="foobar") annotation on the called method.
-	 *                       ( e.g. add roles to methods )
-	 * 
-	 * @param senderId
-	 * @param functionTag
-	 * @return
-	 */
-	public boolean onAccess(String senderId, String functionTag);
-	
+
 	/**
 	 * Retrieve a list with all the available methods.
 	 * 

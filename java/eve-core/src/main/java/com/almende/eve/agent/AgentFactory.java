@@ -580,7 +580,7 @@ public class AgentFactory {
 		Agent receiver = getAgent(receiverId);
 		if (receiver != null) {
 			JSONResponse response = JSONRPC.invoke(receiver, request,
-					requestParams);
+					requestParams, receiver);
 			receiver.destroy();
 			return response;
 		} else {

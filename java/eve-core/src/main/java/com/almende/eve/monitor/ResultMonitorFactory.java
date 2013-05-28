@@ -138,7 +138,7 @@ public class ResultMonitorFactory {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
-				params));
+				params),myAgent);
 		
 		JsonNode result = res.getResult();
 		if (pushParams.has("onChange")
@@ -167,7 +167,7 @@ public class ResultMonitorFactory {
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
 					JSONRPC.invoke(myAgent, new JSONRequest(
-							monitor.callbackMethod, params));
+							monitor.callbackMethod, params),myAgent);
 				}
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);

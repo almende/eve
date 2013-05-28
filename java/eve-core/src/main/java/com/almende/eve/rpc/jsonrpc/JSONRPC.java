@@ -52,9 +52,9 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(AgentInterface destination, String request)
+	static public String invoke(AgentInterface destination, String request, JSONAuthorizor auth)
 			throws JsonGenerationException, JsonMappingException, IOException {
-		return invoke(destination, request, null);
+		return invoke(destination, request, null, auth);
 	}
 
 	/**
@@ -72,13 +72,13 @@ public class JSONRPC {
 	 * @throws JsonGenerationException
 	 */
 	static public String invoke(AgentInterface destination, String request,
-			RequestParams requestParams) throws JsonGenerationException,
+			RequestParams requestParams, JSONAuthorizor auth) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
 			jsonRequest = new JSONRequest(request);
-			jsonResponse = invoke(destination, jsonRequest, requestParams);
+			jsonResponse = invoke(destination, jsonRequest, requestParams, auth);
 		} catch (JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
 		}
@@ -95,8 +95,8 @@ public class JSONRPC {
 	 *            will be invoked on the given object
 	 * @return
 	 */
-	static public JSONResponse invoke(AgentInterface destination, JSONRequest request) {
-		return invoke(destination, request, null);
+	static public JSONResponse invoke(AgentInterface destination, JSONRequest request, JSONAuthorizor auth) {
+		return invoke(destination, request, null, auth);
 	}
 
 	/**
@@ -110,8 +110,8 @@ public class JSONRPC {
 	 *            Optional request parameters
 	 * @return
 	 */
-	static public JSONResponse invoke(AgentInterface destination, JSONRequest request,
-			RequestParams requestParams) {
+	static public JSONResponse invoke(Object destination, JSONRequest request,
+			RequestParams requestParams, JSONAuthorizor auth) {
 		JSONResponse resp = new JSONResponse();
 		resp.setId(request.getId());
 
@@ -122,7 +122,7 @@ public class JSONRPC {
 			String realMethod = tuple.methodName;
 			
 			AnnotatedMethod annotatedMethod = getMethod(realDest,
-					realMethod, requestParams,destination);
+					realMethod, requestParams,auth);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
 						JSONRPCException.CODE.METHOD_NOT_FOUND, "Method '"
@@ -387,14 +387,14 @@ public class JSONRPC {
 	 * @return methodType meta information on the method, or null if not found
 	 */
 	static private AnnotatedMethod getMethod(Object destination,
-			String method, RequestParams requestParams, AgentInterface agent) {
+			String method, RequestParams requestParams, JSONAuthorizor auth) {
 		AnnotatedClass annotatedClass;
 		try {
 			annotatedClass = AnnotationUtil.get(destination.getClass());
 
 			List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
 			for (AnnotatedMethod m : methods) {
-				if (isAvailable(m, destination, requestParams, agent)) {
+				if (isAvailable(m, destination, requestParams, auth)) {
 					return m;
 				}
 			}
@@ -544,7 +544,7 @@ public class JSONRPC {
 	 * @throws SecurityException 
 	 */
 	private static boolean isAvailable(AnnotatedMethod method, Object destination,
-			RequestParams requestParams, AgentInterface agent) throws SecurityException, Exception {
+			RequestParams requestParams, JSONAuthorizor auth) throws SecurityException, Exception {
 
 		int mod = method.getActualMethod().getModifiers(); 
 		
@@ -563,9 +563,9 @@ public class JSONRPC {
 		
 		if (MethodAccess.value() == AccessType.UNAVAILABLE)
 			return false;
-		if (destination != null && MethodAccess.value() == AccessType.PRIVATE) {
-			return agent.onAccess((String) requestParams.get(Sender.class),
-							MethodAccess.tag());
+		if (MethodAccess.value() == AccessType.PRIVATE) {
+			return auth!= null?auth.onAccess((String) requestParams.get(Sender.class),
+							MethodAccess.tag()):false;
 		}
 		return true;
 	}
