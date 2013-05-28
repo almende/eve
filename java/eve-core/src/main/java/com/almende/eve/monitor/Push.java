@@ -58,7 +58,7 @@ public class Push implements ResultMonitorConfigType {
 		params.put("params", monitor.params);
 		
 		wrapper.put("params", params);
-		return agent.send(monitor.url, "registerPush", wrapper, List.class);
+		return agent.send(monitor.url, "monitor.registerPush", wrapper, List.class);
 		
 	}
 }

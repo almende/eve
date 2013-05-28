@@ -41,12 +41,11 @@ import java.util.UUID;
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsFactory;
+import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactory;
+import com.almende.eve.monitor.ResultMonitorInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
-import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -62,8 +61,8 @@ abstract public class Agent implements AgentInterface {
 	protected AgentFactory			agentFactory	= null;
 	protected State					state			= null;
 	protected Scheduler				scheduler		= null;
-	protected ResultMonitorFactory	monitorFactory	= null;
-	protected EventsFactory			eventsFactory	= null;
+	protected ResultMonitorInterface monitorFactory	= null;
+	protected EventsInterface		eventsFactory	= null;
 	
 	@Access(AccessType.PUBLIC)
 	public abstract String getDescription();
@@ -222,7 +221,7 @@ abstract public class Agent implements AgentInterface {
 	 * result monitors.
 	 */
 	@Namespace("monitor")
-	final public ResultMonitorFactory getResultMonitorFactory() {
+	final public ResultMonitorInterface getResultMonitorFactory() {
 		return monitorFactory;
 	}
 	
@@ -230,70 +229,8 @@ abstract public class Agent implements AgentInterface {
 	 * Get the eventsFactory, which can be used to subscribe and trigger events.
 	 */
 	@Namespace("event")
-	final public EventsFactory getEventsFactory() {
+	final public EventsInterface getEventsFactory() {
 		return eventsFactory;
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public void doPoll(@Name("monitorId") String monitorId) throws Exception {
-		monitorFactory.doPoll(monitorId);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
-		monitorFactory.doPush(pushParams);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId) {
-		monitorFactory.callbackPush(result, monitorId);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public List<String> registerPush(@Name("params") ObjectNode pushParams,
-			@Sender String senderUrl) {
-		return monitorFactory.registerPush(pushParams, senderUrl);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public void unregisterPush(@Name("pushId") String id) {
-		monitorFactory.unregisterPush(id);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public String createSubscription(@Name("event") String event,
-			@Name("callbackUrl") String callbackUrl,
-			@Name("callbackMethod") String callbackMethod,
-			@Required(false) @Name("callbackParams") ObjectNode params) {
-		return eventsFactory.createSubscription(event, callbackUrl, callbackMethod,
-				params);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	final public void deleteSubscription(
-			@Required(false) @Name("subscriptionId") String subscriptionId,
-			@Required(false) @Name("event") String event,
-			@Required(false) @Name("callbackUrl") String callbackUrl,
-			@Required(false) @Name("callbackMethod") String callbackMethod) {
-		eventsFactory.deleteSubscription(subscriptionId, event, callbackUrl,
-				callbackMethod);
-	}
-	
-	/**
-	 * Work-method for trigger: called by scheduler for asynchronous and/or delayed behaviour 
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @throws Exception
-	 */
-	@Access(AccessType.PUBLIC)
-	final public void doTrigger(@Name("url") String url,
-			@Name("method") String method, @Name("params") ObjectNode params)
-			throws Exception {
-		// TODO: send the trigger as a JSON-RPC 2.0 Notification
-		// TODO: catch exceptions and log them here?
-		send(url, method, params);
 	}
 	
 	/**
@@ -570,14 +507,6 @@ abstract public class Agent implements AgentInterface {
 		return getClass().getSimpleName();
 	}
 	
-	/**
-	 * Retrieve a JSON Array with the agents scheduled tasks
-	 */
-	@Override
-	@Access(AccessType.PUBLIC)
-	public String getTasks() {
-		return this.getScheduler().toString();
-	}
 	
 	@Override
 	@Access(AccessType.PUBLIC)

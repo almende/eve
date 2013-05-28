@@ -11,13 +11,14 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class EventsFactory {
+public class EventsFactory implements EventsInterface {
 	Agent	myAgent	= null;
 	
 	public EventsFactory(Agent agent) {
@@ -87,7 +88,7 @@ public class EventsFactory {
 	 */
 	public String subscribe(String url, String event, String callbackMethod,
 			ObjectNode callbackParams) throws Exception {
-		String method = "createSubscription";
+		String method = "event.createSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
 		params.put("callbackUrl", myAgent.getFirstUrl());
@@ -108,7 +109,7 @@ public class EventsFactory {
 	 * @throws Exception
 	 */
 	public void unsubscribe(String url, String subscriptionId) throws Exception {
-		String method = "deleteSubscription";
+		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
 		myAgent.send(url, method, params);
@@ -124,7 +125,7 @@ public class EventsFactory {
 	 */
 	public void unsubscribe(String url, String event, String callbackMethod)
 			throws Exception {
-		String method = "deleteSubscription";
+		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
 		params.put("callbackUrl", myAgent.getFirstUrl());
@@ -202,15 +203,18 @@ public class EventsFactory {
 				System.err.println("subscription.params empty");
 			}
 			taskParams.put("params", callbackParams);
-			JSONRequest request = new JSONRequest("doTrigger", taskParams);
+			JSONRequest request = new JSONRequest("event.doTrigger", taskParams);
 			long delay = 0;
 			myAgent.getScheduler().createTask(request, delay);
 		}
 	}
 	
-	public String createSubscription(String event, String callbackUrl,
-			String callbackMethod, ObjectNode params) {
-		List<Callback> subscriptions = getSubscriptions(event);
+	@Access(AccessType.PUBLIC)
+	final public String createSubscription(@Name("event") String event,
+			@Name("callbackUrl") String callbackUrl,
+			@Name("callbackMethod") String callbackMethod,
+			@Required(false) @Name("callbackParams") ObjectNode params) {
+			List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
 			if (subscription.url == null || subscription.method == null) {
 				continue;
@@ -236,9 +240,13 @@ public class EventsFactory {
 		return subscriptionId;
 	}
 	
-	public void deleteSubscription(String subscriptionId, String event,
-			String callbackUrl, String callbackMethod) {
-		@SuppressWarnings("unchecked")
+	@Access(AccessType.PUBLIC)
+	final public void deleteSubscription(
+			@Required(false) @Name("subscriptionId") String subscriptionId,
+			@Required(false) @Name("event") String event,
+			@Required(false) @Name("callbackUrl") String callbackUrl,
+			@Required(false) @Name("callbackMethod") String callbackMethod) {
+			@SuppressWarnings("unchecked")
 		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent.getState()
 				.get("subscriptions");
 		if (allSubscriptions == null) {
@@ -280,5 +288,21 @@ public class EventsFactory {
 		
 		// store state again
 		myAgent.getState().put("subscriptions", allSubscriptions);
+	}
+	
+	/**
+	 * Work-method for trigger: called by scheduler for asynchronous and/or delayed behaviour 
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @throws Exception
+	 */
+	@Access(AccessType.PUBLIC)
+	final public void doTrigger(@Name("url") String url,
+			@Name("method") String method, @Name("params") ObjectNode params)
+			throws Exception {
+		// TODO: send the trigger as a JSON-RPC 2.0 Notification
+		// TODO: catch exceptions and log them here?
+		myAgent.send(url, method, params);
 	}
 }

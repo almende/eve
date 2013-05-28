@@ -5,6 +5,10 @@ import java.util.List;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -15,7 +19,7 @@ import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class ResultMonitorFactory {
+public class ResultMonitorFactory implements ResultMonitorInterface {
 	
 	Agent	myAgent	= null;
 	
@@ -103,7 +107,7 @@ public class ResultMonitorFactory {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("pushId", remote);
 				try {
-					myAgent.send(monitor.url, "unregisterPush", params);
+					myAgent.send(monitor.url, "monitor.unregisterPush", params);
 				} catch (Exception e) {
 					System.err.println("Failed to unregister Push");
 					e.printStackTrace();
@@ -113,7 +117,8 @@ public class ResultMonitorFactory {
 		monitor.delete();
 	}
 	
-	public void doPoll(String monitorId) throws Exception {
+	@Access(AccessType.PUBLIC)
+	final public void doPoll(@Name("monitorId") String monitorId) throws Exception {
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
 		if (monitor != null) {
@@ -134,7 +139,8 @@ public class ResultMonitorFactory {
 	
 	private JsonNode	lastRes	= null;
 	
-	public void doPush(ObjectNode pushParams) throws Exception {
+	@Access(AccessType.PUBLIC)
+	final public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
@@ -153,11 +159,13 @@ public class ResultMonitorFactory {
 		parms.put("result", result);
 		parms.put("monitorId", pushParams.get("monitorId").textValue());
 		
-		myAgent.send(pushParams.get("url").textValue(), "callbackPush", parms);
+		myAgent.send(pushParams.get("url").textValue(), "monitor.callbackPush", parms);
 		// If callback reports "old", unregisterPush();
 	}
 	
-	public void callbackPush(Object result, String monitorId) {
+	@Access(AccessType.PUBLIC)
+	final public void callbackPush(@Name("result") Object result,
+			@Name("monitorId") String monitorId) {
 		try {
 			ResultMonitor monitor = ResultMonitor.getMonitorById(
 					myAgent.getId(), monitorId);
@@ -180,7 +188,9 @@ public class ResultMonitorFactory {
 		}
 	}
 	
-	public List<String> registerPush(ObjectNode pushParams, String senderUrl) {
+	@Access(AccessType.PUBLIC)
+	final public List<String> registerPush(@Name("params") ObjectNode pushParams,
+			@Sender String senderUrl) {
 		List<String> result = new ArrayList<String>();
 		pushParams.put("url", senderUrl);
 		ObjectNode parms = JOM.createObjectNode();
@@ -188,7 +198,7 @@ public class ResultMonitorFactory {
 		
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
-			JSONRequest request = new JSONRequest("doPush", parms);
+			JSONRequest request = new JSONRequest("monitor.doPush", parms);
 			result.add(myAgent.getScheduler().createTask(request, interval,
 					true, false));
 		}
@@ -198,6 +208,7 @@ public class ResultMonitorFactory {
 				event = pushParams.get("event").textValue(); // Event param
 																// overrules
 			} else {
+				//TODO: how to handle Agent Aspects/namespacing?
 				AnnotatedClass ac = null;
 				try {
 					ac = AnnotationUtil.get(getClass());
@@ -218,7 +229,7 @@ public class ResultMonitorFactory {
 			}
 			try {
 				result.add(myAgent.getEventsFactory().subscribe(
-						myAgent.getFirstUrl(), event, "doPush", parms));
+						myAgent.getFirstUrl(), event, "monitor.doPush", parms));
 			} catch (Exception e) {
 				System.err.println("Failed to register push Event");
 				e.printStackTrace();
@@ -227,8 +238,9 @@ public class ResultMonitorFactory {
 		return result;
 	}
 	
-	public void unregisterPush(String id) {
-		// Just assume that id is either a taskId or an Event subscription Id.
+	@Access(AccessType.PUBLIC)
+	final public void unregisterPush(@Name("pushId") String id) {
+			// Just assume that id is either a taskId or an Event subscription Id.
 		// Both allow unknown ids, Postel's law rules!
 		myAgent.getScheduler().cancelTask(id);
 		try {

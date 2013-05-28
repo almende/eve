@@ -2,11 +2,11 @@ package com.almende.eve.agent;
 
 import java.util.List;
 
-import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
-import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.agent.annotation.Namespace;
+import com.almende.eve.event.EventsInterface;
+import com.almende.eve.monitor.ResultMonitorInterface;
 import com.almende.eve.rpc.jsonrpc.JSONAuthorizor;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.almende.eve.scheduler.Scheduler;
 
 public interface AgentInterface extends JSONAuthorizor {
 	/**
@@ -45,12 +45,28 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	public List<String> getUrls();
 	
-	/**
-	 * Retrieve an JSON Array with the agents scheduled tasks
-	 */
-	public String getTasks();
-	
 
+	/**
+	 * Get the scheduler to schedule tasks for the agent to be executed later
+	 * on.
+	 * 
+	 */
+	@Namespace("scheduler")
+	public Scheduler getScheduler();
+	
+	/**
+	 * Get the resultMonitorFactory, which can be used to register push/poll RPC
+	 * result monitors.
+	 */
+	@Namespace("monitor")
+	public ResultMonitorInterface getResultMonitorFactory();
+	
+	/**
+	 * Get the eventsFactory, which can be used to subscribe and trigger events.
+	 */
+	@Namespace("event")
+	public EventsInterface getEventsFactory();
+	
 	/**
 	 * Retrieve a list with all the available methods.
 	 * 
@@ -58,106 +74,4 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	public List<Object> getMethods();
 	
-	/**
-	 * Subscribe to an event. The provided callback url and method will be
-	 * invoked when the event is triggered. The callback method is called
-	 * with parameters:
-	 * - {String} subscriptionId The id of the subscription
-	 * - {String} event Name of the triggered event
-	 * - {String} agent Url of the triggered agent
-	 * - {Object} params Event specific parameters.
-	 * See also Agent.trigger(event, params).
-	 * 
-	 * @param event
-	 * @param callbackUrl
-	 * @param callbackMethod
-	 * @return subscriptionId
-	 */
-	public String createSubscription(@Name("event") String event,
-			@Name("callbackUrl") String callbackUrl,
-			@Name("callbackMethod") String callbackMethod,
-			@Required(false) @Name("callbackParams") ObjectNode params);
-	
-	/**
-	 * Let an other agent unsubscribe from one of this agents events
-	 * - If subscriptionId is provided, the subscription with this id will be
-	 * deleted
-	 * - If the parameter callbackUrl and optionally event and/or
-	 * callbackMethod,
-	 * all subscriptions with matching parameters will be deleted.
-	 * (if only callbackUrl is provided, all subscriptions from this agent
-	 * will be deleted).
-	 * 
-	 * @param subscriptionId
-	 * @param event
-	 * @param callbackUrl
-	 * @param callbackMethod
-	 */
-	public void deleteSubscription(
-			@Required(false) @Name("subscriptionId") String subscriptionId,
-			@Required(false) @Name("event") String event,
-			@Required(false) @Name("callbackUrl") String callbackUrl,
-			@Required(false) @Name("callbackMethod") String callbackMethod);
-	
-	/**
-	 * Asynchronously trigger an event.
-	 * the onTrigger method is called from a scheduled task, initiated in the
-	 * method trigger
-	 * 
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @throws Exception
-	 */
-	public void doTrigger(@Name("url") String url,
-			@Name("method") String method, @Name("params") ObjectNode params)
-			throws Exception;
-	
-	/**
-	 * Callback method for monitoring framework, doing the work for
-	 * requester-side polling
-	 * part of a connection.
-	 * 
-	 * @param monitorId
-	 * @throws Exception
-	 */
-	public void doPoll(@Name("monitorId") String monitorId) throws Exception;
-	
-	/**
-	 * Callback method for monitoring framework, doing the work for pushing data
-	 * back to the requester.
-	 * 
-	 * @param pushParams
-	 * @throws Exception
-	 */
-	public void doPush(@Name("params") ObjectNode pushParams) throws Exception;
-	
-	/**
-	 * Callback method for the monitoring framework, doing the work for
-	 * receiving pushed data in the requester.
-	 * 
-	 * @param result
-	 * @param monitorId
-	 */
-	public void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId);
-	
-	/**
-	 * Register a Push request as part of the monitoring framework. The sender
-	 * in this case is the requesting agent, the receiver has the requested RPC
-	 * method.
-	 * 
-	 * @param pushParams
-	 * @param senderUrl
-	 * @return
-	 */
-	public List<String> registerPush(@Name("params") ObjectNode pushParams,
-			@Sender String senderUrl);
-	
-	/**
-	 * Unregister a Push request, part of the monitoring framework.
-	 * 
-	 * @param id
-	 */
-	public void unregisterPush(@Name("pushId") String id);
 }
