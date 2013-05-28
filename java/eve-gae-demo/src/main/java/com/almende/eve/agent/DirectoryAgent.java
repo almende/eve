@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.almende.eve.entity.Registration;
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.almende.util.TwigUtil;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;

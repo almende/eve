@@ -7,11 +7,11 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
-import com.almende.eve.agent.annotation.Name;
 import com.almende.eve.monitor.Cache;
 import com.almende.eve.monitor.Poll;
 import com.almende.eve.monitor.Push;
 import com.almende.eve.monitor.ResultMonitor;
+import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

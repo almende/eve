@@ -1,4 +1,4 @@
-package com.almende.eve.agent.annotation;
+package com.almende.eve.rpc.annotation;
 
 public enum AccessType {
 	PUBLIC, 

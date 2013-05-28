@@ -10,8 +10,8 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.rpc.RequestParams;
+import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;

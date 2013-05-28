@@ -29,7 +29,7 @@ package com.almende.eve.agent.google;
 import java.net.URLEncoder;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;

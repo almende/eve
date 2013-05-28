@@ -6,9 +6,9 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Required;
 import com.almende.eve.entity.Message;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.TwigUtil;

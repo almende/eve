@@ -1,4 +1,4 @@
-package com.almende.eve.agent.annotation;
+package com.almende.eve.rpc.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

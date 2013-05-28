@@ -3,7 +3,7 @@ package com.almende.eve.agent.example;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.rpc.annotation.Name;
 
 public class ManagementAgent extends Agent {
 	/**

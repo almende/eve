@@ -1,7 +1,7 @@
 package com.almende.test.agents;
 
 import com.almende.eve.agent.AgentInterface;
-import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.rpc.annotation.Name;
 
 public interface Test2AgentInterface extends AgentInterface {
 	public Double add(@Name("a") Double a, @Name("b") Double b);

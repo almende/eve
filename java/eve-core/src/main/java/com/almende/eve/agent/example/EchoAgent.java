@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.rpc.annotation.Name;
 
 public class EchoAgent extends Agent {
 	public Object ping(@Name("message") Object message) throws Exception {

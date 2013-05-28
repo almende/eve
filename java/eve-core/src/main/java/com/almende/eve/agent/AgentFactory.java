@@ -16,12 +16,12 @@ import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 
-import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
+import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;

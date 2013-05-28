@@ -32,9 +32,9 @@ import java.util.Map;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.agent.annotation.Sender;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;

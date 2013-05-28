@@ -15,9 +15,9 @@ import org.apache.http.client.methods.HttpGet;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
-import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.rpc.RequestParams;
+import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;

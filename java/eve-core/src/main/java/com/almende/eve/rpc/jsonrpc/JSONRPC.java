@@ -14,13 +14,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import com.almende.eve.agent.AgentInterface;
-import com.almende.eve.agent.annotation.Access;
-import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Required;
-import com.almende.eve.agent.annotation.Sender;
 import com.almende.eve.rpc.RequestParams;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.AnnotationUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
@@ -52,7 +51,7 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(AgentInterface destination, String request, JSONAuthorizor auth)
+	static public String invoke(Object destination, String request, JSONAuthorizor auth)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		return invoke(destination, request, null, auth);
 	}
@@ -71,7 +70,7 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(AgentInterface destination, String request,
+	static public String invoke(Object destination, String request,
 			RequestParams requestParams, JSONAuthorizor auth) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		JSONRequest jsonRequest = null;
@@ -95,7 +94,7 @@ public class JSONRPC {
 	 *            will be invoked on the given object
 	 * @return
 	 */
-	static public JSONResponse invoke(AgentInterface destination, JSONRequest request, JSONAuthorizor auth) {
+	static public JSONResponse invoke(Object destination, JSONRequest request, JSONAuthorizor auth) {
 		return invoke(destination, request, null, auth);
 	}
 
@@ -181,7 +180,7 @@ public class JSONRPC {
 			ac = AnnotationUtil.get(c);
 		} catch (Exception e) {
 			e.printStackTrace();
-			errors.add("Class as a whole can't be wrapped for annotation, probably because it's not an AgentInterface implementation.");
+			errors.add("Class as a whole can't be wrapped for annotation");
 		}
 		if (ac != null) {
 			for (AnnotatedMethod method : ac.getMethods()) {

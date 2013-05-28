@@ -8,9 +8,9 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.annotation.Access;
-import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.agent.annotation.Name;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;

@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.annotation.Access;
-import com.almende.eve.agent.annotation.AccessType;
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Sender;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Sender;
 
 @Access(AccessType.PRIVATE)  //defaults to PUBLIC...
 public class TestAccessAgent extends Agent {

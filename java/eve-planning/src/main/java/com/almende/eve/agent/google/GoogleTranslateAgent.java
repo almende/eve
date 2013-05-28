@@ -28,8 +28,8 @@ package com.almende.eve.agent.google;
 import java.net.URLEncoder;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.almende.util.HttpUtil;
 
 public class GoogleTranslateAgent extends Agent {

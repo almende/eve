@@ -27,8 +27,8 @@ package com.almende.eve.agent;
 
 import java.util.Set;
 
-import com.almende.eve.agent.annotation.Name;
-import com.almende.eve.agent.annotation.Required;
+import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
