@@ -558,7 +558,7 @@ public class JSONRPC {
 		if (MethodAccess == null)
 			MethodAccess = ClassAccess;
 		if (MethodAccess == null)
-			return true;
+			return false; //New default: UNAVAILABLE!
 		
 		if (MethodAccess.value() == AccessType.UNAVAILABLE)
 			return false;

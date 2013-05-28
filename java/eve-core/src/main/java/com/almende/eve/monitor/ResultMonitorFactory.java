@@ -16,6 +16,8 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.AnnotationUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
+import com.almende.util.NamespaceUtil;
+import com.almende.util.NamespaceUtil.CallTuple;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -208,12 +210,12 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				event = pushParams.get("event").textValue(); // Event param
 																// overrules
 			} else {
-				//TODO: how to handle Agent Aspects/namespacing?
 				AnnotatedClass ac = null;
 				try {
-					ac = AnnotationUtil.get(getClass());
-					for (AnnotatedMethod method : ac.getMethods(pushParams.get(
-							"method").textValue())) {
+					CallTuple res = NamespaceUtil.get(myAgent, pushParams.get("method").textValue());
+					
+					ac = AnnotationUtil.get(res.destination.getClass());
+					for (AnnotatedMethod method : ac.getMethods(res.methodName)) {
 						EventTriggered annotation = method
 								.getAnnotation(EventTriggered.class);
 						if (annotation != null) {

@@ -2,6 +2,8 @@ package com.almende.eve.scheduler;
 
 import java.util.Set;
 
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 
 public interface Scheduler {
@@ -35,6 +37,7 @@ public interface Scheduler {
 	 * Retrieve a list with all scheduled tasks
 	 * @return taskIds
 	 */
+	@Access(AccessType.PUBLIC)
 	public Set<String> getTasks();
 	
 }
