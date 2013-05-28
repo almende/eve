@@ -1,7 +1,10 @@
 package com.almende.test.agents;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 
+@Access(AccessType.PUBLIC)
 public class TestAgent extends Agent implements TestInterface {
 
 	@Override

@@ -32,6 +32,8 @@ import java.util.Map;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
@@ -45,7 +47,7 @@ import com.almende.test.agents.entity.Person;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-
+@Access(AccessType.PUBLIC)
 public class Test2Agent extends Agent implements Test2AgentInterface {
 	public String ping(@Name("message") String message, 
 			@Sender String sender) throws Exception {

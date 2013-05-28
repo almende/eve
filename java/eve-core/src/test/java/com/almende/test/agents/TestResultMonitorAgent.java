@@ -11,10 +11,13 @@ import com.almende.eve.monitor.Cache;
 import com.almende.eve.monitor.Poll;
 import com.almende.eve.monitor.Push;
 import com.almende.eve.monitor.ResultMonitor;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@Access(AccessType.PUBLIC)
 public class TestResultMonitorAgent extends Agent {
 	
 	@EventTriggered("Go")

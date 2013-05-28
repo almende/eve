@@ -9,7 +9,7 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Sender;
 
-@Access(AccessType.PRIVATE)  //defaults to PUBLIC...
+@Access(AccessType.PRIVATE)  //defaults to UNAVAILABLE...
 public class TestAccessAgent extends Agent {
 
 	@Override
