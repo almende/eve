@@ -181,14 +181,8 @@ public class EventsFactory implements EventsInterface {
 			// create a task to send this trigger.
 			// This way, it is sent asynchronously and cannot block this
 			// trigger method
-			callbackParams.put("subscriptionId", subscription.id); // TODO: test
-																	// if
-																	// changing
-																	// subscriptionId
-																	// works
-																	// with
-																	// multiple
-																	// tasks
+			callbackParams.put("subscriptionId", subscription.id);
+			// TODO: test if changing subscriptionId works with multiple tasks
 			
 			ObjectNode taskParams = JOM.createObjectNode();
 			taskParams.put("url", subscription.url);
