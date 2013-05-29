@@ -83,6 +83,9 @@ public class AgentConnection {
 			// configure and connect
 			ConnectionConfiguration connConfig = 
 					new ConnectionConfiguration(host, port, serviceName);
+			connConfig.setReconnectionAllowed(true);
+			connConfig.setCompressionEnabled(true);
+			connConfig.setRosterLoadedAtLogin(false);
 			conn = new XMPPConnection(connConfig);
 			conn.connect();
 
