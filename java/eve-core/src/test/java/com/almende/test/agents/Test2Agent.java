@@ -224,6 +224,22 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		}
 	}
 	
+	public Map<String, List<Double>> complexResult() {
+		Map<String,List<Double>> result = new HashMap<String,List<Double>>();
+		List<Double> list = new ArrayList<Double>();
+		list.add(1.1);
+		list.add(0.4);
+		result.put("result", list);
+		
+		return result;
+	}
+	
+	public Double testComplexResult(@Name("url") String url) throws Exception{
+		@SuppressWarnings("unchecked")
+		Map<String, List<Double>> res = send(url, "complexResult",JOM.createObjectNode(),Map.class);
+		return res.get("result").get(0);
+	}
+	
 	public Double increment() {
 		Double value = (Double) getState().get("count");
 		if (value == null) {

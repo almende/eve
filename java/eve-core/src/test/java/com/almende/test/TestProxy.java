@@ -1,5 +1,7 @@
 package com.almende.test;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 import junit.framework.TestCase;
@@ -28,6 +30,8 @@ public class TestProxy extends TestCase {
 		assertEquals(15,proxy.testPrimitive(5,10));
 		proxy.testVoid();
 
+		Map<String, List<Double>> result = proxy.complexResult();
+		assertEquals(1.1, result.get("result").get(0));
 		
 		//Generate asyncproxy from TestInterface
 		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
