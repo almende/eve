@@ -21,14 +21,16 @@ public class NamespaceUtil {
 		for (AnnotatedMethod method : clazz.getAnnotatedMethods(Namespace.class)){
 			Object newDest = method.getActualMethod().invoke(destination,(Object[])null);
 			//recurse:
-			populateCache(newDest,path+"."+method.getAnnotation(Namespace.class).value(),methods+"."+method.getName());
+			if (newDest != null){
+				populateCache(newDest,path+"."+method.getAnnotation(Namespace.class).value(),methods+"."+method.getName());
+			}
 		}
 		cache.put(path, methods.split("\\."));
 	}
 	
 	private CallTuple _get(Object destination, String path) throws SecurityException, Exception {
 		CallTuple result = new CallTuple();
-		
+				
 		String reducedPath = path.replaceFirst("\\.?[^.]+$", "");
 		String reducedMethod = path.replaceAll(".*\\.", "");
 		
