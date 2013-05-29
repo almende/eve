@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.rpc.RequestParams;
@@ -534,8 +535,8 @@ public class JSONRPC {
 						+ " in method '" + method.getName() + "' is null.");
 			}
 		}
-
-		return new JSONRequest(method.getName(), params);
+		String id = UUID.randomUUID().toString();
+		return new JSONRequest(id, method.getName(), params);
 	}
 
 	public static boolean hasPrivate(Class<?> clazz) throws SecurityException, Exception{
