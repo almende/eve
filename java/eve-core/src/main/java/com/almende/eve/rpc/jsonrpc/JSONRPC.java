@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -25,8 +26,8 @@ import com.almende.util.AnnotationUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.AnnotationUtil.AnnotatedParam;
-import com.almende.util.NamespaceUtil.CallTuple;
 import com.almende.util.NamespaceUtil;
+import com.almende.util.NamespaceUtil.CallTuple;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -235,27 +236,16 @@ public class JSONRPC {
 		return errors;
 	}
 
-	/**
-	 * Describe all JSON-RPC methods of given class
-	 * 
-	 * @param c
-	 *            The class to be described
-	 * @param requestParams
-	 *            Optional request parameters.
-	 * @param asString
-	 *            If false (default), the returned description is a JSON 
-	 *            structure. If true, the described methods will be in an easy 
-	 *            to read string. 
-	 * @return
-	 */
-	public static List<Object> describe(Class<?> c,
-			RequestParams requestParams, Boolean asString) {
+	private static Map<String,Object> _describe(Class<?> c, RequestParams requestParams, Boolean asString, String namespace){
+		Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
-			Map<String, Object> methods = new TreeMap<String, Object>();
-
+			
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
+//			System.err.println("Describing:"+c.getName());
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
+//				System.err.print(".");
 				if (isAvailable(method, null, requestParams, null)) {
+//					System.err.print(";");
 					if (asString == null || asString != true) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
@@ -276,10 +266,11 @@ public class JSONRPC {
 								typeToString(method.getGenericReturnType()));
 
 						Map<String, Object> desc = new HashMap<String, Object>();
-						desc.put("method", method.getName());
+						String methodName = namespace.equals("")?method.getName():namespace+"."+method.getName(); 
+						desc.put("method", methodName);
 						desc.put("params", descParams);
 						desc.put("result", result);
-						methods.put(method.getName(), desc);
+						methods.put(methodName, desc);
 					} else {
 						// format as string
 						String p = "";
@@ -303,7 +294,36 @@ public class JSONRPC {
 					}
 				}
 			}
-
+			for (AnnotatedMethod method : annotatedClass.getAnnotatedMethods(Namespace.class)){
+				String innerNamespace = method.getAnnotation(Namespace.class).value();
+				methods.putAll(_describe(method.getReturnType(),requestParams,asString,innerNamespace));
+			}
+//			System.err.println("Returning:"+methods+" for "+c.getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return methods;
+	}
+	
+	/**
+	 * Describe all JSON-RPC methods of given class
+	 * 
+	 * @param c
+	 *            The class to be described
+	 * @param requestParams
+	 *            Optional request parameters.
+	 * @param asString
+	 *            If false (default), the returned description is a JSON 
+	 *            structure. If true, the described methods will be in an easy 
+	 *            to read string. 
+	 * @return
+	 */
+	public static List<Object> describe(Class<?> c,
+			RequestParams requestParams, Boolean asString) {
+		try {
+			Map<String, Object> methods = _describe(c,requestParams,asString,"");
+			
 			// create a sorted array
 			List<Object> sortedMethods = new ArrayList<Object>();
 			TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
@@ -544,24 +564,34 @@ public class JSONRPC {
 		int mod = method.getActualMethod().getModifiers(); 
 		
 		Access MethodAccess = method.getAnnotation(Access.class);
-		if (destination != null && !method.getActualMethod().getDeclaringClass().isAssignableFrom(destination.getClass()))
+		if (destination != null && !method.getActualMethod().getDeclaringClass().isAssignableFrom(destination.getClass())){
+//			System.err.print("1");
 			return false;
-		if (!(Modifier.isPublic(mod) && hasNamedParams(method, requestParams)))
+		}
+		if (!(Modifier.isPublic(mod) && hasNamedParams(method, requestParams))){
+//			System.err.print("2");
 			return false;
+		}
 
 		Access ClassAccess = AnnotationUtil.get(destination != null?destination.getClass():method.getActualMethod().getDeclaringClass())
 				.getAnnotation(Access.class);
 		if (MethodAccess == null)
 			MethodAccess = ClassAccess;
-		if (MethodAccess == null)
+		if (MethodAccess == null){
+//			System.err.print("3");
 			return false; //New default: UNAVAILABLE!
-		
-		if (MethodAccess.value() == AccessType.UNAVAILABLE)
+		}
+		if (MethodAccess.value() == AccessType.UNAVAILABLE){
+//			System.err.print("4");
 			return false;
+		}
+			
 		if (MethodAccess.value() == AccessType.PRIVATE) {
+//			System.err.print("5");
 			return auth!= null?auth.onAccess((String) requestParams.get(Sender.class),
 							MethodAccess.tag()):false;
 		}
+//		System.err.print("6");
 		return true;
 	}
 
