@@ -9,7 +9,6 @@ import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@Access(AccessType.PUBLIC)
 public interface ResultMonitorInterface {
 	/**
 	 * Callback method for monitoring framework, doing the work for

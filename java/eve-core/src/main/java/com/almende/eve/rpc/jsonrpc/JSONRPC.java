@@ -35,9 +35,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONRPC {
 	// static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
-
-	// TODO: the integration with requestParams is quite a mess.
-
 	// TODO: implement JSONRPC 2.0 Batch
 	/**
 	 * Invoke a method on an object
@@ -115,7 +112,6 @@ public class JSONRPC {
 		resp.setId(request.getId());
 
 		try {
-			//TODO: Get real destination and method from NamespaceCache:
 			CallTuple tuple = NamespaceUtil.get(destination,request.getMethod());
 			Object realDest = tuple.destination;
 			String realMethod = tuple.methodName;
