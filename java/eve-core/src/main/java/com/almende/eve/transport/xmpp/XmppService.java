@@ -98,6 +98,7 @@ public class XmppService implements TransportService {
 	public String getAgentUrl(String agentId) {
 		try {
 			State state = agentFactory.getStateFactory().get(agentId);
+			
 			ArrayNode conns = null;
 			if (state.containsKey("_XMPP_Connections")) {
 				conns = (ArrayNode) JOM.getInstance().readTree(
@@ -119,7 +120,6 @@ public class XmppService implements TransportService {
 							resource = EncryptionUtil
 									.decrypt(encryptedResource);
 						}
-						
 						return generateUrl(username, host, resource);
 					}
 				}
@@ -324,8 +324,10 @@ public class XmppService implements TransportService {
 			JSONRequest request, AsyncCallback<JSONResponse> callback)
 			throws Exception {
 		
-		AgentConnection connection = connectionsByUrl.get(senderUrl);
 		
+		AgentConnection connection = null;
+		
+		if (senderUrl != null) connection = connectionsByUrl.get(senderUrl);
 		if (connection != null) {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";
