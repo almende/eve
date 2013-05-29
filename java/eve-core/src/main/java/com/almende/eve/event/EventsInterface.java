@@ -117,6 +117,16 @@ public interface EventsInterface {
 	 * Trigger an event
 	 * 
 	 * @param event
+	 * @throws Exception
+	 * @throws JSONRPCException
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public void trigger(@Name("event") String event) throws Exception;
+	
+	/**
+	 * Trigger an event
+	 * 
+	 * @param event
 	 * @param params
 	 *            An ObjectNode, Map, or POJO
 	 * @throws Exception

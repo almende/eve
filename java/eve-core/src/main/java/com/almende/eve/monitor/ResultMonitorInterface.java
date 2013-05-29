@@ -5,6 +5,7 @@ import java.util.List;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -27,7 +28,7 @@ public interface ResultMonitorInterface {
 	 * @param pushParams
 	 * @throws Exception
 	 */
-	public void doPush(@Name("params") ObjectNode pushParams) throws Exception;
+	public void doPush(@Name("pushParams") ObjectNode pushParams,@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws Exception;
 	
 	/**
 	 * Callback method for the monitoring framework, doing the work for

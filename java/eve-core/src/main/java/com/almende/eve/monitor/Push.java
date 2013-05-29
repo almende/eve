@@ -45,19 +45,19 @@ public class Push implements ResultMonitorConfigType {
 	public List<String> init(ResultMonitor monitor, Agent agent)
 			throws Exception {
 		ObjectNode wrapper = JOM.createObjectNode();
-		ObjectNode params = JOM.createObjectNode();
+		ObjectNode pushParams = JOM.createObjectNode();
 		
-		params.put("monitorId", monitor.id);
+		pushParams.put("monitorId", monitor.id);
 		if (interval > 0) {
-			params.put("interval", interval);
+			pushParams.put("interval", interval);
 		}
-		params.put("onEvent", onEvent);
-		if (!event.equals("")) params.put("event", event);
-		params.put("onChange", onChange);
-		params.put("method", monitor.method);
-		params.put("params", monitor.params);
+		pushParams.put("onEvent", onEvent);
+		if (!event.equals("")) pushParams.put("event", event);
+		pushParams.put("onChange", onChange);
+		pushParams.put("method", monitor.method);
+		pushParams.put("params", monitor.params);
 		
-		wrapper.put("params", params);
+		wrapper.put("pushParams", pushParams);
 		return agent.send(monitor.url, "monitor.registerPush", wrapper, List.class);
 		
 	}

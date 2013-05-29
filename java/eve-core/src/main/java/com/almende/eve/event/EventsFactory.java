@@ -144,6 +144,19 @@ public class EventsFactory implements EventsInterface {
 	 * Trigger an event
 	 * 
 	 * @param event
+	 
+	 * @throws Exception
+	 * @throws JSONRPCException
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public void trigger(@Name("event") String event) throws Exception {
+		trigger(event,null);
+	}
+	
+	/**
+	 * Trigger an event
+	 * 
+	 * @param event
 	 * @param params
 	 *            An ObjectNode, Map, or POJO
 	 * @throws Exception
@@ -172,40 +185,37 @@ public class EventsFactory implements EventsInterface {
 		List<Callback> valueAll = getSubscriptions("*");
 		subscriptions.addAll(valueAll);
 		
-		// TODO: smartly remove double entries?
-		ObjectNode callbackParams = JOM.createObjectNode();
-		callbackParams.put("agent", url);
-		callbackParams.put("event", event);
-		if (params instanceof JsonNode) {
-			callbackParams.put("params", (ObjectNode) params);
-		} else {
-			ObjectNode jsonParams = JOM.getInstance().convertValue(params,
-					ObjectNode.class);
-			callbackParams.put("params", jsonParams);
+		ObjectNode baseParams = JOM.createObjectNode();
+		if (params != null){
+			if (params instanceof JsonNode) {
+				baseParams.put("triggerParams",(ObjectNode) params);
+			} else {
+				ObjectNode jsonParams = JOM.getInstance().convertValue(params,
+						ObjectNode.class);
+				baseParams.put("triggerParams",jsonParams);
+			}
 		}
+		baseParams.put("agent", url);
+		baseParams.put("event", event);
 		
 		for (Callback subscription : subscriptions) {
 			// create a task to send this trigger.
 			// This way, it is sent asynchronously and cannot block this
 			// trigger method
-			ObjectNode newParms = callbackParams.deepCopy();
+			ObjectNode triggerParams = baseParams.deepCopy();
 			
-			newParms.put("subscriptionId", subscription.id);
-			// TODO: test if changing subscriptionId works with multiple tasks
+			triggerParams.put("subscriptionId", subscription.id);
 			
 			ObjectNode taskParams = JOM.createObjectNode();
 			taskParams.put("url", subscription.url);
 			taskParams.put("method", subscription.method);
+			
 			if (subscription.params != null) {
 				ObjectNode parms = (ObjectNode) JOM.getInstance()
-						.readTree(subscription.params).get("params");
-				newParms
-						.put("params", parms.putAll((ObjectNode) newParms
-								.get("params")));
-			} else {
-				System.err.println("subscription.params empty");
+						.readTree(subscription.params);
+				triggerParams =  (ObjectNode) parms.putAll(triggerParams);
 			}
-			taskParams.put("params", newParms);
+			taskParams.put("params", triggerParams);
 			JSONRequest request = new JSONRequest("event.doTrigger", taskParams);
 			long delay = 0;
 			myAgent.getScheduler().createTask(request, delay);
@@ -305,7 +315,6 @@ public class EventsFactory implements EventsInterface {
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws Exception {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
-		// TODO: catch exceptions and log them here?
 		myAgent.send(url, method, params);
 	}
 }

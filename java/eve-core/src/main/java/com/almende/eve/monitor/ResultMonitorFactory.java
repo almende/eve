@@ -8,6 +8,7 @@ import com.almende.eve.agent.annotation.EventTriggered;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -142,7 +143,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	private JsonNode	lastRes	= null;
 	
 	@Access(AccessType.PUBLIC)
-	final public void doPush(@Name("params") ObjectNode pushParams) throws Exception {
+	final public void doPush(@Name("pushParams") ObjectNode pushParams,@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws Exception {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
@@ -160,7 +161,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		ObjectNode parms = JOM.createObjectNode();
 		parms.put("result", result);
 		parms.put("monitorId", pushParams.get("monitorId").textValue());
-		parms.put("callbackParams", pushParams);
+		
+		parms.put("callbackParams", triggerParams==null?pushParams:pushParams.putAll(triggerParams));
 		
 		myAgent.send(pushParams.get("url").textValue(), "monitor.callbackPush", parms);
 		// If callback reports "old", unregisterPush();
@@ -168,8 +170,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	
 	@Access(AccessType.PUBLIC)
 	final public void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId, @Name("callbackParams") ObjectNode callbackParams) {
-		//TODO: add params
+			@Name("monitorId") String monitorId,
+			@Name("callbackParams") ObjectNode callbackParams) {
 		try {
 			ResultMonitor monitor = ResultMonitor.getMonitorById(
 					myAgent.getId(), monitorId);
@@ -199,16 +201,16 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public List<String> registerPush(@Name("params") ObjectNode pushParams,
+	final public List<String> registerPush(@Name("pushParams") ObjectNode pushParams,
 			@Sender String senderUrl) {
 		List<String> result = new ArrayList<String>();
 		pushParams.put("url", senderUrl);
-		ObjectNode parms = JOM.createObjectNode();
-		parms.put("params", pushParams);
+		ObjectNode wrapper = JOM.createObjectNode();
+		wrapper.put("pushParams", pushParams);
 		
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
-			JSONRequest request = new JSONRequest("monitor.doPush", parms);
+			JSONRequest request = new JSONRequest("monitor.doPush", wrapper);
 			result.add(myAgent.getScheduler().createTask(request, interval,
 					true, false));
 		}
@@ -239,8 +241,9 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 			}
 			
 			try {
+				System.err.println("Wrapper:"+wrapper);
 				result.add(myAgent.getEventsFactory().subscribe(
-						myAgent.getFirstUrl(), event, "monitor.doPush", parms));
+						myAgent.getFirstUrl(), event, "monitor.doPush", wrapper));
 			} catch (Exception e) {
 				System.err.println("Failed to register push Event");
 				e.printStackTrace();
