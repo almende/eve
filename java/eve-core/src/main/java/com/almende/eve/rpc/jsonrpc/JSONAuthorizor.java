@@ -17,4 +17,15 @@ public interface JSONAuthorizor {
 	 */
 	public boolean onAccess(String senderId, String functionTag);
 	
+	/**
+	 * Internal method, implementing this method allows adding authorization to
+	 * your JSONRPC calls.
+	 * All methods annotated with AccessType.PRIVATE will only be called if this
+	 * method returns true.
+	 * 
+	 * @param senderId
+	 * @return
+	 */
+	public boolean onAccess(String senderId);
+	 
 }

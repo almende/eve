@@ -74,7 +74,7 @@ abstract public class Agent implements AgentInterface {
 	
 	public Agent() {
 	}
-	
+
 	public void constr(AgentFactory factory, State state) {
 		if (this.state == null) {
 			this.agentFactory = factory;
@@ -85,34 +85,24 @@ abstract public class Agent implements AgentInterface {
 		}
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public boolean onAccess(String senderId, String functionTag) {
 		return true;
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public boolean onAccess(String senderId) {
 		return onAccess(senderId, null);
 	}
 	
-	/**
-	 * This method is called once in the life time of an agent, at the moment
-	 * the agent is being created by the AgentFactory.
-	 * It can be overridden and used to perform some action when the agent
-	 * is create, in that case super.create() should be called in
-	 * the overridden create().
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public void create() {
 	}
 	
-	/**
-	 * This method is called once in the life time of an agent, at the moment
-	 * the agent is being deleted by the AgentFactory.
-	 * It can be overridden and used to perform some action when the agent
-	 * is deleted, in that case super.delete() should be called in
-	 * the overridden delete().
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public void delete() {
 		// TODO: unsubscribe from all subscriptions
@@ -134,15 +124,7 @@ abstract public class Agent implements AgentInterface {
 						// even if the agentFactory removes the file.
 	}
 	
-	/**
-	 * This method is called when the containing AgentFactory is started.
-	 * It can be overridden and used to perform some action (like alerting
-	 * owners about the reboot),
-	 * in that case super.boot() should be called in
-	 * the overridden boot().
-	 * 
-	 * @throws Exception
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public void boot() throws Exception {
 		// init scheduler tasks
@@ -156,24 +138,12 @@ abstract public class Agent implements AgentInterface {
 		}
 	}
 	
-	/**
-	 * This method is called directly after the agent and its state is
-	 * initiated.
-	 * It can be overridden and used to perform some action when the agent
-	 * is initialized, in that case super.init() should be called in
-	 * the overridden init().
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public void init() {
 	}
 	
-	/**
-	 * This method can is called when the agent is uninitialized, and is
-	 * needed finalize the state of the agent.
-	 * It can be overridden and used to perform some action when the agent
-	 * is uninitialized, in that case super.destroy() should be called in
-	 * the overridden destroy().
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public void destroy() {
 		getState().destroy();
@@ -187,61 +157,37 @@ abstract public class Agent implements AgentInterface {
 		getState().destroy();
 	}
 	
-	/**
-	 * Get the agents state. The state contains methods get, put, etc. to
-	 * write properties into a persistent state.
-	 * 
-	 * @param state
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public State getState() {
 		return state;
 	}
 	
-	/**
-	 * Get the scheduler to schedule tasks for the agent to be executed later
-	 * on.
-	 * 
-	 */
+	@Override
 	@Namespace("scheduler")
 	final public Scheduler getScheduler() {
 		return scheduler;
 	}
 	
-	/**
-	 * Get the agent factory. The agent factory can create/delete agents.
-	 * 
-	 * @return
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public AgentFactory getAgentFactory() {
 		return agentFactory;
 	}
 	
-	/**
-	 * Get the resultMonitorFactory, which can be used to register push/poll RPC
-	 * result monitors.
-	 */
+	@Override
 	@Namespace("monitor")
 	final public ResultMonitorInterface getResultMonitorFactory() {
 		return monitorFactory;
 	}
 	
-	/**
-	 * Get the eventsFactory, which can be used to subscribe and trigger events.
-	 */
+	@Override
 	@Namespace("event")
 	final public EventsInterface getEventsFactory() {
 		return eventsFactory;
 	}
 	
-	/**
-	 * Get the first url of the agents urls. Returns local://<agentId> if the
-	 * agent does not
-	 * have any urls.
-	 * 
-	 * @return firstUrl
-	 */
+	@Override
 	@Access(AccessType.PUBLIC)
 	public String getFirstUrl() {
 		List<String> urls = getUrls();
@@ -251,16 +197,13 @@ abstract public class Agent implements AgentInterface {
 		return "local://" + getId();
 	}
 	
-	/**
-	 * Get all available methods of this agent
-	 * 
-	 * @return array
-	 */
+	@Override
 	@Access(AccessType.PUBLIC)
 	public List<Object> getMethods() {
 		return getAgentFactory().getMethods(this);
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
 	final public <T> T send(String url, String method, Object params,
@@ -268,6 +211,7 @@ abstract public class Agent implements AgentInterface {
 		return send(url,method,params,JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Object params,
@@ -275,6 +219,7 @@ abstract public class Agent implements AgentInterface {
 		return (T)send(url,method,params,JOM.getTypeFactory().constructType(type));
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Object params,
@@ -306,6 +251,7 @@ abstract public class Agent implements AgentInterface {
 		return (T)null;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Type type)
@@ -313,6 +259,7 @@ abstract public class Agent implements AgentInterface {
 		return (T)send(url, method, null, type);
 	}	
 
+	@Override
 	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, JavaType type)
@@ -321,6 +268,7 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
 	final public <T> T send(String url, String method, Class<T> type)
@@ -329,40 +277,26 @@ abstract public class Agent implements AgentInterface {
 		return send(url, method, null, JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method, Object params)
 			throws Exception {
 		send(url, method, params, JOM.getVoid());
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method) throws Exception {
 		send(url, method, null, JOM.getVoid());
 	}
 	
-	/**
-	 * Create a proxy to an other agent. Invoked methods will be send to the
-	 * actual agent via the AgentFactory.
-	 * 
-	 * @param url
-	 * @param agentInterface
-	 *            A Java Interface, extending AgentInterface
-	 * @return agentProxy
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T createAgentProxy(String url, Class<T> agentInterface) {
 		return getAgentFactory().createAgentProxy(this, url, agentInterface);
 	}
 	
-	/**
-	 * Create a proxy to an other agent. Invoked methods will be send to the
-	 * actual agent via the AgentFactory.
-	 * 
-	 * @param url
-	 * @param agentInterface
-	 *            A Java Interface, extending AgentInterface
-	 * @return agentProxy
-	 */
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> AsyncProxy<T> createAsyncAgentProxy(String url,
 			Class<T> agentInterface) {
@@ -370,6 +304,7 @@ abstract public class Agent implements AgentInterface {
 				agentInterface);
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
 	final public <T> void sendAsync(String url, String method,
@@ -380,6 +315,7 @@ abstract public class Agent implements AgentInterface {
 		sendAsync(url, request, callback, JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(String url, String method,
 			ObjectNode params, final AsyncCallback<T> callback,
@@ -389,6 +325,7 @@ abstract public class Agent implements AgentInterface {
 		sendAsync(url, request, callback, JOM.getTypeFactory().constructType(type));
 	}
 
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(String url, String method,
 			ObjectNode params, final AsyncCallback<T> callback,
@@ -398,6 +335,7 @@ abstract public class Agent implements AgentInterface {
 		sendAsync(url, request, callback, type);
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
 	final public <T> void sendAsync(final String url,
@@ -406,6 +344,7 @@ abstract public class Agent implements AgentInterface {
 		sendAsync(url, request, callback, JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 	
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(final String url,
 			final JSONRequest request, final AsyncCallback<T> callback,
@@ -413,6 +352,7 @@ abstract public class Agent implements AgentInterface {
 		sendAsync(url, request, callback, JOM.getTypeFactory().constructType(type));
 	}
 
+	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(final String url,
 			final JSONRequest request, final AsyncCallback<T> callback,
@@ -449,13 +389,7 @@ abstract public class Agent implements AgentInterface {
 		getAgentFactory().sendAsync(this, url, request, responseCallback);
 	}
 	
-	/**
-	 * Get the urls of this agent, for example "http://mysite.com/agents/key".
-	 * An agent can have multiple urls for different configured communication
-	 * services, such as HTTP and XMPP.
-	 * 
-	 * @return urls
-	 */
+	@Override
 	@Access(AccessType.PUBLIC)
 	public List<String> getUrls() {
 		List<String> urls = new ArrayList<String>();
@@ -472,22 +406,14 @@ abstract public class Agent implements AgentInterface {
 		}
 		return urls;
 	}
-	
-	/**
-	 * Get the Id of this agent
-	 * 
-	 * @return
-	 */
+
+	@Override
 	@Access(AccessType.PUBLIC)
 	public String getId() {
 		return state.getAgentId();
 	}
-	
-	/**
-	 * Retrieve the type name of this agent, its class
-	 * 
-	 * @return classname
-	 */
+
+	@Override
 	@Access(AccessType.PUBLIC)
 	public String getType() {
 		return getClass().getSimpleName();
