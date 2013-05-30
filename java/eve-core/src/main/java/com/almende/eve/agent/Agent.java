@@ -279,7 +279,7 @@ abstract public class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Object params,
 			Class<T> type) throws Exception {
-		return send(url,method,params,JOM.getTypeFactory().constructSimpleType(type, null));
+		return send(url,method,params,JOM.getTypeFactory().constructSimpleType(type, new JavaType[0]));
 	}
 	
 	/**
