@@ -261,62 +261,21 @@ abstract public class Agent implements AgentInterface {
 		return getAgentFactory().getMethods(this);
 	}
 	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @param params
-	 *            A Object containing the parameter values of the method.
-	 *            This can be an ObjectNode, Map, or POJO.
-	 * @param type
-	 *            The return type of the method
-	 * @return
-	 * @throws Exception
-	 */
 	@Access(AccessType.UNAVAILABLE)
+	@Deprecated
 	final public <T> T send(String url, String method, Object params,
 			Class<T> type) throws Exception {
-		return send(url,method,params,JOM.getTypeFactory().constructSimpleType(type, new JavaType[0]));
+		return send(url,method,params,JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
-	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @param params
-	 *            A Object containing the parameter values of the method.
-	 *            This can be an ObjectNode, Map, or POJO.
-	 * @param type
-	 *            The return type of the method
-	 * @return
-	 * @throws Exception
-	 */
+
+	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Object params,
 			Type type) throws Exception {
-		return send(url,method,params,JOM.getTypeFactory().constructType(type));
+		return (T)send(url,method,params,JOM.getTypeFactory().constructType(type));
 	}
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @param params
-	 *            A Object containing the parameter values of the method.
-	 *            This can be an ObjectNode, Map, or POJO.
-	 * @param type
-	 *            The return type of the method
-	 * @return
-	 * @throws Exception
-	 */
+
+	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Object params,
 			JavaType type) throws Exception {
@@ -341,76 +300,44 @@ abstract public class Agent implements AgentInterface {
 			throw err;
 		}
 		if (type != null && !type.hasRawClass(Void.class)) {
-			return response.getResult(type);
+			return (T)response.getResult(type);
 		}
 		
-		return null;
+		return (T)null;
 	}
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @return
-	 * @throws Exception
-	 */
+
+	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Type type)
 			throws Exception {
-		return send(url, method, null, type);
+		return (T)send(url, method, null, type);
 	}	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @return
-	 * @throws Exception
-	 */
+
+	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, JavaType type)
 			throws Exception {
-		return send(url, method, null, type);
+		return (T)send(url, method, null, type);
 	}
 	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @return
-	 * @throws Exception
-	 */
+
 	@Access(AccessType.UNAVAILABLE)
+	@Deprecated
 	final public <T> T send(String url, String method, Class<T> type)
 			throws Exception {
 		
-		return send(url, method, null, JOM.getTypeFactory().constructSimpleType(type,new JavaType[0]));
+		return send(url, method, null, JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @param params
-	 *            A Object containing the parameter values of the method.
-	 *            This can be an ObjectNode, Map, or POJO.
-	 * @return
-	 * @throws Exception
-	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method, Object params)
 			throws Exception {
 		send(url, method, params, JOM.getVoid());
+	}
+	
+	@Access(AccessType.UNAVAILABLE)
+	final public void send(String url, String method) throws Exception {
+		send(url, method, null, JOM.getVoid());
 	}
 	
 	/**
@@ -443,28 +370,14 @@ abstract public class Agent implements AgentInterface {
 				agentInterface);
 	}
 	
-	/**
-	 * Send a request to an agent in JSON-RPC format
-	 * 
-	 * @param url
-	 *            The url of the agent
-	 * @param method
-	 *            The name of the method
-	 * @return
-	 * @throws Exception
-	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void send(String url, String method) throws Exception {
-		send(url, method, null, JOM.getVoid());
-	}
-	
-	@Access(AccessType.UNAVAILABLE)
+	@Deprecated
 	final public <T> void sendAsync(String url, String method,
 			ObjectNode params, final AsyncCallback<T> callback,
 			Class<T> type) throws Exception {
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
-		sendAsync(url, request, callback, JOM.getTypeFactory().constructSimpleType(type,new JavaType[0]));
+		sendAsync(url, request, callback, JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 	
 	@Access(AccessType.UNAVAILABLE)
@@ -486,10 +399,11 @@ abstract public class Agent implements AgentInterface {
 	}
 	
 	@Access(AccessType.UNAVAILABLE)
+	@Deprecated
 	final public <T> void sendAsync(final String url,
 			final JSONRequest request, final AsyncCallback<T> callback,
 			Class<T> type) throws Exception {
-		sendAsync(url, request, callback, JOM.getTypeFactory().constructSimpleType(type,new JavaType[0]));
+		sendAsync(url, request, callback, JOM.getTypeFactory().uncheckedSimpleType(type));
 	}
 	
 	@Access(AccessType.UNAVAILABLE)

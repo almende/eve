@@ -52,4 +52,8 @@ public class JOM {
 	public static JavaType getVoid(){
 		return JOM.getInstance().getTypeFactory().uncheckedSimpleType(Void.class);
 	}
+	public static JavaType getSimpleType(Class<?> c){
+		return JOM.getInstance().getTypeFactory().uncheckedSimpleType(c);
+	}
+
 }
