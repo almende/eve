@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
@@ -41,7 +42,6 @@ public class Push implements ResultMonitorConfigType {
 		return this;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public List<String> init(ResultMonitor monitor, Agent agent)
 			throws Exception {
 		ObjectNode wrapper = JOM.createObjectNode();
@@ -58,7 +58,6 @@ public class Push implements ResultMonitorConfigType {
 		pushParams.put("params", monitor.params);
 		
 		wrapper.put("pushParams", pushParams);
-		return agent.send(monitor.url, "monitor.registerPush", wrapper, List.class);
-		
+		return agent.send(monitor.url, "monitor.registerPush", wrapper, JOM.getTypeFactory().constructCollectionType(ArrayList.class, String.class));
 	}
 }

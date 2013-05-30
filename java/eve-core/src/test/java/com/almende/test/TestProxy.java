@@ -12,6 +12,7 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.test.agents.TestAgent;
 import com.almende.test.agents.TestInterface;
+import com.almende.test.agents.entity.Person;
 
 public class TestProxy extends TestCase {
 
@@ -22,7 +23,8 @@ public class TestProxy extends TestCase {
 		if (factory == null){
 			factory = AgentFactory.createInstance();
 		}
-		factory.createAgent(TestAgent.class, "TestAgent");
+		@SuppressWarnings("unused")
+		TestAgent agent = factory.createAgent(TestAgent.class, "TestAgent");
 		
 		//generate sync proxy from TestInterface
 		TestInterface proxy = factory.createAgentProxy(null, "local:TestAgent", TestInterface.class);
@@ -30,8 +32,9 @@ public class TestProxy extends TestCase {
 		assertEquals(15,proxy.testPrimitive(5,10));
 		proxy.testVoid();
 
-		Map<String, List<Double>> result = proxy.complexResult();
-		assertEquals(1.1, result.get("result").get(0));
+		
+		Map<String, List<Person>> result = proxy.complexResult();
+		assertEquals("Ludo", result.get("result").get(0).getName());
 		
 		//Generate asyncproxy from TestInterface
 		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);

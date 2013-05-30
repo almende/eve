@@ -15,6 +15,7 @@ import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -105,7 +106,7 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// TODO: store the agents subscriptions locally
-		return myAgent.send(url, method, params, String.class);
+		return myAgent.send(url, method, params, JOM.getTypeFactory().constructSimpleType(String.class, new JavaType[0]));
 	}
 	
 	/**

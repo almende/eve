@@ -32,6 +32,7 @@
 
 package com.almende.eve.agent;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
@@ -277,6 +279,47 @@ abstract public class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Object params,
 			Class<T> type) throws Exception {
+		return send(url,method,params,JOM.getTypeFactory().constructSimpleType(type, null));
+	}
+	
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @param params
+	 *            A Object containing the parameter values of the method.
+	 *            This can be an ObjectNode, Map, or POJO.
+	 * @param type
+	 *            The return type of the method
+	 * @return
+	 * @throws Exception
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(String url, String method, Object params,
+			Type type) throws Exception {
+		return send(url,method,params,JOM.getTypeFactory().constructType(type));
+	}
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @param params
+	 *            A Object containing the parameter values of the method.
+	 *            This can be an ObjectNode, Map, or POJO.
+	 * @param type
+	 *            The return type of the method
+	 * @return
+	 * @throws Exception
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(String url, String method, Object params,
+			JavaType type) throws Exception {
 		// TODO: implement support for adding custom http headers (for
 		// authorization for example)
 		
@@ -297,11 +340,41 @@ abstract public class Agent implements AgentInterface {
 		if (err != null) {
 			throw err;
 		}
-		if (type != null && type != void.class) {
+		if (type != null && !type.hasRawClass(Void.class)) {
 			return response.getResult(type);
 		}
 		
 		return null;
+	}
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @return
+	 * @throws Exception
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(String url, String method, Type type)
+			throws Exception {
+		return send(url, method, null, type);
+	}	
+	/**
+	 * Send a request to an agent in JSON-RPC format
+	 * 
+	 * @param url
+	 *            The url of the agent
+	 * @param method
+	 *            The name of the method
+	 * @return
+	 * @throws Exception
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(String url, String method, JavaType type)
+			throws Exception {
+		return send(url, method, null, type);
 	}
 	
 	/**
@@ -317,7 +390,8 @@ abstract public class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(String url, String method, Class<T> type)
 			throws Exception {
-		return send(url, method, null, type);
+		
+		return send(url, method, null, JOM.getTypeFactory().constructSimpleType(type,new JavaType[0]));
 	}
 	
 	/**
@@ -336,7 +410,7 @@ abstract public class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method, Object params)
 			throws Exception {
-		send(url, method, params, void.class);
+		send(url, method, params, JOM.getVoid());
 	}
 	
 	/**
@@ -381,61 +455,59 @@ abstract public class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(String url, String method) throws Exception {
-		send(url, method, null, void.class);
+		send(url, method, null, JOM.getVoid());
 	}
 	
-	/**
-	 * Send an asynchronous JSON-RPC request to an agent
-	 * sendAsync is not supported on Google App Engine
-	 * 
-	 * @param url
-	 *            The url of the agent to be called
-	 * @param method
-	 *            The name of the method
-	 * @param params
-	 *            A JSONObject containing the parameter
-	 *            values of the method
-	 * @param callback
-	 *            An AsyncCallback of which the onSuccess or
-	 *            onFailure method will be executed on callback.
-	 * @param type
-	 *            The type of result coming from the callback.
-	 * @throws Exception
-	 * @throws JSONException
-	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(String url, String method,
 			ObjectNode params, final AsyncCallback<T> callback,
-			final Class<T> type) throws Exception {
+			Class<T> type) throws Exception {
+		String id = UUID.randomUUID().toString();
+		JSONRequest request = new JSONRequest(id, method, params);
+		sendAsync(url, request, callback, JOM.getTypeFactory().constructSimpleType(type,new JavaType[0]));
+	}
+	
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> void sendAsync(String url, String method,
+			ObjectNode params, final AsyncCallback<T> callback,
+			Type type) throws Exception {
+		String id = UUID.randomUUID().toString();
+		JSONRequest request = new JSONRequest(id, method, params);
+		sendAsync(url, request, callback, JOM.getTypeFactory().constructType(type));
+	}
+
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> void sendAsync(String url, String method,
+			ObjectNode params, final AsyncCallback<T> callback,
+			final JavaType type) throws Exception {
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, type);
 	}
 	
-	/**
-	 * Send an asynchronous JSON-RPC request to an agent
-	 * sendAsync is not supported on Google App Engine
-	 * 
-	 * @param url
-	 *            The url of the agent to be called
-	 * @param request
-	 *            JSON-RPC request containing method and params
-	 * @param callback
-	 *            An AsyncCallback of which the onSuccess or
-	 *            onFailure method will be executed on callback.
-	 * @param type
-	 *            The type of result coming from the callback.
-	 * @throws Exception
-	 * @throws JSONException
-	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> void sendAsync(final String url,
 			final JSONRequest request, final AsyncCallback<T> callback,
-			final Class<T> type) throws Exception {
+			Class<T> type) throws Exception {
+		sendAsync(url, request, callback, JOM.getTypeFactory().constructSimpleType(type,new JavaType[0]));
+	}
+	
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> void sendAsync(final String url,
+			final JSONRequest request, final AsyncCallback<T> callback,
+			Type type) throws Exception {
+		sendAsync(url, request, callback, JOM.getTypeFactory().constructType(type));
+	}
+
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> void sendAsync(final String url,
+			final JSONRequest request, final AsyncCallback<T> callback,
+			final JavaType type) throws Exception {
 		
 		// Create a callback to retrieve a JSONResponse and extract the result
 		// or error from this.
 		final AsyncCallback<JSONResponse> responseCallback = new AsyncCallback<JSONResponse>() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void onSuccess(JSONResponse response) {
 				Exception err;
@@ -447,8 +519,8 @@ abstract public class Agent implements AgentInterface {
 				if (err != null) {
 					callback.onFailure(err);
 				}
-				if (type != null && type != void.class) {
-					callback.onSuccess(response.getResult(type));
+				if (type != null && !type.hasRawClass(Void.class)) {
+					callback.onSuccess((T) response.getResult(type));
 				} else {
 					callback.onSuccess(null);
 				}

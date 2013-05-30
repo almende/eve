@@ -1,10 +1,12 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -123,11 +125,14 @@ public class JSONResponse {
 		return resp.get("result");
 	}
 
-	public <T> T getResult(Class<T> type) {
+	public <T> T getResult(Type type) {
+		ObjectMapper mapper = JOM.getInstance();
+		return mapper.convertValue(resp.get("result"), mapper.getTypeFactory().constructType(type));
+	}
+	public <T> T getResult(JavaType type) {
 		ObjectMapper mapper = JOM.getInstance();
 		return mapper.convertValue(resp.get("result"), type);
 	}
-
 	public void setError(JSONRPCException error) {
 		if (error != null) {
 			resp.put("error", error.getObjectNode());

@@ -153,11 +153,7 @@ public class ChatAgent extends Agent {
 	public void connect(@Name("url") String url) throws Exception {
 		boolean otherAlreadyConnected = false;
 		ArrayList<String> newConnections = new ArrayList<String>();
-		
-		// retrieve all connections that the other agent has, and synchronize
-		// my own list with it.
-		ArrayList<String> type = new ArrayList<String>();
-		ArrayList<String> otherConnections = send(url, "getConnections", type.getClass());
+		ArrayList<String> otherConnections = send(url, "getConnections", JOM.getTypeFactory().constructArrayType(String.class));
 
 		// get my own connections from the state
 		String urlSelf = getMyUrl();

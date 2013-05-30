@@ -19,8 +19,10 @@ import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class ResultMonitorFactory implements ResultMonitorInterface {
 	
@@ -52,7 +54,23 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		}
 		return monitor.store();
 	}
-	
+
+	/**
+	 * Gets an actual return value of this monitor subscription. If a cache is
+	 * available,
+	 * this will return the cached value if the maxAge filter allows this.
+	 * Otherwise it will run the actual RPC call (similar to "send");
+	 * 
+	 * @param monitorId
+	 * @param filter_parms
+	 * @param returnType
+	 * @return
+	 * @throws Exception
+	 */
+	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+			Class<T> returnType) throws Exception {
+		return getResult(monitorId,filter_parms,JOM.getTypeFactory().constructSimpleType(returnType, new JavaType[0]));
+	}
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
 	 * available,
@@ -67,7 +85,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws Exception {
+			JavaType returnType) throws Exception {
 		T result = null;
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
@@ -126,7 +144,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				monitorId);
 		if (monitor != null) {
 			Object result = myAgent.send(monitor.url, monitor.method,
-					monitor.params, Object.class);
+					monitor.params, TypeFactory.unknownType());
 			if (monitor.callbackMethod != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",

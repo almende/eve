@@ -7,6 +7,7 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)  //Necessary for describe();
@@ -99,6 +100,21 @@ public interface ResultMonitorInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws Exception;
+			JavaType returnType) throws Exception;
 	
+	/**
+	 * Gets an actual return value of this monitor subscription. If a cache is
+	 * available,
+	 * this will return the cached value if the maxAge filter allows this.
+	 * Otherwise it will run the actual RPC call (similar to "send");
+	 * 
+	 * @param monitorId
+	 * @param filter_parms
+	 * @param returnType
+	 * @return
+	 * @throws Exception
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+			Class<T> returnType) throws Exception;
 }

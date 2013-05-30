@@ -4,10 +4,12 @@
 package com.almende.eve.rpc.jsonrpc.jackson;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class JOM {
 	private static ObjectMapper m = null;
@@ -44,4 +46,10 @@ public class JOM {
 		
 		return mapper;
 	}	
+	public static TypeFactory getTypeFactory(){ 
+		return JOM.getInstance().getTypeFactory();
+	}
+	public static JavaType getVoid(){
+		return JOM.getInstance().getTypeFactory().uncheckedSimpleType(Void.class);
+	}
 }
