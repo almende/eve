@@ -141,6 +141,8 @@ public class JSONResponse {
 			if (resp.has("result")){
 				try {
 					return reader.readValue(resp.get("result"));
+				} catch (UnsupportedOperationException e1){
+					return getResult(ret.getClass().getGenericSuperclass());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

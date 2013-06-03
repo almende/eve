@@ -261,6 +261,10 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return value;
 	}
 	
+	public Double testDoubleRet() throws Exception{
+		return send(new Double(1.1),getFirstUrl(),"increment");
+	}
+	
 	public String get(@Name("key") String key) {
 		return (String) getState().get(key);
 	}
