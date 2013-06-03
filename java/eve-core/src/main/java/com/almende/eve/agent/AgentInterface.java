@@ -1,6 +1,7 @@
 package com.almende.eve.agent;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.List;
 
 import com.almende.eve.agent.annotation.Namespace;
@@ -148,7 +149,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * 
 	 * @return firstUrl
 	 */
-	public String getFirstUrl();
+	public URI getFirstUrl();
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -165,7 +166,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @throws Exception
 	 */
 	@Deprecated
-	public <T> T send(String url, String method, Object params, Class<T> type)
+	public <T> T send(URI url, String method, Object params, Class<T> type)
 			throws Exception;
 	
 	/**
@@ -179,7 +180,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T send(String url, String method, Object params, Type type)
+	public <T> T send(URI url, String method, Object params, Type type)
 			throws Exception;
 	
 	/**
@@ -193,8 +194,33 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T send(String url, String method, Object params, JavaType type)
+	public <T> T send(URI url, String method, Object params, JavaType type)
 			throws Exception;
+	
+	/**
+	 * Do a RPC call to another agent.
+	 * 
+	 * @param ret  Object to put result in, will also be returned
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @return
+	 * @throws Exception
+	 */
+	public <T> T send(T ret, URI url, String method, Object params) throws Exception;
+
+
+	/**
+	 * Do a RPC call to another agent.
+	 * 
+	 * @param ret  Object to put result in, will also be returned
+	 * @param url
+	 * @param method
+	 * @return ret
+	 * @throws Exception
+	 */
+	public <T> T send(T ret, URI url, String method) throws Exception;
+
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -205,7 +231,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T send(String url, String method, Type type) throws Exception;
+	public <T> T send(URI url, String method, Type type) throws Exception;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -216,8 +242,9 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	public <T> T send(String url, String method, JavaType type)
+	public <T> T send(URI url, String method, JavaType type)
 			throws Exception;
+	
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -233,7 +260,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @throws Exception
 	 */
 	@Deprecated
-	public <T> T send(String url, String method, Class<T> type)
+	public <T> T send(URI url, String method, Class<T> type)
 			throws Exception;
 	
 	/**
@@ -244,7 +271,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param params
 	 * @throws Exception
 	 */
-	public void send(String url, String method, Object params) throws Exception;
+	public void send(URI url, String method, Object params) throws Exception;
 	
 	/**
 	 * Do a RPC call to another agent, expecting no result (void)
@@ -253,7 +280,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param method
 	 * @throws Exception
 	 */
-	public void send(String url, String method) throws Exception;
+	public void send(URI url, String method) throws Exception;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -271,7 +298,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @throws Exception
 	 */
 	@Deprecated
-	public <T> void sendAsync(String url, String method, ObjectNode params,
+	public <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, Class<T> type) throws Exception;
 	
 	/**
@@ -284,7 +311,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param type
 	 * @throws Exception
 	 */
-	public <T> void sendAsync(String url, String method, ObjectNode params,
+	public <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, Type type) throws Exception;
 	
 	/**
@@ -297,7 +324,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param type
 	 * @throws Exception
 	 */
-	public <T> void sendAsync(String url, String method, ObjectNode params,
+	public <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, final JavaType type)
 			throws Exception;
 	
@@ -315,7 +342,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @throws Exception
 	 */
 	@Deprecated
-	public <T> void sendAsync(final String url, final JSONRequest request,
+	public <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, Class<T> type) throws Exception;
 	
 	/**
@@ -327,7 +354,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param type
 	 * @throws Exception
 	 */
-	public <T> void sendAsync(final String url, final JSONRequest request,
+	public <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, Type type) throws Exception;
 	
 	/**
@@ -339,7 +366,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param type
 	 * @throws Exception
 	 */
-	public <T> void sendAsync(final String url, final JSONRequest request,
+	public <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, final JavaType type)
 			throws Exception;
 	
@@ -352,7 +379,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 *            A Java Interface, extending AgentInterface
 	 * @return agentProxy
 	 */
-	public <T> T createAgentProxy(String url, Class<T> agentInterface);
+	public <T> T createAgentProxy(URI url, Class<T> agentInterface);
 	
 	/**
 	 * Create a proxy to an other agent. Invoked methods will be send to the
@@ -363,7 +390,8 @@ public interface AgentInterface extends JSONAuthorizor {
 	 *            A Java Interface, extending AgentInterface
 	 * @return agentProxy
 	 */
-	public <T> AsyncProxy<T> createAsyncAgentProxy(String url,
+	public <T> AsyncProxy<T> createAsyncAgentProxy(URI url,
 			Class<T> agentInterface);
+
 	
 }

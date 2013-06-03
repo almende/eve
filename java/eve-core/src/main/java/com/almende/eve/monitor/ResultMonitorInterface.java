@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.net.URI;
 import java.util.List;
 
 import com.almende.eve.rpc.annotation.Access;
@@ -75,7 +76,7 @@ public interface ResultMonitorInterface {
 	 * @return
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public String create(String url, String method, ObjectNode params,
+	public String create(URI url, String method, ObjectNode params,
 			String callbackMethod, ResultMonitorConfigType... confs);
 	
 	/**

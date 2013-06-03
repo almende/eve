@@ -65,6 +65,7 @@
 package com.almende.eve.agent;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -198,7 +199,7 @@ public class MeetingAgent extends Agent {
 		activity = Activity.sync(activity, updatedActivity);
 
 		// ensure the url of the meeting agent is filled in
-		String myUrl = getFirstUrl();
+		URI myUrl = getFirstUrl();
 		activity.setAgent(myUrl);
 
 		// create duration when missing
@@ -713,9 +714,9 @@ public class MeetingAgent extends Agent {
 		Activity activity = new Activity();
 		
 		// agent
-		String agent = null;
+		URI agent = null;
 		if (event.has("agent")) {
-			agent = event.get("agent").asText();
+			agent = URI.create(event.get("agent").asText());
 		}
 		activity.setAgent(agent);
 
@@ -780,7 +781,7 @@ public class MeetingAgent extends Agent {
 	 */
 	private void mergeActivityIntoEvent(ObjectNode event, Activity activity) {
 		// merge static information
-		event.put("agent", activity.getAgent());
+		event.put("agent", activity.getAgent().toASCIIString());
 		event.put("summary", activity.getSummary());
 		event.put("description", activity.getDescription());
 		
@@ -941,7 +942,7 @@ public class MeetingAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("eventId", eventId);
 			try {
-				event = send(agent, "getEvent", params, ObjectNode.class);
+				event = send(URI.create(agent), "getEvent", params, JOM.getSimpleType(ObjectNode.class));
 			} catch (JSONRPCException e) {
 				if (e.getCode() == 404) {
 					// event was deleted by the user.
@@ -1035,8 +1036,8 @@ public class MeetingAgent extends Agent {
 				// TODO: only update/create the event when the attendee
 				// is not optional or is available at the planned time
 				String method = event.has("id") ? "updateEvent" : "createEvent";
-				ObjectNode updatedEvent = send(agent, method, params,
-						ObjectNode.class);
+				ObjectNode updatedEvent = send(URI.create(agent), method, params,
+						JOM.getSimpleType(ObjectNode.class));
 
 				// update the agent data
 				agentData.eventId = updatedEvent.get("id").asText();
@@ -1384,7 +1385,7 @@ public class MeetingAgent extends Agent {
 			}
 
 			// get the busy intervals from the agent
-			ArrayNode array = send(agent, "getBusy", params, ArrayNode.class);
+			ArrayNode array = send(JOM.createArrayNode(),URI.create(agent), "getBusy", params);
 
 			// convert from ArrayNode to List
 			List<Interval> busy = new ArrayList<Interval>();
@@ -1452,7 +1453,7 @@ public class MeetingAgent extends Agent {
 				if (data.eventId != null) {
 					ObjectNode params = JOM.createObjectNode();
 					params.put("eventId", data.eventId);
-					send(agent, "deleteEvent", params);
+					send(URI.create(agent), "deleteEvent", params);
 					data.eventId = null;
 				}
 			} catch (JSONRPCException e) {

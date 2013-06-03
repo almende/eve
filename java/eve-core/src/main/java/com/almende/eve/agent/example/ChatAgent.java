@@ -63,6 +63,7 @@
 
 package com.almende.eve.agent.example;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -119,7 +120,7 @@ public class ChatAgent extends Agent {
 
 		for (int i = 0; i < connections.size(); i++) {
 			String connection = connections.get(i);
-			send(connection, "receive", params);
+			send(URI.create(connection), "receive", params);
 		}
 	}	
 	
@@ -153,7 +154,7 @@ public class ChatAgent extends Agent {
 	public void connect(@Name("url") String url) throws Exception {
 		boolean otherAlreadyConnected = false;
 		ArrayList<String> newConnections = new ArrayList<String>();
-		ArrayList<String> otherConnections = send(url, "getConnections", JOM.getTypeFactory().constructArrayType(String.class));
+		ArrayList<String> otherConnections = send(URI.create(url), "getConnections", JOM.getTypeFactory().constructArrayType(String.class));
 
 		// get my own connections from the state
 		String urlSelf = getMyUrl();
@@ -209,7 +210,7 @@ public class ChatAgent extends Agent {
 		for (String connection : newConnections) {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("url", urlSelf);
-			send(connection, "connect", params);
+			send(URI.create(connection), "connect", params);
 		}		
 	}
 
@@ -231,7 +232,7 @@ public class ChatAgent extends Agent {
 				String method = "removeConnection";
 				ObjectNode params = JOM.createObjectNode();
 				params.put("url", urlSelf);
-				send(url, method, params);
+				send(URI.create(url), method, params);
 				
 				// trigger a "disconnected" event
 				ObjectNode triggerParams = JOM.createObjectNode();

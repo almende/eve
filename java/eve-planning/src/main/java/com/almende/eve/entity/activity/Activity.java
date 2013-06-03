@@ -1,11 +1,19 @@
 package com.almende.eve.entity.activity;
 
 import java.io.Serializable;
+import java.net.URI;
 
 import org.joda.time.DateTime;
 
 @SuppressWarnings("serial")
 public class Activity implements Serializable, Cloneable {
+	
+	private String summary = null;
+	private String description= null;
+	private URI agent = null;   // The agent managing the activity
+	private Constraints constraints = null;
+	private Status status = null;
+	
 	public Activity() {	}
 
 	public void setSummary(String summary) {
@@ -24,11 +32,11 @@ public class Activity implements Serializable, Cloneable {
 		return description;
 	}
 
-	public void setAgent(String agent) {
+	public void setAgent(URI agent) {
 		this.agent = agent;
 	}
 	
-	public String getAgent() {
+	public URI getAgent() {
 		return agent;
 	}
 
@@ -160,10 +168,5 @@ public class Activity implements Serializable, Cloneable {
 
 		return clone;
 	}
-	
-	private String summary = null;
-	private String description= null;
-	private String agent = null;   // The agent managing the activity
-	private Constraints constraints = null;
-	private Status status = null;
+
 }

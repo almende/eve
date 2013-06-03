@@ -1,5 +1,6 @@
 package com.almende.eve.agent;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -13,8 +14,8 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.TwigUtil;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.code.twig.FindCommand.RootFindCommand;
 import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
@@ -96,7 +97,7 @@ public class MessageAgent extends Agent {
 	 */
 	public void onMessage(@Name("message") Message message) throws Exception {
 		// store the message in the inbox
-		message.setAgent(getFirstUrl());
+		message.setAgent(getFirstUrl().toASCIIString());
 		message.setBox("inbox");
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		datastore.store(message);
@@ -117,11 +118,11 @@ public class MessageAgent extends Agent {
 	public void send (@Name("message") Message message) throws Exception {
 		// set timestamp and from fields
 		message.setTimestamp(DateTime.now().toString());
-		message.setFrom(getFirstUrl());
+		message.setFrom(getFirstUrl().toASCIIString());
 		message.setStatus("unread");
 
 		// store the message in the outbox
-		message.setAgent(getFirstUrl());
+		message.setAgent(getFirstUrl().toASCIIString());
 		message.setBox("outbox");
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		datastore.store(message);
@@ -167,7 +168,7 @@ public class MessageAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("message", JOM.getInstance().convertValue(message, ObjectNode.class));
 
-			send(url, method, params);
+			send(URI.create(url), method, params);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

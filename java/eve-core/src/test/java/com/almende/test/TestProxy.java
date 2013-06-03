@@ -1,5 +1,6 @@
 package com.almende.test;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -27,7 +28,7 @@ public class TestProxy extends TestCase {
 		TestAgent agent = factory.createAgent(TestAgent.class, "TestAgent");
 		
 		//generate sync proxy from TestInterface
-		TestInterface proxy = factory.createAgentProxy(null, "local:TestAgent", TestInterface.class);
+		TestInterface proxy = factory.createAgentProxy(null, URI.create("local:TestAgent"), TestInterface.class);
 		assertEquals("Hello world, you said: nice weather, isn't it?",proxy.helloWorld("nice weather, isn't it?"));
 		assertEquals(15,proxy.testPrimitive(5,10));
 		proxy.testVoid();
@@ -37,7 +38,7 @@ public class TestProxy extends TestCase {
 		assertEquals("Ludo", result.get("result").get(0).getName());
 		
 		//Generate asyncproxy from TestInterface
-		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
+		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,URI.create("local://TestAgent"), TestInterface.class);
 		Future<?> res = aProxy.call("helloWorld","hi");
 		assertEquals("Hello world, you said: hi",res.get());
 		Future<?> voidRes = aProxy.call("testVoid");

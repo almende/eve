@@ -25,6 +25,7 @@
 package com.almende.test.agents;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,9 +97,8 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return sum;
 	}
 
-	private String getMyUrl() {
-		List<String> urls = getUrls();
-		return urls.size() > 0 ? urls.get(0): null;
+	private URI getMyUrl() {
+		return getFirstUrl();
 	}
 	
 	public String callMyself(@Name("method") String method, 
@@ -115,7 +115,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 
 	public STATUS testEnumProxy() {
-		String url = "http://eveagents.appspot.com/agents/test/";
+		URI url = URI.create("http://eveagents.appspot.com/agents/test/");
 		Test2AgentInterface other = createAgentProxy(url, Test2AgentInterface.class);
 		
 		STATUS value = other.testEnum(STATUS.GOOD);
@@ -127,13 +127,13 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 
 	public void testVoidProxy() {
-		String url = "http://eveagents.appspot.com/agents/test/";
+		URI url = URI.create("http://eveagents.appspot.com/agents/test/");
 		Test2AgentInterface other = createAgentProxy(url, Test2AgentInterface.class);
 		other.testVoid();
 	}
 
 	public STATUS testEnumSend() throws Exception {
-		String url = "http://eveagents.appspot.com/agents/test/";
+		URI url = URI.create("http://eveagents.appspot.com/agents/test/");
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("status", STATUS.GOOD);
 		STATUS value = send(url, "testEnum", params, JOM.getSimpleType(STATUS.class));
@@ -227,6 +227,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public Map<String, List<Double>> complexResult() {
+		System.err.println("ComplexResult called!");
 		Map<String,List<Double>> result = new HashMap<String,List<Double>>();
 		List<Double> list = new ArrayList<Double>();
 		list.add(1.1);
@@ -236,12 +237,19 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return result;
 	}
 	
-	public Double testComplexResult(@Name("url") String url) throws Exception{
+	public Double testTFComplexResult(@Name("url") String url) throws Exception{
 		TypeFactory tf = JOM.getTypeFactory();
-		Map<String, List<Double>> res = send(url, "complexResult",JOM.createObjectNode(),tf.constructMapType(HashMap.class, JOM.getSimpleType(String.class),(JavaType)tf.constructCollectionType(List.class, Double.class)));
+		Map<String, List<Double>> res = send(URI.create(url), "complexResult",JOM.createObjectNode(),tf.constructMapType(HashMap.class, JOM.getSimpleType(String.class),(JavaType)tf.constructCollectionType(List.class, Double.class)));
 		return res.get("result").get(0);
 	}
-	
+
+	public Double testComplexResult(@Name("url") String url) throws Exception{
+		Map<String, List<Double>> res = new HashMap<String,List<Double>>();
+		
+		send(res, URI.create(url), "complexResult");
+		return res.get("result").get(0);
+	}
+
 	public Double increment() {
 		Double value = (Double) getState().get("count");
 		if (value == null) {
@@ -312,13 +320,13 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		if (method == null) {
 			method = "getDescription";
 		}
-		Object res = send(url, method, JOM.getSimpleType(Object.class));
+		Object res = send(URI.create(url), method, JOM.getSimpleType(Object.class));
 		System.out.println(res);
 		return res;
 	}
 
 	public String testSendNonExistingMethod() throws Exception {
-		String res = send("http://localhost:8080/EveCore/agents/chatagent/1/", 
+		String res = send(URI.create("http://localhost:8080/EveCore/agents/chatagent/1/"), 
 				"nonExistingMethod", JOM.getSimpleType(String.class));
 		System.out.println(res);
 		return res;
@@ -330,7 +338,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		}
 		String event = "dataChanged";
 		String callback = "onEvent";
-		return eventsFactory.subscribe(url, event, callback);
+		return eventsFactory.subscribe(URI.create(url), event, callback);
 	}
 
 	public void unsubscribeFromAgent(@Required(false) @Name("url") String url,
@@ -340,7 +348,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		}
 		//String event = "dataChanged";
 		//String callback = "onEvent";
-		eventsFactory.unsubscribe(url, subscriptionId);
+		eventsFactory.unsubscribe(URI.create(url), subscriptionId);
 	}
 	
 	public void triggerDataChanged() throws Exception {
@@ -394,7 +402,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		params.put("a", new Double(3));
 		params.put("b", new Double(4.5));
 		System.out.println("testAsyncXMPP, request=" + new JSONRequest(method, params));
-		sendAsync(url, method, params, new AsyncCallback<Double>() {
+		sendAsync(URI.create(url), method, params, new AsyncCallback<Double>() {
 			@Override
 			public void onSuccess(Double result) {
 				System.out.println("testAsyncXMPP result=" + result);
@@ -422,7 +430,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		params.put("a", new Double(3));
 		params.put("b", new Double(4.5));
 		System.out.println("testSyncXMPP, request=" + new JSONRequest(method, params));
-		Double result = send(url, method, params, JOM.getSimpleType(Double.class));
+		Double result = send(URI.create(url), method, params, JOM.getSimpleType(Double.class));
 		System.out.println("testSyncXMPP result=" + result);
 		try {
 			ObjectNode messageParams = JOM.createObjectNode();
@@ -440,7 +448,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("filter", "");
 		System.out.println("testGetContacts, request=" + new JSONRequest(method, params));
-		sendAsync(url, method, params, new AsyncCallback<ArrayNode>() {
+		sendAsync(URI.create(url), method, params, new AsyncCallback<ArrayNode>() {
 			@Override
 			public void onSuccess(ArrayNode result) {
 				System.out.println("testGetContacts result=" + result);
@@ -468,7 +476,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("origin", "rotterdam");
 		params.put("destination", "utrecht");
-		sendAsync(url, method, params, new AsyncCallback<String>() {
+		sendAsync(URI.create(url), method, params, new AsyncCallback<String>() {
 			@Override
 			public void onSuccess(String result) {
 				System.out.println("testAsyncHTTP result=" + result);
@@ -513,7 +521,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	public Double testAgentProxy() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
-		Test2AgentInterface other = createAgentProxy(url, Test2AgentInterface.class);
+		Test2AgentInterface other = createAgentProxy(URI.create(url), Test2AgentInterface.class);
 		
 		Double value = other.increment();
 		return value;
@@ -521,7 +529,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	public Double testAgentProxy2() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
-		Test2AgentInterface other = createAgentProxy(url, Test2AgentInterface.class);
+		Test2AgentInterface other = createAgentProxy(URI.create(url), Test2AgentInterface.class);
 		
 		Double value = other.multiply(2.3, 4.5);
 		return value;
@@ -529,7 +537,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 
 	public List<Object> testAgentProxy3() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
-		Test2AgentInterface other = createAgentProxy(url, Test2AgentInterface.class);
+		Test2AgentInterface other = createAgentProxy(URI.create(url), Test2AgentInterface.class);
 		
 		List<Object> value = other.getMethods();
 		return value;
@@ -538,14 +546,14 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	public void testAgentProxy5() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		// This should fail, Person is no Interface...
-		Person other = createAgentProxy(url, Person.class);
+		Person other = createAgentProxy(URI.create(url), Person.class);
 		other.setName("bla");
 	}
 	
 	public Double testAgentProxy4() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		
-		Test2AgentInterface other = createAgentProxy(url, Test2AgentInterface.class);
+		Test2AgentInterface other = createAgentProxy(URI.create(url), Test2AgentInterface.class);
 		
 		Double value = other.add(2.3, null);
 		return value;
@@ -566,14 +574,14 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			}
 		}, ArrayNode.class);
 		*/
-		ArrayNode urls = send(url, "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
+		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
 		System.out.println("gloria's urls=" + urls);
 		return urls;
 	}
 	
 	public void getUrlsOfMerlinAsync() throws Exception {
 		String url = "xmpp:merlin@openid.almende.org";
-		sendAsync(url, "getUrls", JOM.createObjectNode(), new AsyncCallback<ArrayNode>() {
+		sendAsync(URI.create(url), "getUrls", JOM.createObjectNode(), new AsyncCallback<ArrayNode>() {
 			@Override
 			public void onSuccess(ArrayNode urls) {
 				System.out.println("merlins urls=" + urls);
@@ -588,21 +596,21 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 
 	public ArrayNode getUrlsOfMerlin() throws Exception {
 		String url = "xmpp:merlin@openid.almende.org";
-		ArrayNode urls = send(url, "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
+		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
 		System.out.println("merlins urls=" + urls);
 		return urls;
 	}
 	
 	public ArrayNode getUrlsOfJos() throws Exception {
 		String url = "xmpp:jos@openid.almende.org";
-		ArrayNode urls = send(url, "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
+		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
 		System.out.println("jos's urls=" + urls);
 		return urls;
 	}
 		
 	public ArrayNode getListOfMerlin() throws Exception {
 		String url = "xmpp:merlin@openid.almende.org";
-		ArrayNode list = send(url, "list", JOM.createObjectNode(),JOM.getSimpleType(ArrayNode.class));
+		ArrayNode list = send(URI.create(url), "list", JOM.createObjectNode(),JOM.getSimpleType(ArrayNode.class));
 		System.out.println("merlins list=" + list);
 		return list;
 	}

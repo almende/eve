@@ -33,6 +33,7 @@
 package com.almende.eve.agent;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,11 +61,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
 abstract public class Agent implements AgentInterface {
-	protected AgentFactory			agentFactory	= null;
-	protected State					state			= null;
-	protected Scheduler				scheduler		= null;
-	protected ResultMonitorInterface monitorFactory	= null;
-	protected EventsInterface		eventsFactory	= null;
+	protected AgentFactory				agentFactory	= null;
+	protected State						state			= null;
+	protected Scheduler					scheduler		= null;
+	protected ResultMonitorInterface	monitorFactory	= null;
+	protected EventsInterface			eventsFactory	= null;
 	
 	@Access(AccessType.PUBLIC)
 	public abstract String getDescription();
@@ -74,7 +75,7 @@ abstract public class Agent implements AgentInterface {
 	
 	public Agent() {
 	}
-
+	
 	public void constr(AgentFactory factory, State state) {
 		if (this.state == null) {
 			this.agentFactory = factory;
@@ -189,12 +190,12 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.PUBLIC)
-	public String getFirstUrl() {
+	public URI getFirstUrl() {
 		List<String> urls = getUrls();
 		if (urls.size() > 0) {
-			return urls.get(0);
+			return URI.create(urls.get(0));
 		}
-		return "local://" + getId();
+		return URI.create("local://" + getId());
 	}
 	
 	@Override
@@ -206,23 +207,52 @@ abstract public class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
-	final public <T> T send(String url, String method, Object params,
+	final public <T> T send(URI url, String method, Object params,
 			Class<T> type) throws Exception {
-		return send(url,method,params,JOM.getTypeFactory().uncheckedSimpleType(type));
+		return send(url, method, params, JOM.getTypeFactory()
+				.uncheckedSimpleType(type));
 	}
-
+	
 	@Override
 	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, Object params,
-			Type type) throws Exception {
-		return (T)send(url,method,params,JOM.getTypeFactory().constructType(type));
+	final public <T> T send(URI url, String method, Object params, Type type)
+			throws Exception {
+		return (T) send(url, method, params, JOM.getTypeFactory()
+				.constructType(type));
 	}
-
+	
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(T ret, URI url, String method, Object params)
+			throws Exception {
+		// TODO: implement support for adding custom http headers (for
+		// authorization for example)
+		
+		ObjectNode jsonParams;
+		if (params instanceof ObjectNode) {
+			jsonParams = (ObjectNode) params;
+		} else {
+			jsonParams = JOM.getInstance().convertValue(params,
+					ObjectNode.class);
+		}
+		
+		// invoke the other agent via the agentFactory, allowing the factory
+		// to route the request internally or externally
+		String id = UUID.randomUUID().toString();
+		JSONRequest request = new JSONRequest(id, method, jsonParams);
+		JSONResponse response = getAgentFactory().send(this, url, request);
+		JSONRPCException err = response.getError();
+		if (err != null) {
+			throw err;
+		}
+		return response.getResult(ret);
+	}
+	
 	@Override
 	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, Object params,
+	final public <T> T send(URI url, String method, Object params,
 			JavaType type) throws Exception {
 		// TODO: implement support for adding custom http headers (for
 		// authorization for example)
@@ -245,60 +275,67 @@ abstract public class Agent implements AgentInterface {
 			throw err;
 		}
 		if (type != null && !type.hasRawClass(Void.class)) {
-			return (T)response.getResult(type);
+			return (T) response.getResult(type);
 		}
 		
-		return (T)null;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, Type type)
-			throws Exception {
-		return (T)send(url, method, null, type);
-	}	
-
-	@Override
-	@SuppressWarnings("unchecked")
-	@Access(AccessType.UNAVAILABLE)
-	final public <T> T send(String url, String method, JavaType type)
-			throws Exception {
-		return (T)send(url, method, null, type);
+		return (T) null;
 	}
 	
-
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(T ret, URI url, String method)
+			throws Exception {
+		return (T) send(ret, url, method, null);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(URI url, String method, Type type)
+			throws Exception {
+		return (T) send(url, method, null, type);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(URI url, String method, JavaType type)
+			throws Exception {
+		return (T) send(url, method, null, type);
+	}
+	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
-	final public <T> T send(String url, String method, Class<T> type)
+	final public <T> T send(URI url, String method, Class<T> type)
 			throws Exception {
 		
-		return send(url, method, null, JOM.getTypeFactory().uncheckedSimpleType(type));
+		return send(url, method, null, JOM.getTypeFactory()
+				.uncheckedSimpleType(type));
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public void send(String url, String method, Object params)
+	final public void send(URI url, String method, Object params)
 			throws Exception {
 		send(url, method, params, JOM.getVoid());
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public void send(String url, String method) throws Exception {
+	final public void send(URI url, String method) throws Exception {
 		send(url, method, null, JOM.getVoid());
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> T createAgentProxy(String url, Class<T> agentInterface) {
+	final public <T> T createAgentProxy(URI url, Class<T> agentInterface) {
 		return getAgentFactory().createAgentProxy(this, url, agentInterface);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> AsyncProxy<T> createAsyncAgentProxy(String url,
+	final public <T> AsyncProxy<T> createAsyncAgentProxy(URI url,
 			Class<T> agentInterface) {
 		return getAgentFactory().createAsyncAgentProxy(this, url,
 				agentInterface);
@@ -307,27 +344,29 @@ abstract public class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
-	final public <T> void sendAsync(String url, String method,
-			ObjectNode params, final AsyncCallback<T> callback,
-			Class<T> type) throws Exception {
+	final public <T> void sendAsync(URI url, String method,
+			ObjectNode params, final AsyncCallback<T> callback, Class<T> type)
+			throws Exception {
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
-		sendAsync(url, request, callback, JOM.getTypeFactory().uncheckedSimpleType(type));
+		sendAsync(url, request, callback, JOM.getTypeFactory()
+				.uncheckedSimpleType(type));
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> void sendAsync(String url, String method,
-			ObjectNode params, final AsyncCallback<T> callback,
-			Type type) throws Exception {
+	final public <T> void sendAsync(URI url, String method,
+			ObjectNode params, final AsyncCallback<T> callback, final Type type)
+			throws Exception {
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
-		sendAsync(url, request, callback, JOM.getTypeFactory().constructType(type));
+		sendAsync(url, request, callback,
+				JOM.getTypeFactory().constructType(type));
 	}
-
+	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> void sendAsync(String url, String method,
+	final public <T> void sendAsync(URI url, String method,
 			ObjectNode params, final AsyncCallback<T> callback,
 			final JavaType type) throws Exception {
 		String id = UUID.randomUUID().toString();
@@ -338,23 +377,25 @@ abstract public class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	@Deprecated
-	final public <T> void sendAsync(final String url,
+	final public <T> void sendAsync(final URI url,
 			final JSONRequest request, final AsyncCallback<T> callback,
 			Class<T> type) throws Exception {
-		sendAsync(url, request, callback, JOM.getTypeFactory().uncheckedSimpleType(type));
+		sendAsync(url, request, callback, JOM.getTypeFactory()
+				.uncheckedSimpleType(type));
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> void sendAsync(final String url,
+	final public <T> void sendAsync(final URI url,
 			final JSONRequest request, final AsyncCallback<T> callback,
 			Type type) throws Exception {
-		sendAsync(url, request, callback, JOM.getTypeFactory().constructType(type));
+		sendAsync(url, request, callback,
+				JOM.getTypeFactory().constructType(type));
 	}
-
+	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	final public <T> void sendAsync(final String url,
+	final public <T> void sendAsync(final URI url,
 			final JSONRequest request, final AsyncCallback<T> callback,
 			final JavaType type) throws Exception {
 		
@@ -406,19 +447,18 @@ abstract public class Agent implements AgentInterface {
 		}
 		return urls;
 	}
-
+	
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getId() {
 		return state.getAgentId();
 	}
-
+	
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getType() {
 		return getClass().getSimpleName();
 	}
-	
 	
 	@Override
 	@Access(AccessType.PUBLIC)

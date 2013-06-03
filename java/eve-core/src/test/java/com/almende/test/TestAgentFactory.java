@@ -1,5 +1,7 @@
 package com.almende.test;
 
+import java.net.URI;
+
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -19,7 +21,7 @@ public class TestAgentFactory extends TestCase {
 		}
 		
 		Test2AgentInterface agent = factory.createAgentProxy(null, 
-				"http://eveagents.appspot.com/agents/test/", 
+				URI.create("http://eveagents.appspot.com/agents/test/"), 
 				Test2AgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);
@@ -29,7 +31,7 @@ public class TestAgentFactory extends TestCase {
 		assertEquals(new Double(13.020000000000001),res);
 
 		agent = factory.createAgentProxy(null, 
-				"https://localhost:8443/agents/test/", 
+				URI.create("https://localhost:8443/agents/test/"), 
 				Test2AgentInterface.class);
 		
 		System.err.println("checking local https call 1:");

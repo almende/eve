@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param confs
 	 * @return
 	 */
-	public String create(String url, String method, ObjectNode params,
+	public String create(URI url, String method, ObjectNode params,
 			String callbackMethod, ResultMonitorConfigType... confs) {
 		ResultMonitor monitor = new ResultMonitor(myAgent.getId(), url, method,
 				params, callbackMethod);
@@ -149,7 +150,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",
 						JOM.getInstance().writeValueAsString(result));
-				myAgent.send("local://" + myAgent.getId(),
+				myAgent.send(URI.create("local://" + myAgent.getId()),
 						monitor.callbackMethod, params);
 			}
 			if (monitor.hasCache()) {
@@ -182,7 +183,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		
 		parms.put("callbackParams", triggerParams==null?pushParams:pushParams.putAll(triggerParams));
 		
-		myAgent.send(pushParams.get("url").textValue(), "monitor.callbackPush", parms);
+		myAgent.send(URI.create(pushParams.get("url").textValue()), "monitor.callbackPush", parms);
 		// If callback reports "old", unregisterPush();
 	}
 	
@@ -202,7 +203,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					}
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
-					myAgent.send("local://" + myAgent.getId(),
+					myAgent.send(URI.create("local://" + myAgent.getId()),
 							monitor.callbackMethod, params);
 				}
 				if (monitor.hasCache()) {

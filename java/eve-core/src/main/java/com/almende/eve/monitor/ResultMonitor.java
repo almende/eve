@@ -1,6 +1,7 @@
 package com.almende.eve.monitor;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,7 @@ public class ResultMonitor implements Serializable {
 	
 	public String									id;
 	public String									agentId;
-	public String									url;
+	public URI									url;
 	public String									method;
 	public ObjectNode								params;
 	public String									callbackMethod;
@@ -27,7 +28,7 @@ public class ResultMonitor implements Serializable {
 	
 	transient private static HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
 	
-	public ResultMonitor(String agentId, String url, String method, ObjectNode params,
+	public ResultMonitor(String agentId, URI url, String method, ObjectNode params,
 			String callbackMethod) {
 		this.id = UUID.randomUUID().toString();
 		this.agentId = agentId;
@@ -36,7 +37,7 @@ public class ResultMonitor implements Serializable {
 		this.params = params;
 		this.callbackMethod = callbackMethod;
 	}
-	public ResultMonitor(String agentId, String url, String method, ObjectNode params) {
+	public ResultMonitor(String agentId, URI url, String method, ObjectNode params) {
 		this(agentId,url,method,params,null);
 	}
 	

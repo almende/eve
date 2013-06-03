@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -350,7 +351,7 @@ public class AgentFactory {
 	 * @return
 	 */
 	@Deprecated
-	public <T> T createAgentProxy(final String receiverUrl, Class<T> agentInterface) {
+	public <T> T createAgentProxy(final URI receiverUrl, Class<T> agentInterface) {
 		return createAgentProxy(null,receiverUrl,agentInterface);
 	}
 	
@@ -367,7 +368,7 @@ public class AgentFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T createAgentProxy(final AgentInterface sender,
-			final String receiverUrl, Class<T> agentInterface) {
+			final URI receiverUrl, Class<T> agentInterface) {
 		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
 			throw new IllegalArgumentException("agentInterface must extend "
 					+ AgentInterface.class.getName());
@@ -413,7 +414,7 @@ public class AgentFactory {
 	 * @return
 	 */
 	@Deprecated
-	public <T> AsyncProxy<T> createAsyncAgentProxy(final String receiverUrl, Class<T> agentInterface) {
+	public <T> AsyncProxy<T> createAsyncAgentProxy(final URI receiverUrl, Class<T> agentInterface) {
 		return createAsyncAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
@@ -433,7 +434,7 @@ public class AgentFactory {
 	 * @return
 	 */
 	public <T> AsyncProxy<T> createAsyncAgentProxy(final AgentInterface sender,
-			final String receiverUrl, Class<T> agentInterface) {
+			final URI receiverUrl, Class<T> agentInterface) {
 		return new AsyncProxy<T>(createAgentProxy(sender, receiverUrl,
 				agentInterface));
 	}
@@ -620,7 +621,7 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	@Deprecated
-	public JSONResponse send(String receiverUrl, JSONRequest request)
+	public JSONResponse send(URI receiverUrl, JSONRequest request)
 			throws Exception {
 		return send(null, receiverUrl, request);
 	}
@@ -639,12 +640,12 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public JSONResponse send(AgentInterface sender, String receiverUrl,
+	public JSONResponse send(AgentInterface sender, URI receiverUrl,
 			JSONRequest request) throws Exception {
-		String receiverId = getAgentId(receiverUrl);
+		String receiverId = getAgentId(receiverUrl.toASCIIString());
 		String senderUrl = null;
 		if (sender != null) {
-			senderUrl = getSenderUrl(sender.getId(), receiverUrl);
+			senderUrl = getSenderUrl(sender.getId(), receiverUrl.toASCIIString());
 		}
 		if (doesShortcut && receiverId != null) {
 			// local shortcut
@@ -653,14 +654,11 @@ public class AgentFactory {
 			return receive(receiverId, request, requestParams);
 		} else {
 			TransportService service = null;
-			String protocol = null;
-			int separator = receiverUrl.indexOf(":");
-			if (separator != -1) {
-				protocol = receiverUrl.substring(0, separator);
-				service = getTransportService(protocol);
-			}
+			String protocol = receiverUrl.getScheme();
+			service = getTransportService(protocol);
+			
 			if (service != null) {
-				JSONResponse response = service.send(senderUrl, receiverUrl,
+				JSONResponse response = service.send(senderUrl, receiverUrl.toASCIIString(),
 						request);
 				return response;
 			} else {
@@ -683,7 +681,7 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	@Deprecated
-	public void sendAsync(final String receiverUrl, final JSONRequest request,
+	public void sendAsync(final URI receiverUrl, final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) throws Exception {
 		sendAsync(null, receiverUrl, request, callback);
 	}
@@ -701,9 +699,9 @@ public class AgentFactory {
 	 * @throws Exception
 	 */
 	public void sendAsync(final AgentInterface sender,
-			final String receiverUrl, final JSONRequest request,
+			final URI receiverUrl, final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) throws Exception {
-		final String receiverId = getAgentId(receiverUrl);
+		final String receiverId = getAgentId(receiverUrl.toASCIIString());
 		if (doesShortcut && receiverId != null) {
 			// local shortcut
 			new Thread(new Runnable() {
@@ -714,7 +712,7 @@ public class AgentFactory {
 						String senderUrl = null;
 						if (sender != null) {
 							senderUrl = getSenderUrl(sender.getId(),
-									receiverUrl);
+									receiverUrl.toASCIIString());
 						}
 						RequestParams requestParams = new RequestParams();
 						requestParams.put(Sender.class, senderUrl);
@@ -730,15 +728,12 @@ public class AgentFactory {
 			String protocol = null;
 			String senderUrl = null;
 			if (sender != null) {
-				senderUrl = getSenderUrl(sender.getId(), receiverUrl);
+				senderUrl = getSenderUrl(sender.getId(), receiverUrl.toASCIIString());
 			}
-			int separator = receiverUrl.indexOf(":");
-			if (separator != -1) {
-				protocol = receiverUrl.substring(0, separator);
-				service = getTransportService(protocol);
-			}
+			protocol = receiverUrl.getScheme();
+			service = getTransportService(protocol);
 			if (service != null) {
-				service.sendAsync(senderUrl, receiverUrl, request, callback);
+				service.sendAsync(senderUrl, receiverUrl.toASCIIString(), request, callback);
 			} else {
 				throw new ProtocolException(
 						"No transport service configured for protocol '"

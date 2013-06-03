@@ -1,5 +1,7 @@
 package com.almende.eve.event;
 
+import java.net.URI;
+
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -75,7 +77,7 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public String subscribe(String url, String event, String callbackMethod)
+	public String subscribe(URI url, String event, String callbackMethod)
 			throws Exception;
 	
 	/**
@@ -88,7 +90,7 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public String subscribe(String url, String event, String callbackMethod,
+	public String subscribe(URI url, String event, String callbackMethod,
 			ObjectNode callbackParams) throws Exception;
 	
 	/**
@@ -99,7 +101,7 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void unsubscribe(String url, String subscriptionId) throws Exception;
+	public void unsubscribe(URI url, String subscriptionId) throws Exception;
 	
 	/**
 	 * Unsubscribe from an other agents event
@@ -110,7 +112,7 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void unsubscribe(String url, String event, String callbackMethod)
+	public void unsubscribe(URI url, String event, String callbackMethod)
 			throws Exception;
 	
 	/**

@@ -1,5 +1,6 @@
 package com.almende.eve.event;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,7 @@ public class EventsFactory implements EventsInterface {
 	 * @return subscriptionId
 	 * @throws Exception
 	 */
-	public String subscribe(String url, String event, String callbackMethod)
+	public String subscribe(URI url, String event, String callbackMethod)
 			throws Exception {
 		return subscribe(url, event, callbackMethod, null);
 	}
@@ -94,12 +95,12 @@ public class EventsFactory implements EventsInterface {
 	 * @return subscriptionId
 	 * @throws Exception
 	 */
-	public String subscribe(String url, String event, String callbackMethod,
+	public String subscribe(URI url, String event, String callbackMethod,
 			ObjectNode callbackParams) throws Exception {
 		String method = "event.createSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
-		params.put("callbackUrl", myAgent.getFirstUrl());
+		params.put("callbackUrl", myAgent.getFirstUrl().toASCIIString());
 		params.put("callbackMethod", callbackMethod);
 		if (callbackParams != null) {
 			params.put("callbackParams", callbackParams);
@@ -116,7 +117,7 @@ public class EventsFactory implements EventsInterface {
 	 * @param subscriptionId
 	 * @throws Exception
 	 */
-	public void unsubscribe(String url, String subscriptionId) throws Exception {
+	public void unsubscribe(URI url, String subscriptionId) throws Exception {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
@@ -131,12 +132,12 @@ public class EventsFactory implements EventsInterface {
 	 * @param callbackMethod
 	 * @throws Exception
 	 */
-	public void unsubscribe(String url, String event, String callbackMethod)
+	public void unsubscribe(URI url, String event, String callbackMethod)
 			throws Exception {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
-		params.put("callbackUrl", myAgent.getFirstUrl());
+		params.put("callbackUrl", myAgent.getFirstUrl().toASCIIString());
 		params.put("callbackMethod", callbackMethod);
 		myAgent.send(url, method, params);
 	}
@@ -167,7 +168,7 @@ public class EventsFactory implements EventsInterface {
 	final public void trigger(@Name("event") String event,
 			@Name("params") Object params) throws Exception {
 		// TODO: user first url is very dangerous! can cause a mismatch
-		String url = myAgent.getFirstUrl();
+		String url = myAgent.getFirstUrl().toASCIIString();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 		
 		if (event.equals("*")) {
@@ -316,6 +317,6 @@ public class EventsFactory implements EventsInterface {
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws Exception {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
-		myAgent.send(url, method, params);
+		myAgent.send(URI.create(url), method, params);
 	}
 }

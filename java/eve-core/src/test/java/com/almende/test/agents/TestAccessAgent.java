@@ -1,5 +1,6 @@
 package com.almende.test.agents;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,7 +69,8 @@ public class TestAccessAgent extends Agent {
 		return false;
 	}
 	
-	public boolean[] run(@Name("url") String url){
+	public boolean[] run(@Name("url") String urls){
+		URI url = URI.create(urls);
 		boolean[] result = new boolean[0];
 		result = Arrays.copyOf(result, 7);
 		try{ result[0] = (Boolean)send(url,"allowed",JOM.getSimpleType(Boolean.class)); } catch (Exception e){ e.printStackTrace(); };

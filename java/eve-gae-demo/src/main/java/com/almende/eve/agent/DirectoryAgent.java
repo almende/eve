@@ -39,7 +39,7 @@ public class DirectoryAgent extends Agent {
 		
 		// create a new registration
 		Registration registration = new Registration();
-		registration.setDirectoryAgent(getFirstUrl());
+		registration.setDirectoryAgent(getFirstUrl().toASCIIString());
 		registration.setAgent(agent);
 		registration.setType(type);
 		registration.setUsername(username);
