@@ -195,7 +195,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		throw new Exception("Nothing went wrong...");
 	}
 	
-	public void throwJSONRPCException() throws Exception {
+	public void throwJSONRPCException() throws JSONRPCException {
 		throw new JSONRPCException(CODE.NOT_FOUND);
 	}
 	

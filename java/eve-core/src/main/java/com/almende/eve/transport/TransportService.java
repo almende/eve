@@ -1,9 +1,12 @@
 package com.almende.eve.transport;
 
+import java.io.IOException;
 import java.util.List;
 
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public interface TransportService {
 	/**
@@ -29,7 +32,7 @@ public interface TransportService {
 	 * @response response
 	 */
 	public abstract JSONResponse send (final String senderId, final String receiver, 
-			final JSONRequest request) throws Exception;
+			final JSONRequest request) throws JSONRPCException;
 	
 	/**
 	 * Asynchronously Send a message to an other agent
@@ -53,7 +56,7 @@ public interface TransportService {
 	 * (re)Connect this url (if applicable for this transport type)
 	 * @param url
 	 */
-	public abstract void reconnect(String agentId) throws Exception;
+	public abstract void reconnect(String agentId) throws JSONRPCException, JsonProcessingException, IOException;
 
 }
 

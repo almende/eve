@@ -1,6 +1,7 @@
 package com.almende.eve.agent;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
@@ -293,9 +294,16 @@ public class AgentFactory {
 	 * 
 	 * @param agentId
 	 * @return agent
+	 * @throws ClassNotFoundException 
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws SecurityException 
+	 * @throws IllegalArgumentException 
 	 * @throws Exception
 	 */
-	public Agent getAgent(String agentId) throws Exception {
+	public Agent getAgent(String agentId) throws JSONRPCException, ClassNotFoundException, IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		if (agentId == null) {
 			return null;
 		}
@@ -320,7 +328,7 @@ public class AgentFactory {
 		// read the agents class name from state
 		Class<?> agentType = state.getAgentType();
 		if (agentType == null) {
-			throw new Exception("Cannot instantiate agent. "
+			throw new JSONRPCException("Cannot instantiate agent. "
 					+ "Class information missing in the agents state "
 					+ "(agentId='" + agentId + "')");
 		}
@@ -574,19 +582,23 @@ public class AgentFactory {
 	 * @param request
 	 * @param requestParams
 	 * @return
+	 * @throws ClassNotFoundException 
 	 * @throws Exception
 	 */
 	public JSONResponse receive(String receiverId, JSONRequest request,
-			RequestParams requestParams) throws Exception {
-		Agent receiver = getAgent(receiverId);
-		if (receiver != null) {
-			JSONResponse response = JSONRPC.invoke(receiver, request,
-					requestParams, receiver);
-			receiver.destroy();
-			return response;
-		} else {
-			throw new Exception("Agent with id '" + receiverId + "' not found");
+			RequestParams requestParams) throws JSONRPCException {
+		try {
+			Agent receiver = getAgent(receiverId);
+			if (receiver != null) {
+				JSONResponse response = JSONRPC.invoke(receiver, request,
+						requestParams, receiver);
+				receiver.destroy();
+				return response;
+			}
+		} catch (Exception e){
+			throw new JSONRPCException("Couldn't instantiate agent for id '" + receiverId + "'",e);		
 		}
+		throw new JSONRPCException("Agent with id '" + receiverId + "' not found");
 	}
 	
 	// public JSONResponse receive(String SenderId, String receiverUrl,
@@ -638,10 +650,12 @@ public class AgentFactory {
 	 * @param receiverUrl
 	 * @param request
 	 * @return
+	 * @throws JSONRPCException 
+	 * @throws  
 	 * @throws Exception
 	 */
 	public JSONResponse send(AgentInterface sender, URI receiverUrl,
-			JSONRequest request) throws Exception {
+			JSONRequest request) throws ProtocolException, JSONRPCException {
 		String receiverId = getAgentId(receiverUrl.toASCIIString());
 		String senderUrl = null;
 		if (sender != null) {
@@ -978,9 +992,9 @@ public class AgentFactory {
 	 * 
 	 * @return stateFactory
 	 */
-	public StateFactory getStateFactory() throws Exception {
+	public StateFactory getStateFactory() throws JSONRPCException {
 		if (stateFactory == null) {
-			throw new Exception("No state factory initialized.");
+			throw new JSONRPCException("No state factory initialized.");
 		}
 		return stateFactory;
 	}

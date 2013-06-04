@@ -1,5 +1,10 @@
 package com.almende.eve.transport.xmpp;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -7,11 +12,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 import org.jivesoftware.smack.SmackConfiguration;
 
 import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -20,6 +30,7 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.SyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.EncryptionUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -190,11 +201,21 @@ public class XmppService implements TransportService {
 	 * @param password
 	 * @param resource
 	 *            (optional)
+	 * @throws IOException 
+	 * @throws JSONRPCException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws InvalidKeySpecException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidAlgorithmParameterException 
+	 * @throws JsonProcessingException 
+	 * @throws InvalidKeyException 
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	final public void connect(String agentId, String username, String password,
-			String resource) throws Exception {
+			String resource) throws InvalidKeyException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, JSONRPCException, IOException {
 		String agentUrl = generateUrl(username, host, resource);
 		AgentConnection connection;
 		if (connectionsByUrl.containsKey(agentUrl)) {
@@ -213,7 +234,7 @@ public class XmppService implements TransportService {
 	}
 	
 	private void storeConnection(String agentId, String username,
-			String password, String resource) throws Exception {
+			String password, String resource) throws JSONRPCException, JsonProcessingException, IOException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		
 		State state = agentFactory.getStateFactory().get(agentId);
 		
@@ -244,7 +265,7 @@ public class XmppService implements TransportService {
 		}
 	}
 	
-	private void delConnections(String agentId) throws Exception {
+	private void delConnections(String agentId) throws JSONRPCException {
 		State state = agentFactory.getStateFactory().get(agentId);
 		state.remove("_XMPP_Connections");
 	}
@@ -305,10 +326,14 @@ public class XmppService implements TransportService {
 	 */
 	@Override
 	public JSONResponse send(String senderUrl, String receiver,
-			JSONRequest request) throws Exception {
+			JSONRequest request) throws JSONRPCException {
 		SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 		sendAsync(senderUrl, receiver, request, callback);
-		return callback.get();
+		try {
+			return callback.get();
+		} catch (Exception e) {
+			throw new JSONRPCException("Couldn't handle XMPP return.",e);
+		}
 	}
 	
 	/**
@@ -322,7 +347,7 @@ public class XmppService implements TransportService {
 	@Override
 	public void sendAsync(String senderUrl, String receiver,
 			JSONRequest request, AsyncCallback<JSONResponse> callback)
-			throws Exception {
+			throws JSONRPCException {
 		
 		
 		AgentConnection connection = null;
@@ -332,7 +357,7 @@ public class XmppService implements TransportService {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";
 			if (!receiver.startsWith(protocol)) {
-				throw new Exception("Receiver url must start with '" + protocol
+				throw new JSONRPCException("Receiver url must start with '" + protocol
 						+ "' (receiver='" + receiver + "')");
 			}
 			String fullUsername = receiver.substring(protocol.length()); // username@domain
@@ -340,7 +365,7 @@ public class XmppService implements TransportService {
 		} else {
 			// TODO: use an anonymous xmpp connection when the sender agent has
 			// no xmpp connection.
-			throw new Exception("Cannot send an xmpp request, "
+			throw new JSONRPCException("Cannot send an xmpp request, "
 					+ "agent is has no xmpp connection.");
 		}
 	}
@@ -376,7 +401,7 @@ public class XmppService implements TransportService {
 	}
 	
 	@Override
-	public void reconnect(String agentId) throws Exception {
+	public void reconnect(String agentId) throws JSONRPCException, JsonProcessingException, IOException {
 		State state = agentFactory.getStateFactory().get(agentId);
 		ArrayNode conns = null;
 		if (state.containsKey("_XMPP_Connections")) {
@@ -409,7 +434,7 @@ public class XmppService implements TransportService {
 						connect(agentId, username, password, resource);
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					throw new JSONRPCException("Failed to connect XMPP.",e);
 				}
 			}
 		}

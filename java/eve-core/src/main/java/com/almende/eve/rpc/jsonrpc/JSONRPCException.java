@@ -1,6 +1,7 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -56,6 +57,14 @@ public class JSONRPCException extends Exception {
 		super(message);
 		setCode(0);
 		setMessage(message);
+	}
+	public JSONRPCException (String message, Throwable t) {
+		super(message,t);
+		setCode(0);
+		setMessage(message);
+		try {
+			setData(JOM.getInstance().writeValueAsString(t));
+		} catch (JsonProcessingException e) {}
 	}
 	
 	public JSONRPCException (Integer code, String message) {

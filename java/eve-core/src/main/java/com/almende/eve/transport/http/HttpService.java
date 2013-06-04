@@ -123,32 +123,37 @@ public class HttpService implements TransportService {
 	 */
 	@Override
 	public JSONResponse send(final String senderUrl, final String receiverUrl,
-			final JSONRequest request) throws Exception {
-		JSONResponse response;
-		String req = request.toString();
-		
-		// invoke via Apache HttpClient request:
-		HttpPost httpPost = new HttpPost(receiverUrl);
-		httpPost.setEntity(new StringEntity(req));
-		
-		// Add token for HTTP handshake
-		httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
-		httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
-		
-		HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
+			final JSONRequest request) throws JSONRPCException {
 		try {
-			String result = EntityUtils.toString(webResp.getEntity());
-			if (result != null) {
-				response = new JSONResponse(result);
-			} else {
-				response = new JSONResponse();
+			JSONResponse response;
+			String req = request.toString();
+			
+			// invoke via Apache HttpClient request:
+			HttpPost httpPost = new HttpPost(receiverUrl);
+			httpPost.setEntity(new StringEntity(req));
+			
+			// Add token for HTTP handshake
+			httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
+			httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
+			
+			HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
+			try {
+				String result = EntityUtils.toString(webResp.getEntity());
+				if (result != null) {
+					response = new JSONResponse(result);
+				} else {
+					response = new JSONResponse();
+				}
+			} catch (JSONRPCException err) {
+				response = new JSONResponse(err);
+			} finally {
+				httpPost.reset();
 			}
-		} catch (JSONRPCException err) {
-			response = new JSONResponse(err);
-		} finally {
-			httpPost.reset();
+			return response;
+		} catch (Exception e) {
+			throw new JSONRPCException("Failed to send RPC call through HTTP",
+					e);
 		}
-		return response;
 	}
 	
 	/**
@@ -293,7 +298,7 @@ public class HttpService implements TransportService {
 	}
 	
 	@Override
-	public void reconnect(String agentId) throws Exception {
+	public void reconnect(String agentId) {
 		// Nothing todo at this point
 	}
 	

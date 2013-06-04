@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.AsyncCallback;
@@ -92,8 +93,8 @@ public class GaeXmppService implements TransportService {
 	
 	@Override
 	public JSONResponse send(String senderId, String receiver,
-			JSONRequest request) throws Exception {
-		throw new Exception("JSONResponse send(String senderId, String receiver, " +
+			JSONRequest request) throws JSONRPCException {
+		throw new JSONRPCException("JSONResponse send(String senderId, String receiver, " +
 				"JSONRequest request) not supported by GaeXmppService. " +
 				"Use sendAsync(String senderId, String receiver, " +
 				"JSONRequest request, String callback) instead.");
@@ -116,7 +117,7 @@ public class GaeXmppService implements TransportService {
 	}
 
 	@Override
-	public void reconnect(String agentId) throws Exception {
+	public void reconnect(String agentId) {
 		//Nothing todo here
 	}
 }

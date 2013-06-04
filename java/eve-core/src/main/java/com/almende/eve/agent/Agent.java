@@ -32,6 +32,7 @@
 
 package com.almende.eve.agent;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -127,7 +129,7 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public void boot() throws Exception {
+	public void boot() throws JsonProcessingException, JSONRPCException, IOException {
 		// init scheduler tasks
 		getScheduler();
 		// if applicable reconnect existing connections.
