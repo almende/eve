@@ -2,6 +2,7 @@ package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -65,16 +66,6 @@ public class JSONResponse {
 			}
 		}
 		boolean hasError = response.has("error") && !response.get("error").isNull();
-		/* TODO: cleanup
-		if (hasResult && hasError) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Response contains both members 'result' and 'error' but may not contain both.");
-		}
-		if (!hasResult && !hasError) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Response is missing member 'result' or 'error'");
-		}
-		*/
 		if (hasError) {
 			if (!(response.get("error").isObject())) {
 				throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
@@ -142,9 +133,10 @@ public class JSONResponse {
 				try {
 					return reader.readValue(resp.get("result"));
 				} catch (UnsupportedOperationException e1){
+					logger.log(Level.WARNING,"Trying to update unmodifiable object",e1);
 					return getResult(ret.getClass().getGenericSuperclass());
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.log(Level.SEVERE,"Couldn't read result value.",e);
 				}
 			}
 		}
@@ -162,7 +154,7 @@ public class JSONResponse {
 		}
 	}
 
-	public JSONRPCException getError() throws JSONRPCException {
+	public JSONRPCException getError() {
 		if (resp.has("error")) {
 			ObjectNode error = (ObjectNode) resp.get("error");
 			return new JSONRPCException(error);
@@ -192,7 +184,7 @@ public class JSONResponse {
 		try {
 			return mapper.writeValueAsString(resp);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE,"Failed to stringify response.",e);
 		}
 		return null;
 	}

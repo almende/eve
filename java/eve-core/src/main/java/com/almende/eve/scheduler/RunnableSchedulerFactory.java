@@ -25,6 +25,7 @@ import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -221,10 +222,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						params.put(Sender.class, senderUrl); // TODO: provide
 																// itself
 						
-						agentFactory.receive(agentId, request, params);
+						JSONResponse resp = agentFactory.receive(agentId, request, params);
 
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
+						}
+						if (resp.getError() != null){
+							throw resp.getError();
 						}
 					} catch (Exception e) {
 						e.printStackTrace();

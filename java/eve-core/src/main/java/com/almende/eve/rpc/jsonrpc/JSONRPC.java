@@ -2,6 +2,7 @@ package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -14,6 +15,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.rpc.RequestParams;
@@ -36,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONRPC {
-	// static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
+	static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
 	// TODO: implement JSONRPC 2.0 Batch
 	/**
 	 * Invoke a method on an object
@@ -141,14 +144,15 @@ public class JSONRPC {
 					&& err.getCause() instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) err.getCause());
 			} else {
-				err.printStackTrace(); // TODO: cleanup printing stacktrace
+				if (err instanceof InvocationTargetException && err.getCause() != null){
+					err = (Exception) err.getCause();
+				}
+				logger.log(Level.WARNING,"Exception raised, returning it as JSONRPCException.",err);
 				
 				JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err));
-				// TODO: return useful, readable stacktrace
+						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err),err);
 				jsonError.setData(err);
 				resp.setError(jsonError);
-				
 			}
 		}
 

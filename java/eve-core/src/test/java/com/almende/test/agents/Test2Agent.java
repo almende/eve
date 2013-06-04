@@ -192,7 +192,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 
 	public void throwException() throws Exception {
-		throw new Exception("Something went wrong...");
+		throw new Exception("Nothing went wrong...");
 	}
 	
 	public void throwJSONRPCException() throws Exception {
@@ -526,7 +526,6 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	public Double testAgentProxy() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		Test2AgentInterface other = createAgentProxy(URI.create(url), Test2AgentInterface.class);
-		
 		Double value = other.increment();
 		return value;
 	}

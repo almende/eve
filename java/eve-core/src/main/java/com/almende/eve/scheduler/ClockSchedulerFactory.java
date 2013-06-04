@@ -16,6 +16,7 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
@@ -170,7 +171,7 @@ class ClockScheduler implements Scheduler, Runnable {
 					String senderUrl = "local://" + myAgent.getId();
 					params.put(Sender.class, senderUrl);
 					
-					myAgent.getAgentFactory().receive(myAgent.getId(),
+					JSONResponse resp = myAgent.getAgentFactory().receive(myAgent.getId(),
 							task.request, params);
 					
 					if (task.interval > 0 && task.sequential) {
@@ -178,6 +179,9 @@ class ClockScheduler implements Scheduler, Runnable {
 						task.active = false;
 						_this.putTask(task, true);
 						_this.run();
+					}
+					if (resp.getError() != null){
+						throw resp.getError();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

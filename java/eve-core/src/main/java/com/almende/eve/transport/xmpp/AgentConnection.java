@@ -279,7 +279,7 @@ public class AgentConnection {
 					} catch (Exception err) {
 						// generate JSON error response
 						JSONRPCException jsonError = new JSONRPCException(
-								JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
+								JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage(),err);
 						response = new JSONResponse(jsonError);
 					}
 					

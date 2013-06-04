@@ -405,12 +405,7 @@ abstract public class Agent implements AgentInterface {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void onSuccess(JSONResponse response) {
-				Exception err;
-				try {
-					err = response.getError();
-				} catch (JSONRPCException e) {
-					err = e;
-				}
+				Exception err = response.getError();
 				if (err != null) {
 					callback.onFailure(err);
 				}

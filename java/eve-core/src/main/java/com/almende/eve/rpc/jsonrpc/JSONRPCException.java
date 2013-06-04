@@ -13,6 +13,7 @@ public class JSONRPCException extends Exception {
 		UNKNOWN_ERROR,
 		PARSE_ERROR,
 		INVALID_REQUEST,
+		REMOTE_EXCEPTION,
 		METHOD_NOT_FOUND,
 		INVALID_PARAMS,
 		INTERNAL_ERROR,
@@ -20,18 +21,26 @@ public class JSONRPCException extends Exception {
 	};
 	
 	public JSONRPCException () {
-		init(CODE.UNKNOWN_ERROR, null);
+		super();
+		init(CODE.UNKNOWN_ERROR, null,null);
 	}
 
 	public JSONRPCException (CODE code) {
-		init(code, null);
+		super();
+		init(code, null,null);
 	}
 
 	public JSONRPCException (CODE code, String description) {
-		init(code, description);
+		super(description);
+		init(code, description,null);
+	}
+	public JSONRPCException (CODE code, String description, final Throwable t) {
+		super(description,t);
+		init(code, description,t);
 	}
 	
 	public JSONRPCException (JSONRPCException error) {
+		super(error);
 		if (error != null) {
 			setCode(error.getCode());
 			setMessage(error.getMessage());
@@ -40,35 +49,33 @@ public class JSONRPCException extends Exception {
 			}
 		}
 		else {
-			init(CODE.UNKNOWN_ERROR, null);
+			init(CODE.UNKNOWN_ERROR, null, null);
 		}
 	}
+	public JSONRPCException (String message) {
+		super(message);
+		setCode(0);
+		setMessage(message);
+	}
+	
+	public JSONRPCException (Integer code, String message) {
+		super(message);
+		setCode(code);
+		setMessage(message);
+	}
+
+	public JSONRPCException (Integer code, String message, Object data) {
+		super(message);
+		setCode(code);
+		setMessage(message);
+		setData(data);
+	}
+	
 
 	public JSONRPCException (ObjectNode exception) {
-		/* TODO: cleanup
-		if (exception == null || exception.isNull()) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Exception is null");
-		}
-		if (!exception.has("code")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Exception is missing member 'code'");
-		}
-		if (!(exception.get("code").isInt())) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'code' is no Integer");
-		}
-				
-		if (!exception.has("message")) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Exception is missing member 'message'");
-		}
-		if (!(exception.get("message").isTextual())) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST, 
-				"Member 'message' is no String");
-		}
-		*/
-		
+		this(CODE.REMOTE_EXCEPTION,JOM.getInstance().convertValue(
+				exception.get("data"), Exception.class).getMessage(), JOM.getInstance().convertValue(
+				exception.get("data"), Exception.class));
 		if (exception != null && !exception.isNull()) {
 			// set code, message, and optional data
 			if (exception.has("code")) {
@@ -83,27 +90,13 @@ public class JSONRPCException extends Exception {
 		}
 	}	
 
-	public JSONRPCException (String message) {
-		setCode(0);
-		setMessage(message);
-	}
-	
-	public JSONRPCException (Integer code, String message) {
-		setCode(code);
-		setMessage(message);
-	}
 
-	public JSONRPCException (Integer code, String message, Object data) {
-		setCode(code);
-		setMessage(message);
-		setData(data);
-	}
-	
-	private void init(CODE code, String message) {
+	private void init(CODE code, String message, Throwable t) {
 		switch (code) {
 			case UNKNOWN_ERROR: setCode (-32000); setMessage("Unknown error"); break;
 			case PARSE_ERROR: setCode (-32700); setMessage("Parse error"); break;
 			case INVALID_REQUEST: setCode (-32600); setMessage("Invalid request"); break;
+			case REMOTE_EXCEPTION: setCode (-32500); setMessage("Remote application error"); break;
 			case METHOD_NOT_FOUND: setCode (-32601); setMessage("Method not found"); break;
 			case INVALID_PARAMS: setCode (-32602); setMessage("Invalid params"); break;
 			case INTERNAL_ERROR: setCode (-32603); setMessage("Internal error"); break;
@@ -133,7 +126,6 @@ public class JSONRPCException extends Exception {
 	
 	public void setData(Object data) {
 		ObjectMapper mapper = JOM.getInstance();
-		// TODO: test if convert value works
 		error.put("data", data != null ? mapper.convertValue(data, JsonNode.class) : null);
 	}
 	
