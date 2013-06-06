@@ -97,4 +97,8 @@ public abstract class AbstractState implements State {
 	public <T> T get(JavaType type, String key) {
 		return TypeUtil.inject(type,get(key));
 	}
+	@Override
+	public <T> T get(TypeUtil<T> type, String key) {
+		return type.inject(get(key));
+	}
 }

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 
 public interface State extends Map<String, Serializable> {
@@ -19,4 +20,5 @@ public interface State extends Map<String, Serializable> {
 	public <T>T get(Class<T> type, String key);
 	public <T>T get(Type type, String key);
 	public <T>T get(JavaType type, String key);
+	public <T>T get(TypeUtil<T> type, String key);
 }
