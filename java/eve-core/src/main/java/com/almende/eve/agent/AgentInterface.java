@@ -154,10 +154,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	/**
 	 * Do a RPC call to another agent.
 	 * 
-	 * @deprecated Please use one of the versions with can handle the more
-	 *             complex generics returntypes. (e.g.
-	 *             send(url,method,params,JOM.getSimpleType(type));)
-	 * 
 	 * @param url
 	 * @param method
 	 * @param params
@@ -165,7 +161,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	@Deprecated
 	public <T> T send(URI url, String method, Object params, Class<T> type)
 			throws Exception;
 	
@@ -249,17 +244,12 @@ public interface AgentInterface extends JSONAuthorizor {
 	/**
 	 * Do a RPC call to another agent.
 	 * 
-	 * @deprecated Please use one of the versions with can handle the more
-	 *             complex generics returntypes. (e.g.
-	 *             send(url,method,JOM.getSimpleType(type));)
-	 * 
 	 * @param url
 	 * @param method
 	 * @param type
 	 * @return
 	 * @throws Exception
 	 */
-	@Deprecated
 	public <T> T send(URI url, String method, Class<T> type)
 			throws Exception;
 	
@@ -285,11 +275,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	/**
 	 * Do an asynchronous RPC call to another agent.
 	 * 
-	 * @deprecated Please use one of the versions with can handle the more
-	 *             complex generics returntypes. (e.g.
-	 *             sendAsync(url,method,params
-	 *             ,callback,JOM.getSimpleType(type));)
-	 * 
 	 * @param url
 	 * @param method
 	 * @param params
@@ -297,7 +282,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param type
 	 * @throws Exception
 	 */
-	@Deprecated
 	public <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, Class<T> type) throws Exception;
 	
@@ -331,9 +315,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	/**
 	 * Do an asynchronous RPC call to another agent.
 	 * 
-	 * @deprecated Please use one of the versions with can handle the more
-	 *             complex generics returntypes. (e.g.
-	 *             sendAsync(url,method,callback,JOM.getSimpleType(type));)
 	 * 
 	 * @param url
 	 * @param method
@@ -341,7 +322,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param type
 	 * @throws Exception
 	 */
-	@Deprecated
 	public <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, Class<T> type) throws Exception;
 	

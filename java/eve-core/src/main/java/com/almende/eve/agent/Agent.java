@@ -209,7 +209,6 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	@Deprecated
 	final public <T> T send(URI url, String method, Object params,
 			Class<T> type) throws Exception {
 		return send(url, method, params, JOM.getTypeFactory()
@@ -309,7 +308,6 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	@Deprecated
 	final public <T> T send(URI url, String method, Class<T> type)
 			throws Exception {
 		
@@ -346,7 +344,6 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	@Deprecated
 	final public <T> void sendAsync(URI url, String method,
 			ObjectNode params, final AsyncCallback<T> callback, Class<T> type)
 			throws Exception {
@@ -379,7 +376,6 @@ abstract public class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	@Deprecated
 	final public <T> void sendAsync(final URI url,
 			final JSONRequest request, final AsyncCallback<T> callback,
 			Class<T> type) throws Exception {
