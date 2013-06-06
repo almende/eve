@@ -1,5 +1,10 @@
 package com.almende.eve.state;
 
+import java.lang.reflect.Type;
+
+import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.databind.JavaType;
+
 
 /**
  * @class State
@@ -77,4 +82,19 @@ public abstract class AbstractState implements State {
 	// init and destroy methods
 	public abstract void init();     // executed once after the agent is instantiated
 	public abstract void destroy();  // executed once before the agent is destroyed
+	
+	@Override
+	public <T> T get(Class<T> type, String key) {
+		return TypeUtil.inject(type,get(key));
+	}
+
+	@Override
+	public <T> T get(Type type, String key) {
+		return TypeUtil.inject(type,get(key));
+	}
+
+	@Override
+	public <T> T get(JavaType type, String key) {
+		return TypeUtil.inject(type,get(key));
+	}
 }

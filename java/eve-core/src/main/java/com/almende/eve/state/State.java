@@ -1,7 +1,10 @@
 package com.almende.eve.state;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.JavaType;
 
 public interface State extends Map<String, Serializable> {
 	public static String KEY_AGENT_TYPE = "_type"; // key name for agent type
@@ -13,4 +16,7 @@ public interface State extends Map<String, Serializable> {
 	public void setAgentType(Class<?> agentType);
 	public Class<?> getAgentType() throws ClassNotFoundException;
 	
+	public <T>T get(Class<T> type, String key);
+	public <T>T get(Type type, String key);
+	public <T>T get(JavaType type, String key);
 }

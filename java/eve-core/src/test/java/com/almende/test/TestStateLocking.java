@@ -14,6 +14,7 @@ import com.almende.eve.state.FileState;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.OriginalFileState;
 import com.almende.eve.state.State;
+import com.almende.util.TypeUtil;
 
 public class TestStateLocking extends TestCase {
 	//TODO: prove that a collision occurs, possibly by measuring the starttime and runtime of each run.
@@ -76,7 +77,7 @@ public class TestStateLocking extends TestCase {
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted after:"+(System.currentTimeMillis()-start)+" ms.");
 		}
-		assertEquals("test",(String)state.get("test1"));
+		assertEquals("test",TypeUtil.inject(String.class, state.get("test1")));
 		assertEquals("test2",(String)state.get("test2"));
 		assertTrue(((String)state.get("test")).startsWith("test"));
 		

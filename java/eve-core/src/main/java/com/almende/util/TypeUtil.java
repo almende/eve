@@ -32,7 +32,10 @@ public class TypeUtil<T> {
 	public T inject(Object value){
 		return inject(valueType, value);
 	}
-	
+
+	public static <T> T inject(Class<T> type, Object value) throws ClassCastException {
+		return inject(JOM.getTypeFactory().constructType(type),value);
+	}
 	public static <T> T inject(Type type, Object value) throws ClassCastException {
 		return inject(JOM.getTypeFactory().constructType(type),value);
 	}
