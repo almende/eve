@@ -42,6 +42,7 @@ public class TypeUtil<T> {
 	@SuppressWarnings("unchecked")
 	public static <T> T inject(JavaType full_type, Object value) throws ClassCastException {
 		if (value == null) return null;
+		if (full_type.hasRawClass(Void.class)) return null;
 		ObjectMapper mapper = JOM.getInstance();
 		if (value instanceof JsonNode){
 			return mapper.convertValue(value, full_type);
@@ -63,7 +64,7 @@ public class TypeUtil<T> {
 				logger.log(Level.WARNING,"Can't update object with non-JSON value.");
 				return inject(ret.getClass().getGenericSuperclass(),value);
 			}
-		}
+		} 
 		return ret;
 	}
 }
