@@ -13,6 +13,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
+import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -171,6 +172,19 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param method
 	 * @param params
 	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
+	public <T> T send(URI url, String method, Object params, TypeUtil<T> type)
+			throws Exception;
+	
+	/**
+	 * Do a RPC call to another agent.
+	 * 
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @param type
 	 *            returntype
 	 * @return
 	 * @throws Exception
@@ -252,6 +266,18 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	public <T> T send(URI url, String method, Class<T> type)
 			throws Exception;
+	
+	/**
+	 * Do a RPC call to another agent.
+	 * 
+	 * @param url
+	 * @param method
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
+	public <T> T send(URI url, String method, TypeUtil<T> type) throws Exception;
+	
 	
 	/**
 	 * Do a RPC call to another agent, expecting no result (void)

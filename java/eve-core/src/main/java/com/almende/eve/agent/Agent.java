@@ -34,6 +34,7 @@ package com.almende.eve.agent;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -206,104 +207,85 @@ abstract public class Agent implements AgentInterface {
 	public List<Object> getMethods() {
 		return getAgentFactory().getMethods(this);
 	}
+
+	private final JSONResponse _send(URI url, String method, Object params) throws ProtocolException, JSONRPCException{
+		// TODO: implement support for adding custom http headers (for
+		// authorization for example)
+		
+		ObjectNode jsonParams;
+		if (params instanceof ObjectNode) {
+			jsonParams = (ObjectNode) params;
+		} else {
+			jsonParams = JOM.getInstance().convertValue(params,
+					ObjectNode.class);
+		}
+		
+		// invoke the other agent via the agentFactory, allowing the factory
+		// to route the request internally or externally
+		String id = UUID.randomUUID().toString();
+		JSONRequest request = new JSONRequest(id, method, jsonParams);
+		JSONResponse response = getAgentFactory().send(this, url, request);
+		JSONRPCException err = response.getError();
+		if (err != null) {
+			throw err;
+		}
+		return response;
+	}
+
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(URI url, String method, Object params,
 			Class<T> type) throws Exception {
-		return send(url, method, params, JOM.getTypeFactory()
-				.uncheckedSimpleType(type));
+		return TypeUtil.inject(type, _send(url, method, params).getResult());
 	}
-	
+
 	@Override
-	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(URI url, String method, Object params, Type type)
 			throws Exception {
-		return (T) send(url, method, params, JOM.getTypeFactory()
-				.constructType(type));
+		return TypeUtil.inject(type, _send(url, method, params).getResult());
 	}
 	
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(URI url, String method, Object params,
+			TypeUtil<T> type) throws Exception {
+		return type.inject(_send(url,method,params).getResult());
+	}	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(T ret, URI url, String method, Object params)
 			throws Exception {
-		// TODO: implement support for adding custom http headers (for
-		// authorization for example)
-		
-		ObjectNode jsonParams;
-		if (params instanceof ObjectNode) {
-			jsonParams = (ObjectNode) params;
-		} else {
-			jsonParams = JOM.getInstance().convertValue(params,
-					ObjectNode.class);
-		}
-		
-		// invoke the other agent via the agentFactory, allowing the factory
-		// to route the request internally or externally
-		String id = UUID.randomUUID().toString();
-		JSONRequest request = new JSONRequest(id, method, jsonParams);
-		JSONResponse response = getAgentFactory().send(this, url, request);
-		JSONRPCException err = response.getError();
-		if (err != null) {
-			throw err;
-		}
-		return TypeUtil.inject(ret, response.getResult());
+		return TypeUtil.inject(ret, _send(url,method,params).getResult());
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(URI url, String method, Object params,
 			JavaType type) throws Exception {
-		// TODO: implement support for adding custom http headers (for
-		// authorization for example)
-		
-		ObjectNode jsonParams;
-		if (params instanceof ObjectNode) {
-			jsonParams = (ObjectNode) params;
-		} else {
-			jsonParams = JOM.getInstance().convertValue(params,
-					ObjectNode.class);
-		}
-		
-		// invoke the other agent via the agentFactory, allowing the factory
-		// to route the request internally or externally
-		String id = UUID.randomUUID().toString();
-		JSONRequest request = new JSONRequest(id, method, jsonParams);
-		JSONResponse response = getAgentFactory().send(this, url, request);
-		JSONRPCException err = response.getError();
-		if (err != null) {
-			throw err;
-		}
-		if (type != null && !type.hasRawClass(Void.class)) {
-			return (T) TypeUtil.inject(type, response.getResult());
-		}
-		
-		return (T) null;
+		return TypeUtil.inject(type,_send(url,method,params).getResult());
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(T ret, URI url, String method)
 			throws Exception {
-		return (T) send(ret, url, method, null);
+		return TypeUtil.inject(ret, _send(url, method, null).getResult());
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(URI url, String method, Type type)
 			throws Exception {
-		return (T) send(url, method, null, type);
+		return TypeUtil.inject(type, _send(url, method, null).getResult());
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	@Access(AccessType.UNAVAILABLE)
 	final public <T> T send(URI url, String method, JavaType type)
 			throws Exception {
-		return (T) send(url, method, null, type);
+		return TypeUtil.inject(type, _send(url, method, null).getResult());
 	}
 	
 	@Override
@@ -311,21 +293,26 @@ abstract public class Agent implements AgentInterface {
 	final public <T> T send(URI url, String method, Class<T> type)
 			throws Exception {
 		
-		return send(url, method, null, JOM.getTypeFactory()
-				.uncheckedSimpleType(type));
+		return TypeUtil.inject(type, _send(url, method, null).getResult());
 	}
-	
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	final public <T> T send(URI url, String method, TypeUtil<T> type)
+			throws Exception {
+		
+		return type.inject(_send(url, method, null).getResult());
+	}
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(URI url, String method, Object params)
 			throws Exception {
-		send(url, method, params, JOM.getVoid());
+		_send(url, method, params);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	final public void send(URI url, String method) throws Exception {
-		send(url, method, null, JOM.getVoid());
+		_send(url, method, null);
 	}
 	
 	@Override
