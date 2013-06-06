@@ -3,8 +3,11 @@ package com.almende.eve.agent.example;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 
+@Access(AccessType.PUBLIC)
 public class ManagementAgent extends Agent {
 	/**
 	 * Create a new agent. Will throw an exception if the agent already exists

@@ -28,8 +28,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 
+@Access(AccessType.PUBLIC)
 public class EchoAgent extends Agent {
 	public Object ping(@Name("message") Object message) throws Exception {
 		// trigger event
