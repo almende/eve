@@ -1,10 +1,11 @@
 package com.almende.eve.state;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.almende.util.ClassUtil;
+import com.almende.util.TypeUtil;
 
 /**
  * {@link StateEntry} wraps agent state entry key and provides respective value
@@ -16,7 +17,6 @@ import com.almende.util.ClassUtil;
  * 
  * @param <T> the type of value stored in this state entry
  */
-@SuppressWarnings("unchecked")
 public abstract class StateEntry<T extends Serializable>
 {
 	
@@ -27,7 +27,7 @@ public abstract class StateEntry<T extends Serializable>
 	private final String key;
 
 	/** */
-	private final Class<T> valueType;
+	private final TypeUtil<T> valueType = new TypeUtil<T>();
 
 	/**
 	 * Constructs a {@link StateEntry} with specified {@code key} and
@@ -39,10 +39,6 @@ public abstract class StateEntry<T extends Serializable>
 	public StateEntry(final String key)
 	{
 		this.key = key;
-		this.valueType = (Class<T>) ClassUtil.getTypeArguments(
-				StateEntry.class, getClass()).get(0);
-		// LOG.debug("State entry key: " + this.key + ", value type: "
-		// + this.valueType);
 	}
 
 	/** @return the {@link StateEntry} key's {@link String} value */
@@ -52,9 +48,9 @@ public abstract class StateEntry<T extends Serializable>
 	}
 
 	/** @return the {@link StateEntry} value's type */
-	public Class<T> getValueType()
+	public Type getValueType()
 	{
-		return this.valueType;
+		return this.valueType.getType();
 	}
 
 	/** @return the value to persist/provide if none exists yet */
@@ -85,7 +81,7 @@ public abstract class StateEntry<T extends Serializable>
 	{
 		try
 		{
-			return (T) state.get(getKey());
+			return valueType.inject(state.get(getKey()));
 		} catch (final ClassCastException e)
 		{
 			LOG.log(Level.WARNING,"Problem casting agent's state value, key: " + key, e);
@@ -104,7 +100,7 @@ public abstract class StateEntry<T extends Serializable>
 	{
 		try
 		{
-			return (T) state.put(getKey(), value);
+			return valueType.inject(state.put(getKey(), value));
 		} catch (final ClassCastException e)
 		{
 			LOG.log(Level.WARNING,"Problem casting agent's previous state value, key: "

@@ -37,6 +37,7 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
+import com.almende.util.TypeUtil;
 
 /**
  * The AgentFactory is a factory to instantiate and invoke Eve Agents within the
@@ -397,7 +398,7 @@ public class AgentFactory {
 							throw err;
 						} else if (response.getResult() != null
 								&& !method.getReturnType().equals(Void.TYPE)) {
-							return response.getResult(method.getGenericReturnType());
+							return TypeUtil.inject(method.getGenericReturnType(),response.getResult());
 						} else {
 							return null;
 						}

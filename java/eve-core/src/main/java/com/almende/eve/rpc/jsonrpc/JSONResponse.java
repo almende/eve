@@ -1,17 +1,14 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONResponse {
@@ -115,32 +112,6 @@ public class JSONResponse {
 
 	public JsonNode getResult() {
 		return resp.get("result");
-	}
-
-	public <T> T getResult(Type type) {
-		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(resp.get("result"), mapper.getTypeFactory().constructType(type));
-	}
-	public <T> T getResult(JavaType type) {
-		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(resp.get("result"), type);
-	}
-	public <T> T getResult(T ret){
-		ObjectMapper mapper = JOM.getInstance();
-		if (ret != null){
-			ObjectReader reader = mapper.readerForUpdating(ret);
-			if (resp.has("result")){
-				try {
-					return reader.readValue(resp.get("result"));
-				} catch (UnsupportedOperationException e1){
-					logger.log(Level.WARNING,"Trying to update unmodifiable object",e1);
-					return getResult(ret.getClass().getGenericSuperclass());
-				} catch (Exception e) {
-					logger.log(Level.SEVERE,"Couldn't read result value.",e);
-				}
-			}
-		}
-		return ret;
 	}
 	public void setError(JSONRPCException error) {
 		if (error != null) {

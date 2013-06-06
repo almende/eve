@@ -57,6 +57,7 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
+import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -248,7 +249,7 @@ abstract public class Agent implements AgentInterface {
 		if (err != null) {
 			throw err;
 		}
-		return response.getResult(ret);
+		return TypeUtil.inject(ret, response.getResult());
 	}
 	
 	@Override
@@ -277,7 +278,7 @@ abstract public class Agent implements AgentInterface {
 			throw err;
 		}
 		if (type != null && !type.hasRawClass(Void.class)) {
-			return (T) response.getResult(type);
+			return (T) TypeUtil.inject(type, response.getResult());
 		}
 		
 		return (T) null;
@@ -412,7 +413,7 @@ abstract public class Agent implements AgentInterface {
 					callback.onFailure(err);
 				}
 				if (type != null && !type.hasRawClass(Void.class)) {
-					callback.onSuccess((T) response.getResult(type));
+					callback.onSuccess((T) TypeUtil.inject(type,response.getResult()));
 				} else {
 					callback.onSuccess(null);
 				}
