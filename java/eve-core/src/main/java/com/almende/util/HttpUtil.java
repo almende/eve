@@ -69,7 +69,7 @@ public class HttpUtil {
 	 * @return response
 	 * @throws IOException 
 	 */
-	static public String get(String url) throws IOException {
+	public static String get(String url) throws IOException {
 		return get(url, null);
 	}
 
@@ -80,7 +80,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String get(String url,
+	public static String get(String url,
 			Map<String, String> headers) throws IOException {
 		return fetch("GET", url, null, headers);
 	}
@@ -93,7 +93,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String post(String url, String body,
+	public static String post(String url, String body,
 			Map<String, String> headers) throws IOException {
 		return fetch("POST", url, body, headers);
 	}
@@ -105,7 +105,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String post(String url, String body) throws IOException {
+	public static String post(String url, String body) throws IOException {
 		return post(url, body, null);
 	}
 
@@ -116,7 +116,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String postForm(String url, Map<String, String> params) 
+	public static String postForm(String url, Map<String, String> params) 
 			throws IOException {
 		return postForm(url, params, null);
 	}
@@ -129,7 +129,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String postForm(String url, Map<String, String> params,
+	public static String postForm(String url, Map<String, String> params,
 			Map<String, String> headers) throws IOException {
 		// set content type
 		if (headers == null) {
@@ -165,7 +165,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String put(String url, String body,
+	public static String put(String url, String body,
 			Map<String, String> headers) throws IOException {
 		return fetch("PUT", url, body, headers);
 	}
@@ -176,7 +176,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String put(String url, String body) throws IOException {
+	public static String put(String url, String body) throws IOException {
 		return put(url, body, null);
 	}
 	
@@ -187,7 +187,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String delete(String url,
+	public static String delete(String url,
 			Map<String, String> headers) throws IOException {
 		return fetch("DELETE", url, null, headers);
 	}
@@ -198,7 +198,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String delete(String url) throws IOException {
+	public static String delete(String url) throws IOException {
 		return delete(url, null);
 	}
 	
@@ -209,7 +209,7 @@ public class HttpUtil {
 	 * @return url        Url with query parameters appended
 	 * @throws IOException 
 	 */
-	static public String appendQueryParams(String url, 
+	public static String appendQueryParams(String url, 
 			Map<String, String> params) throws IOException {
 		String fullUrl = new String(url);
 		
@@ -238,7 +238,7 @@ public class HttpUtil {
 	 * @return params     Map with query parameters
 	 * @throws IOException 
 	 */
-	static public Map<String, String> getQueryParams(String url) 
+	public static Map<String, String> getQueryParams(String url) 
 			throws IOException {
 		Map<String, String> params = new HashMap<String, String>();
 	
@@ -287,7 +287,7 @@ public class HttpUtil {
 	 *                    with the value found in the url as value (or an empty 
 	 *                    string when not found) 
 	 */
-	static public Map<String, String> getTemplateParams(String template, 
+	public static Map<String, String> getTemplateParams(String template, 
 			String url) {
 		Map<String, String> params = new HashMap<String, String>();
 		String[] pTemplate = template.split("/");
@@ -323,7 +323,7 @@ public class HttpUtil {
 	 * @return params    A map with all parameters defined in the template,
 	 *                    with the value found in the url as value (can be null) 
 	 */
-	static public String setTemplateParams(String template, 
+	public static String setTemplateParams(String template, 
 			Map<String, String> params) {
 		String[] pTemplate = template.split("/");
 		String[] pUrl = new String[pTemplate.length];
@@ -348,7 +348,7 @@ public class HttpUtil {
 	 * @param str
 	 * @return
 	 */
-	static private boolean isTemplateParam(String str) {
+	private static boolean isTemplateParam(String str) {
 		return (str.length() > 0 && str.startsWith(":"));
 	}
 
@@ -379,7 +379,7 @@ public class HttpUtil {
 	 * @return url        Url without query parameters
 	 * @throws IOException 
 	 */
-	static public String removeQueryParams(String url) 
+	public static String removeQueryParams(String url) 
 			throws IOException {
 		int q = url.indexOf('?');
 		if (q != -1) {
@@ -399,7 +399,7 @@ public class HttpUtil {
 	 * @return response   Response as string
 	 * @throws IOException 
 	 */
-	static public String fetch(String method, String url, String body,
+	public static String fetch(String method, String url, String body,
 			Map<String, String> headers) throws IOException {
 		// connection
 		URL u = new URL(url);
@@ -451,7 +451,7 @@ public class HttpUtil {
 	 * @return
 	 * @throws IOException
 	 */
-	static public String streamToString(InputStream in) throws IOException {
+	public static String streamToString(InputStream in) throws IOException {
 		StringBuffer out = new StringBuffer();
 		byte[] b = new byte[4096];
 		for (int n; (n = in.read(b)) != -1;) {

@@ -1,5 +1,8 @@
 package com.almende.eve.agent;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -14,8 +17,15 @@ import com.almende.eve.state.State;
  * @param <T>
  */
 public class AspectAgent<T> extends Agent implements AgentInterface {
-	private State	myState	= null;
-	private T		aspect	= null;
+	private static final Logger	LOG		= Logger.getLogger(AspectAgent.class
+												.getCanonicalName());
+	private State				myState	= null;
+	private T					aspect	= null;
+	
+	@Override
+	public void init() {
+		myState = getState();
+	}
 	
 	public void init(Class<? extends T> agentAspect) {
 		myState = getState();
@@ -27,12 +37,12 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 	@Access(AccessType.PUBLIC)
 	public T getAspect() {
 		if (aspect == null) {
-			String AspectType = getState().get("_aspectType", String.class);
+			String AspectType = myState.get("_aspectType", String.class);
 			try {
 				aspect = (T) Class.forName(AspectType).getConstructor()
 						.newInstance();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 			}
 		}
 		return aspect;

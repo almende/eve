@@ -1,5 +1,6 @@
 package com.almende.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,11 +13,11 @@ public class NamespaceUtil {
 	private static Map<String, String[]>	cache		= new HashMap<String, String[]>();
 	private static NamespaceUtil			instance	= new NamespaceUtil();
 	
-	static public CallTuple get(Object destination, String path ) throws SecurityException, Exception {
+	public static CallTuple get(Object destination, String path ) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		return instance._get(destination, path);
 	}
 	
-	private void populateCache(Object destination,String path,String methods) throws SecurityException, Exception{
+	private void populateCache(Object destination,String path,String methods) throws IllegalAccessException, InvocationTargetException {
 		AnnotatedClass clazz = AnnotationUtil.get(destination.getClass());
 		for (AnnotatedMethod method : clazz.getAnnotatedMethods(Namespace.class)){
 			Object newDest = method.getActualMethod().invoke(destination,(Object[])null);
@@ -28,7 +29,7 @@ public class NamespaceUtil {
 		cache.put(path, methods.split("\\."));
 	}
 	
-	private CallTuple _get(Object destination, String path) throws SecurityException, Exception {
+	private CallTuple _get(Object destination, String path) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		CallTuple result = new CallTuple();
 				
 		String reducedPath = path.replaceFirst("\\.?[^.]+$", "");
@@ -41,7 +42,7 @@ public class NamespaceUtil {
 			populateCache(destination,destination.getClass().getName(),"");
 		} 
 		if(!cache.containsKey(fullPath)){
-			throw new Exception("Non resolveable path given:'" +fullPath+"' \n checked:"+cache);
+			throw new IllegalStateException("Non resolveable path given:'" +fullPath+"' \n checked:"+cache);
 		}
 		String[] methods = cache.get(fullPath);
 		for (String methodName : methods){

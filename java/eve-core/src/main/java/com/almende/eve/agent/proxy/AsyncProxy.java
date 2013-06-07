@@ -37,7 +37,7 @@ public class AsyncProxy<T> {
 	 * @throws NoSuchMethodException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Future<?> call(String functionName, final Object... args) throws SecurityException, NoSuchMethodException{
+	public Future<?> call(String functionName, final Object... args) throws NoSuchMethodException{
 		ArrayList<Class> classes = new ArrayList<Class>(args.length);
 		for (Object obj : args){
 			classes.add(obj.getClass());

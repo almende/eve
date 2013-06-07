@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -54,7 +55,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author ludo
  */
 public class ConcurrentFileState extends FileState {
-	Logger	logger	= Logger.getLogger("ConcurrentFileState");
+	private static final Logger	LOG	= Logger.getLogger("ConcurrentFileState");
 	
 	protected ConcurrentFileState() {
 	}
@@ -133,7 +134,7 @@ public class ConcurrentFileState extends FileState {
 					
 					lock.release();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOG.log(Level.WARNING,"",e);
 				}
 			}
 			try {
@@ -141,7 +142,7 @@ public class ConcurrentFileState extends FileState {
 				fis.close();
 				channel.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 			}
 			channel = null;
 			fis = null;
@@ -238,7 +239,7 @@ public class ConcurrentFileState extends FileState {
 			properties.clear();
 			write();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 	}
@@ -251,7 +252,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.keySet();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -265,7 +266,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.containsKey(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -279,7 +280,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.containsValue(value);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -293,7 +294,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.entrySet();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -307,7 +308,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.get(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -321,7 +322,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.isEmpty();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -336,7 +337,7 @@ public class ConcurrentFileState extends FileState {
 			result = properties.put(key, value);
 			write();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -351,7 +352,7 @@ public class ConcurrentFileState extends FileState {
 			properties.putAll(map);
 			write();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 	}
@@ -370,7 +371,7 @@ public class ConcurrentFileState extends FileState {
 				result = true;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 			result = true; // Don't let users loop if exception is thrown. They
 							// would get into a deadlock....
 		}
@@ -387,7 +388,7 @@ public class ConcurrentFileState extends FileState {
 			result = properties.remove(key);
 			write();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -401,7 +402,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.size();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;
@@ -415,7 +416,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.values();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		closeFile();
 		return result;

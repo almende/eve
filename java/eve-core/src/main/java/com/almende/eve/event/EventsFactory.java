@@ -1,5 +1,7 @@
 package com.almende.eve.event;
 
+import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,13 +64,14 @@ public class EventsFactory implements EventsInterface {
 				.getState().get("subscriptions");
 		
 		HashMap<String, List<Callback>> newSubscriptions = new HashMap<String, List<Callback>>();
-		if (allSubscriptions != null){
+		if (allSubscriptions != null) {
 			newSubscriptions.putAll(allSubscriptions);
 		}
 		newSubscriptions.put(event, subscriptions);
-		if (!myAgent.getState().putIfUnchanged("subscriptions", newSubscriptions, allSubscriptions)){
-			//Recursive retry.
-			putSubscriptions(event,subscriptions);
+		if (!myAgent.getState().putIfUnchanged("subscriptions",
+				newSubscriptions, allSubscriptions)) {
+			// Recursive retry.
+			putSubscriptions(event, subscriptions);
 			return;
 		}
 	}
@@ -79,10 +83,12 @@ public class EventsFactory implements EventsInterface {
 	 * @param event
 	 * @param callbackMethod
 	 * @return subscriptionId
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
 	public String subscribe(URI url, String event, String callbackMethod)
-			throws Exception {
+			throws ProtocolException, JSONRPCException {
 		return subscribe(url, event, callbackMethod, null);
 	}
 	
@@ -93,10 +99,13 @@ public class EventsFactory implements EventsInterface {
 	 * @param event
 	 * @param callbackMethod
 	 * @return subscriptionId
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
 	public String subscribe(URI url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws Exception {
+			ObjectNode callbackParams) throws ProtocolException,
+			JSONRPCException {
 		String method = "event.createSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
@@ -107,7 +116,8 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// TODO: store the agents subscriptions locally
-		return myAgent.send(url, method, params, JOM.getTypeFactory().constructSimpleType(String.class, new JavaType[0]));
+		return myAgent.send(url, method, params, JOM.getTypeFactory()
+				.constructSimpleType(String.class, new JavaType[0]));
 	}
 	
 	/**
@@ -115,9 +125,11 @@ public class EventsFactory implements EventsInterface {
 	 * 
 	 * @param url
 	 * @param subscriptionId
-	 * @throws Exception
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 */
-	public void unsubscribe(URI url, String subscriptionId) throws Exception {
+	public void unsubscribe(URI url, String subscriptionId)
+			throws ProtocolException, JSONRPCException {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
@@ -130,10 +142,12 @@ public class EventsFactory implements EventsInterface {
 	 * @param url
 	 * @param event
 	 * @param callbackMethod
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
 	public void unsubscribe(URI url, String event, String callbackMethod)
-			throws Exception {
+			throws ProtocolException, JSONRPCException {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("event", event);
@@ -146,13 +160,12 @@ public class EventsFactory implements EventsInterface {
 	 * Trigger an event
 	 * 
 	 * @param event
-	 
-	 * @throws Exception
-	 * @throws JSONRPCException
+	 * @throws IOException
+	 * @throws JsonProcessingException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void trigger(@Name("event") String event) throws Exception {
-		trigger(event,null);
+	public final void trigger(@Name("event") String event) throws IOException {
+		trigger(event, null);
 	}
 	
 	/**
@@ -161,18 +174,18 @@ public class EventsFactory implements EventsInterface {
 	 * @param event
 	 * @param params
 	 *            An ObjectNode, Map, or POJO
-	 * @throws Exception
-	 * @throws JSONRPCException
+	 * @throws IOException
+	 * @throws JsonProcessingException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void trigger(@Name("event") String event,
-			@Name("params") Object params) throws Exception {
+	public final void trigger(@Name("event") String event,
+			@Name("params") Object params) throws IOException {
 		// TODO: user first url is very dangerous! can cause a mismatch
 		String url = myAgent.getFirstUrl().toASCIIString();
 		List<Callback> subscriptions = new ArrayList<Callback>();
 		
 		if (event.equals("*")) {
-			throw new Exception("Cannot trigger * event");
+			throw new IllegalArgumentException("Cannot trigger * event");
 		}
 		
 		// send a trigger to the agent factory
@@ -188,13 +201,13 @@ public class EventsFactory implements EventsInterface {
 		subscriptions.addAll(valueAll);
 		
 		ObjectNode baseParams = JOM.createObjectNode();
-		if (params != null){
+		if (params != null) {
 			if (params instanceof JsonNode) {
-				baseParams.put("triggerParams",(ObjectNode) params);
+				baseParams.put("triggerParams", (ObjectNode) params);
 			} else {
 				ObjectNode jsonParams = JOM.getInstance().convertValue(params,
 						ObjectNode.class);
-				baseParams.put("triggerParams",jsonParams);
+				baseParams.put("triggerParams", jsonParams);
 			}
 		}
 		baseParams.put("agent", url);
@@ -213,9 +226,9 @@ public class EventsFactory implements EventsInterface {
 			taskParams.put("method", subscription.method);
 			
 			if (subscription.params != null) {
-				ObjectNode parms = (ObjectNode) JOM.getInstance()
-						.readTree(subscription.params);
-				triggerParams =  (ObjectNode) parms.putAll(triggerParams);
+				ObjectNode parms = (ObjectNode) JOM.getInstance().readTree(
+						subscription.params);
+				triggerParams = (ObjectNode) parms.putAll(triggerParams);
 			}
 			taskParams.put("params", triggerParams);
 			JSONRequest request = new JSONRequest("event.doTrigger", taskParams);
@@ -225,7 +238,7 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public String createSubscription(@Name("event") String event,
+	public final String createSubscription(@Name("event") String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params) {
@@ -250,20 +263,21 @@ public class EventsFactory implements EventsInterface {
 		subscriptions.add(callback);
 		
 		// store the subscriptions
-		putSubscriptions(event, subscriptions);//FIXME: Race condition on subscriptions!
+		putSubscriptions(event, subscriptions);// FIXME: Race condition on
+												// subscriptions!
 		
 		return subscriptionId;
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public void deleteSubscription(
+	public final void deleteSubscription(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
 			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
-			@SuppressWarnings("unchecked")
-		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent.getState()
-				.get("subscriptions");
+		@SuppressWarnings("unchecked")
+		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent
+				.getState().get("subscriptions");
 		if (allSubscriptions == null) {
 			return;
 		}
@@ -281,14 +295,13 @@ public class EventsFactory implements EventsInterface {
 						// callback with given subscriptionId is found
 						matched = true;
 					} else if (callbackUrl != null
-							&& callbackUrl.equals(subscription.url)) {
-						if ((callbackMethod == null || callbackMethod
-								.equals(subscription.method))
-								&& (event == null || event
-										.equals(subscriptionEvent))) {
-							// callback with matching properties is found
-							matched = true;
-						}
+							&& callbackUrl.equals(subscription.url)
+							&& (callbackMethod == null || callbackMethod
+									.equals(subscription.method))
+							&& (event == null || event
+									.equals(subscriptionEvent))) {
+						// callback with matching properties is found
+						matched = true;
 					}
 					
 					if (matched) {
@@ -302,20 +315,24 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// store state again
-		myAgent.getState().put("subscriptions", allSubscriptions); //TODO: Race condition!
+		myAgent.getState().put("subscriptions", allSubscriptions); // TODO: Race
+																	// condition!
 	}
 	
 	/**
-	 * Work-method for trigger: called by scheduler for asynchronous and/or delayed behaviour 
+	 * Work-method for trigger: called by scheduler for asynchronous and/or
+	 * delayed behaviour
+	 * 
 	 * @param url
 	 * @param method
 	 * @param params
-	 * @throws Exception
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 */
 	@Access(AccessType.PUBLIC)
-	final public void doTrigger(@Name("url") String url,
+	public final void doTrigger(@Name("url") String url,
 			@Name("method") String method, @Name("params") ObjectNode params)
-			throws Exception {
+			throws ProtocolException, JSONRPCException {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
 		myAgent.send(URI.create(url), method, params);
 	}

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
@@ -22,8 +23,10 @@ import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
 
 public class ClockSchedulerFactory implements SchedulerFactory {
-	Map<String, Scheduler>	schedulers		= new HashMap<String, Scheduler>();
-	AgentFactory			agentFactory	= null;
+	private static final Logger		LOG				= Logger.getLogger(ClockSchedulerFactory.class
+															.getCanonicalName());
+	private Map<String, Scheduler>	schedulers		= new HashMap<String, Scheduler>();
+	private AgentFactory			agentFactory	= null;
 	
 	/**
 	 * This constructor is called when constructed by the AgentFactory
@@ -43,14 +46,16 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	@Override
 	public Scheduler getScheduler(Agent agent) {
 		synchronized (schedulers) {
-			if (schedulers.containsKey(agent.getId())) return schedulers.get(agent.getId());
+			if (schedulers.containsKey(agent.getId())) {
+				return schedulers.get(agent.getId());
+			}
 			Scheduler scheduler;
 			try {
 				scheduler = new ClockScheduler(agent, agentFactory);
 				schedulers.put(agent.getId(), scheduler);
 				return scheduler;
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.log(Level.SEVERE, "Couldn't init new scheduler", e);
 			}
 			return null;
 		}
@@ -65,14 +70,13 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 }
 
 class ClockScheduler implements Scheduler, Runnable {
-	static final Logger	logger	= Logger.getLogger("ClockScheduler");
-	final Agent			myAgent;
-	final Clock			myClock;
-	final ClockScheduler _this = this;
+	static final Logger		LOG		= Logger.getLogger("ClockScheduler");
+	final Agent				myAgent;
+	final Clock				myClock;
+	final ClockScheduler	_this	= this;
 	
-	public ClockScheduler(Agent myAgent, AgentFactory factory)
-			throws Exception {
-		this.myAgent=myAgent;
+	public ClockScheduler(Agent myAgent, AgentFactory factory) throws Exception {
+		this.myAgent = myAgent;
 		myClock = new RunnableClock();
 		run();
 	}
@@ -97,8 +101,8 @@ class ClockScheduler implements Scheduler, Runnable {
 	
 	@SuppressWarnings("unchecked")
 	public void putTask(TaskEntry task, boolean onlyIfExists) {
-		Set<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent
-				.getState().get("_taskList");
+		Set<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent.getState()
+				.get("_taskList");
 		Set<TaskEntry> timeline = null;
 		boolean found = false;
 		if (oldTimeline != null) {
@@ -117,9 +121,9 @@ class ClockScheduler implements Scheduler, Runnable {
 			if (timeline == null) timeline = new TreeSet<TaskEntry>();
 			timeline.add(task);
 		}
-		if (!myAgent.getState().putIfUnchanged("_taskList", (Serializable)timeline,
-				(Serializable) oldTimeline)) {
-			logger.severe("need to retry putTask...");
+		if (!myAgent.getState().putIfUnchanged("_taskList",
+				(Serializable) timeline, (Serializable) oldTimeline)) {
+			LOG.severe("need to retry putTask...");
 			putTask(task, onlyIfExists); // recursive retry....
 			return;
 		}
@@ -142,7 +146,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		}
 		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
 				oldTimeline)) {
-			logger.severe("need to retry cancelTask...");
+			LOG.severe("need to retry cancelTask...");
 			cancelTask(id); // recursive retry....
 			return;
 		}
@@ -171,8 +175,8 @@ class ClockScheduler implements Scheduler, Runnable {
 					String senderUrl = "local://" + myAgent.getId();
 					params.put(Sender.class, senderUrl);
 					
-					JSONResponse resp = myAgent.getAgentFactory().receive(myAgent.getId(),
-							task.request, params);
+					JSONResponse resp = myAgent.getAgentFactory().receive(
+							myAgent.getId(), task.request, params);
 					
 					if (task.interval > 0 && task.sequential) {
 						task.due = DateTime.now().plus(task.interval);
@@ -180,11 +184,11 @@ class ClockScheduler implements Scheduler, Runnable {
 						_this.putTask(task, true);
 						_this.run();
 					}
-					if (resp.getError() != null){
+					if (resp.getError() != null) {
 						throw resp.getError();
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.log(Level.SEVERE, "Failed to run scheduled task", e);
 				}
 			}
 			
@@ -241,12 +245,15 @@ class ClockScheduler implements Scheduler, Runnable {
 		@SuppressWarnings("unchecked")
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
 				.get("_taskList");
-//		System.err.println("ClockSchedulerFactory to String called:"+((timeline != null) ? timeline.toString() : "[]"));
+		// System.err.println("ClockSchedulerFactory to String called:"+((timeline
+		// != null) ? timeline.toString() : "[]"));
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
 
 class TaskEntry implements Comparable<TaskEntry>, Serializable {
+	private static final Logger	LOG					= Logger.getLogger(TaskEntry.class
+															.getCanonicalName());
 	private static final long	serialVersionUID	= -2402975617148459433L;
 	// TODO, make JSONRequest.equals() state something about real equal tasks,
 	// use it as deduplication!
@@ -301,21 +308,21 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	public long getInterval() {
 		return interval;
 	}
-
+	
 	public boolean isSequential() {
 		return sequential;
 	}
-
+	
 	public boolean isActive() {
 		return active;
 	}
-
+	
 	@Override
 	public String toString() {
 		try {
 			return JOM.getInstance().writeValueAsString(this);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "Couldn't use Jackson to print task.", e);
 			return "{\"taskId\":" + taskId + ",\"due\":" + due + "}";
 		}
 	}

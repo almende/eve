@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -22,11 +24,11 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 
 public class HttpService implements TransportService {
-	protected Config		config		= null;
-	protected String		servletUrl	= null;
-	protected List<String>	protocols	= Arrays.asList("http", "https");
-	
-	// protected List<String> protocols = new ArrayList<String>();
+	private static final Logger	LOG			= Logger.getLogger(HttpService.class
+													.getCanonicalName());
+	protected Config			config		= null;
+	protected String			servletUrl	= null;
+	protected List<String>		protocols	= Arrays.asList("http", "https");
 	
 	public HttpService() {
 	}
@@ -227,7 +229,7 @@ public class HttpService implements TransportService {
 								"UTF-8");
 					}
 				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
+					LOG.log(Level.WARNING,"",e);
 				}
 			}
 		}

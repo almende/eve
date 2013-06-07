@@ -15,7 +15,7 @@ public interface JSONAuthorizor {
 	 * @param functionTag
 	 * @return
 	 */
-	public boolean onAccess(String senderId, String functionTag);
+	boolean onAccess(String senderId, String functionTag);
 	
 	/**
 	 * Internal method, implementing this method allows adding authorization to
@@ -26,6 +26,6 @@ public interface JSONAuthorizor {
 	 * @param senderId
 	 * @return
 	 */
-	public boolean onAccess(String senderId);
+	boolean onAccess(String senderId);
 	 
 }

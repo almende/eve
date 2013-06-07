@@ -46,7 +46,7 @@ public class AgentCache {
 			//System.err.println("Added:"+agent.getId());
 		}
 	}
-	static protected void evict(int amount){
+	protected static void evict(int amount){
 		synchronized(cache){
 			Collections.sort(scores);
 			ArrayList<MetaInfo> toEvict = new ArrayList<MetaInfo>(amount);
@@ -61,7 +61,7 @@ public class AgentCache {
 			//System.err.println("Evicted:"+amount+" records");
 		}
 	}
-	static public void delete(String agentId) {
+	public static void delete(String agentId) {
 		cache.remove(agentId);
 	}
 }

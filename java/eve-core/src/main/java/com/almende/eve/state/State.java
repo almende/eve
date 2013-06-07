@@ -8,18 +8,18 @@ import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 
 public interface State extends Map<String, Serializable> {
-	public static String KEY_AGENT_TYPE = "_type"; // key name for agent type
+	String KEY_AGENT_TYPE = "_type"; // key name for agent type
 
-	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal);
-	public void init();     // executed once after the agent is instantiated
-	public void destroy();  // executed once before the agent is destroyed
-	public String getAgentId();
-	public void setAgentType(Class<?> agentType);
-	public Class<?> getAgentType() throws ClassNotFoundException;
+	boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal);
+	void init();     // executed once after the agent is instantiated
+	void destroy();  // executed once before the agent is destroyed
+	String getAgentId();
+	void setAgentType(Class<?> agentType);
+	Class<?> getAgentType() throws ClassNotFoundException;
 	
-	public <T>T get(String key,Class<T> type);
-	public <T>T get(String key, Type type);
-	public <T>T get(String key, JavaType type);
-	public <T>T get(String key, TypeUtil<T> type);
-	public <T>T get(T ret, String key);
+	<T>T get(String key,Class<T> type);
+	<T>T get(String key, Type type);
+	<T>T get(String key, JavaType type);
+	<T>T get(String key, TypeUtil<T> type);
+	<T>T get(T ret, String key);
 }

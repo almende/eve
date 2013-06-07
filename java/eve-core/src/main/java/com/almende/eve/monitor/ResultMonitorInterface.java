@@ -21,7 +21,7 @@ public interface ResultMonitorInterface {
 	 * @param monitorId
 	 * @throws Exception
 	 */
-	public void doPoll(@Name("monitorId") String monitorId) throws Exception;
+	void doPoll(@Name("monitorId") String monitorId) throws Exception;
 	
 	/**
 	 * Callback method for monitoring framework, doing the work for pushing data
@@ -30,7 +30,7 @@ public interface ResultMonitorInterface {
 	 * @param pushParams
 	 * @throws Exception
 	 */
-	public void doPush(@Name("pushParams") ObjectNode pushParams,@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws Exception;
+	void doPush(@Name("pushParams") ObjectNode pushParams,@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws Exception;
 	
 	/**
 	 * Callback method for the monitoring framework, doing the work for
@@ -39,7 +39,7 @@ public interface ResultMonitorInterface {
 	 * @param result
 	 * @param monitorId
 	 */
-	public void callbackPush(@Name("result") Object result,
+	void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId, @Name("callbackParams") ObjectNode callbackParams);
 	
 	/**
@@ -51,7 +51,7 @@ public interface ResultMonitorInterface {
 	 * @param senderUrl
 	 * @return
 	 */
-	public List<String> registerPush(@Name("params") ObjectNode pushParams,
+	List<String> registerPush(@Name("params") ObjectNode pushParams,
 			@Sender String senderUrl);
 	
 	/**
@@ -59,7 +59,7 @@ public interface ResultMonitorInterface {
 	 * 
 	 * @param id
 	 */
-	public void unregisterPush(@Name("pushId") String id);
+	void unregisterPush(@Name("pushId") String id);
 	
 	
 	/**
@@ -76,7 +76,7 @@ public interface ResultMonitorInterface {
 	 * @return
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public String create(URI url, String method, ObjectNode params,
+	String create(URI url, String method, ObjectNode params,
 			String callbackMethod, ResultMonitorConfigType... confs);
 	
 	/**
@@ -85,7 +85,7 @@ public interface ResultMonitorInterface {
 	 * @param monitorId
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void cancel(String monitorId);
+	void cancel(String monitorId);
 	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
@@ -100,7 +100,7 @@ public interface ResultMonitorInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+	<T> T getResult(String monitorId, ObjectNode filter_parms,
 			JavaType returnType) throws Exception;
 	
 	/**
@@ -116,6 +116,6 @@ public interface ResultMonitorInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+	<T> T getResult(String monitorId, ObjectNode filter_parms,
 			Class<T> returnType) throws Exception;
 }

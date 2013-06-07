@@ -35,50 +35,50 @@ public abstract class FileState extends AbstractState {
 	 * init is executed once before the agent method is invoked
 	 */
 	@Override
-	abstract public void init();
+	public abstract void init();
 	
 	/**
 	 * destroy is executed once after the agent method is invoked
 	 * if the properties are changed, they will be saved
 	 */
 	@Override
-	abstract public void destroy();
+	public abstract void destroy();
 
 	@Override
-	abstract public void clear();
+	public abstract void clear();
 
 	@Override
-	abstract public Set<String> keySet();
+	public abstract Set<String> keySet();
 
 	@Override
-	abstract public boolean containsKey(Object key);
+	public abstract boolean containsKey(Object key);
 
 	@Override
-	abstract public boolean containsValue(Object value);
+	public abstract boolean containsValue(Object value);
 	
 	@Override
-	abstract public Set<java.util.Map.Entry<String, Serializable>> entrySet();
+	public abstract Set<java.util.Map.Entry<String, Serializable>> entrySet();
 
 	@Override
-	abstract public Serializable get(Object key);
+	public abstract Serializable get(Object key);
 
 	@Override
-	abstract public boolean isEmpty();
+	public abstract boolean isEmpty();
 
 	@Override
-	abstract public Serializable put(String key, Serializable value);
+	public abstract Serializable put(String key, Serializable value);
 
 	@Override
-	abstract public void putAll(Map<? extends String, ? extends Serializable> map);
+	public abstract void putAll(Map<? extends String, ? extends Serializable> map);
 
 	@Override
-	abstract public Serializable remove(Object key);
+	public abstract Serializable remove(Object key);
 
 	
 	@Override
-	abstract public int size();
+	public abstract int size();
 	
 	@Override
-	abstract public Collection<Serializable> values();
+	public abstract Collection<Serializable> values();
 	
 }

@@ -66,7 +66,7 @@ public class AnnotationUtil {
 	 * @throws Exception 
 	 * @throws SecurityException 
 	 */
-	public static AnnotatedClass get(Class<?> clazz) throws SecurityException, Exception {
+	public static AnnotatedClass get(Class<?> clazz) {
 		final boolean includeObject = false;
 		return get(clazz, includeObject);
 	}
@@ -82,7 +82,7 @@ public class AnnotationUtil {
 	 * @throws Exception 
 	 * @throws SecurityException 
 	 */
-	public static AnnotatedClass get(Class<?> clazz, boolean includeObject) throws SecurityException, Exception {
+	public static AnnotatedClass get(Class<?> clazz, boolean includeObject) {
 		Map<String, AnnotatedClass> _cache = includeObject ? cacheIncludingObject : cache;
 		AnnotatedClass annotatedClazz = _cache.get(clazz.getName());
 		if (annotatedClazz == null) {
@@ -108,7 +108,7 @@ public class AnnotationUtil {
 		 * @throws Exception 
 		 * @throws SecurityException 
 		 */
-		public AnnotatedClass(Class<?> clazz, boolean includeObject) throws SecurityException, Exception {
+		public AnnotatedClass(Class<?> clazz, boolean includeObject) {
 			this.clazz = clazz;
 			merge(clazz, includeObject);
 		}
@@ -123,7 +123,7 @@ public class AnnotationUtil {
 		 * @throws Exception 
 		 * @throws SecurityException 
 		 */
-		private void merge(Class<?> clazz, boolean includeObject) throws SecurityException, Exception {
+		private void merge(Class<?> clazz, boolean includeObject) {
 			Class<?> c = clazz;
 			while (c != null && (includeObject || c != Object.class)) {
 				// merge the annotations
@@ -226,7 +226,7 @@ public class AnnotationUtil {
 		private List<Annotation> annotations = new ArrayList<Annotation>();
 		private List<AnnotatedParam> params = new ArrayList<AnnotatedParam>();
 		
-		public AnnotatedMethod(Method method) throws Exception {
+		public AnnotatedMethod(Method method) {
 			this.method = method;
 			this.name = method.getName();
 			this.returnType = method.getReturnType();
@@ -418,7 +418,7 @@ public class AnnotationUtil {
 	 * @param listB
 	 * @throws Exception 
 	 */
-	private static void merge(List<AnnotatedMethod> listA, Method[] listB) throws Exception {
+	private static void merge(List<AnnotatedMethod> listA, Method[] listB) {
 		for (Method b : listB) {
 			AnnotatedMethod methodAnnotations = null;
 			for (AnnotatedMethod a : listA) {
@@ -453,7 +453,7 @@ public class AnnotationUtil {
 			return false;
 		}
 		
-		Class<?>[] paramsa = a.getParameterTypes();;
+		Class<?>[] paramsa = a.getParameterTypes();
         Class<?>[] paramsb = b.getParameterTypes();
         if (paramsa.length != paramsb.length) {
         	return false;

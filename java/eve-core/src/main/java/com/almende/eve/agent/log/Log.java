@@ -5,9 +5,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -22,7 +19,7 @@ public class Log implements Serializable {
 	private String params = null;
 
 	public Log(String agentId, String event, Object params) 
-			throws JsonGenerationException, JsonMappingException, IOException {
+			throws IOException {
 		this.setTimestamp(new Date().getTime());
 		this.setAgentId(agentId);
 		this.setEvent(event);
@@ -54,13 +51,13 @@ public class Log implements Serializable {
 	}
 
 	public void setParams(Object params) 
-			throws JsonGenerationException, JsonMappingException, IOException {
+			throws IOException {
 		ObjectMapper mapper = JOM.getInstance();
 		this.params = mapper.writeValueAsString(params);
 	}
 
 	public Object getParams() 
-			throws JsonParseException, JsonMappingException, IOException {
+			throws IOException {
 		ObjectMapper mapper = JOM.getInstance();
 		return mapper.readValue(params, Object.class);
 	}

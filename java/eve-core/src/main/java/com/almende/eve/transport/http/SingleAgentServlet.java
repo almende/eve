@@ -2,6 +2,7 @@ package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
@@ -21,7 +22,7 @@ import com.almende.util.StringUtil;
 
 @SuppressWarnings("serial")
 public class SingleAgentServlet extends HttpServlet {
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	private static final Logger LOG = Logger.getLogger(SingleAgentServlet.class.getSimpleName());
 	
 	private AgentFactory agentFactory = null;
 	private HttpService httpTransport = null;
@@ -39,7 +40,7 @@ public class SingleAgentServlet extends HttpServlet {
 			initAgentFactory();
 			initAgent();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 	}
 	
@@ -123,12 +124,12 @@ public class SingleAgentServlet extends HttpServlet {
 			String filename = getInitParameter("config");
 			if (filename == null) {
 				filename = "eve.yaml";
-				logger.warning(
+				LOG.warning(
 					"Init parameter 'config' missing in servlet configuration web.xml. " +
 					"Trying default filename '" + filename + "'.");
 			}
 			String fullname = "/WEB-INF/" + filename;
-			logger.info("loading configuration file '" + 
+			LOG.info("loading configuration file '" + 
 					getServletContext().getRealPath(fullname) + "'...");
 			Config config = new Config(getServletContext().getResourceAsStream(fullname));
 
@@ -192,9 +193,9 @@ public class SingleAgentServlet extends HttpServlet {
 			}
 			
 			agent = agentFactory.createAgent(agentType, agentId);
-			logger.info("Agent created: " + agent.toString());
+			LOG.info("Agent created: " + agent.toString());
 		}
 
-		logger.info("Agent initialized: " + agent.toString());
+		LOG.info("Agent initialized: " + agent.toString());
 	}
 }

@@ -24,7 +24,6 @@ public class Poll implements ResultMonitorConfigType {
 		params.put("monitorId",monitor.id);
 		JSONRequest request = new JSONRequest("monitor.doPoll",params);
 		
-		System.err.println("Setting scheduler task");
 		return agent.getScheduler().createTask(request, interval, true, false);
 	}
 }

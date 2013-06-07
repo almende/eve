@@ -7,14 +7,13 @@ import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.StateEntry;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 public class TypeUtil<T> {
-	final static Logger logger = Logger.getLogger(TypeUtil.class.getName());
+	static final Logger LOG = Logger.getLogger(TypeUtil.class.getName());
 	
 	private final JavaType valueType;
 	
@@ -33,14 +32,14 @@ public class TypeUtil<T> {
 		return inject(valueType, value);
 	}
 
-	public static <T> T inject(Class<T> type, Object value) throws ClassCastException {
+	public static <T> T inject(Class<T> type, Object value) {
 		return inject(JOM.getTypeFactory().constructType(type),value);
 	}
-	public static <T> T inject(Type type, Object value) throws ClassCastException {
+	public static <T> T inject(Type type, Object value) {
 		return inject(JOM.getTypeFactory().constructType(type),value);
 	}
 	@SuppressWarnings("unchecked")
-	public static <T> T inject(JavaType full_type, Object value) throws ClassCastException {
+	public static <T> T inject(JavaType full_type, Object value) {
 		if (value == null) return null;
 		if (full_type.hasRawClass(Void.class)) return null;
 		ObjectMapper mapper = JOM.getInstance();
@@ -49,7 +48,7 @@ public class TypeUtil<T> {
 		}
 		return (T) full_type.getRawClass().cast(value);
 	}
-	public static <T> T inject(T ret, Object value) throws JsonProcessingException, IOException, ClassCastException{
+	public static <T> T inject(T ret, Object value) throws IOException {
 		ObjectMapper mapper = JOM.getInstance();
 		if (ret != null){
 			if (value instanceof JsonNode){
@@ -57,11 +56,11 @@ public class TypeUtil<T> {
 				try {
 					return reader.readValue((JsonNode)value);
 				} catch (UnsupportedOperationException e1){
-					logger.log(Level.WARNING,"Trying to update unmodifiable object",e1);
+					LOG.log(Level.WARNING,"Trying to update unmodifiable object",e1);
 					return inject(ret.getClass().getGenericSuperclass(),value);
 				}
 			} else {
-				logger.log(Level.WARNING,"Can't update object with non-JSON value.");
+				LOG.log(Level.WARNING,"Can't update object with non-JSON value.");
 				return inject(ret.getClass().getGenericSuperclass(),value);
 			}
 		} 

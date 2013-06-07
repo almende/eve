@@ -32,14 +32,16 @@ import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.AnnotationUtil.AnnotatedParam;
 import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class JSONRPC {
-	static private Logger logger = Logger.getLogger(JSONRPC.class.getName());
+public final class JSONRPC {
+	private JSONRPC() {
+	}
+	
+	private static Logger	logger	= Logger.getLogger(JSONRPC.class.getName());
+	
 	// TODO: implement JSONRPC 2.0 Batch
 	/**
 	 * Invoke a method on an object
@@ -53,11 +55,11 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(Object destination, String request, JSONAuthorizor auth)
-			throws JsonGenerationException, JsonMappingException, IOException {
+	public static String invoke(Object destination, String request,
+			JSONAuthorizor auth) throws IOException {
 		return invoke(destination, request, null, auth);
 	}
-
+	
 	/**
 	 * Invoke a method on an object
 	 * 
@@ -72,9 +74,9 @@ public class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	static public String invoke(Object destination, String request,
-			RequestParams requestParams, JSONAuthorizor auth) throws JsonGenerationException,
-			JsonMappingException, IOException {
+	public static String invoke(Object destination, String request,
+			RequestParams requestParams, JSONAuthorizor auth)
+			throws IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
@@ -83,10 +85,10 @@ public class JSONRPC {
 		} catch (JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
 		}
-
+		
 		return jsonResponse.toString();
 	}
-
+	
 	/**
 	 * Invoke a method on an object
 	 * 
@@ -96,10 +98,11 @@ public class JSONRPC {
 	 *            will be invoked on the given object
 	 * @return
 	 */
-	static public JSONResponse invoke(Object destination, JSONRequest request, JSONAuthorizor auth) {
+	public static JSONResponse invoke(Object destination, JSONRequest request,
+			JSONAuthorizor auth) {
 		return invoke(destination, request, null, auth);
 	}
-
+	
 	/**
 	 * Invoke a method on an object
 	 * 
@@ -111,24 +114,27 @@ public class JSONRPC {
 	 *            Optional request parameters
 	 * @return
 	 */
-	static public JSONResponse invoke(Object destination, JSONRequest request,
+	public static JSONResponse invoke(Object destination, JSONRequest request,
 			RequestParams requestParams, JSONAuthorizor auth) {
 		JSONResponse resp = new JSONResponse();
 		resp.setId(request.getId());
-
+		
 		try {
-			CallTuple tuple = NamespaceUtil.get(destination,request.getMethod());
+			CallTuple tuple = NamespaceUtil.get(destination,
+					request.getMethod());
 			Object realDest = tuple.destination;
 			String realMethod = tuple.methodName;
 			
-			AnnotatedMethod annotatedMethod = getMethod(realDest,
-					realMethod, requestParams,auth);
+			AnnotatedMethod annotatedMethod = getMethod(realDest, realMethod,
+					requestParams, auth);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
-						JSONRPCException.CODE.METHOD_NOT_FOUND, "Method '"
-								+ request.getMethod() + "' not found. The method does not exist or you are not authorized.");
+						JSONRPCException.CODE.METHOD_NOT_FOUND,
+						"Method '"
+								+ request.getMethod()
+								+ "' not found. The method does not exist or you are not authorized.");
 			}
-
+			
 			Method method = annotatedMethod.getActualMethod();
 			Object[] params = castParams(request.getParams(),
 					annotatedMethod.getParams(), requestParams);
@@ -137,28 +143,32 @@ public class JSONRPC {
 				result = JOM.createNullNode();
 			}
 			resp.setResult(result);
+		} catch (JSONRPCException err) {
+			resp.setError((JSONRPCException) err);
 		} catch (Exception err) {
-			if (err instanceof JSONRPCException) {
-				resp.setError((JSONRPCException) err);
-			} else if (err.getCause() != null
+			if (err.getCause() != null
 					&& err.getCause() instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) err.getCause());
 			} else {
-				if (err instanceof InvocationTargetException && err.getCause() != null){
+				if (err instanceof InvocationTargetException
+						&& err.getCause() != null) {
 					err = (Exception) err.getCause();
 				}
-				logger.log(Level.WARNING,"Exception raised, returning it as JSONRPCException.",err);
+				logger.log(Level.WARNING,
+						"Exception raised, returning it as JSONRPCException.",
+						err);
 				
 				JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err),err);
+						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err),
+						err);
 				jsonError.setData(err);
 				resp.setError(jsonError);
 			}
 		}
-
+		
 		return resp;
 	}
-
+	
 	/**
 	 * Validate whether the given class contains valid JSON-RPC methods. A class
 	 * if valid when:<br>
@@ -173,15 +183,16 @@ public class JSONRPC {
 	 * @return errors A list with validation errors. When no problems are found,
 	 *         an empty list is returned
 	 */
-	static public List<String> validate(Class<?> c, RequestParams requestParams) {
+	public static List<String> validate(Class<?> c, RequestParams requestParams) {
 		List<String> errors = new ArrayList<String>();
 		Set<String> methodNames = new HashSet<String>();
-
+		
 		AnnotatedClass ac = null;
 		try {
 			ac = AnnotationUtil.get(c);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING,
+					"Class as a whole can't be wrapped for annotation", e);
 			errors.add("Class as a whole can't be wrapped for annotation");
 		}
 		if (ac != null) {
@@ -190,7 +201,10 @@ public class JSONRPC {
 				try {
 					available = isAvailable(method, null, requestParams, null);
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.log(
+							Level.WARNING,
+							"Problems running isAvailable method on annotated class.",
+							e);
 					errors.add("Problems running isAvailable method on annotated class.");
 				}
 				if (available) {
@@ -202,7 +216,7 @@ public class JSONRPC {
 								+ " allowed for JSON-RPC.");
 					}
 					methodNames.add(name);
-
+					
 					// each of the method parameters must have the @Name
 					// annotation
 					List<AnnotatedParam> params = method.getParams();
@@ -215,7 +229,7 @@ public class JSONRPC {
 								matches.add(a);
 							}
 						}
-
+						
 						if (matches.size() == 0) {
 							errors.add("Parameter "
 									+ i
@@ -228,7 +242,7 @@ public class JSONRPC {
 							for (Annotation a : matches) {
 								str += a + " ";
 							}
-
+							
 							errors.add("Parameter " + i + " in public method '"
 									+ name + "' contains " + matches.size()
 									+ " annotations " + "(" + str
@@ -240,18 +254,16 @@ public class JSONRPC {
 		}
 		return errors;
 	}
-
-	private static Map<String,Object> _describe(Object c, RequestParams requestParams, Boolean asString, String namespace){
+	
+	private static Map<String, Object> _describe(Object c,
+			RequestParams requestParams, Boolean asString, String namespace) {
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
 			
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
-//			System.err.println("Describing:"+c.getName());
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
-//				System.err.print(".");
 				if (isAvailable(method, null, requestParams, null)) {
-//					System.err.print(";");
-					if (asString == null || asString != true) {
+					if (asString != true) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
 						for (AnnotatedParam param : method.getParams()) {
@@ -265,13 +277,14 @@ public class JSONRPC {
 								descParams.add(paramData);
 							}
 						}
-
+						
 						Map<String, Object> result = new HashMap<String, Object>();
 						result.put("type",
 								typeToString(method.getGenericReturnType()));
-
+						
 						Map<String, Object> desc = new HashMap<String, Object>();
-						String methodName = namespace.equals("")?method.getName():namespace+"."+method.getName(); 
+						String methodName = namespace.equals("") ? method
+								.getName() : namespace + "." + method.getName();
 						desc.put("method", methodName);
 						desc.put("params", descParams);
 						desc.put("result", result);
@@ -299,13 +312,16 @@ public class JSONRPC {
 					}
 				}
 			}
-			for (AnnotatedMethod method : annotatedClass.getAnnotatedMethods(Namespace.class)){
-				String innerNamespace = method.getAnnotation(Namespace.class).value();
-				methods.putAll(_describe(method.getActualMethod().invoke(c, (Object[]) null),requestParams,asString,innerNamespace));
+			for (AnnotatedMethod method : annotatedClass
+					.getAnnotatedMethods(Namespace.class)) {
+				String innerNamespace = method.getAnnotation(Namespace.class)
+						.value();
+				methods.putAll(_describe(
+						method.getActualMethod().invoke(c, (Object[]) null),
+						requestParams, asString, innerNamespace));
 			}
-//			System.err.println("Returning:"+methods+" for "+c.getName());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "Failed to describe class", e);
 			return null;
 		}
 		return methods;
@@ -319,15 +335,16 @@ public class JSONRPC {
 	 * @param requestParams
 	 *            Optional request parameters.
 	 * @param asString
-	 *            If false (default), the returned description is a JSON 
-	 *            structure. If true, the described methods will be in an easy 
-	 *            to read string. 
+	 *            If false (default), the returned description is a JSON
+	 *            structure. If true, the described methods will be in an easy
+	 *            to read string.
 	 * @return
 	 */
-	public static List<Object> describe(Object c,
-			RequestParams requestParams, Boolean asString) {
+	public static List<Object> describe(Object c, RequestParams requestParams,
+			Boolean asString) {
 		try {
-			Map<String, Object> methods = _describe(c,requestParams,asString,"");
+			Map<String, Object> methods = _describe(c, requestParams, asString,
+					"");
 			
 			// create a sorted array
 			List<Object> sortedMethods = new ArrayList<Object>();
@@ -337,11 +354,11 @@ public class JSONRPC {
 			}
 			return sortedMethods;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "Failed to describe class", e);
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Get type description from a class. Returns for example "String" or
 	 * "List<String>".
@@ -351,52 +368,41 @@ public class JSONRPC {
 	 */
 	private static String typeToString(Type c) {
 		String s = c.toString();
-
+		
 		// replace full namespaces to short names
-		int point = s.lastIndexOf(".");
+		int point = s.lastIndexOf('.');
 		while (point >= 0) {
-			int angle = s.lastIndexOf("<", point);
-			int space = s.lastIndexOf(" ", point);
+			int angle = s.lastIndexOf('<', point);
+			int space = s.lastIndexOf(' ', point);
 			int start = Math.max(angle, space);
 			s = s.substring(0, start + 1) + s.substring(point + 1);
-			point = s.lastIndexOf(".");
+			point = s.lastIndexOf('.');
 		}
-
+		
 		// remove modifiers like "class blabla" or "interface blabla"
-		int space = s.indexOf(" ");
-		int angle = s.indexOf("<", point);
+		int space = s.indexOf(' ');
+		int angle = s.indexOf('<', point);
 		if (space >= 0 && (angle < 0 || angle > space)) {
 			s = s.substring(space + 1);
 		}
-
+		
 		return s;
-
-		/*
-		 * // TODO: do some more professional reflection... String s =
-		 * c.getSimpleName();
-		 * 
-		 * // the following seems not to work TypeVariable<?>[] types =
-		 * c.getTypeParameters(); if (types.length > 0) { s += "<"; for (int j =
-		 * 0; j < types.length; j++) { TypeVariable<?> jj = types[j]; s +=
-		 * jj.getName(); ... not working //s +=
-		 * types[j].getClass().getSimpleName(); } s += ">"; }
-		 */
 	}
-
+	
 	/**
 	 * Retrieve a description of an error
 	 * 
 	 * @param error
 	 * @return message String with the error description of the cause
 	 */
-	static private String getMessage(Throwable error) {
+	private static String getMessage(Throwable error) {
 		Throwable cause = error;
 		while (cause.getCause() != null) {
 			cause = cause.getCause();
 		}
 		return cause.toString();
 	}
-
+	
 	/**
 	 * Find a method by name, which is available for JSON-RPC, and has named
 	 * parameters
@@ -406,12 +412,12 @@ public class JSONRPC {
 	 * @param requestParams
 	 * @return methodType meta information on the method, or null if not found
 	 */
-	static private AnnotatedMethod getMethod(Object destination,
-			String method, RequestParams requestParams, JSONAuthorizor auth) {
+	private static AnnotatedMethod getMethod(Object destination, String method,
+			RequestParams requestParams, JSONAuthorizor auth) {
 		AnnotatedClass annotatedClass;
 		try {
 			annotatedClass = AnnotationUtil.get(destination.getClass());
-
+			
 			List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
 			for (AnnotatedMethod m : methods) {
 				if (isAvailable(m, destination, requestParams, auth)) {
@@ -419,11 +425,11 @@ public class JSONRPC {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "GetMethod failed:", e);
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Cast a JSONArray or JSONObject params to the desired paramTypes
 	 * 
@@ -433,18 +439,17 @@ public class JSONRPC {
 	 * @return
 	 * @throws Exception
 	 */
-	static private Object[] castParams(Object params,
-			List<AnnotatedParam> annotatedParams, RequestParams requestParams)
-			throws Exception {
+	private static Object[] castParams(Object params,
+			List<AnnotatedParam> annotatedParams, RequestParams requestParams) {
 		ObjectMapper mapper = JOM.getInstance();
-
+		
 		if (annotatedParams.size() == 0) {
 			return new Object[0];
 		}
-
+		
 		if (params instanceof ObjectNode) {
 			// JSON-RPC 2.0 with named parameters in a JSONObject
-
+			
 			if (annotatedParams.size() == 1
 					&& annotatedParams.get(0).getType()
 							.equals(ObjectNode.class)
@@ -456,11 +461,11 @@ public class JSONRPC {
 				return objects;
 			} else {
 				ObjectNode paramsObject = (ObjectNode) params;
-
+				
 				Object[] objects = new Object[annotatedParams.size()];
 				for (int i = 0; i < annotatedParams.size(); i++) {
 					AnnotatedParam p = annotatedParams.get(i);
-
+					
 					Annotation a = getRequestAnnotation(p, requestParams);
 					if (a != null) {
 						// this is a systems parameter
@@ -474,12 +479,12 @@ public class JSONRPC {
 										paramsObject.get(name), p.getType());
 							} else {
 								if (isRequired(p)) {
-									throw new Exception("Required parameter '"
-											+ name + "' missing");
-								}
-								// else if (paramType.getSuperclass() == null) {
-								else if (p.getType().isPrimitive()) {
-									throw new Exception("Parameter '" + name
+									throw new ClassCastException(
+											"Required parameter '" + name
+													+ "' missing");
+								} else if (p.getType().isPrimitive()) {
+									throw new ClassCastException("Parameter '"
+											+ name
 											+ "' cannot be both optional and "
 											+ "a primitive type ("
 											+ p.getType().getSimpleName() + ")");
@@ -489,18 +494,18 @@ public class JSONRPC {
 							}
 						} else {
 							// this is a problem
-							throw new Exception("Name of parameter " + i
-									+ " not defined");
+							throw new ClassCastException("Name of parameter "
+									+ i + " not defined");
 						}
 					}
 				}
 				return objects;
 			}
 		} else {
-			throw new Exception("params must be a JSONObject");
+			throw new ClassCastException("params must be a JSONObject");
 		}
 	}
-
+	
 	/**
 	 * Create a JSONRequest from a java method and arguments
 	 * 
@@ -513,14 +518,15 @@ public class JSONRPC {
 		try {
 			annotatedMethod = new AnnotationUtil.AnnotatedMethod(method);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING,
+					"Method can't be used as annotated method", e);
 			throw new IllegalArgumentException("Method '" + method.getName()
-					+ "' can't be used as annotated method.");
+					+ "' can't be used as annotated method.", e);
 		}
 		List<AnnotatedParam> annotatedParams = annotatedMethod.getParams();
-
+		
 		ObjectNode params = JOM.createObjectNode();
-
+		
 		for (int i = 0; i < annotatedParams.size(); i++) {
 			AnnotatedParam annotatedParam = annotatedParams.get(i);
 			if (i < args.length && args[i] != null) {
@@ -542,15 +548,21 @@ public class JSONRPC {
 		String id = UUID.randomUUID().toString();
 		return new JSONRequest(id, method.getName(), params);
 	}
-
-	public static boolean hasPrivate(Class<?> clazz) throws SecurityException, Exception{
+	
+	public static boolean hasPrivate(Class<?> clazz) {
 		AnnotatedClass annotated = AnnotationUtil.get(clazz);
-		for (Annotation anno: annotated.getAnnotations()){
-			if (anno.annotationType().equals(Access.class) && ((Access)anno).value() == AccessType.PRIVATE) return true;
-			if (anno.annotationType().equals(Sender.class)) return true;
+		for (Annotation anno : annotated.getAnnotations()) {
+			if (anno.annotationType().equals(Access.class)
+					&& ((Access) anno).value() == AccessType.PRIVATE) {
+				return true;
+			}
+			if (anno.annotationType().equals(Sender.class)) {
+				return true;
+			}
 		}
 		return false;
 	}
+	
 	/**
 	 * Check whether a method is available for JSON-RPC calls. This is the case
 	 * when it is public, has named parameters, and has no annotation
@@ -560,46 +572,45 @@ public class JSONRPC {
 	 * @param annotatedMethod
 	 * @param requestParams
 	 * @return available
-	 * @throws Exception 
-	 * @throws SecurityException 
 	 */
-	private static boolean isAvailable(AnnotatedMethod method, Object destination,
-			RequestParams requestParams, JSONAuthorizor auth) throws SecurityException, Exception {
-
-		int mod = method.getActualMethod().getModifiers(); 
+	private static boolean isAvailable(AnnotatedMethod method,
+			Object destination, RequestParams requestParams, JSONAuthorizor auth) {
 		
-		Access MethodAccess = method.getAnnotation(Access.class);
-		if (destination != null && !method.getActualMethod().getDeclaringClass().isAssignableFrom(destination.getClass())){
-//			System.err.print("1");
+		int mod = method.getActualMethod().getModifiers();
+		
+		Access methodAccess = method.getAnnotation(Access.class);
+		if (destination != null
+				&& !method.getActualMethod().getDeclaringClass()
+						.isAssignableFrom(destination.getClass())) {
 			return false;
 		}
-		if (!(Modifier.isPublic(mod) && hasNamedParams(method, requestParams))){
-//			System.err.print("2");
+		if (!(Modifier.isPublic(mod) && hasNamedParams(method, requestParams))) {
 			return false;
 		}
-
-		Access ClassAccess = AnnotationUtil.get(destination != null?destination.getClass():method.getActualMethod().getDeclaringClass())
-				.getAnnotation(Access.class);
-		if (MethodAccess == null)
-			MethodAccess = ClassAccess;
-		if (MethodAccess == null){
-//			System.err.print("3");
-			return false; //New default: UNAVAILABLE!
+		
+		Access classAccess = AnnotationUtil.get(
+				destination != null ? destination.getClass() : method
+						.getActualMethod().getDeclaringClass()).getAnnotation(
+				Access.class);
+		if (methodAccess == null) {
+			methodAccess = classAccess;
 		}
-		if (MethodAccess.value() == AccessType.UNAVAILABLE){
-//			System.err.print("4");
+		if (methodAccess == null) {
+			// New default: UNAVAILABLE!
+			return false; 
+		}
+		if (methodAccess.value() == AccessType.UNAVAILABLE) {
 			return false;
 		}
-			
-		if (MethodAccess.value() == AccessType.PRIVATE) {
-//			System.err.print("5");
-			return auth!= null?auth.onAccess((String) requestParams.get(Sender.class),
-							MethodAccess.tag()):false;
+		
+		if (methodAccess.value() == AccessType.PRIVATE) {
+			return auth != null ? auth.onAccess(
+					(String) requestParams.get(Sender.class),
+					methodAccess.tag()) : false;
 		}
-//		System.err.print("6");
 		return true;
 	}
-
+	
 	/**
 	 * Test whether a method has named parameters
 	 * 
@@ -620,14 +631,14 @@ public class JSONRPC {
 					break;
 				}
 			}
-
+			
 			if (!found) {
 				return false;
 			}
 		}
 		return true;
 	}
-
+	
 	/**
 	 * Test if a parameter is required Reads the parameter annotation @Required.
 	 * Returns True if the annotation is not provided.
@@ -643,7 +654,7 @@ public class JSONRPC {
 		}
 		return required;
 	}
-
+	
 	/**
 	 * Get the name of a parameter Reads the parameter annotation @Name. Returns
 	 * null if the annotation is not provided.
@@ -659,7 +670,7 @@ public class JSONRPC {
 		}
 		return name;
 	}
-
+	
 	/**
 	 * Find a request annotation in the given parameters Returns null if no
 	 * system annotation is not found

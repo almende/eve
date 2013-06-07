@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.params.ClientPNames;
@@ -34,33 +36,35 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
 
 public class ApacheHttpClient {
-	static DefaultHttpClient httpClient = null;
-
-	private ApacheHttpClient() throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException{
+	private static final Logger			LOG			= Logger.getLogger(ApacheHttpClient.class
+															.getCanonicalName());
+	private static DefaultHttpClient	httpClient	= null;
+	
+	private ApacheHttpClient() throws KeyManagementException,
+			UnrecoverableKeyException, NoSuchAlgorithmException,
+			KeyStoreException {
 		// Allow self-signed SSL certificates:
 		TrustStrategy trustStrategy = new TrustSelfSignedStrategy();
 		X509HostnameVerifier hostnameVerifier = new AllowAllHostnameVerifier();
 		SSLSocketFactory sslSf = new SSLSocketFactory(trustStrategy,
-					hostnameVerifier);
+				hostnameVerifier);
 		Scheme https = new Scheme("https", 443, sslSf);
-
-		SchemeRegistry schemeRegistry = SchemeRegistryFactory
-				.createDefault();
+		
+		SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
 		schemeRegistry.register(https);
-
+		
 		// Work with PoolingClientConnectionManager
 		ClientConnectionManager connection = new PoolingClientConnectionManager(
 				schemeRegistry);
-
+		
 		// generate httpclient
 		httpClient = new DefaultHttpClient(connection);
 		
-		//Set cookie policy and persistent cookieStore
+		// Set cookie policy and persistent cookieStore
 		try {
 			httpClient.setCookieStore(new MyCookieStore());
 		} catch (Exception e) {
-			System.err.println("Failed to initialize persistent cookieStore!");
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"Failed to initialize persistent cookieStore!",e);
 		}
 		HttpParams params = httpClient.getParams();
 		
@@ -71,21 +75,25 @@ public class ApacheHttpClient {
 		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		httpClient.setParams(params);
 	}
-	static DefaultHttpClient get() throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+	
+	static DefaultHttpClient get() throws KeyManagementException,
+			UnrecoverableKeyException, NoSuchAlgorithmException,
+			KeyStoreException {
 		if (httpClient == null) {
 			new ApacheHttpClient();
 		}
 		return httpClient;
 	}
+	
 	class MyCookieStore implements CookieStore {
-		//TODO: make StateFactory and COOKIESTORE config parameters
+		// TODO: make StateFactory and COOKIESTORE config parameters
 		
-		static final String COOKIESTORE = "_CookieStore";
-		State myState = null;
+		static final String	COOKIESTORE	= "_CookieStore";
+		State				myState		= null;
 		
-		MyCookieStore() throws Exception{
+		MyCookieStore() throws Exception {
 			FileStateFactory factory = new FileStateFactory(".evecookies");
-			if (factory.exists(COOKIESTORE)){
+			if (factory.exists(COOKIESTORE)) {
 				myState = factory.get(COOKIESTORE);
 			} else {
 				myState = factory.create(COOKIESTORE);
@@ -94,34 +102,37 @@ public class ApacheHttpClient {
 		
 		@Override
 		public void addCookie(Cookie cookie) {
-			myState.put(new Integer(COOKIESTORE.hashCode()).toString(),(BasicClientCookie)cookie);
+			myState.put(new Integer(COOKIESTORE.hashCode()).toString(),
+					(BasicClientCookie) cookie);
 		}
+		
 		@Override
 		public List<Cookie> getCookies() {
 			List<Cookie> result = new ArrayList<Cookie>(myState.size());
-			for (Entry<String,Serializable> entry : myState.entrySet()){
+			for (Entry<String, Serializable> entry : myState.entrySet()) {
 				result.add((Cookie) entry.getValue());
 			}
 			return result;
 		}
+		
 		@Override
 		public boolean clearExpired(Date date) {
-			Iterator<Entry<String, Serializable>> iter = myState.entrySet().iterator();
-			boolean result=false;
-			while (iter.hasNext()){
-				Entry<String,Serializable> next= iter.next();
-				if (((Cookie)next.getValue()).isExpired(date)){
+			Iterator<Entry<String, Serializable>> iter = myState.entrySet()
+					.iterator();
+			boolean result = false;
+			while (iter.hasNext()) {
+				Entry<String, Serializable> next = iter.next();
+				if (((Cookie) next.getValue()).isExpired(date)) {
 					iter.remove();
-					result=true;
+					result = true;
 				}
 			}
 			return result;
 		}
-
+		
 		@Override
 		public void clear() {
 			myState.clear();
 		}
 	}
 }
-

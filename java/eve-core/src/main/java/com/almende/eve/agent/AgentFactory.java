@@ -202,7 +202,7 @@ public class AgentFactory {
 	 * @param config
 	 * @return factory
 	 */
-	public static synchronized AgentFactory createInstance(Config config){
+	public static synchronized AgentFactory createInstance(Config config) {
 		return createInstance(null, config);
 	}
 	
@@ -212,7 +212,7 @@ public class AgentFactory {
 	 * @param namespace
 	 * @return factory
 	 */
-	public static synchronized AgentFactory createInstance(String namespace){
+	public static synchronized AgentFactory createInstance(String namespace) {
 		return createInstance(namespace, null);
 	}
 	
@@ -296,8 +296,9 @@ public class AgentFactory {
 	 * @throws SecurityException
 	 */
 	public Agent getAgent(String agentId) throws JSONRPCException,
-			ClassNotFoundException, InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException {
+			ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException {
 		if (agentId == null) {
 			return null;
 		}
@@ -452,16 +453,19 @@ public class AgentFactory {
 	 *            full class path
 	 * @param agentId
 	 * @return
-	 * @throws ClassNotFoundException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws JSONRPCException 
-	 * @throws IOException  
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws JSONRPCException
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Agent> T createAgent(String agentType, String agentId) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, IOException{
+	public <T extends Agent> T createAgent(String agentType, String agentId)
+			throws JSONRPCException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, ClassNotFoundException, IOException {
 		return (T) createAgent((Class<T>) Class.forName(agentType), agentId);
 	}
 	
@@ -474,15 +478,18 @@ public class AgentFactory {
 	 * @param agentType
 	 * @param agentId
 	 * @return
-	 * @throws JSONRPCException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws IOException 
+	 * @throws JSONRPCException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Agent> T createAgent(Class<T> agentType, String agentId) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException{
+	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
+			throws JSONRPCException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
 		if (!ClassUtil.hasSuperClass(agentType, Agent.class)) {
 			return (T) createAspectAgent(agentType, agentId);
 		}
@@ -521,15 +528,17 @@ public class AgentFactory {
 	 * @param aspect
 	 * @param agentId
 	 * @return
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws JSONRPCException
+	 * @throws IOException
 	 */
 	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
-			String agentId) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
+			String agentId) throws JSONRPCException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
 		@SuppressWarnings("unchecked")
 		AspectAgent<T> result = createAgent(AspectAgent.class, agentId);
 		result.init(aspect);
@@ -540,14 +549,17 @@ public class AgentFactory {
 	 * Delete an agent
 	 * 
 	 * @param agentId
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 * @throws JSONRPCException 
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
+	 * @throws JSONRPCException
 	 */
-	public void deleteAgent(String agentId) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public void deleteAgent(String agentId) throws JSONRPCException,
+			ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException {
 		if (agentId == null) {
 			return;
 		}
@@ -564,7 +576,7 @@ public class AgentFactory {
 			AgentCache.delete(agentId);
 			agent = null;
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"Error deleting agent:"+agentId,e);
+			LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);
 		}
 		
 		// delete the state, even if the agent.destroy or agent.delete
@@ -577,10 +589,9 @@ public class AgentFactory {
 	 * 
 	 * @param agentId
 	 * @return true if the agent exists
-	 * @throws JSONRPCException 
-
+	 * @throws JSONRPCException
 	 */
-	public boolean hasAgent(String agentId) throws JSONRPCException{
+	public boolean hasAgent(String agentId) throws JSONRPCException {
 		return getStateFactory().exists(agentId);
 	}
 	
@@ -633,12 +644,12 @@ public class AgentFactory {
 	 * @param receiverUrl
 	 * @param request
 	 * @return
-	 * @throws JSONRPCException 
-	 * @throws ProtocolException 
-
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 */
 	@Deprecated
-	public JSONResponse send(URI receiverUrl, JSONRequest request) throws ProtocolException, JSONRPCException {
+	public JSONResponse send(URI receiverUrl, JSONRequest request)
+			throws ProtocolException, JSONRPCException {
 		return send(null, receiverUrl, request);
 	}
 	
@@ -696,12 +707,13 @@ public class AgentFactory {
 	 * @param receiverUrl
 	 * @param request
 	 * @param callback
-	 * @throws JSONRPCException 
-	 * @throws ProtocolException 
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 */
 	@Deprecated
 	public void sendAsync(final URI receiverUrl, final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback) throws ProtocolException, JSONRPCException {
+			final AsyncCallback<JSONResponse> callback)
+			throws ProtocolException, JSONRPCException {
 		sendAsync(null, receiverUrl, request, callback);
 	}
 	
@@ -715,12 +727,13 @@ public class AgentFactory {
 	 * @param receiverUrl
 	 * @param request
 	 * @param callback
-	 * @throws JSONRPCException 
-	 * @throws ProtocolException 
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 */
 	public void sendAsync(final AgentInterface sender, final URI receiverUrl,
 			final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback) throws JSONRPCException, ProtocolException {
+			final AsyncCallback<JSONResponse> callback)
+			throws JSONRPCException, ProtocolException {
 		final String receiverId = getAgentId(receiverUrl.toASCIIString());
 		if (doesShortcut && receiverId != null) {
 			// local shortcut
@@ -857,7 +870,7 @@ public class AgentFactory {
 	 *            The environment, for example "Production" or "Development"
 	 * @return
 	 */
-	public final static void setEnvironment(String env) {
+	public static final void setEnvironment(String env) {
 		environment = env;
 	}
 	
@@ -926,7 +939,7 @@ public class AgentFactory {
 		// Recognize known classes by their short name,
 		// and replace the short name for the full class path
 		for (String name : STATE_FACTORIES.keySet()) {
-			if (className.toLowerCase().equals(name.toLowerCase())) {
+			if (className.equalsIgnoreCase(name)) {
 				className = STATE_FACTORIES.get(name);
 				break;
 			}
@@ -950,7 +963,7 @@ public class AgentFactory {
 			setStateFactory(stateFactory);
 			LOG.info("Initialized state factory: " + stateFactory.toString());
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 	}
 	
@@ -978,7 +991,7 @@ public class AgentFactory {
 								+ ", type=" + agentType);
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.log(Level.WARNING,"",e);
 				}
 			}
 		}
@@ -1022,16 +1035,15 @@ public class AgentFactory {
 		}
 		
 		// TODO: remove warning some day (added 2013-01-22)
-		if (className.toLowerCase().equals("RunnableScheduler".toLowerCase())) {
+		if (className.equalsIgnoreCase("RunnableScheduler")) {
 			LOG.warning("Deprecated class RunnableScheduler configured. Use RunnableSchedulerFactory instead to configure a scheduler factory.");
 			className = "RunnableSchedulerFactory";
 		}
-		if (className.toLowerCase().equals("AppEngineScheduler".toLowerCase())) {
+		if (className.equalsIgnoreCase("AppEngineScheduler")) {
 			LOG.warning("Deprecated class AppEngineScheduler configured. Use GaeSchedulerFactory instead to configure a scheduler factory.");
 			className = "GaeSchedulerFactory";
 		}
-		if (className.toLowerCase().equals(
-				"AppEngineSchedulerFactory".toLowerCase())) {
+		if (className.equalsIgnoreCase("AppEngineSchedulerFactory")) {
 			LOG.warning("Deprecated class AppEngineSchedulerFactory configured. Use GaeSchedulerFactory instead to configure a scheduler factory.");
 			className = "GaeSchedulerFactory";
 		}
@@ -1039,7 +1051,7 @@ public class AgentFactory {
 		// Recognize known classes by their short name,
 		// and replace the short name for the full class path
 		for (String name : SCHEDULERS.keySet()) {
-			if (className.toLowerCase().equals(name.toLowerCase())) {
+			if (className.equalsIgnoreCase(name)) {
 				className = SCHEDULERS.get(name);
 				break;
 			}
@@ -1068,7 +1080,7 @@ public class AgentFactory {
 			LOG.info("Initialized scheduler factory: "
 					+ schedulerFactory.getClass().getName());
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 	}
 	
@@ -1081,7 +1093,7 @@ public class AgentFactory {
 	public final void addTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 			return;
 		}
 		
@@ -1107,20 +1119,17 @@ public class AgentFactory {
 						
 						// TODO: remove deprecation warning some day (added
 						// 2013-01-24)
-						if (className.toLowerCase().equals(
-								"XmppTransportService".toLowerCase())) {
+						if (className.equalsIgnoreCase("XmppTransportService")) {
 							LOG.warning("Deprecated class XmppTransportService, use XmppService instead.");
 							className = "XmppService";
 						}
-						if (className.toLowerCase().equals(
-								"HttpTransportService".toLowerCase())) {
+						if (className.equalsIgnoreCase("HttpTransportService")) {
 							LOG.warning("Deprecated class HttpTransportService, use HttpService instead.");
 							className = "HttpService";
 						}
 						
 						for (String name : TRANSPORT_SERVICES.keySet()) {
-							if (className.toLowerCase().equals(
-									name.toLowerCase())) {
+							if (className.equalsIgnoreCase(name)) {
 								className = TRANSPORT_SERVICES.get(name);
 								break;
 							}
@@ -1253,7 +1262,7 @@ public class AgentFactory {
 			try {
 				this.wait();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 			}
 		}
 		if (schedulerFactory == null) {

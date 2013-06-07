@@ -1,5 +1,7 @@
 package com.almende.eve.event;
 
+import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.URI;
 
 import com.almende.eve.rpc.annotation.Access;
@@ -26,7 +28,7 @@ public interface EventsInterface {
 	 * @param callbackMethod
 	 * @return subscriptionId
 	 */
-	public String createSubscription(@Name("event") String event,
+	String createSubscription(@Name("event") String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params);
@@ -46,7 +48,7 @@ public interface EventsInterface {
 	 * @param callbackUrl
 	 * @param callbackMethod
 	 */
-	public void deleteSubscription(
+	void deleteSubscription(
 			@Required(false) @Name("subscriptionId") String subscriptionId,
 			@Required(false) @Name("event") String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
@@ -62,23 +64,9 @@ public interface EventsInterface {
 	 * @param params
 	 * @throws Exception
 	 */
-	public void doTrigger(@Name("url") String url,
-			@Name("method") String method, @Name("params") ObjectNode params)
-			throws Exception;
-	
-	
-	/**
-	 * Subscribe to an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
-	 * @return subscriptionId
-	 * @throws Exception
-	 */
-	@Access(AccessType.UNAVAILABLE)
-	public String subscribe(URI url, String event, String callbackMethod)
-			throws Exception;
+	void doTrigger(@Name("url") String url, @Name("method") String method,
+			@Name("params") ObjectNode params) throws ProtocolException,
+			JSONRPCException;
 	
 	/**
 	 * Subscribe to an other agents event
@@ -90,8 +78,22 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public String subscribe(URI url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws Exception;
+	String subscribe(URI url, String event, String callbackMethod)
+			throws ProtocolException, JSONRPCException;
+	
+	/**
+	 * Subscribe to an other agents event
+	 * 
+	 * @param url
+	 * @param event
+	 * @param callbackMethod
+	 * @return subscriptionId
+	 * @throws Exception
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	String subscribe(URI url, String event, String callbackMethod,
+			ObjectNode callbackParams) throws ProtocolException,
+			JSONRPCException;
 	
 	/**
 	 * Unsubscribe from an other agents event
@@ -101,7 +103,8 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void unsubscribe(URI url, String subscriptionId) throws Exception;
+	void unsubscribe(URI url, String subscriptionId) throws ProtocolException,
+			JSONRPCException;
 	
 	/**
 	 * Unsubscribe from an other agents event
@@ -112,8 +115,8 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void unsubscribe(URI url, String event, String callbackMethod)
-			throws Exception;
+	void unsubscribe(URI url, String event, String callbackMethod)
+			throws ProtocolException, JSONRPCException;
 	
 	/**
 	 * Trigger an event
@@ -123,7 +126,7 @@ public interface EventsInterface {
 	 * @throws JSONRPCException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void trigger(@Name("event") String event) throws Exception;
+	void trigger(@Name("event") String event) throws IOException;
 	
 	/**
 	 * Trigger an event
@@ -135,8 +138,7 @@ public interface EventsInterface {
 	 * @throws JSONRPCException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void trigger(@Name("event") String event,
-			@Name("params") Object params) throws Exception;
-	
+	void trigger(@Name("event") String event, @Name("params") Object params)
+			throws IOException;
 	
 }

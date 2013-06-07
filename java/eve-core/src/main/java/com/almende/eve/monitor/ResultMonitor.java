@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentFactory;
@@ -15,10 +17,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ResultMonitor implements Serializable {
 	private static final long						serialVersionUID	= -6738643681425840533L;
+	private static final Logger						LOG					= Logger.getLogger(ResultMonitor.class
+																				.getCanonicalName());
 	
 	public String									id;
 	public String									agentId;
-	public URI									url;
+	public URI										url;
 	public String									method;
 	public ObjectNode								params;
 	public String									callbackMethod;
@@ -26,10 +30,10 @@ public class ResultMonitor implements Serializable {
 	public List<String>								remoteIds			= new ArrayList<String>();
 	public String									cacheType;
 	
-	transient private static HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
+	private static transient HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
 	
-	public ResultMonitor(String agentId, URI url, String method, ObjectNode params,
-			String callbackMethod) {
+	public ResultMonitor(String agentId, URI url, String method,
+			ObjectNode params, String callbackMethod) {
 		this.id = UUID.randomUUID().toString();
 		this.agentId = agentId;
 		this.url = url;
@@ -37,20 +41,22 @@ public class ResultMonitor implements Serializable {
 		this.params = params;
 		this.callbackMethod = callbackMethod;
 	}
-	public ResultMonitor(String agentId, URI url, String method, ObjectNode params) {
-		this(agentId,url,method,params,null);
+	
+	public ResultMonitor(String agentId, URI url, String method,
+			ObjectNode params) {
+		this(agentId, url, method, params, null);
 	}
 	
 	public ResultMonitor add(ResultMonitorConfigType config) {
-			if (config instanceof Cache) {
-				this.addCache((Cache) config);
-			}
-			if (config instanceof Poll) {
-				this.addPoll((Poll) config);
-			}
-			if (config instanceof Push) {
-				this.addPush((Push) config);
-			}
+		if (config instanceof Cache) {
+			this.addCache((Cache) config);
+		}
+		if (config instanceof Poll) {
+			this.addPoll((Poll) config);
+		}
+		if (config instanceof Push) {
+			this.addPush((Push) config);
+		}
 		return this;
 	}
 	
@@ -78,9 +84,8 @@ public class ResultMonitor implements Serializable {
 			Agent agent = factory.getAgent(agentId);
 			String taskId = config.init(this, agent);
 			schedulerIds.add(taskId);
-		} catch (Exception e){
-			System.err.println("Couldn't init polling!");
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't init polling!", e);
 		}
 	}
 	
@@ -91,9 +96,8 @@ public class ResultMonitor implements Serializable {
 			Agent agent = factory.getAgent(agentId);
 			List<String> remoteIds = config.init(this, agent);
 			this.remoteIds = remoteIds;
-		} catch (Exception e){
-			System.err.println("Couldn't init Pushing!");
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't init Pushing!", e);
 		}
 	}
 	
@@ -115,12 +119,12 @@ public class ResultMonitor implements Serializable {
 				store(); // recursive retry.
 			}
 		} catch (Exception e) {
-			System.err.println("Couldn't find monitors:" + agentId + "." + id);
+			LOG.log(Level.WARNING,"Couldn't find monitors:" + agentId + "." + id,e);
 		}
 		return id;
 	}
 	
-	public void delete(){
+	public void delete() {
 		AgentFactory factory = AgentFactory.getInstance();
 		
 		try {
@@ -139,8 +143,7 @@ public class ResultMonitor implements Serializable {
 				delete(); // recursive retry.
 			}
 		} catch (Exception e) {
-			System.err.println("Couldn't delete monitor:" + agentId + "." + id);
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "Couldn't delete monitor:" + agentId + "." + id, e);
 		}
 	}
 	
@@ -162,16 +165,16 @@ public class ResultMonitor implements Serializable {
 			return result;
 			
 		} catch (Exception e) {
-			System.err.println("Couldn't find monitor:" + agentId + "." + id);
+			LOG.log(Level.WARNING, "Couldn't find monitor:" + agentId + "." + id,e);
 		}
 		return null;
 	}
 	
-	public String toString(){
+	public String toString() {
 		try {
 			return JOM.getInstance().writeValueAsString(this);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "", e);
 			return "";
 		}
 	}

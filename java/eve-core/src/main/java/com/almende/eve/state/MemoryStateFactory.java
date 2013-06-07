@@ -1,6 +1,5 @@
 package com.almende.eve.state;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,7 +38,7 @@ public class MemoryStateFactory implements StateFactory {
 	 * @return state
 	 */
 	@Override
-	public synchronized MemoryState create(String agentId) throws IOException, FileNotFoundException {
+	public synchronized MemoryState create(String agentId) throws IOException {
 		if (states.containsKey(agentId)) {
 			throw new IllegalStateException("Cannot create state, " + 
 					"state with id '" + agentId + "' already exists.");

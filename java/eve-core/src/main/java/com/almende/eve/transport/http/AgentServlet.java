@@ -3,6 +3,7 @@ package com.almende.eve.transport.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -29,7 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("serial")
 public class AgentServlet extends HttpServlet {
-	private final static Logger	logger		= Logger.getLogger(AgentServlet.class
+	private static final Logger	LOG			= Logger.getLogger(AgentServlet.class
 													.getSimpleName());
 	
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
@@ -39,7 +40,7 @@ public class AgentServlet extends HttpServlet {
 	@Override
 	public void init() {
 		if (AgentFactory.getInstance() == null) {
-			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
+			LOG.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
 		agentFactory = AgentFactory.getInstance();
@@ -54,9 +55,9 @@ public class AgentServlet extends HttpServlet {
 			servletUrl = getInitParameter(globalParam);
 		}
 		if (servletUrl == null) {
-			logger.severe("Cannot initialize HttpTransport: "
-					+ "Init Parameter '" + globalParam + "' or '" + envParam
-					+ "' " + "missing in context configuration web.xml.");
+			LOG.severe("Cannot initialize HttpTransport: " + "Init Parameter '"
+					+ globalParam + "' or '" + envParam + "' "
+					+ "missing in context configuration web.xml.");
 		}
 		httpTransport = new HttpService(servletUrl);
 		agentFactory.addTransportService(httpTransport);
@@ -109,8 +110,7 @@ public class AgentServlet extends HttpServlet {
 				}
 			}
 		} catch (Exception e) {
-			// Print trace, but is warning only.
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "", e);
 		}
 		
 		return Handshake.INVALID;
@@ -141,7 +141,7 @@ public class AgentServlet extends HttpServlet {
 		} catch (Exception e) {
 			res.sendError(500,
 					"Exception running HandleSession:" + e.getMessage());
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 			return false;
 		}
 		return true;
@@ -189,12 +189,10 @@ public class AgentServlet extends HttpServlet {
 		}
 		// get the resource name from the end of the url
 		if (resource == null || resource.isEmpty()) {
-			if (!uri.endsWith("/")) {
-				if (!resp.isCommitted()) {
-					String redirect = uri + "/";
-					resp.sendRedirect(redirect);
-					return;
-				}
+			if (!uri.endsWith("/") && !resp.isCommitted()) {
+				String redirect = uri + "/";
+				resp.sendRedirect(redirect);
+				return;
 			}
 			resource = "index.html";
 		}
@@ -208,7 +206,7 @@ public class AgentServlet extends HttpServlet {
 				try {
 					since = Long.valueOf(sinceStr);
 				} catch (java.lang.NumberFormatException e) {
-					logger.warning("Couldn't parse 'since' parameter:'" + since
+					LOG.warning("Couldn't parse 'since' parameter:'" + since
 							+ "'");
 				}
 			}
@@ -315,7 +313,7 @@ public class AgentServlet extends HttpServlet {
 		if (agentType == null) {
 			// TODO: class is deprecated since 2013-02-19. Remove this some day
 			agentType = req.getParameter("class");
-			logger.warning("Query parameter 'class' is deprecated. Use 'type' instead.");
+			LOG.warning("Query parameter 'class' is deprecated. Use 'type' instead.");
 		}
 		
 		if (agentId == null) {

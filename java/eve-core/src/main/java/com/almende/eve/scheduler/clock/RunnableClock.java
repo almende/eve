@@ -12,7 +12,7 @@ import org.joda.time.Interval;
 
 public class RunnableClock implements Runnable, Clock {
 	@SuppressWarnings("unused")
-	private static final Logger log = Logger.getLogger("RunnableClock");
+	private static final Logger LOG = Logger.getLogger("RunnableClock");
 	static TreeMap<ClockEntry, ClockEntry> timeline = new TreeMap<ClockEntry, ClockEntry>();
 	private static ScheduledExecutorService pool = Executors
 			.newScheduledThreadPool(50);

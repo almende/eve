@@ -1,6 +1,7 @@
 package com.almende.eve.transport.http;
 
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
@@ -12,7 +13,7 @@ import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.config.Config;
 
 public class AgentListener implements ServletContextListener {
-	private final static Logger logger = Logger.getLogger(AgentListener.class
+	private static final Logger LOG = Logger.getLogger(AgentListener.class
 			.getSimpleName());
 	private static ServletContext c;
 	
@@ -31,7 +32,7 @@ public class AgentListener implements ServletContextListener {
 			for (Entry<String, ? extends ServletRegistration> ent : c.getServletRegistrations().entrySet()){
 				result = ent.getValue().getInitParameter(param);
 				if (result != null){
-					logger.warning("Init param '"+param+"' should be migrated to <context-param>'");
+					LOG.warning("Init param '"+param+"' should be migrated to <context-param>'");
 					break;
 				}
 			}
@@ -39,7 +40,7 @@ public class AgentListener implements ServletContextListener {
 		if (result == null && default_val != null) {
 			
 			result = default_val;
-			logger.warning("Init parameter '"+param+"' missing in servlet configuration web.xml. "
+			LOG.warning("Init parameter '"+param+"' missing in servlet configuration web.xml. "
 					+ "Trying default value '" + default_val + "'.");
 		}
 		return result;
@@ -54,14 +55,14 @@ public class AgentListener implements ServletContextListener {
 			
 			String fullname = "/WEB-INF/" + filename;
 
-			logger.info("loading configuration file '"
+			LOG.info("loading configuration file '"
 					+ c.getRealPath(fullname) + "'...");
 
 			Config config = new Config(c.getResourceAsStream(fullname));
 			try {
 				AgentFactory.createInstance(config);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 			}
 		}
 	}

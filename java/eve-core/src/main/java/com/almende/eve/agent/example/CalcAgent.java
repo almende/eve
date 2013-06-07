@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)
 public class CalcAgent extends Agent {
-	static private String CALC_API_URL = "http://www.google.com/ig/calculator";
+	private static String CALC_API_URL = "http://www.google.com/ig/calculator";
 
 	/**
 	 * Evaluate given expression

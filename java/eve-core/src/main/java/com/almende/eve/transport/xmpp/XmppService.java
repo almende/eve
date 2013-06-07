@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
@@ -48,8 +49,7 @@ public class XmppService implements TransportService {
 																													// "xmpp:username@host"
 	private static List<String>				protocols			= Arrays.asList("xmpp");
 	
-	private Logger							logger				= Logger.getLogger(this
-																		.getClass()
+	private static final Logger				LOG					= Logger.getLogger(XmppService.class
 																		.getSimpleName());
 	
 	protected XmppService() {
@@ -136,7 +136,7 @@ public class XmppService implements TransportService {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "", e);
 		}
 		return null;
 	}
@@ -186,7 +186,7 @@ public class XmppService implements TransportService {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void connect(String agentId, String username, String password)
+	public final void connect(String agentId, String username, String password)
 			throws Exception {
 		String resource = null;
 		connect(agentId, username, password, resource);
@@ -201,25 +201,29 @@ public class XmppService implements TransportService {
 	 * @param password
 	 * @param resource
 	 *            (optional)
-	 * @throws IOException 
-	 * @throws JSONRPCException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws InvalidKeySpecException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws JsonProcessingException 
-	 * @throws InvalidKeyException 
+	 * @throws IOException
+	 * @throws JSONRPCException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws JsonProcessingException
+	 * @throws InvalidKeyException
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void connect(String agentId, String username, String password,
-			String resource) throws InvalidKeyException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, JSONRPCException, IOException {
+	public final void connect(String agentId, String username, String password,
+			String resource) throws InvalidKeyException,
+			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
+			InvalidKeySpecException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, JSONRPCException,
+			IOException {
 		String agentUrl = generateUrl(username, host, resource);
 		AgentConnection connection;
 		if (connectionsByUrl.containsKey(agentUrl)) {
-			logger.warning("Warning, agent was already connected, reconnecting.");
+			LOG.warning("Warning, agent was already connected, reconnecting.");
 			connection = connectionsByUrl.get(agentUrl);
 		} else {
 			// instantiate open the connection
@@ -234,7 +238,11 @@ public class XmppService implements TransportService {
 	}
 	
 	private void storeConnection(String agentId, String username,
-			String password, String resource) throws JSONRPCException, JsonProcessingException, IOException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			String password, String resource) throws JSONRPCException,
+			IOException, InvalidKeyException,
+			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
+			InvalidKeySpecException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException {
 		
 		State state = agentFactory.getStateFactory().get(agentId);
 		
@@ -276,7 +284,7 @@ public class XmppService implements TransportService {
 	 * @param agentId
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	final public void disconnect(String agentId) {
+	public final void disconnect(String agentId) {
 		
 		try {
 			State state = agentFactory.getStateFactory().get(agentId);
@@ -313,7 +321,7 @@ public class XmppService implements TransportService {
 			}
 			delConnections(agentId);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "", e);
 		}
 	}
 	
@@ -332,7 +340,7 @@ public class XmppService implements TransportService {
 		try {
 			return callback.get();
 		} catch (Exception e) {
-			throw new JSONRPCException("Couldn't handle XMPP return.",e);
+			throw new JSONRPCException("Couldn't handle XMPP return.", e);
 		}
 	}
 	
@@ -349,7 +357,6 @@ public class XmppService implements TransportService {
 			JSONRequest request, AsyncCallback<JSONResponse> callback)
 			throws JSONRPCException {
 		
-		
 		AgentConnection connection = null;
 		
 		if (senderUrl != null) connection = connectionsByUrl.get(senderUrl);
@@ -357,8 +364,8 @@ public class XmppService implements TransportService {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";
 			if (!receiver.startsWith(protocol)) {
-				throw new JSONRPCException("Receiver url must start with '" + protocol
-						+ "' (receiver='" + receiver + "')");
+				throw new JSONRPCException("Receiver url must start with '"
+						+ protocol + "' (receiver='" + receiver + "')");
 			}
 			String fullUsername = receiver.substring(protocol.length()); // username@domain
 			connection.send(fullUsername, request, callback);
@@ -401,18 +408,18 @@ public class XmppService implements TransportService {
 	}
 	
 	@Override
-	public void reconnect(String agentId) throws JSONRPCException, JsonProcessingException, IOException {
+	public void reconnect(String agentId) throws JSONRPCException, IOException {
 		State state = agentFactory.getStateFactory().get(agentId);
 		ArrayNode conns = null;
 		if (state.containsKey("_XMPP_Connections")) {
 			conns = (ArrayNode) JOM.getInstance().readTree(
 					(String) state.get("_XMPP_Connections"));
 		}
-
+		
 		if (conns != null) {
 			for (JsonNode conn : conns) {
 				ObjectNode params = (ObjectNode) conn;
-				logger.info("Initializing connection:" + agentId + " --> "
+				LOG.info("Initializing connection:" + agentId + " --> "
 						+ params);
 				try {
 					String encryptedUsername = params.has("username") ? params
@@ -434,7 +441,7 @@ public class XmppService implements TransportService {
 						connect(agentId, username, password, resource);
 					}
 				} catch (Exception e) {
-					throw new JSONRPCException("Failed to connect XMPP.",e);
+					throw new JSONRPCException("Failed to connect XMPP.", e);
 				}
 			}
 		}

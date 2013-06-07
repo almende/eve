@@ -1,6 +1,8 @@
 package com.almende.eve.state;
 
 import java.lang.reflect.Type;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.databind.JavaType;
  * @author jos
  */
 public abstract class AbstractState implements State {
+	private static final Logger LOG = Logger.getLogger(AbstractState.class.getCanonicalName());
 	protected String agentId = null;
 
 	/**
@@ -105,7 +108,7 @@ public abstract class AbstractState implements State {
 		try {
 			ret = TypeUtil.inject(ret,get(key));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		return ret;
 	}

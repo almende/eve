@@ -3,6 +3,8 @@ package com.almende.eve.transport.http;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 
@@ -18,7 +20,8 @@ import com.almende.eve.state.FileStateFactory;
  *
  */
 public class TokenStore {
-	static final TokenStore me = new TokenStore();
+	static final Logger LOG = Logger.getLogger(TokenStore.class.getCanonicalName());
+	static final TokenStore ME = new TokenStore();
 	static final int SIZE = 5;
 	static Map<String, Serializable> TOKENS;
 	static DateTime last = DateTime.now();
@@ -31,7 +34,7 @@ public class TokenStore {
 			try {
 				TOKENS = factory.create("_TokenStore");
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 			}
 		}
 	}
@@ -49,7 +52,7 @@ public class TokenStore {
 			if (TOKENS.size()==0 || TOKENS.get(last.toString()) == null || last.plus(3600000).isBeforeNow()){
 				DateTime now = DateTime.now();
 				String token = UUID.randomUUID().toString();
-				result = me.new TokenRet(token,now);
+				result = ME.new TokenRet(token,now);
 				TOKENS.put(now.toString(), token);
 				last = now;
 
@@ -58,12 +61,12 @@ public class TokenStore {
 					for (String time: TOKENS.keySet()){
 						try {
 						if (DateTime.parse(time).isBefore(oldest)) oldest = DateTime.parse(time);
-						} catch (Exception e){};
+						} catch (Exception e){}
 					}
 					TOKENS.remove(oldest);
 				}
 			} else {
-				result = me.new TokenRet((String)TOKENS.get(last.toString()),last);
+				result = ME.new TokenRet((String)TOKENS.get(last.toString()),last);
 			}
 			return result;
 		}
@@ -80,7 +83,7 @@ public class TokenStore {
 			try {
 				return JOM.getInstance().writeValueAsString(this);
 			} catch (Exception e){
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 				return "{\"token\":\""+token+"\",\"time\":\""+time+"\"}";
 			}
 		}

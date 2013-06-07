@@ -3,6 +3,8 @@ package com.almende.eve.monitor;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
@@ -26,7 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class ResultMonitorFactory implements ResultMonitorInterface {
-	
+	private static final Logger LOG = Logger.getLogger(ResultMonitorFactory.class.getCanonicalName());
 	Agent	myAgent	= null;
 	
 	public ResultMonitorFactory(Agent agent) {
@@ -55,7 +57,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		}
 		return monitor.store();
 	}
-
+	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
 	 * available,
@@ -70,8 +72,10 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 */
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
 			Class<T> returnType) throws Exception {
-		return getResult(monitorId,filter_parms,JOM.getTypeFactory().constructSimpleType(returnType, new JavaType[0]));
+		return getResult(monitorId, filter_parms, JOM.getTypeFactory()
+				.constructSimpleType(returnType, new JavaType[0]));
 	}
+	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
 	 * available,
@@ -91,11 +95,9 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
 		if (monitor != null) {
-			if (monitor.hasCache()) {
-				if (monitor.getCache() != null
-						&& monitor.getCache().filter(filter_parms)) {
-					result = (T) monitor.getCache().get();
-				}
+			if (monitor.hasCache() && monitor.getCache() != null
+					&& monitor.getCache().filter(filter_parms)) {
+				result = (T) monitor.getCache().get();
 			}
 			if (result == null) {
 				result = myAgent.send(monitor.url, monitor.method,
@@ -105,7 +107,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				}
 			}
 		} else {
-			System.err.println("Failed to find monitor!" + monitorId);
+			LOG.severe("Failed to find monitor!" + monitorId);
 		}
 		return result;
 		
@@ -131,8 +133,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				try {
 					myAgent.send(monitor.url, "monitor.unregisterPush", params);
 				} catch (Exception e) {
-					System.err.println("Failed to unregister Push");
-					e.printStackTrace();
+					LOG.log(Level.WARNING,"Failed to unregister Push",e);
 				}
 			}
 		}
@@ -140,7 +141,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public void doPoll(@Name("monitorId") String monitorId) throws Exception {
+	public final void doPoll(@Name("monitorId") String monitorId)
+			throws Exception {
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
 		if (monitor != null) {
@@ -162,11 +164,13 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	private JsonNode	lastRes	= null;
 	
 	@Access(AccessType.PUBLIC)
-	final public void doPush(@Name("pushParams") ObjectNode pushParams,@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws Exception {
+	public final void doPush(@Name("pushParams") ObjectNode pushParams,
+			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
+			throws Exception {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
-				params),myAgent);
+				params), myAgent);
 		
 		JsonNode result = res.getResult();
 		if (pushParams.has("onChange")
@@ -181,14 +185,16 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		parms.put("result", result);
 		parms.put("monitorId", pushParams.get("monitorId").textValue());
 		
-		parms.put("callbackParams", triggerParams==null?pushParams:pushParams.putAll(triggerParams));
+		parms.put("callbackParams", triggerParams == null ? pushParams
+				: pushParams.putAll(triggerParams));
 		
-		myAgent.send(URI.create(pushParams.get("url").textValue()), "monitor.callbackPush", parms);
+		myAgent.send(URI.create(pushParams.get("url").textValue()),
+				"monitor.callbackPush", parms);
 		// If callback reports "old", unregisterPush();
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public void callbackPush(@Name("result") Object result,
+	public final void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId,
 			@Name("callbackParams") ObjectNode callbackParams) {
 		try {
@@ -198,8 +204,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				if (monitor.callbackMethod != null) {
 					
 					ObjectNode params = JOM.createObjectNode();
-					if (callbackParams != null){
-						params=callbackParams;
+					if (callbackParams != null) {
+						params = callbackParams;
 					}
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
@@ -210,18 +216,18 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					monitor.getCache().store(result);
 				}
 			} else {
-				System.err.println("Couldn't find local monitor by id:"+monitorId);
+				LOG.severe("Couldn't find local monitor by id:"
+						+ monitorId);
 			}
 		} catch (Exception e) {
-			System.err.println("Couldn't run local callbackMethod for push!"
-					+ monitorId);
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"Couldn't run local callbackMethod for push!"
+					+ monitorId,e);
 		}
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public List<String> registerPush(@Name("pushParams") ObjectNode pushParams,
-			@Sender String senderUrl) {
+	public final List<String> registerPush(
+			@Name("pushParams") ObjectNode pushParams, @Sender String senderUrl) {
 		List<String> result = new ArrayList<String>();
 		pushParams.put("url", senderUrl);
 		ObjectNode wrapper = JOM.createObjectNode();
@@ -241,7 +247,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 			} else {
 				AnnotatedClass ac = null;
 				try {
-					CallTuple res = NamespaceUtil.get(myAgent, pushParams.get("method").textValue());
+					CallTuple res = NamespaceUtil.get(myAgent,
+							pushParams.get("method").textValue());
 					
 					ac = AnnotationUtil.get(res.destination.getClass());
 					for (AnnotatedMethod method : ac.getMethods(res.methodName)) {
@@ -255,31 +262,30 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 						}
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.log(Level.WARNING,"",e);
 				}
 			}
 			
 			try {
-				System.err.println("Wrapper:"+wrapper);
-				result.add(myAgent.getEventsFactory().subscribe(
-						myAgent.getFirstUrl(), event, "monitor.doPush", wrapper));
+				result.add(myAgent.getEventsFactory()
+						.subscribe(myAgent.getFirstUrl(), event,
+								"monitor.doPush", wrapper));
 			} catch (Exception e) {
-				System.err.println("Failed to register push Event");
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"Failed to register push Event",e);
 			}
 		}
 		return result;
 	}
 	
 	@Access(AccessType.PUBLIC)
-	final public void unregisterPush(@Name("pushId") String id) {
-			// Just assume that id is either a taskId or an Event subscription Id.
+	public final void unregisterPush(@Name("pushId") String id) {
+		// Just assume that id is either a taskId or an Event subscription Id.
 		// Both allow unknown ids, Postel's law rules!
 		myAgent.getScheduler().cancelTask(id);
 		try {
 			myAgent.getEventsFactory().unsubscribe(myAgent.getFirstUrl(), id);
 		} catch (Exception e) {
-			System.err.println("Failed to unsubscribe push:" + e);
+			LOG.severe("Failed to unsubscribe push:" + e);
 		}
 	}
 }

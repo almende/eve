@@ -1,5 +1,8 @@
 package com.almende.eve.transport.xmpp;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -21,6 +24,8 @@ import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AgentConnection {
+	private static final Logger					LOG				= Logger.getLogger(AgentConnection.class
+																		.getCanonicalName());
 	private AgentFactory						agentFactory	= null;
 	private String								agentId			= null;
 	private String								username		= null;
@@ -70,7 +75,7 @@ public class AgentConnection {
 	 * @param password
 	 * @param resource
 	 *            optional
-	 * @throws JSONRPCException 
+	 * @throws JSONRPCException
 	 * @throws Exception
 	 */
 	public void connect(String agentId, String host, Integer port,
@@ -113,9 +118,9 @@ public class AgentConnection {
 			// instantiate a packet listener
 			conn.addPacketListener(new JSONRPCListener(conn, agentFactory,
 					agentId, callbacks), null);
-		} catch (XMPPException err) {
-			err.printStackTrace();
-			throw new JSONRPCException("Failed to connect to messenger");
+		} catch (XMPPException e) {
+			LOG.log(Level.WARNING,"",e);
+			throw new JSONRPCException("Failed to connect to messenger",e);
 		}
 	}
 	
@@ -258,11 +263,11 @@ public class AgentConnection {
 						throw new Exception(
 								"Request does not contain a valid JSON-RPC request or response");
 					}
-				} catch (Exception err) {
+				} catch (Exception e) {
 					// generate JSON error response
 					JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR,
-							err.getMessage());
+							e.getMessage(),e);
 					JSONResponse response = new JSONResponse(jsonError);
 					
 					// send exception as response

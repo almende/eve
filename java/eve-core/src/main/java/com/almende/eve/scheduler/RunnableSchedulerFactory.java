@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
@@ -48,8 +49,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	// {agentId: {taskId: task}}
 	private final Map<String, Map<String, Task>>	allTasks		= new ConcurrentHashMap<String, Map<String, Task>>();
 	
-	private Logger									logger			= Logger.getLogger(this
-																			.getClass()
+	private static final Logger						LOG			= Logger.getLogger(RunnableSchedulerFactory.class
 																			.getSimpleName());
 	
 	/**
@@ -89,7 +89,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		// persist its state.
 		if (stateId == null) {
 			stateId = "_runnableScheduler";
-			logger.info("No id specified for RunnableSchedulerFactory. "
+			LOG.info("No id specified for RunnableSchedulerFactory. "
 					+ "Using '" + stateId + "' as id.");
 		}
 		try {
@@ -100,8 +100,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				state = agentFactory.getStateFactory().create(stateId);
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.log(Level.WARNING, "Can't init State", e);
 		}
 	}
 	
@@ -178,8 +177,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @throws JsonMappingException
 		 * @throws JsonParseException
 		 */
-		Task(Map<String, String> params) throws JsonParseException,
-				JsonMappingException, JSONRPCException, IOException {
+		Task(Map<String, String> params) throws JSONRPCException, IOException {
 			// TODO: throw exceptions when agentId, request are null or delay <
 			// 0
 			
@@ -222,18 +220,19 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						params.put(Sender.class, senderUrl); // TODO: provide
 																// itself
 						
-						JSONResponse resp = agentFactory.receive(agentId, request, params);
-
+						JSONResponse resp = agentFactory.receive(agentId,
+								request, params);
+						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
 						}
-						if (resp.getError() != null){
+						if (resp.getError() != null) {
 							throw resp.getError();
 						}
 					} catch (Exception e) {
-						e.printStackTrace();
+						LOG.log(Level.WARNING,"",e);
 					} finally {
-						if (interval <= 0){
+						if (interval <= 0) {
 							remove();
 						}
 					}
@@ -251,27 +250,27 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		public String getAgentId() {
 			return agentId;
 		}
-
+		
 		public JSONRequest getRequest() {
 			return request;
 		}
-
+		
 		public DateTime getTimestamp() {
 			return timestamp;
 		}
-
+		
 		public ScheduledFuture<?> getFuture() {
 			return future;
 		}
-
+		
 		public long getInterval() {
 			return interval;
 		}
-
+		
 		public boolean isSequential() {
 			return sequential;
 		}
-
+		
 		public void cancel() {
 			if (future != null) {
 				boolean mayInterruptIfRunning = false;
@@ -318,14 +317,16 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				storeTasks();
 			}
 		}
+		
 		/**
-		 * Check if this task is still on the global Task list. If missing (e.g. due to cancel) returns true;
+		 * Check if this task is still on the global Task list. If missing (e.g.
+		 * due to cancel) returns true;
 		 */
-		private boolean cancelled(){
+		private boolean cancelled() {
 			Map<String, Task> tasks = allTasks.get(agentId);
-			if (tasks != null){
+			if (tasks != null) {
 				Task storedTask = tasks.get(taskId);
-				if (storedTask != null){
+				if (storedTask != null) {
 					return false;
 				}
 			}
@@ -346,7 +347,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			try {
 				return JOM.getInstance().writeValueAsString(this);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.log(Level.WARNING,"",e);
 				return super.toString();
 			}
 		}
@@ -454,16 +455,16 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						// automatically
 						// store and persist allTasks again. That is inefficient
 					} catch (Exception e) {
-						e.printStackTrace();
+						LOG.log(Level.WARNING,"",e);
 						failedTaskCount++;
 					}
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"",e);
 		}
 		
-		logger.info("Initialized "
+		LOG.info("Initialized "
 				+ taskCount
 				+ " tasks"
 				+ ((failedTaskCount > 0) ? (" " + failedTaskCount + " tasks failed to start.")

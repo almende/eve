@@ -13,7 +13,7 @@ public interface Scheduler {
 	 * @param delay     The delay in milliseconds
 	 * @return taskId
 	 */
-	public String createTask(JSONRequest request, long delay);
+	String createTask(JSONRequest request, long delay);
 	
 	/**
 	 * Schedule a task, potentially running at an interval
@@ -24,13 +24,13 @@ public interface Scheduler {
 	 * @param sequential Should (long running) tasks run sequential, or may they run in parallel?
 	 * @return taskId
 	 */
-	public String createTask(JSONRequest request, long delay, boolean interval, boolean sequential);
+	String createTask(JSONRequest request, long delay, boolean interval, boolean sequential);
 
 	/**
 	 * Cancel a scheduled task by its id
 	 * @param taskId
 	 */
-	public void cancelTask(String id);
+	void cancelTask(String id);
 	
 
 	/**
@@ -38,6 +38,6 @@ public interface Scheduler {
 	 * @return taskIds
 	 */
 	@Access(AccessType.PUBLIC)
-	public Set<String> getTasks();
+	Set<String> getTasks();
 	
 }
