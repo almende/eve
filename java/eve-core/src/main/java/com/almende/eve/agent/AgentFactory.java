@@ -295,16 +295,19 @@ public class AgentFactory {
 	 * 
 	 * @param agentId
 	 * @return agent
-	 * @throws ClassNotFoundException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws SecurityException 
-	 * @throws IllegalArgumentException 
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws SecurityException
+	 * @throws IllegalArgumentException
 	 * @throws Exception
 	 */
-	public Agent getAgent(String agentId) throws JSONRPCException, ClassNotFoundException, IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public Agent getAgent(String agentId) throws JSONRPCException,
+			ClassNotFoundException, IllegalArgumentException,
+			SecurityException, InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException {
 		if (agentId == null) {
 			return null;
 		}
@@ -347,7 +350,6 @@ public class AgentFactory {
 		return agent;
 	}
 	
-	
 	/**
 	 * Create an agent proxy from an java interface
 	 * 
@@ -361,7 +363,7 @@ public class AgentFactory {
 	 */
 	@Deprecated
 	public <T> T createAgentProxy(final URI receiverUrl, Class<T> agentInterface) {
-		return createAgentProxy(null,receiverUrl,agentInterface);
+		return createAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
 	/**
@@ -398,7 +400,9 @@ public class AgentFactory {
 							throw err;
 						} else if (response.getResult() != null
 								&& !method.getReturnType().equals(Void.TYPE)) {
-							return TypeUtil.inject(method.getGenericReturnType(),response.getResult());
+							return TypeUtil.inject(
+									method.getGenericReturnType(),
+									response.getResult());
 						} else {
 							return null;
 						}
@@ -415,7 +419,7 @@ public class AgentFactory {
 	 * return a future for handling the results.
 	 * 
 	 * @deprecated
-	 * 			"Please use authenticated version: createAgentProxy(sender,receiverUrl,agentInterface);"
+	 *             "Please use authenticated version: createAgentProxy(sender,receiverUrl,agentInterface);"
 	 * @param receiverUrl
 	 *            Url of the receiving agent
 	 * @param agentInterface
@@ -423,10 +427,10 @@ public class AgentFactory {
 	 * @return
 	 */
 	@Deprecated
-	public <T> AsyncProxy<T> createAsyncAgentProxy(final URI receiverUrl, Class<T> agentInterface) {
+	public <T> AsyncProxy<T> createAsyncAgentProxy(final URI receiverUrl,
+			Class<T> agentInterface) {
 		return createAsyncAgentProxy(null, receiverUrl, agentInterface);
 	}
-	
 	
 	/**
 	 * Create an asynchronous agent proxy from an java interface, each call will
@@ -477,11 +481,11 @@ public class AgentFactory {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
 			throws Exception {
 		if (!ClassUtil.hasSuperClass(agentType, Agent.class)) {
-			throw new Exception("Class " + agentType
-					+ " does not extend class " + Agent.class);
+			return (T) createAspectAgent(agentType,agentId);
 		}
 		
 		// validate the Eve agent and output as warnings
@@ -511,9 +515,19 @@ public class AgentFactory {
 		return agent;
 	}
 	
-	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect, String agentId) throws Exception{
+	/**
+	 * Create a new agent, using the base AspectAgent class. This agent has a
+	 * namespace "sub", to which the given class's methods are added.
+	 * 
+	 * @param aspect
+	 * @param agentId
+	 * @return
+	 * @throws Exception
+	 */
+	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
+			String agentId) throws Exception {
 		@SuppressWarnings("unchecked")
-		AspectAgent<T> result = createAgent(AspectAgent.class,agentId);
+		AspectAgent<T> result = createAgent(AspectAgent.class, agentId);
 		result.init(aspect);
 		return result;
 	}
@@ -590,7 +604,7 @@ public class AgentFactory {
 	 * @param request
 	 * @param requestParams
 	 * @return
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException
 	 * @throws Exception
 	 */
 	public JSONResponse receive(String receiverId, JSONRequest request,
@@ -603,10 +617,12 @@ public class AgentFactory {
 				receiver.destroy();
 				return response;
 			}
-		} catch (Exception e){
-			throw new JSONRPCException("Couldn't instantiate agent for id '" + receiverId + "'",e);		
+		} catch (Exception e) {
+			throw new JSONRPCException("Couldn't instantiate agent for id '"
+					+ receiverId + "'", e);
 		}
-		throw new JSONRPCException("Agent with id '" + receiverId + "' not found");
+		throw new JSONRPCException("Agent with id '" + receiverId
+				+ "' not found");
 	}
 	
 	// public JSONResponse receive(String SenderId, String receiverUrl,
@@ -658,8 +674,8 @@ public class AgentFactory {
 	 * @param receiverUrl
 	 * @param request
 	 * @return
-	 * @throws JSONRPCException 
-	 * @throws  
+	 * @throws JSONRPCException
+	 * @throws
 	 * @throws Exception
 	 */
 	public JSONResponse send(AgentInterface sender, URI receiverUrl,
@@ -667,7 +683,8 @@ public class AgentFactory {
 		String receiverId = getAgentId(receiverUrl.toASCIIString());
 		String senderUrl = null;
 		if (sender != null) {
-			senderUrl = getSenderUrl(sender.getId(), receiverUrl.toASCIIString());
+			senderUrl = getSenderUrl(sender.getId(),
+					receiverUrl.toASCIIString());
 		}
 		if (doesShortcut && receiverId != null) {
 			// local shortcut
@@ -680,8 +697,8 @@ public class AgentFactory {
 			service = getTransportService(protocol);
 			
 			if (service != null) {
-				JSONResponse response = service.send(senderUrl, receiverUrl.toASCIIString(),
-						request);
+				JSONResponse response = service.send(senderUrl,
+						receiverUrl.toASCIIString(), request);
 				return response;
 			} else {
 				throw new ProtocolException(
@@ -720,8 +737,8 @@ public class AgentFactory {
 	 * @param callback
 	 * @throws Exception
 	 */
-	public void sendAsync(final AgentInterface sender,
-			final URI receiverUrl, final JSONRequest request,
+	public void sendAsync(final AgentInterface sender, final URI receiverUrl,
+			final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) throws Exception {
 		final String receiverId = getAgentId(receiverUrl.toASCIIString());
 		if (doesShortcut && receiverId != null) {
@@ -750,12 +767,14 @@ public class AgentFactory {
 			String protocol = null;
 			String senderUrl = null;
 			if (sender != null) {
-				senderUrl = getSenderUrl(sender.getId(), receiverUrl.toASCIIString());
+				senderUrl = getSenderUrl(sender.getId(),
+						receiverUrl.toASCIIString());
 			}
 			protocol = receiverUrl.getScheme();
 			service = getTransportService(protocol);
 			if (service != null) {
-				service.sendAsync(senderUrl, receiverUrl.toASCIIString(), request, callback);
+				service.sendAsync(senderUrl, receiverUrl.toASCIIString(),
+						request, callback);
 			} else {
 				throw new ProtocolException(
 						"No transport service configured for protocol '"
@@ -801,12 +820,12 @@ public class AgentFactory {
 		for (TransportService service : transportServices) {
 			List<String> protocols = service.getProtocols();
 			for (String protocol : protocols) {
-//				System.err.println("Checking:"+protocol+ " on "+receiverUrl+
-//				 " Would be:'"+service.getAgentUrl(agentId)+"'");
+				// System.err.println("Checking:"+protocol+ " on "+receiverUrl+
+				// " Would be:'"+service.getAgentUrl(agentId)+"'");
 				if (receiverUrl.startsWith(protocol + ":")) {
 					String senderUrl = service.getAgentUrl(agentId);
 					if (senderUrl != null) {
-//						 System.err.println("Returning:'"+service.getAgentUrl(agentId)+"'");
+						// System.err.println("Returning:'"+service.getAgentUrl(agentId)+"'");
 						return senderUrl;
 					}
 				}
