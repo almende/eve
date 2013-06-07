@@ -82,9 +82,7 @@ public class JSONRPCException extends Exception {
 	
 
 	public JSONRPCException (ObjectNode exception) {
-		this(CODE.REMOTE_EXCEPTION,JOM.getInstance().convertValue(
-				exception.get("data"), Exception.class).getMessage(), JOM.getInstance().convertValue(
-				exception.get("data"), Exception.class));
+		super();
 		if (exception != null && !exception.isNull()) {
 			// set code, message, and optional data
 			if (exception.has("code")) {
@@ -92,9 +90,12 @@ public class JSONRPCException extends Exception {
 			}
 			if (exception.has("message")) {
 				setMessage(exception.get("message").asText());
+
 			}
 			if (exception.has("data")) {
 				setData(exception.get("data"));
+				initCause(JOM.getInstance().convertValue(
+				exception.get("data"), Exception.class));
 			}
 		}
 	}	

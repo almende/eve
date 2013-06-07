@@ -41,7 +41,7 @@ public class NamespaceUtil {
 			populateCache(destination,destination.getClass().getName(),"");
 		} 
 		if(!cache.containsKey(fullPath)){
-			throw new Exception("Non resolveable path given:'" +fullPath+"'");
+			throw new Exception("Non resolveable path given:'" +fullPath+"' \n checked:"+cache);
 		}
 		String[] methods = cache.get(fullPath);
 		for (String methodName : methods){

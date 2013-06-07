@@ -72,10 +72,14 @@ abstract public class Agent implements AgentInterface {
 	protected EventsInterface			eventsFactory	= null;
 	
 	@Access(AccessType.PUBLIC)
-	public abstract String getDescription();
+	public String getDescription(){
+		return "Base agent.";
+	}
 	
 	@Access(AccessType.PUBLIC)
-	public abstract String getVersion();
+	public String getVersion(){
+		return "1.0";
+	}
 	
 	public Agent() {
 	}

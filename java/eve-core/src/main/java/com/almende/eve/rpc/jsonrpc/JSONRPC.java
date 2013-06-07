@@ -241,11 +241,11 @@ public class JSONRPC {
 		return errors;
 	}
 
-	private static Map<String,Object> _describe(Class<?> c, RequestParams requestParams, Boolean asString, String namespace){
+	private static Map<String,Object> _describe(Object c, RequestParams requestParams, Boolean asString, String namespace){
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
 			
-			AnnotatedClass annotatedClass = AnnotationUtil.get(c);
+			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
 //			System.err.println("Describing:"+c.getName());
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
 //				System.err.print(".");
@@ -301,7 +301,7 @@ public class JSONRPC {
 			}
 			for (AnnotatedMethod method : annotatedClass.getAnnotatedMethods(Namespace.class)){
 				String innerNamespace = method.getAnnotation(Namespace.class).value();
-				methods.putAll(_describe(method.getReturnType(),requestParams,asString,innerNamespace));
+				methods.putAll(_describe(method.getActualMethod().invoke(c, (Object[]) null),requestParams,asString,innerNamespace));
 			}
 //			System.err.println("Returning:"+methods+" for "+c.getName());
 		} catch (Exception e) {
@@ -324,7 +324,7 @@ public class JSONRPC {
 	 *            to read string. 
 	 * @return
 	 */
-	public static List<Object> describe(Class<?> c,
+	public static List<Object> describe(Object c,
 			RequestParams requestParams, Boolean asString) {
 		try {
 			Map<String, Object> methods = _describe(c,requestParams,asString,"");

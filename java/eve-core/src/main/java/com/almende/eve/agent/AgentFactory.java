@@ -511,6 +511,13 @@ public class AgentFactory {
 		return agent;
 	}
 	
+	public <T> AspectAgent<T> createAspectAgent(T aspect, String agentId) throws Exception{
+		@SuppressWarnings("unchecked")
+		AspectAgent<T> result = createAgent(AspectAgent.class,agentId);
+		result.init(aspect);
+		return result;
+	}
+	
 	/**
 	 * Delete an agent
 	 * 
@@ -1222,7 +1229,7 @@ public class AgentFactory {
 	
 	public List<Object> getMethods(Agent agent) {
 		Boolean asString = false;
-		return JSONRPC.describe(agent.getClass(), eveRequestParams, asString);
+		return JSONRPC.describe(agent, eveRequestParams, asString);
 	}
 	
 	/**

@@ -17,8 +17,9 @@ public interface State extends Map<String, Serializable> {
 	public void setAgentType(Class<?> agentType);
 	public Class<?> getAgentType() throws ClassNotFoundException;
 	
-	public <T>T get(Class<T> type, String key);
-	public <T>T get(Type type, String key);
-	public <T>T get(JavaType type, String key);
-	public <T>T get(TypeUtil<T> type, String key);
+	public <T>T get(String key,Class<T> type);
+	public <T>T get(String key, Type type);
+	public <T>T get(String key, JavaType type);
+	public <T>T get(String key, TypeUtil<T> type);
+	public <T>T get(T ret, String key);
 }

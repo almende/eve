@@ -84,21 +84,29 @@ public abstract class AbstractState implements State {
 	public abstract void destroy();  // executed once before the agent is destroyed
 	
 	@Override
-	public <T> T get(Class<T> type, String key) {
+	public <T> T get(String key, Class<T> type) {
 		return TypeUtil.inject(type,get(key));
 	}
 
 	@Override
-	public <T> T get(Type type, String key) {
+	public <T> T get(String key, Type type) {
 		return TypeUtil.inject(type,get(key));
 	}
 
 	@Override
-	public <T> T get(JavaType type, String key) {
+	public <T> T get(String key, JavaType type) {
 		return TypeUtil.inject(type,get(key));
 	}
 	@Override
-	public <T> T get(TypeUtil<T> type, String key) {
+	public <T> T get(String key, TypeUtil<T> type) {
 		return type.inject(get(key));
+	}
+	public <T> T get(T ret, String key){
+		try {
+			ret = TypeUtil.inject(ret,get(key));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
 	}
 }
