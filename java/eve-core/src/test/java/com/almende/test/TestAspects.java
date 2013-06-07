@@ -17,7 +17,7 @@ public class TestAspects extends TestCase {
 		if (factory == null){
 			factory = AgentFactory.createInstance();
 		}
-		AspectAgent<TestAspects> agent = factory.createAspectAgent(this, "AspectAgent");
+		AspectAgent<TestAspects> agent = factory.createAspectAgent(this.getClass(), "AspectAgent");
 		
 		String result  = agent.send(agent.getFirstUrl(),"sub.callMe",String.class);
 		assertEquals("Hello World",result);

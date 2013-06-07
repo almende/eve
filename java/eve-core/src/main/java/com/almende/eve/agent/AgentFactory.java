@@ -511,7 +511,7 @@ public class AgentFactory {
 		return agent;
 	}
 	
-	public <T> AspectAgent<T> createAspectAgent(T aspect, String agentId) throws Exception{
+	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect, String agentId) throws Exception{
 		@SuppressWarnings("unchecked")
 		AspectAgent<T> result = createAgent(AspectAgent.class,agentId);
 		result.init(aspect);
