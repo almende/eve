@@ -1,4 +1,4 @@
-package com.almende.eve.state;
+package com.almende.eve.lock;
 
 public interface TemporalLock {
 	/**

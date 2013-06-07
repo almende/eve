@@ -1,8 +1,9 @@
-package com.almende.eve.state;
+package com.almende.eve.lock;
 
 import java.util.HashMap;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.state.StateEntry;
 
 public class StateLock implements TemporalLock {
 	
