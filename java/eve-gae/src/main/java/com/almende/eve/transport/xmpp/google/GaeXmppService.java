@@ -103,8 +103,8 @@ public class GaeXmppService implements TransportService {
 	@Override
 	public void sendAsync(String senderId, String receiver,
 			JSONRequest request, AsyncCallback<JSONResponse> callback)
-			throws Exception {
-		throw new Exception("JSONResponse sendAsync(String senderId, " +
+			throws UnsupportedOperationException {
+		throw new UnsupportedOperationException("JSONResponse sendAsync(String senderId, " +
 				"String receiver, JSONRequest request, " +
 				"AsyncCallback<JSONResponse> callback) not supported by GaeXmppService. " +
 				"Use sendAsync(String senderId, String receiver, " +

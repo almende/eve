@@ -1,5 +1,7 @@
 package com.almende.eve.state.google;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -46,9 +48,9 @@ public class DatastoreStateFactory implements StateFactory {
 	 * @return state
 	 */
 	@Override
-	public DatastoreState create(String agentId) throws Exception {
+	public DatastoreState create(String agentId) throws IOException, FileNotFoundException {
 		if (exists(agentId)) {
-			throw new Exception("Cannot create state, " + 
+			throw new IllegalStateException("Cannot create state, " + 
 					"state with id '" + agentId + "' already exists.");
 		}
 		
@@ -56,7 +58,7 @@ public class DatastoreStateFactory implements StateFactory {
 	}
 
 	@Override
-	public void delete(String agentId) throws Exception {
+	public void delete(String agentId) {
 		// TODO: optimize deleting a state (do not first retrieve the state)
 		DatastoreState state = get(agentId);
 		if (state != null) {

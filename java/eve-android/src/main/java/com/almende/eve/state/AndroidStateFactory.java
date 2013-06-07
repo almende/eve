@@ -2,7 +2,9 @@ package com.almende.eve.state;
 
 
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,11 +42,12 @@ public class AndroidStateFactory implements StateFactory {
 		 * existing.
 		 * @param agentId
 		 * @return state
+		 * @throws IOException, FileNotFoundException 
 		 */
 		@Override
-		public synchronized AndroidState create(String agentId) throws Exception {
+		public synchronized AndroidState create(String agentId) throws IOException, FileNotFoundException{
 			if (exists(agentId)) {
-				throw new Exception("Cannot create state, " + 
+				throw new IllegalStateException("Cannot create state, " + 
 						"state with id '" + agentId + "' already exists.");
 			}
 			

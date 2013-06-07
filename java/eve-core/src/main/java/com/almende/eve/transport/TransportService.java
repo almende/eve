@@ -43,7 +43,7 @@ public interface TransportService {
 	 */
 	public abstract void sendAsync (final String senderId, final String receiver, 
 			final JSONRequest request, 
-			final AsyncCallback<JSONResponse> callback) throws Exception;
+			final AsyncCallback<JSONResponse> callback) throws JSONRPCException;
 	
 
 	/**

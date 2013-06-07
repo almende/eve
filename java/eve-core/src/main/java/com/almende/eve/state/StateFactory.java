@@ -1,5 +1,7 @@
 package com.almende.eve.state;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
 
 public abstract interface StateFactory {
@@ -16,13 +18,13 @@ public abstract interface StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	public abstract State create(String agentId) throws Exception;
+	public abstract State create(String agentId) throws IOException, FileNotFoundException;
 	
 	/**
 	 * Delete a state. If the state does not exist, nothing will happen.
 	 * @param agentId
 	 */
-	public abstract void delete(String agentId) throws Exception;
+	public abstract void delete(String agentId);
 	
 	/**
 	 * Test if a state with given id exists.
