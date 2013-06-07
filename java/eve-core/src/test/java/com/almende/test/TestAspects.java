@@ -13,11 +13,13 @@ public class TestAspects extends TestCase {
 
 	@Test
 	public void testAspect() throws Exception {
+		final String TEST_AGENT = "AspectAgent"; 
 		AgentFactory factory = AgentFactory.getInstance();
 		if (factory == null){
 			factory = AgentFactory.createInstance();
 		}
-		AspectAgent<TestAspects> agent = factory.createAspectAgent(this.getClass(), "AspectAgent");
+		if (factory.hasAgent(TEST_AGENT)) factory.deleteAgent(TEST_AGENT);
+		AspectAgent<TestAspects> agent = factory.createAspectAgent(this.getClass(), TEST_AGENT);
 		
 		String result  = agent.send(agent.getFirstUrl(),"sub.callMe",String.class);
 		assertEquals("Hello World",result);

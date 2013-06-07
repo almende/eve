@@ -251,7 +251,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 
 	public Double increment() {
-		Double value = (Double) getState().get("count");
+		Double value = getState().get("count",Double.class);
 		if (value == null) {
 			value = new Double(0);
 		}
@@ -266,7 +266,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public String get(@Name("key") String key) {
-		return (String) getState().get(key);
+		return getState().get(key,String.class);
 	}
 
 	public void put(@Name("key") String key, 
@@ -331,7 +331,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 
 	public String testSendNonExistingMethod() throws Exception {
 		String res = send(URI.create("http://localhost:8080/EveCore/agents/chatagent/1/"), 
-				"nonExistingMethod", JOM.getSimpleType(String.class));
+				"nonExistingMethod", String.class);
 		System.out.println(res);
 		return res;
 	}
