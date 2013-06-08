@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.almende.eve.agent.AgentFactory;
-
 public class MemoryStateFactory implements StateFactory {
 	// Singleton containing all states, stored per id
 	private Map<String, MemoryState> states = 
@@ -17,7 +15,7 @@ public class MemoryStateFactory implements StateFactory {
 	 * @param agentFactory
 	 * @param params
 	 */
-	public MemoryStateFactory (AgentFactory agentFactory, Map<String, Object> params) {}
+	public MemoryStateFactory (Map<String, Object> params) {}
 
 	public MemoryStateFactory () {}
 

@@ -125,42 +125,8 @@ public class AgentFactory {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
 	
-	protected AgentFactory() {
-		// ensure there is at least a memory state service
-		setStateFactory(new MemoryStateFactory());
+	private AgentFactory() {}
 		
-		// ensure there is always an HttpService for outgoing calls
-		addTransportService(new HttpService());
-	}
-	
-	/**
-	 * Construct an AgentFactory and initialize the configuration
-	 * 
-	 * @param config
-	 */
-	protected AgentFactory(Config config) {
-		this.config = config;
-		if (config != null) {
-			AgentCache.configCache(config);
-			
-			// initialize all factories for state, transport, and scheduler
-			// important to initialize in the correct order: cache first,
-			// then the state and transport services, and lastly scheduler.
-			setStateFactory(config);
-			addTransportServices(config);
-			// ensure there is always an HttpService for outgoing calls
-			addTransportService(new HttpService());
-			setSchedulerFactory(config);
-			addAgents(config);
-			
-		} else {
-			// ensure there is at least a memory state service
-			setStateFactory(new MemoryStateFactory());
-			// ensure there is always an HttpService for outgoing calls
-			addTransportService(new HttpService());
-		}
-	}
-	
 	/**
 	 * Get a shared AgentFactory instance with the default namespace "default"
 	 * 
@@ -252,7 +218,26 @@ public class AgentFactory {
 							+ "Use getInstance instead to get the existing shared instance.");
 		}
 		
-		AgentFactory factory = new AgentFactory(config);
+		AgentFactory factory = new AgentFactory();
+		factory.setConfig(config);
+		if (config != null) {
+			AgentCache.configCache(config);
+			
+			// initialize all factories for state, transport, and scheduler
+			// important to initialize in the correct order: cache first,
+			// then the state and transport services, and lastly scheduler.
+			factory.setStateFactory(config);
+			factory.addTransportServices(config);
+			// ensure there is always an HttpService for outgoing calls
+			factory.addTransportService(new HttpService());
+			factory.setSchedulerFactory(config);
+			factory.addAgents(config);
+		} else {
+			// ensure there is at least a memory state service
+			factory.setStateFactory(new MemoryStateFactory());
+			// ensure there is always an HttpService for outgoing calls
+			factory.addTransportService(new HttpService());
+		}
 		FACTORIES.put(namespace, factory);
 		factory.boot();
 		return factory;
@@ -306,7 +291,6 @@ public class AgentFactory {
 		// Check if agent is instantiated already, returning if it is:
 		Agent agent = AgentCache.get(agentId);
 		if (agent != null) {
-			// System.err.println("Agent "+agentId+" found in cache!");
 			return agent;
 		}
 		// No agent found, normal initialization:
@@ -514,7 +498,6 @@ public class AgentFactory {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			// System.err.println("Agent "+agentId+" is threadSafe, keeping!");
 			AgentCache.put(agentId, agent);
 		}
 		
@@ -787,7 +770,6 @@ public class AgentFactory {
 	 * @return agentId
 	 */
 	private String getAgentId(String agentUrl) {
-		// System.err.println("Looking up agent:"+agentUrl);
 		if (agentUrl.startsWith("local:")) {
 			return agentUrl.replaceFirst("local:/?/?", "");
 		}
@@ -814,12 +796,9 @@ public class AgentFactory {
 		for (TransportService service : transportServices) {
 			List<String> protocols = service.getProtocols();
 			for (String protocol : protocols) {
-				// System.err.println("Checking:"+protocol+ " on "+receiverUrl+
-				// " Would be:'"+service.getAgentUrl(agentId)+"'");
 				if (receiverUrl.startsWith(protocol + ":")) {
 					String senderUrl = service.getAgentUrl(agentId);
 					if (senderUrl != null) {
-						// System.err.println("Returning:'"+service.getAgentUrl(agentId)+"'");
 						return senderUrl;
 					}
 				}
@@ -957,13 +936,12 @@ public class AgentFactory {
 			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
 			StateFactory stateFactory = (StateFactory) stateClass
-					.getConstructor(AgentFactory.class, Map.class).newInstance(
-							this, params);
+					.getConstructor(Map.class).newInstance(params);
 			
 			setStateFactory(stateFactory);
 			LOG.info("Initialized state factory: " + stateFactory.toString());
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 	}
 	
@@ -991,7 +969,7 @@ public class AgentFactory {
 								+ ", type=" + agentType);
 					}
 				} catch (Exception e) {
-					LOG.log(Level.WARNING,"",e);
+					LOG.log(Level.WARNING, "", e);
 				}
 			}
 		}
@@ -1080,7 +1058,7 @@ public class AgentFactory {
 			LOG.info("Initialized scheduler factory: "
 					+ schedulerFactory.getClass().getName());
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 	}
 	
@@ -1093,7 +1071,7 @@ public class AgentFactory {
 	public final void addTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 			return;
 		}
 		
@@ -1262,7 +1240,7 @@ public class AgentFactory {
 			try {
 				this.wait();
 			} catch (InterruptedException e) {
-				LOG.log(Level.WARNING,"",e);
+				LOG.log(Level.WARNING, "", e);
 			}
 		}
 		if (schedulerFactory == null) {

@@ -52,7 +52,7 @@ public class YamlConfig {
 	 * @return
 	 * @throws FileNotFoundException 
 	 */
-	public void load(String filename) throws FileNotFoundException{
+	public final void load(String filename) throws FileNotFoundException{
 		File file = new File(filename);
 		logger.info("Loading configuration file " + file.getAbsoluteFile() + "...");
 
@@ -67,7 +67,7 @@ public class YamlConfig {
 	 * @throws FileNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
-	public void load(InputStream inputStream) {
+	public final void load(InputStream inputStream) {
 		Yaml yaml = new Yaml();
 		config = yaml.loadAs(inputStream, Map.class);
 	}

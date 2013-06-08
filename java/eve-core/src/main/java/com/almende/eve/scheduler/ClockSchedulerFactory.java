@@ -49,9 +49,10 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 			if (schedulers.containsKey(agent.getId())) {
 				return schedulers.get(agent.getId());
 			}
-			Scheduler scheduler;
+			ClockScheduler scheduler;
 			try {
 				scheduler = new ClockScheduler(agent, agentFactory);
+				scheduler.run();
 				schedulers.put(agent.getId(), scheduler);
 				return scheduler;
 			} catch (Exception e) {
@@ -70,15 +71,14 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 }
 
 class ClockScheduler implements Scheduler, Runnable {
-	static final Logger		LOG		= Logger.getLogger("ClockScheduler");
-	final Agent				myAgent;
-	final Clock				myClock;
-	final ClockScheduler	_this	= this;
+	private static final Logger		LOG		= Logger.getLogger("ClockScheduler");
+	private final Agent				myAgent;
+	private final Clock				myClock;
+	private final ClockScheduler	_this	= this;
 	
 	public ClockScheduler(Agent myAgent, AgentFactory factory) throws Exception {
 		this.myAgent = myAgent;
 		myClock = new RunnableClock();
-		run();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -87,7 +87,7 @@ class ClockScheduler implements Scheduler, Runnable {
 				.get("_taskList");
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
-			while (task != null && task.active) {
+			while (task != null && task.isActive()) {
 				task = timeline.higher(task);
 			}
 			return task;
@@ -109,7 +109,7 @@ class ClockScheduler implements Scheduler, Runnable {
 			timeline = new TreeSet<TaskEntry>();
 			TaskEntry[] arr = oldTimeline.toArray(new TaskEntry[0]);
 			for (TaskEntry entry : arr) {
-				if (!entry.taskId.equals(task.taskId)) {
+				if (!entry.getTaskId().equals(task.getTaskId())) {
 					timeline.add(entry);
 				} else {
 					found = true;
@@ -124,7 +124,8 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (!myAgent.getState().putIfUnchanged("_taskList",
 				(Serializable) timeline, (Serializable) oldTimeline)) {
 			LOG.severe("need to retry putTask...");
-			putTask(task, onlyIfExists); // recursive retry....
+			 // recursive retry....
+			putTask(task, onlyIfExists);
 			return;
 		}
 	}
@@ -139,7 +140,7 @@ class ClockScheduler implements Scheduler, Runnable {
 			timeline = new TreeSet<TaskEntry>();
 			TaskEntry[] arr = oldTimeline.toArray(new TaskEntry[0]);
 			for (TaskEntry entry : arr) {
-				if (!entry.taskId.equals(id)) {
+				if (!entry.getTaskId().equals(id)) {
 					timeline.add(entry);
 				}
 			}
@@ -147,21 +148,21 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
 				oldTimeline)) {
 			LOG.severe("need to retry cancelTask...");
-			cancelTask(id); // recursive retry....
+			 // recursive retry....
+			cancelTask(id);
 			return;
 		}
 	}
 	
 	public void runTask(final TaskEntry task) {
-		
-		// logger.warning("Running "+task.taskId+" at "+DateTime.now().toString()+" Due: "+task.due.toString());
-		if (task.interval <= 0) {
-			cancelTask(task.taskId); // Remove from list
+		if (task.getInterval() <= 0) {
+			 // Remove from list
+			cancelTask(task.getTaskId());
 		} else {
-			if (!task.sequential) {
-				task.due = DateTime.now().plus(task.interval);
+			if (!task.isSequential()) {
+				task.setDue(DateTime.now().plus(task.getInterval()));
 			} else {
-				task.active = true;
+				task.setActive(true);
 			}
 			_this.putTask(task, true);
 			_this.run();
@@ -176,11 +177,11 @@ class ClockScheduler implements Scheduler, Runnable {
 					params.put(Sender.class, senderUrl);
 					
 					JSONResponse resp = myAgent.getAgentFactory().receive(
-							myAgent.getId(), task.request, params);
+							myAgent.getId(), task.getRequest(), params);
 					
-					if (task.interval > 0 && task.sequential) {
-						task.due = DateTime.now().plus(task.interval);
-						task.active = false;
+					if (task.getInterval() > 0 && task.isSequential()) {
+						task.setDue(DateTime.now().plus(task.getInterval()));
+						task.setActive(false);
 						_this.putTask(task, true);
 						_this.run();
 					}
@@ -211,7 +212,7 @@ class ClockScheduler implements Scheduler, Runnable {
 			putTask(task);
 			run();
 		}
-		return task.taskId;
+		return task.getTaskId();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -222,7 +223,7 @@ class ClockScheduler implements Scheduler, Runnable {
 				.get("_taskList");
 		if (timeline == null) return result;
 		for (TaskEntry entry : timeline) {
-			result.add(entry.taskId);
+			result.add(entry.getTaskId());
 		}
 		return result;
 	}
@@ -231,12 +232,12 @@ class ClockScheduler implements Scheduler, Runnable {
 	public void run() {
 		TaskEntry task = getFirstTask();
 		if (task != null) {
-			if (task.due.isBeforeNow()) {
+			if (task.getDue().isBeforeNow()) {
 				runTask(task);
 				run();// recursive call next task
 				return;
 			}
-			myClock.requestTrigger(myAgent.getId(), task.due, this);
+			myClock.requestTrigger(myAgent.getId(), task.getDue(), this);
 		}
 	}
 	
@@ -245,8 +246,6 @@ class ClockScheduler implements Scheduler, Runnable {
 		@SuppressWarnings("unchecked")
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
 				.get("_taskList");
-		// System.err.println("ClockSchedulerFactory to String called:"+((timeline
-		// != null) ? timeline.toString() : "[]"));
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
@@ -257,12 +256,12 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	private static final long	serialVersionUID	= -2402975617148459433L;
 	// TODO, make JSONRequest.equals() state something about real equal tasks,
 	// use it as deduplication!
-	String						taskId;
-	JSONRequest					request;
-	DateTime					due;
-	long						interval			= 0;
-	boolean						sequential			= true;
-	boolean						active				= false;
+	private String						taskId;
+	private JSONRequest					request;
+	private DateTime					due;
+	private long						interval			= 0;
+	private boolean						sequential			= true;
+	private boolean						active				= false;
 	
 	public TaskEntry(DateTime due, JSONRequest request, long interval,
 			boolean sequential) {
@@ -301,14 +300,41 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		return request;
 	}
 	
-	public String getDue() {
+	public String getDueAsString() {
 		return due.toString();
+	}
+	public DateTime getDue() {
+		return due;
 	}
 	
 	public long getInterval() {
 		return interval;
 	}
 	
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public void setRequest(JSONRequest request) {
+		this.request = request;
+	}
+
+	public void setDue(DateTime due) {
+		this.due = due;
+	}
+
+	public void setInterval(long interval) {
+		this.interval = interval;
+	}
+
+	public void setSequential(boolean sequential) {
+		this.sequential = sequential;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
 	public boolean isSequential() {
 		return sequential;
 	}

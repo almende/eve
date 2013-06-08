@@ -16,21 +16,21 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ResultMonitor implements Serializable {
-	private static final long						serialVersionUID	= -6738643681425840533L;
-	private static final Logger						LOG					= Logger.getLogger(ResultMonitor.class
-																				.getCanonicalName());
+	private static final long					serialVersionUID	= -6738643681425840533L;
+	private static final Logger					LOG					= Logger.getLogger(ResultMonitor.class
+																			.getCanonicalName());
 	
-	public String									id;
-	public String									agentId;
-	public URI										url;
-	public String									method;
-	public ObjectNode								params;
-	public String									callbackMethod;
-	public List<String>								schedulerIds		= new ArrayList<String>();
-	public List<String>								remoteIds			= new ArrayList<String>();
-	public String									cacheType;
+	public String								id;
+	public String								agentId;
+	public URI									url;
+	public String								method;
+	public ObjectNode							params;
+	public String								callbackMethod;
+	public List<String>							schedulerIds		= new ArrayList<String>();
+	public List<String>							remoteIds			= new ArrayList<String>();
+	public String								cacheType;
 	
-	private static transient HashMap<String, Cache>	caches				= new HashMap<String, Cache>();
+	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
 	
 	public ResultMonitor(String agentId, URI url, String method,
 			ObjectNode params, String callbackMethod) {
@@ -119,7 +119,8 @@ public class ResultMonitor implements Serializable {
 				store(); // recursive retry.
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"Couldn't find monitors:" + agentId + "." + id,e);
+			LOG.log(Level.WARNING, "Couldn't find monitors:" + agentId + "."
+					+ id, e);
 		}
 		return id;
 	}
@@ -143,7 +144,8 @@ public class ResultMonitor implements Serializable {
 				delete(); // recursive retry.
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't delete monitor:" + agentId + "." + id, e);
+			LOG.log(Level.WARNING, "Couldn't delete monitor:" + agentId + "."
+					+ id, e);
 		}
 	}
 	
@@ -165,7 +167,8 @@ public class ResultMonitor implements Serializable {
 			return result;
 			
 		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't find monitor:" + agentId + "." + id,e);
+			LOG.log(Level.WARNING, "Couldn't find monitor:" + agentId + "."
+					+ id, e);
 		}
 		return null;
 	}

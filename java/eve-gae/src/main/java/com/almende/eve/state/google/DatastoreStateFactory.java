@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.almende.eve.agent.AgentFactory;
 import com.almende.eve.state.AbstractState;
 import com.almende.eve.state.StateFactory;
 import com.almende.util.TwigUtil;
@@ -16,8 +15,7 @@ public class DatastoreStateFactory implements StateFactory {
 	 * @param agentFactory
 	 * @param params
 	 */
-	public DatastoreStateFactory (AgentFactory agentFactory, 
-			Map<String, Object> params) {
+	public DatastoreStateFactory (Map<String, Object> params) {
 		this();
 	}
 	

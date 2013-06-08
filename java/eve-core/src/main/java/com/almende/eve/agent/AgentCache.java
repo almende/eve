@@ -17,7 +17,6 @@ public class AgentCache {
 		synchronized(cache){
 			Integer maxSize = config.get("AgentCache","maxSize");
 			if (maxSize != null) AgentCache.maxSize=maxSize;
-			//System.err.println("Init AgentCache on maxSize:"+this.maxSize);
 			AgentCache.cache = new ConcurrentHashMap<String, MetaInfo>(AgentCache.maxSize+1);
 			AgentCache.scores = new ArrayList<MetaInfo>(AgentCache.maxSize);
 		}
@@ -28,7 +27,6 @@ public class AgentCache {
 		MetaInfo result = cache.get(agentId);
 		if (result != null){
 			result.use();
-			//System.err.println("Got:"+result.agent.getId());
 			return result.agent;
 		}
 		return null;
@@ -43,7 +41,6 @@ public class AgentCache {
 				evict(overshoot);
 			}
 			scores.add(entry);
-			//System.err.println("Added:"+agent.getId());
 		}
 	}
 	protected static void evict(int amount){
@@ -58,7 +55,6 @@ public class AgentCache {
 			for (MetaInfo entry: toEvict){
 				cache.remove(entry.agent.getId());
 			}
-			//System.err.println("Evicted:"+amount+" records");
 		}
 	}
 	public static void delete(String agentId) {

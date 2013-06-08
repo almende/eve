@@ -32,13 +32,13 @@ public class ClassUtil {
 					return true;
 				}
 			}
-
+			
 			s = s.getSuperclass();
 		}
-
+		
 		return false;
 	}
-
+	
 	/**
 	 * Check if checkClass extends superClass
 	 * 
@@ -55,10 +55,10 @@ public class ClassUtil {
 			}
 			s = s.getSuperclass();
 		}
-
+		
 		return false;
 	}
-
+	
 	/**
 	 * Wraps any primitive type in it's boxed version
 	 * returns other types unmodified
@@ -70,7 +70,7 @@ public class ClassUtil {
 	public static <T> Class<T> wrap(Class<T> c) {
 		return c.isPrimitive() ? (Class<T>) PRIMITIVES_TO_WRAPPERS.get(c) : c;
 	}
-
+	
 	/**
 	 * Unwraps any boxed type in it's primitive version
 	 * returns other types unmodified
@@ -80,184 +80,189 @@ public class ClassUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Class<T> unWrap(Class<T> c) {
-		return WRAPPERS_TO_PRIMITIVES.containsKey(c) ? (Class<T>) WRAPPERS_TO_PRIMITIVES.get(c) : c;
+		return WRAPPERS_TO_PRIMITIVES.containsKey(c) ? (Class<T>) WRAPPERS_TO_PRIMITIVES
+				.get(c) : c;
 	}
-
-	private static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS = generateMap();
-	private static Map<Class<?>, Class<?>> generateMap() {
-		Map<Class<?>, Class<?>> result = new HashMap<Class<?>, Class<?>>();
-		result.put(boolean.class, Boolean.class);
-		result.put(byte.class, Byte.class);
-		result.put(char.class, Character.class);
-		result.put(double.class, Double.class);
-		result.put(float.class, Float.class);
-		result.put(int.class, Integer.class);
-		result.put(long.class, Long.class);
-		result.put(short.class, Short.class);
-		result.put(void.class, Void.class);
-		return result;
+	
+	private static final Map<Class<?>, Class<?>>	PRIMITIVES_TO_WRAPPERS	= new HashMap<Class<?>, Class<?>>();
+	static {
+		PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
+		PRIMITIVES_TO_WRAPPERS.put(byte.class, Byte.class);
+		PRIMITIVES_TO_WRAPPERS.put(char.class, Character.class);
+		PRIMITIVES_TO_WRAPPERS.put(double.class, Double.class);
+		PRIMITIVES_TO_WRAPPERS.put(float.class, Float.class);
+		PRIMITIVES_TO_WRAPPERS.put(int.class, Integer.class);
+		PRIMITIVES_TO_WRAPPERS.put(long.class, Long.class);
+		PRIMITIVES_TO_WRAPPERS.put(short.class, Short.class);
+		PRIMITIVES_TO_WRAPPERS.put(void.class, Void.class);
 	}
-
-	private static final Map<Class<?>, Class<?>> WRAPPERS_TO_PRIMITIVES = generatePrimitiveMap();
-	private static Map<Class<?>, Class<?>> generatePrimitiveMap() {
-		Map<Class<?>, Class<?>> result = new HashMap<Class<?>, Class<?>>();
-		result.put(Boolean.class, boolean.class);
-		result.put(Byte.class, byte.class);
-		result.put(Character.class, char.class);
-		result.put(Double.class, double.class);
-		result.put(Float.class, float.class);
-		result.put(Integer.class, int.class);
-		result.put(Long.class, long.class);
-		result.put(Short.class, short.class);
-		result.put(Void.class, void.class);
-		return result;
+	
+	private static final Map<Class<?>, Class<?>>	WRAPPERS_TO_PRIMITIVES	= new HashMap<Class<?>, Class<?>>();
+	static {
+		WRAPPERS_TO_PRIMITIVES.put(Boolean.class, boolean.class);
+		WRAPPERS_TO_PRIMITIVES.put(Byte.class, byte.class);
+		WRAPPERS_TO_PRIMITIVES.put(Character.class, char.class);
+		WRAPPERS_TO_PRIMITIVES.put(Double.class, double.class);
+		WRAPPERS_TO_PRIMITIVES.put(Float.class, float.class);
+		WRAPPERS_TO_PRIMITIVES.put(Integer.class, int.class);
+		WRAPPERS_TO_PRIMITIVES.put(Long.class, long.class);
+		WRAPPERS_TO_PRIMITIVES.put(Short.class, short.class);
+		WRAPPERS_TO_PRIMITIVES.put(Void.class, void.class);
 	}
-
 	
 	/**
-	 * Search for method (reflection) which fits the given argument types. Works for any combination of 
+	 * Search for method (reflection) which fits the given argument types. Works
+	 * for any combination of
 	 * primitive types, boxed types and normal objects.
 	 * 
-	 * @author PSpeed http://stackoverflow.com/questions/1894740/any-solution-for-class-getmethod-reflection-and-autoboxing
+	 * @author PSpeed
+	 *         http://stackoverflow.com/questions/1894740/any-solution-for
+	 *         -class-getmethod-reflection-and-autoboxing
 	 * 
-	 * @param type Class in which the method is searched
-	 * @param name Method name to search for
-	 * @param parms Class types of the requested arguments
+	 * @param type
+	 *            Class in which the method is searched
+	 * @param name
+	 *            Method name to search for
+	 * @param parms
+	 *            Class types of the requested arguments
 	 * @return Method
 	 */
-	public static Method searchForMethod(Class<?> type, String name, Class<?>[] parms) {
+	public static Method searchForMethod(Class<?> type, String name,
+			Class<?>[] parms) {
 		Method[] methods = type.getMethods();
 		for (int i = 0; i < methods.length; i++) {
 			// Has to be named the same of course.
-			if (!methods[i].getName().equals(name))
+			if (!methods[i].getName().equals(name)) {
 				continue;
-
+			}
+			
 			Class<?>[] types = methods[i].getParameterTypes();
-
+			
 			// Does it have the same number of arguments that we're looking for.
-			if (types.length != parms.length)
+			if (types.length != parms.length) {
 				continue;
-
+			}
+			
 			// Check for type compatibility
-			if (areTypesCompatible(types, parms))
+			if (areTypesCompatible(types, parms)) {
 				return methods[i];
+			}
 		}
 		return null;
 	}
-
+	
 	public static boolean areTypesCompatible(Class<?>[] targets,
 			Class<?>[] sources) {
-
-		if (targets.length != sources.length)
+		
+		if (targets.length != sources.length) {
 			return false;
-
+		}
+		
 		for (int i = 0; i < targets.length; i++) {
-			if (sources[i] == null)
+			if (sources[i] == null) {
 				continue;
-
-			if (!wrap(targets[i]).isAssignableFrom(sources[i]))
+			}
+			
+			if (!wrap(targets[i]).isAssignableFrom(sources[i])) {
 				return false;
+			}
 		}
 		return (true);
 	}
+	
 	/**
 	 * Get the underlying class for a type, or null if the type is a variable
 	 * type. See <a
 	 * href="http://www.artima.com/weblogs/viewpost.jsp?thread=208860"
 	 * >description</a>
 	 * 
-	 * @param type the type
+	 * @param type
+	 *            the type
 	 * @return the underlying class
 	 */
-	public static Class<?> getClass(final Type type)
-	{
-		if (type instanceof Class)
+	public static Class<?> getClass(final Type type) {
+		if (type instanceof Class) {
 			return (Class<?>) type;
-
-		if (type instanceof ParameterizedType)
+		}
+		
+		if (type instanceof ParameterizedType) {
 			return getClass(((ParameterizedType) type).getRawType());
-
-		if (type instanceof GenericArrayType)
-		{
+		}
+		
+		if (type instanceof GenericArrayType) {
 			final Type componentType = ((GenericArrayType) type)
 					.getGenericComponentType();
 			final Class<?> componentClass = getClass(componentType);
-			if (componentClass != null)
+			if (componentClass != null) {
 				return Array.newInstance(componentClass, 0).getClass();
+			}
+			
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Get the actual type arguments a child class has used to extend a generic
 	 * base class. See <a
 	 * href="http://www.artima.com/weblogs/viewpost.jsp?thread=208860"
 	 * >description</a>
 	 * 
-	 * @param baseClass the base class
-	 * @param childClass the child class
+	 * @param baseClass
+	 *            the base class
+	 * @param childClass
+	 *            the child class
 	 * @return a list of the raw classes for the actual type arguments.
 	 */
 	public static <T> List<Class<?>> getTypeArguments(final Class<T> baseClass,
-			final Class<? extends T> childClass)
-	{
+			final Class<? extends T> childClass) {
 		Map<Type, Type> resolvedTypes = new HashMap<Type, Type>();
 		Type type = childClass;
 		// start walking up the inheritance hierarchy until we hit baseClass
-		while (!getClass(type).equals(baseClass))
-		{
-			if (type instanceof Class)
-			{
+		while (!getClass(type).equals(baseClass)) {
+			if (type instanceof Class) {
 				// there is no useful information for us in raw types, so just
 				// keep going.
 				type = ((Class<?>) type).getGenericSuperclass();
-			} else
-			{
+			} else {
 				final ParameterizedType parameterizedType = (ParameterizedType) type;
 				final Class<?> rawType = (Class<?>) parameterizedType
 						.getRawType();
-
+				
 				final Type[] actualTypeArguments = parameterizedType
 						.getActualTypeArguments();
 				final TypeVariable<?>[] typeParameters = rawType
 						.getTypeParameters();
-				for (int i = 0; i < actualTypeArguments.length; i++)
-				{
+				for (int i = 0; i < actualTypeArguments.length; i++) {
 					resolvedTypes
 							.put(typeParameters[i], actualTypeArguments[i]);
 				}
-
-				if (!rawType.equals(baseClass))
-				{
+				
+				if (!rawType.equals(baseClass)) {
 					type = rawType.getGenericSuperclass();
 				}
 			}
 		}
-
+		
 		// finally, for each actual type argument provided to baseClass,
 		// determine (if possible)
 		// the raw class for that type argument.
 		final Type[] actualTypeArguments;
-		if (type instanceof Class)
-		{
+		if (type instanceof Class) {
 			actualTypeArguments = ((Class<?>) type).getTypeParameters();
-		} else
-		{
+		} else {
 			actualTypeArguments = ((ParameterizedType) type)
 					.getActualTypeArguments();
 		}
 		final List<Class<?>> typeArgumentsAsClasses = new ArrayList<Class<?>>();
 		// resolve types by chasing down type variables.
-		for (Type baseType : actualTypeArguments)
-		{
-			while (resolvedTypes.containsKey(baseType))
-			{
+		for (Type baseType : actualTypeArguments) {
+			while (resolvedTypes.containsKey(baseType)) {
 				baseType = resolvedTypes.get(baseType);
 			}
 			typeArgumentsAsClasses.add(getClass(baseType));
 		}
-//			LOG.debug("Got type arguments for " + childClass + ": "
-//					+ typeArgumentsAsClasses);
+		// LOG.debug("Got type arguments for " + childClass + ": "
+		// + typeArgumentsAsClasses);
 		return typeArgumentsAsClasses;
 	}
 }

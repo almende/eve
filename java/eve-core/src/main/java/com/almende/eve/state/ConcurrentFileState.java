@@ -107,7 +107,6 @@ public class ConcurrentFileState extends FileState {
 						+ this.filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
-			// logger.warning("Starting to wait for fileLock! "+filename);
 			try {
 				// TODO: add support for shared locks, allowing parallel reading
 				// operations.
@@ -121,7 +120,6 @@ public class ConcurrentFileState extends FileState {
 				throw new Exception("error, couldn't obtain file lock on:"
 						+ filename, e);
 			}
-			// logger.warning("fileLock set! "+filename);
 			fis = Channels.newInputStream(channel);
 			fos = Channels.newOutputStream(channel);
 		}
@@ -134,7 +132,7 @@ public class ConcurrentFileState extends FileState {
 					
 					lock.release();
 				} catch (IOException e) {
-					LOG.log(Level.WARNING,"",e);
+					LOG.log(Level.WARNING, "", e);
 				}
 			}
 			try {
@@ -142,7 +140,7 @@ public class ConcurrentFileState extends FileState {
 				fis.close();
 				channel.close();
 			} catch (IOException e) {
-				LOG.log(Level.WARNING,"",e);
+				LOG.log(Level.WARNING, "", e);
 			}
 			channel = null;
 			fis = null;
@@ -150,7 +148,6 @@ public class ConcurrentFileState extends FileState {
 			lock = null;
 			locked.put(filename, false);
 			locked.notifyAll();
-			// logger.warning("locked released! "+filename);
 		}
 	}
 	
@@ -239,7 +236,7 @@ public class ConcurrentFileState extends FileState {
 			properties.clear();
 			write();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 	}
@@ -252,7 +249,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.keySet();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -266,7 +263,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.containsKey(key);
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -280,7 +277,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.containsValue(value);
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -294,7 +291,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.entrySet();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -308,7 +305,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.get(key);
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -322,7 +319,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.isEmpty();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -337,7 +334,7 @@ public class ConcurrentFileState extends FileState {
 			result = properties.put(key, value);
 			write();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -352,7 +349,7 @@ public class ConcurrentFileState extends FileState {
 			properties.putAll(map);
 			write();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 	}
@@ -371,9 +368,10 @@ public class ConcurrentFileState extends FileState {
 				result = true;
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
-			result = true; // Don't let users loop if exception is thrown. They
-							// would get into a deadlock....
+			LOG.log(Level.WARNING, "", e);
+			// Don't let users loop if exception is thrown. They
+			// would get into a deadlock....
+			result = true;
 		}
 		closeFile();
 		return result;
@@ -388,7 +386,7 @@ public class ConcurrentFileState extends FileState {
 			result = properties.remove(key);
 			write();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -402,7 +400,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.size();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
@@ -416,7 +414,7 @@ public class ConcurrentFileState extends FileState {
 			read();
 			result = properties.values();
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;

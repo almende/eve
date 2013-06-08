@@ -49,7 +49,7 @@ public class JSONResponse {
 		init(id, null, error);
 	}
 	
-	private void init(ObjectNode response) throws JSONRPCException {
+	private final void init(ObjectNode response) throws JSONRPCException {
 		if (response == null || response.isNull()) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Response is null");
@@ -77,14 +77,14 @@ public class JSONResponse {
 		init(id, result, error);
 	}
 	
-	private void init(Object id, Object result, JSONRPCException error) {
+	private final void init(Object id, Object result, JSONRPCException error) {
 		setVersion();
 		setId(id);
 		setResult(result);
 		setError(error);
 	}
 	
-	public void setId(Object id) {
+	public final void setId(Object id) {
 		ObjectMapper mapper = JOM.getInstance();
 		resp.put("id", mapper.convertValue(id, JsonNode.class));
 	}
@@ -94,7 +94,7 @@ public class JSONResponse {
 		return mapper.convertValue(resp.get("id"), JsonNode.class);
 	}
 	
-	public void setResult(Object result) {
+	public final void setResult(Object result) {
 		if (result != null) {
 			ObjectMapper mapper = JOM.getInstance();
 			resp.put("result", mapper.convertValue(result, JsonNode.class));
@@ -110,7 +110,7 @@ public class JSONResponse {
 		return resp.get("result");
 	}
 	
-	public void setError(JSONRPCException error) {
+	public final void setError(JSONRPCException error) {
 		if (error != null) {
 			resp.put("error", error.getObjectNode());
 			setResult(null);
@@ -137,7 +137,7 @@ public class JSONResponse {
 	 * }
 	 */
 	
-	private void setVersion() {
+	private final void setVersion() {
 		resp.put("jsonrpc", "2.0");
 	}
 	

@@ -58,6 +58,7 @@ public class Push implements ResultMonitorConfigType {
 		pushParams.put("params", monitor.params);
 		
 		wrapper.put("pushParams", pushParams);
-		return agent.send(monitor.url, "monitor.registerPush", wrapper, JOM.getTypeFactory().constructCollectionType(ArrayList.class, String.class));
+		List<String> result = new ArrayList<String>();
+		return agent.send(result, monitor.url, "monitor.registerPush", wrapper);
 	}
 }

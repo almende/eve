@@ -12,8 +12,6 @@ import java.util.logging.Logger;
 
 import sun.net.www.protocol.file.FileURLConnection;
 
-import com.almende.eve.agent.AgentFactory;
-
 @SuppressWarnings("restriction")
 public class FileStateFactory implements StateFactory {
 	
@@ -29,8 +27,7 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentFactory
 	 * @param params
 	 */
-	public FileStateFactory(AgentFactory agentFactory,
-			Map<String, Object> params) {
+	public FileStateFactory(Map<String, Object> params) {
 		// built the path where the agents will be stored
 		if (params == null) params = new HashMap<String, Object>();
 		if (params.containsKey("json")) this.json = (Boolean) params

@@ -35,7 +35,7 @@ public class JSONRequest implements Serializable {
 		init(request);
 	}
 	
-	public void init(ObjectNode request) throws JSONRPCException {
+	public final void init(ObjectNode request) throws JSONRPCException {
 		if (request == null || request.isNull()) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Request is null");
@@ -91,14 +91,14 @@ public class JSONRequest implements Serializable {
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	private void init(Object id, String method, ObjectNode params) {
+	private final void init(Object id, String method, ObjectNode params) {
 		setVersion();
 		setId(id);
 		setMethod(method);
 		setParams(params);
 	}
 	
-	public void setId(Object id) {
+	public final void setId(Object id) {
 		ObjectMapper mapper = JOM.getInstance();
 		req.put("id", mapper.convertValue(id, JsonNode.class));
 	}
@@ -108,7 +108,7 @@ public class JSONRequest implements Serializable {
 		return mapper.convertValue(req.get("id"), Object.class);
 	}
 	
-	public void setMethod(String method) {
+	public final void setMethod(String method) {
 		req.put("method", method);
 	}
 	
@@ -119,7 +119,7 @@ public class JSONRequest implements Serializable {
 		return null;
 	}
 	
-	public void setParams(ObjectNode params) {
+	public final void setParams(ObjectNode params) {
 		req.put("params", params != null ? params : JOM.createObjectNode());
 	}
 	
@@ -146,11 +146,11 @@ public class JSONRequest implements Serializable {
 		return req.get("params").has(name);
 	}
 	
-	private void setVersion() {
+	private final void setVersion() {
 		req.put("jsonrpc", "2.0");
 	}
 	
-	public void setCallback(String url, String method) {
+	public final void setCallback(String url, String method) {
 		ObjectNode callback = JOM.createObjectNode();
 		callback.put("url", url);
 		callback.put("method", method);

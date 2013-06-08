@@ -8,11 +8,11 @@ import java.util.Arrays;
 import com.almende.eve.agent.AgentFactory;
 
 public class Config extends YamlConfig {
-
+	
 	public Config() {
 		super();
 	}
-
+	
 	public Config(String filename) throws FileNotFoundException {
 		super(filename);
 	}
@@ -21,13 +21,15 @@ public class Config extends YamlConfig {
 		super(inputStream);
 	}
 	
-	public <T> T get(String ... params) {
-		ArrayList<String> envParams = new ArrayList<String>(params.length+2);
+	public <T> T get(String... params) {
+		ArrayList<String> envParams = new ArrayList<String>(params.length + 2);
 		envParams.add("environment");
+		// TODO: remove dependency on AgentFactory, invert environment
+		// addition(AgentFactory injects this i.s.o. being pulled from here.
 		envParams.add(AgentFactory.getEnvironment());
 		envParams.addAll(Arrays.asList(params));
 		T result = super.get(envParams.toArray(new String[0]));
-		if (result == null){
+		if (result == null) {
 			result = super.get(params);
 		}
 		return result;

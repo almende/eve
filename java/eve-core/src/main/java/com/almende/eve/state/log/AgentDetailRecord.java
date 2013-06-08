@@ -4,10 +4,16 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class AgentDetailRecord implements Serializable {
-	public AgentDetailRecord () {}
+	public AgentDetailRecord() {
+	}
 	
-	public AgentDetailRecord (String agent, String type, 
-			String method, String timestamp, Long duration, Boolean success) {
+	public AgentDetailRecord(String agent, String type, String method,
+			String timestamp, Long duration, Boolean success) {
+		init(agent, type, method, timestamp, duration, success);
+	}
+	
+	public final void init(String agent, String type, String method,
+			String timestamp, Long duration, Boolean success) {
 		setAgent(agent);
 		setType(type);
 		setMethod(method);
@@ -63,12 +69,12 @@ public class AgentDetailRecord implements Serializable {
 	public Boolean getSuccess() {
 		return success;
 	}
-
-	private String agent;     // agent url
-	private String type;      // agent class name
-	private String method;    // method name
-	private String timestamp; // timestamp in ISO datetime format
-	private Long duration;    // duration of execution of the call in ms	
-	private Boolean success;  // true if call was succesfull, false if an 
-	                           // exception was thrown
+	
+	private String	agent;		// agent url
+	private String	type;		// agent class name
+	private String	method;	// method name
+	private String	timestamp;	// timestamp in ISO datetime format
+	private Long	duration;	// duration of execution of the call in ms
+	private Boolean	success;	// true if call was succesfull, false if an
+								// exception was thrown
 }

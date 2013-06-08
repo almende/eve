@@ -13,12 +13,10 @@ import java.util.Map;
 
 import android.content.Context;
 
-import com.almende.eve.agent.AgentFactory;
-
 public class AndroidStateFactory implements StateFactory {
 		private Context appCtx;
 
-		public AndroidStateFactory (AgentFactory agentFactory, Map<String, Object> params) throws Exception {
+		public AndroidStateFactory (Map<String, Object> params) throws Exception {
 			if (params == null || !params.containsKey("AppContext")) throw new Exception("AppContext parameter is required!");
 			appCtx = (params != null) ? (Context) params.get("AppContext") : null;
 		}
