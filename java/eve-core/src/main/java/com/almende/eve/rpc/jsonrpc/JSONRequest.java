@@ -91,7 +91,7 @@ public class JSONRequest implements Serializable {
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	private final void init(Object id, String method, ObjectNode params) {
+	private void init(Object id, String method, ObjectNode params) {
 		setVersion();
 		setId(id);
 		setMethod(method);
@@ -146,7 +146,7 @@ public class JSONRequest implements Serializable {
 		return req.get("params").has(name);
 	}
 	
-	private final void setVersion() {
+	private void setVersion() {
 		req.put("jsonrpc", "2.0");
 	}
 	

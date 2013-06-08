@@ -261,8 +261,6 @@ public class ClassUtil {
 			}
 			typeArgumentsAsClasses.add(getClass(baseType));
 		}
-		// LOG.debug("Got type arguments for " + childClass + ": "
-		// + typeArgumentsAsClasses);
 		return typeArgumentsAsClasses;
 	}
 }

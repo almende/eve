@@ -183,11 +183,22 @@ public class XmppService implements TransportService {
 	 * @param username
 	 * @param password
 	 * @param resource
-	 * @throws Exception
+	 * @throws IOException
+	 * @throws JSONRPCException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws InvalidKeyException
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(String agentId, String username, String password)
-			throws Exception {
+			throws InvalidKeyException, InvalidAlgorithmParameterException,
+			NoSuchAlgorithmException, InvalidKeySpecException,
+			NoSuchPaddingException, IllegalBlockSizeException,
+			BadPaddingException, JSONRPCException, IOException {
 		String resource = null;
 		connect(agentId, username, password, resource);
 	}
@@ -359,7 +370,9 @@ public class XmppService implements TransportService {
 		
 		AgentConnection connection = null;
 		
-		if (senderUrl != null) connection = connectionsByUrl.get(senderUrl);
+		if (senderUrl != null) {
+			connection = connectionsByUrl.get(senderUrl);
+		}
 		if (connection != null) {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";

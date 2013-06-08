@@ -162,10 +162,11 @@ public class ResultMonitor implements Serializable {
 			}
 			ResultMonitor result = monitors.get(id);
 			if (result != null && !caches.containsKey(id)
-					&& result.cacheType != null) result.addCache((Cache) Class
-					.forName(result.cacheType).newInstance());
+					&& result.cacheType != null) {
+				result.addCache((Cache) Class.forName(result.cacheType)
+						.newInstance());
+			}
 			return result;
-			
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't find monitor:" + agentId + "."
 					+ id, e);

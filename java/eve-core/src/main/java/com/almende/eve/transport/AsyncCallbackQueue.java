@@ -11,26 +11,29 @@ import java.util.concurrent.TimeoutException;
  * The Queue handles timeouts on the callbacks.
  */
 public class AsyncCallbackQueue<T> {
-	private static int TIMEOUT = 30000; // timeout in milliseconds
+	// timeout in milliseconds
+	private static final int	TIMEOUT	= 30000;
+	
 	// TODO: make the timeout customizable in eve.yaml
 	
 	/**
-	 * Append a callback to the queue. 
-     * 
-	 * The callback must be pulled from the queue again within the 
+	 * Append a callback to the queue.
+	 * 
+	 * The callback must be pulled from the queue again within the
 	 * timeout. If not, the callback.onFailure will be called with a
 	 * TimeoutException as argument, and is deleted from the queue.
 	 * 
 	 * The method will throw an exception when a callback with the same id
-	 * is already in the queue. 
+	 * is already in the queue.
+	 * 
 	 * @param id
 	 * @param callback
 	 * @throws Exception
 	 */
-	public synchronized void push(final String id, 
-			AsyncCallback<T> callback) throws Exception {
+	public synchronized void push(final String id, AsyncCallback<T> callback) {
 		if (queue.containsKey(id)) {
-			throw new Exception("Callback with id '" + id + "' already in queue");
+			throw new IllegalStateException("Callback with id '" + id
+					+ "' already in queue");
 		}
 		
 		final AsyncCallbackQueue<T> me = this;
@@ -42,18 +45,19 @@ public class AsyncCallbackQueue<T> {
 				AsyncCallback<T> callback = me.pull(id);
 				if (callback != null) {
 					callback.onFailure(new TimeoutException(
-						"Timeout occurred for request with id '" + id + "'"));
+							"Timeout occurred for request with id '" + id + "'"));
 				}
 			}
-        };
+		};
 		timer.schedule(handler.timeout, TIMEOUT);
 		queue.put(id, handler);
 	}
-
+	
 	/**
 	 * Pull a callback from the queue. The callback can be pulled from the
 	 * queue only once. If no callback is found with given id, null will
 	 * be returned.
+	 * 
 	 * @param id
 	 * @return
 	 */
@@ -61,7 +65,8 @@ public class AsyncCallbackQueue<T> {
 		CallbackHandler handler = queue.get(id);
 		if (handler != null) {
 			queue.remove(id);
-			handler.timeout.cancel(); // stop the timeout
+			// stop the timeout
+			handler.timeout.cancel();
 			return handler.callback;
 		}
 		return null;
@@ -79,11 +84,11 @@ public class AsyncCallbackQueue<T> {
 	 * Helper class to store a callback and its timeout task
 	 */
 	private class CallbackHandler {
-		public AsyncCallback<T> callback;
-		public TimerTask timeout;
+		private AsyncCallback<T>	callback;
+		private TimerTask			timeout;
 	}
 	
-	private Map<String, CallbackHandler> queue = 
-			new ConcurrentHashMap<String, CallbackHandler>();
-	private Timer timer = new Timer(true);  // deamon timer
+	private Map<String, CallbackHandler>	queue	= new ConcurrentHashMap<String, CallbackHandler>();
+	// deamon timer
+	private Timer							timer	= new Timer(true);
 }

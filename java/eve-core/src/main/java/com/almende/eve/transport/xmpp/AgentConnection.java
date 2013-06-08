@@ -161,9 +161,6 @@ public class AgentConnection {
 				// queue the response callback
 				callbacks.push(id, callback);
 				
-				// System.out.println("send username=" + username + ", request="
-				// + request); // TODO: cleanup
-				
 				// send the message
 				Message reply = new Message();
 				reply.setTo(username);

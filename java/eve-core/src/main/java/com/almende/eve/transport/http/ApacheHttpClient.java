@@ -1,5 +1,6 @@
 package com.almende.eve.transport.http;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -91,7 +92,7 @@ public class ApacheHttpClient {
 		static final String	COOKIESTORE	= "_CookieStore";
 		State				myState		= null;
 		
-		MyCookieStore() throws Exception {
+		MyCookieStore() throws IOException {
 			FileStateFactory factory = new FileStateFactory(".evecookies");
 			if (factory.exists(COOKIESTORE)) {
 				myState = factory.get(COOKIESTORE);

@@ -1,5 +1,6 @@
 package com.almende.eve.agent.proxy;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -46,7 +47,7 @@ public class AsyncProxy<T> {
 		
 		return new DecoratedFuture(pool.submit(new Callable<Object>(){
 			@Override
-			public Object call() throws Exception {
+			public Object call() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 				return method.invoke(proxy, args);
 			}
 		}),ClassUtil.wrap(method.getReturnType()));

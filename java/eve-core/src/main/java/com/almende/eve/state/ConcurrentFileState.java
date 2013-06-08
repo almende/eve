@@ -87,23 +87,26 @@ public class ConcurrentFileState extends FileState {
 	}
 	
 	@Override
-	public void finalize() {
+	public void finalize() throws Throwable {
 		closeFile();
+		super.finalize();
 	}
 	
 	@SuppressWarnings("resource")
-	private void openFile() throws Exception {
+	private void openFile() throws IOException {
 		synchronized (locked) {
 			while (locked.containsKey(filename) && locked.get(filename)) {
 				// logger.warning("Starting to wait for locked! "+filename);
-				locked.wait();
+				try {
+					locked.wait();
+				} catch (InterruptedException e) {}
 			}
 			locked.put(filename, true);
 			File file = new File(this.filename);
 			if (!file.exists()) {
 				locked.put(filename, false);
 				locked.notifyAll();
-				throw new Exception("Warning: File doesn't exist (anymore):'"
+				throw new IllegalStateException("Warning: File doesn't exist (anymore):'"
 						+ this.filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
@@ -117,7 +120,7 @@ public class ConcurrentFileState extends FileState {
 				lock = null;
 				locked.put(filename, false);
 				locked.notifyAll();
-				throw new Exception("error, couldn't obtain file lock on:"
+				throw new IllegalStateException("error, couldn't obtain file lock on:"
 						+ filename, e);
 			}
 			fis = Channels.newInputStream(channel);
@@ -157,7 +160,7 @@ public class ConcurrentFileState extends FileState {
 	 * @return success True if successfully written
 	 * @throws IOException
 	 */
-	private void write() throws Exception {
+	private void write() throws IOException {
 		channel.position(0);
 		if (json) {
 			om.writeValue(fos, properties);
@@ -176,12 +179,12 @@ public class ConcurrentFileState extends FileState {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	private void read() throws Exception {
+	private void read() throws IOException, ClassNotFoundException {
 		_read(false);
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void _read(boolean retry) throws Exception {
+	private void _read(boolean retry) throws IOException, ClassNotFoundException {
 		try {
 			channel.position(0);
 			properties.clear();

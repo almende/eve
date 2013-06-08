@@ -162,10 +162,11 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	protected void finalize() {
+	protected void finalize() throws Throwable {
 		// ensure the state is cleanup when the agent's method destroy is not
 		// called.
 		getState().destroy();
+		super.finalize();
 	}
 	
 	@Override

@@ -25,7 +25,9 @@
  */
 package com.almende.eve.agent.example;
 
+import java.io.IOException;
 import java.net.URLEncoder;
+import java.rmi.RemoteException;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
@@ -45,9 +47,9 @@ public class CalcAgent extends Agent {
 	 * For example expr="2.5 + 3 / sqrt(16)" will return "3.25"
 	 * @param expr
 	 * @return result
-	 * @throws Exception
+	 * @throws IOException 
 	 */
-	public String eval(@Name("expr") String expr) throws Exception {
+	public String eval(@Name("expr") String expr) throws IOException {
 		String url = CALC_API_URL + "?q=" + URLEncoder.encode(expr, "UTF-8");
 		String resp = HttpUtil.get(url);
 		
@@ -62,7 +64,7 @@ public class CalcAgent extends Agent {
 		
 		String error = json.get("error").asText();
 		if (error != null && !error.isEmpty()) {
-			throw new Exception(error);
+			throw new RemoteException(error);
 		}
 		
 		String rhs = json.get("rhs").asText();

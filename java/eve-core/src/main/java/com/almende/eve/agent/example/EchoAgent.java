@@ -24,6 +24,7 @@
  */
 package com.almende.eve.agent.example;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ import com.almende.eve.rpc.annotation.Name;
 
 @Access(AccessType.PUBLIC)
 public class EchoAgent extends Agent {
-	public Object ping(@Name("message") Object message) throws Exception {
+	public Object ping(@Name("message") Object message) throws IOException {
 		// trigger event
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("message", message);

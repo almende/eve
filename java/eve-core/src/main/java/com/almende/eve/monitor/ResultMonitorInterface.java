@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
 
@@ -8,10 +9,13 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@Access(AccessType.PUBLIC)  //Necessary for describe();
+// Necessary for describe();
+@Access(AccessType.PUBLIC)
 public interface ResultMonitorInterface {
 	/**
 	 * Callback method for monitoring framework, doing the work for
@@ -19,18 +23,26 @@ public interface ResultMonitorInterface {
 	 * part of a connection.
 	 * 
 	 * @param monitorId
+	 * @throws JsonProcessingException
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
-	void doPoll(@Name("monitorId") String monitorId) throws Exception;
+	void doPoll(@Name("monitorId") String monitorId) throws ProtocolException,
+			JSONRPCException, JsonProcessingException;
 	
 	/**
 	 * Callback method for monitoring framework, doing the work for pushing data
 	 * back to the requester.
 	 * 
 	 * @param pushParams
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
-	void doPush(@Name("pushParams") ObjectNode pushParams,@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws Exception;
+	void doPush(@Name("pushParams") ObjectNode pushParams,
+			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
+			throws ProtocolException, JSONRPCException;
 	
 	/**
 	 * Callback method for the monitoring framework, doing the work for
@@ -40,7 +52,8 @@ public interface ResultMonitorInterface {
 	 * @param monitorId
 	 */
 	void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId, @Name("callbackParams") ObjectNode callbackParams);
+			@Name("monitorId") String monitorId,
+			@Name("callbackParams") ObjectNode callbackParams);
 	
 	/**
 	 * Register a Push request as part of the monitoring framework. The sender
@@ -60,7 +73,6 @@ public interface ResultMonitorInterface {
 	 * @param id
 	 */
 	void unregisterPush(@Name("pushId") String id);
-	
 	
 	/**
 	 * Sets up a monitored RPC call subscription. Conveniency method, which can
@@ -97,11 +109,13 @@ public interface ResultMonitorInterface {
 	 * @param filter_parms
 	 * @param returnType
 	 * @return
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filter_parms,
-			JavaType returnType) throws Exception;
+			JavaType returnType) throws ProtocolException, JSONRPCException;
 	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
@@ -113,9 +127,11 @@ public interface ResultMonitorInterface {
 	 * @param filter_parms
 	 * @param returnType
 	 * @return
+	 * @throws JSONRPCException
+	 * @throws ProtocolException
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws Exception;
+			Class<T> returnType) throws ProtocolException, JSONRPCException;
 }

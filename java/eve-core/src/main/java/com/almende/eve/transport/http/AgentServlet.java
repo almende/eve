@@ -70,15 +70,15 @@ public class AgentServlet extends HttpServlet {
 	private boolean handleHandShake(HttpServletRequest req,
 			HttpServletResponse res) throws IOException {
 		String time = req.getHeader("X-Eve-requestToken");
-		if (time == null) return false;
+		if (time == null) {
+			return false;
+		}
 		
 		String token = TokenStore.get(time);
 		if (token == null) {
 			res.sendError(400);
 		} else {
 			res.setHeader("X-Eve-replyToken", token);
-			// System.err.println("HandleHandShake called "+time+ ":"+token);
-			
 			res.setStatus(HttpServletResponse.SC_OK);
 			res.flushBuffer();
 		}
@@ -98,14 +98,11 @@ public class AgentServlet extends HttpServlet {
 				httpGet.setHeader("X-Eve-requestToken", tokenObj.get("time")
 						.textValue());
 				HttpResponse response = ApacheHttpClient.get().execute(httpGet);
-				// System.err.println("HandShake response "+response.getLastHeader("X-Eve-replyToken").getValue());
-				
 				if (tokenObj
 						.get("token")
 						.textValue()
 						.equals(response.getLastHeader("X-Eve-replyToken")
 								.getValue())) {
-					// System.err.println("Returning OK");
 					return Handshake.OK;
 				}
 			}
@@ -120,7 +117,9 @@ public class AgentServlet extends HttpServlet {
 			HttpServletResponse res) throws IOException {
 		try {
 			
-			if (req.getSession(false) != null) return true;
+			if (req.getSession(false) != null) {
+				return true;
+			}
 			
 			Handshake hs = doHandShake(req);
 			if (hs.equals(Handshake.INVALID)) {
@@ -134,14 +133,16 @@ public class AgentServlet extends HttpServlet {
 							"Request needs to be secured with SSL for session management!");
 					return false;
 				}
-				if (!req.authenticate(res)) return false;
+				if (!req.authenticate(res)) {
+					return false;
+				}
 			}
 			// generate new session:
 			req.getSession(true);
 		} catch (Exception e) {
 			res.sendError(500,
 					"Exception running HandleSession:" + e.getMessage());
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 			return false;
 		}
 		return true;
@@ -176,16 +177,20 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		// If this is a handshake request, handle it.
-		if (handleHandShake(req, resp)) return;
+		if (handleHandShake(req, resp)) {
+			return;
+		}
 		
 		try {
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
 					&& !handleSession(req, resp)) {
-				if (!resp.isCommitted()) resp.sendError(401);
+				if (!resp.isCommitted()) {
+					resp.sendError(401);
+				}
 				return;
 			}
 		} catch (Exception e1) {
-			e1.printStackTrace();
+			LOG.log(Level.WARNING, "", e1);
 		}
 		// get the resource name from the end of the url
 		if (resource == null || resource.isEmpty()) {
@@ -196,7 +201,7 @@ public class AgentServlet extends HttpServlet {
 			}
 			resource = "index.html";
 		}
-		String extension = resource.substring(resource.lastIndexOf(".") + 1);
+		String extension = resource.substring(resource.lastIndexOf('.') + 1);
 		
 		if (resource.equals("events")) {
 			// retrieve the agents logs
@@ -217,6 +222,7 @@ public class AgentServlet extends HttpServlet {
 				resp.addHeader("Content-type", "application/json");
 				JOM.getInstance().writer().writeValue(resp.getWriter(), logs);
 			} catch (Exception e) {
+				LOG.log(Level.WARNING, "", e);
 				resp.sendError(500, e.getMessage());
 			}
 		} else {
@@ -259,7 +265,9 @@ public class AgentServlet extends HttpServlet {
 			
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
 					&& !handleSession(req, resp)) {
-				if (!resp.isCommitted()) resp.sendError(401);
+				if (!resp.isCommitted()) {
+					resp.sendError(401);
+				}
 				return;
 			}
 			// Attach the claimed senderId, or null if not given.
@@ -276,7 +284,7 @@ public class AgentServlet extends HttpServlet {
 					requestParams);
 		} catch (Exception err) {
 			// generate JSON error response
-			err.printStackTrace();
+			LOG.log(Level.WARNING, "", err);
 			JSONRPCException jsonError = null;
 			if (err instanceof JSONRPCException) {
 				jsonError = (JSONRPCException) err;
@@ -307,7 +315,9 @@ public class AgentServlet extends HttpServlet {
 		String agentType = req.getParameter("type");
 		
 		if (!handleSession(req, resp)) {
-			if (!resp.isCommitted()) resp.sendError(401);
+			if (!resp.isCommitted()) {
+				resp.sendError(401);
+			}
 			return;
 		}
 		if (agentType == null) {
@@ -346,7 +356,9 @@ public class AgentServlet extends HttpServlet {
 		String agentId = httpTransport.getAgentId(agentUrl);
 		
 		if (!handleSession(req, resp)) {
-			if (!resp.isCommitted()) resp.sendError(401);
+			if (!resp.isCommitted()) {
+				resp.sendError(401);
+			}
 			return;
 		}
 		if (agentId == null) {

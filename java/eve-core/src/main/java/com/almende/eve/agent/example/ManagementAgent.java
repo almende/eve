@@ -1,11 +1,14 @@
 package com.almende.eve.agent.example;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 @Access(AccessType.PUBLIC)
 public class ManagementAgent extends Agent {
@@ -14,10 +17,16 @@ public class ManagementAgent extends Agent {
 	 * @param id
 	 * @param type
 	 * @return urls
-	 * @throws Exception
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws JSONRPCException 
 	 */
 	public List<String> create(@Name("id") String id,
-			@Name("type") String type) throws Exception {
+			@Name("type") String type) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, IOException {
 		Agent agent = getAgentFactory().createAgent(type, id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
@@ -26,9 +35,14 @@ public class ManagementAgent extends Agent {
 	 * Delete an agent
 	 * @param id
 	 * @return
-	 * @throws Exception
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException 
+	 * @throws JSONRPCException 
 	 */
-	public void delete(@Name("id") String id) throws Exception {
+	public void delete(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		getAgentFactory().deleteAgent(id);
 	}
 
@@ -37,9 +51,14 @@ public class ManagementAgent extends Agent {
 	 * null will be returned.
 	 * @param id
 	 * @return urls
-	 * @throws Exception
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException 
+	 * @throws JSONRPCException 
 	 */
-	public List<String> get(@Name("id") String id) throws Exception {
+	public List<String> get(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		Agent agent = getAgentFactory().getAgent(id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
@@ -48,9 +67,14 @@ public class ManagementAgent extends Agent {
 	 * Test if an agent exists
 	 * @param id
 	 * @return exists
-	 * @throws Exception
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException 
+	 * @throws JSONRPCException 
 	 */
-	public boolean exists(@Name("id") String id) throws Exception {
+	public boolean exists(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		Agent agent = getAgentFactory().getAgent(id);
 		return (agent != null);
 	}

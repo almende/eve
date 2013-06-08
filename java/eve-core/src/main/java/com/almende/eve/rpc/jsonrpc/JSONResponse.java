@@ -49,7 +49,7 @@ public class JSONResponse {
 		init(id, null, error);
 	}
 	
-	private final void init(ObjectNode response) throws JSONRPCException {
+	private void init(ObjectNode response) throws JSONRPCException {
 		if (response == null || response.isNull()) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Response is null");
@@ -77,7 +77,7 @@ public class JSONResponse {
 		init(id, result, error);
 	}
 	
-	private final void init(Object id, Object result, JSONRPCException error) {
+	private void init(Object id, Object result, JSONRPCException error) {
 		setVersion();
 		setId(id);
 		setResult(result);
@@ -130,14 +130,7 @@ public class JSONResponse {
 		}
 	}
 	
-	/*
-	 * TODO: gives issues with Jackson
-	 * public boolean isError() {
-	 * return (resp.get("error") != null);
-	 * }
-	 */
-	
-	private final void setVersion() {
+	private void setVersion() {
 		resp.put("jsonrpc", "2.0");
 	}
 	

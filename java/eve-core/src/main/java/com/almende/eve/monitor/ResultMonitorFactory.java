@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -22,6 +24,7 @@ import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -68,10 +71,12 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param filter_parms
 	 * @param returnType
 	 * @return
+	 * @throws JSONRPCException 
+	 * @throws ProtocolException 
 	 * @throws Exception
 	 */
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws Exception {
+			Class<T> returnType) throws ProtocolException, JSONRPCException{
 		return getResult(monitorId, filter_parms, JOM.getTypeFactory()
 				.constructSimpleType(returnType, new JavaType[0]));
 	}
@@ -86,11 +91,13 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param filter_parms
 	 * @param returnType
 	 * @return
+	 * @throws JSONRPCException 
+	 * @throws ProtocolException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
-			JavaType returnType) throws Exception {
+			JavaType returnType) throws ProtocolException, JSONRPCException {
 		T result = null;
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
@@ -141,8 +148,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final void doPoll(@Name("monitorId") String monitorId)
-			throws Exception {
+	public final void doPoll(@Name("monitorId") String monitorId) throws ProtocolException, JSONRPCException, JsonProcessingException
+			{
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
 		if (monitor != null) {
@@ -165,8 +172,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	
 	@Access(AccessType.PUBLIC)
 	public final void doPush(@Name("pushParams") ObjectNode pushParams,
-			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
-			throws Exception {
+			@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws ProtocolException, JSONRPCException
+			{
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
@@ -190,7 +197,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		
 		myAgent.send(URI.create(pushParams.get("url").textValue()),
 				"monitor.callbackPush", parms);
-		// If callback reports "old", unregisterPush();
+		//TODO: If callback reports "old", unregisterPush();
 	}
 	
 	@Access(AccessType.PUBLIC)
@@ -240,10 +247,11 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					true, false));
 		}
 		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
-			String event = "change"; // default
+			// default
+			String event = "change"; 
 			if (pushParams.has("event")) {
-				event = pushParams.get("event").textValue(); // Event param
-																// overrules
+				// Event param overrules
+				event = pushParams.get("event").textValue(); 
 			} else {
 				AnnotatedClass ac = null;
 				try {
@@ -255,10 +263,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 						EventTriggered annotation = method
 								.getAnnotation(EventTriggered.class);
 						if (annotation != null) {
-							event = annotation.value(); // If no Event param,
-														// get it from
-														// annotation, else
-														// default.
+							// If no Event param, get it from annotation, else use default.
+							event = annotation.value(); 
 						}
 					}
 				} catch (Exception e) {

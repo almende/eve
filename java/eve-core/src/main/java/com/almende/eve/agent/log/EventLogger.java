@@ -1,10 +1,13 @@
 package com.almende.eve.agent.log;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 public class EventLogger {
 	private static final Logger	LOG	= Logger.getLogger(EventLogger.class
@@ -30,7 +33,10 @@ public class EventLogger {
 		}
 	}
 	
-	public List<Log> getLogs(String agentId, Long since) throws Exception {
+	public List<Log> getLogs(String agentId, Long since)
+			throws JSONRPCException, ClassNotFoundException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException {
 		String logAgentId = getLogAgentId(agentId);
 		LogAgent agent = (LogAgent) agentFactory.getAgent(logAgentId);
 		if (agent == null) {

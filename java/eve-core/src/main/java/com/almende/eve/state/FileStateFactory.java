@@ -29,10 +29,16 @@ public class FileStateFactory implements StateFactory {
 	 */
 	public FileStateFactory(Map<String, Object> params) {
 		// built the path where the agents will be stored
-		if (params == null) params = new HashMap<String, Object>();
-		if (params.containsKey("json")) this.json = (Boolean) params
-				.get("json");
-		if (params.containsKey("path")) setPath((String) params.get("path"));
+		if (params == null) {
+			params = new HashMap<String, Object>();
+		}
+		if (params.containsKey("json")) {
+			this.json = (Boolean) params.get("json");
+		}
+		
+		if (params.containsKey("path")) {
+			setPath((String) params.get("path"));
+		}
 	}
 	
 	public FileStateFactory(String path, Boolean json) {
@@ -55,7 +61,9 @@ public class FileStateFactory implements StateFactory {
 			logger.warning("Config parameter 'state.path' missing in Eve "
 					+ "configuration. Using the default path '" + path + "'");
 		}
-		if (!path.endsWith("/")) path += "/";
+		if (!path.endsWith("/")) {
+			path += "/";
+		}
 		this.path = path;
 		
 		// make the directory

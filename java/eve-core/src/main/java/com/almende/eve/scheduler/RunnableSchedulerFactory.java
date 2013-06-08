@@ -49,7 +49,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	// {agentId: {taskId: task}}
 	private final Map<String, Map<String, Task>>	allTasks		= new ConcurrentHashMap<String, Map<String, Task>>();
 	
-	private static final Logger						LOG			= Logger.getLogger(RunnableSchedulerFactory.class
+	private static final Logger						LOG				= Logger.getLogger(RunnableSchedulerFactory.class
 																			.getSimpleName());
 	
 	/**
@@ -205,12 +205,16 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		private void start(final long delay) {
 			// create the task
 			timestamp = DateTime.now().plus(delay);
-			if (taskId == null) taskId = createTaskId();
+			if (taskId == null) {
+				taskId = createTaskId();
+			}
 			future = scheduler.schedule(new Runnable() {
 				@Override
 				public void run() {
 					try {
-						if (cancelled()) return;
+						if (cancelled()) {
+							return;
+						}
 						if (interval > 0 && !sequential) {
 							start(interval);
 						}
@@ -230,7 +234,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 							throw resp.getError();
 						}
 					} catch (Exception e) {
-						LOG.log(Level.WARNING,"",e);
+						LOG.log(Level.WARNING, "", e);
 					} finally {
 						if (interval <= 0) {
 							remove();
@@ -347,7 +351,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			try {
 				return JOM.getInstance().writeValueAsString(this);
 			} catch (Exception e) {
-				LOG.log(Level.WARNING,"",e);
+				LOG.log(Level.WARNING, "", e);
 				return super.toString();
 			}
 		}
@@ -455,13 +459,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						// automatically
 						// store and persist allTasks again. That is inefficient
 					} catch (Exception e) {
-						LOG.log(Level.WARNING,"",e);
+						LOG.log(Level.WARNING, "", e);
 						failedTaskCount++;
 					}
 				}
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		
 		LOG.info("Initialized "

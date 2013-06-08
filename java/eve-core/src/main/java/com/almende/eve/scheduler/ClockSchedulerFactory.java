@@ -76,7 +76,7 @@ class ClockScheduler implements Scheduler, Runnable {
 	private final Clock				myClock;
 	private final ClockScheduler	_this	= this;
 	
-	public ClockScheduler(Agent myAgent, AgentFactory factory) throws Exception {
+	public ClockScheduler(Agent myAgent, AgentFactory factory) {
 		this.myAgent = myAgent;
 		myClock = new RunnableClock();
 	}
@@ -118,13 +118,15 @@ class ClockScheduler implements Scheduler, Runnable {
 			}
 		}
 		if (!found && !onlyIfExists) {
-			if (timeline == null) timeline = new TreeSet<TaskEntry>();
+			if (timeline == null) {
+				timeline = new TreeSet<TaskEntry>();
+			}
 			timeline.add(task);
 		}
 		if (!myAgent.getState().putIfUnchanged("_taskList",
 				(Serializable) timeline, (Serializable) oldTimeline)) {
 			LOG.severe("need to retry putTask...");
-			 // recursive retry....
+			// recursive retry....
 			putTask(task, onlyIfExists);
 			return;
 		}
@@ -148,7 +150,7 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
 				oldTimeline)) {
 			LOG.severe("need to retry cancelTask...");
-			 // recursive retry....
+			// recursive retry....
 			cancelTask(id);
 			return;
 		}
@@ -156,7 +158,7 @@ class ClockScheduler implements Scheduler, Runnable {
 	
 	public void runTask(final TaskEntry task) {
 		if (task.getInterval() <= 0) {
-			 // Remove from list
+			// Remove from list
 			cancelTask(task.getTaskId());
 		} else {
 			if (!task.isSequential()) {
@@ -221,7 +223,9 @@ class ClockScheduler implements Scheduler, Runnable {
 		Set<String> result = new HashSet<String>();
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
 				.get("_taskList");
-		if (timeline == null) return result;
+		if (timeline == null) {
+			return result;
+		}
 		for (TaskEntry entry : timeline) {
 			result.add(entry.getTaskId());
 		}
@@ -256,12 +260,12 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	private static final long	serialVersionUID	= -2402975617148459433L;
 	// TODO, make JSONRequest.equals() state something about real equal tasks,
 	// use it as deduplication!
-	private String						taskId;
-	private JSONRequest					request;
-	private DateTime					due;
-	private long						interval			= 0;
-	private boolean						sequential			= true;
-	private boolean						active				= false;
+	private String				taskId;
+	private JSONRequest			request;
+	private DateTime			due;
+	private long				interval			= 0;
+	private boolean				sequential			= true;
+	private boolean				active				= false;
 	
 	public TaskEntry(DateTime due, JSONRequest request, long interval,
 			boolean sequential) {
@@ -274,8 +278,12 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof TaskEntry)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof TaskEntry)) {
+			return false;
+		}
 		TaskEntry other = (TaskEntry) o;
 		return taskId.equals(other.taskId);
 	}
@@ -287,8 +295,12 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	
 	@Override
 	public int compareTo(TaskEntry o) {
-		if (equals(o)) return 0;
-		if (due.equals(o.due)) return 0;
+		if (equals(o)) {
+			return 0;
+		}
+		if (due.equals(o.due)) {
+			return 0;
+		}
 		return due.compareTo(o.due);
 	}
 	
@@ -303,6 +315,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	public String getDueAsString() {
 		return due.toString();
 	}
+	
 	public DateTime getDue() {
 		return due;
 	}
@@ -314,27 +327,27 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	public void setTaskId(String taskId) {
 		this.taskId = taskId;
 	}
-
+	
 	public void setRequest(JSONRequest request) {
 		this.request = request;
 	}
-
+	
 	public void setDue(DateTime due) {
 		this.due = due;
 	}
-
+	
 	public void setInterval(long interval) {
 		this.interval = interval;
 	}
-
+	
 	public void setSequential(boolean sequential) {
 		this.sequential = sequential;
 	}
-
+	
 	public void setActive(boolean active) {
 		this.active = active;
 	}
-
+	
 	public boolean isSequential() {
 		return sequential;
 	}

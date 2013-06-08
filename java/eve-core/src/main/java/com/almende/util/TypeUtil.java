@@ -13,57 +13,66 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 public class TypeUtil<T> {
-	static final Logger LOG = Logger.getLogger(TypeUtil.class.getName());
+	static final Logger		LOG	= Logger.getLogger(TypeUtil.class.getName());
 	
-	private final JavaType valueType;
+	private final JavaType	valueType;
 	
-	public TypeUtil(){
-		this.valueType = JOM.getTypeFactory().constructType(ClassUtil.getTypeArguments(
-				TypeUtil.class, getClass()).get(0).getGenericSuperclass());
+	public TypeUtil() {
+		this.valueType = JOM.getTypeFactory().constructType(
+				ClassUtil.getTypeArguments(TypeUtil.class, getClass()).get(0)
+						.getGenericSuperclass());
 	}
 	
 	/** @return the {@link StateEntry} value's type */
-	public Type getType()
-	{
+	public Type getType() {
 		return this.valueType;
 	}
 	
-	public T inject(Object value){
+	public T inject(Object value) {
 		return inject(valueType, value);
 	}
-
+	
 	public static <T> T inject(Class<T> type, Object value) {
-		return inject(JOM.getTypeFactory().constructType(type),value);
+		return inject(JOM.getTypeFactory().constructType(type), value);
 	}
+	
 	public static <T> T inject(Type type, Object value) {
-		return inject(JOM.getTypeFactory().constructType(type),value);
+		return inject(JOM.getTypeFactory().constructType(type), value);
 	}
+	
 	@SuppressWarnings("unchecked")
 	public static <T> T inject(JavaType full_type, Object value) {
-		if (value == null) return null;
-		if (full_type.hasRawClass(Void.class)) return null;
+		if (value == null) {
+			return null;
+		}
+		if (full_type.hasRawClass(Void.class)) {
+			return null;
+		}
 		ObjectMapper mapper = JOM.getInstance();
-		if (value instanceof JsonNode){
+		if (value instanceof JsonNode) {
 			return mapper.convertValue(value, full_type);
 		}
 		return (T) full_type.getRawClass().cast(value);
 	}
+	
 	public static <T> T inject(T ret, Object value) throws IOException {
 		ObjectMapper mapper = JOM.getInstance();
-		if (ret != null){
-			if (value instanceof JsonNode){
+		if (ret != null) {
+			if (value instanceof JsonNode) {
 				ObjectReader reader = mapper.readerForUpdating(ret);
 				try {
-					return reader.readValue((JsonNode)value);
-				} catch (UnsupportedOperationException e1){
-					LOG.log(Level.WARNING,"Trying to update unmodifiable object",e1);
-					return inject(ret.getClass().getGenericSuperclass(),value);
+					return reader.readValue((JsonNode) value);
+				} catch (UnsupportedOperationException e1) {
+					LOG.log(Level.WARNING,
+							"Trying to update unmodifiable object", e1);
+					return inject(ret.getClass().getGenericSuperclass(), value);
 				}
 			} else {
-				LOG.log(Level.WARNING,"Can't update object with non-JSON value.");
-				return inject(ret.getClass().getGenericSuperclass(),value);
+				LOG.log(Level.WARNING,
+						"Can't update object with non-JSON value.");
+				return inject(ret.getClass().getGenericSuperclass(), value);
 			}
-		} 
+		}
 		return ret;
 	}
 }

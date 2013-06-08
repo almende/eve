@@ -1,9 +1,11 @@
 package com.almende.eve.monitor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -42,8 +44,8 @@ public class Push implements ResultMonitorConfigType {
 		return this;
 	}
 	
-	public List<String> init(ResultMonitor monitor, Agent agent)
-			throws Exception {
+	public List<String> init(ResultMonitor monitor, Agent agent) throws IOException, JSONRPCException
+			 {
 		ObjectNode wrapper = JOM.createObjectNode();
 		ObjectNode pushParams = JOM.createObjectNode();
 		
@@ -52,7 +54,9 @@ public class Push implements ResultMonitorConfigType {
 			pushParams.put("interval", interval);
 		}
 		pushParams.put("onEvent", onEvent);
-		if (!event.equals("")) pushParams.put("event", event);
+		if (!event.equals("")) {
+			pushParams.put("event", event);
+		}
 		pushParams.put("onChange", onChange);
 		pushParams.put("method", monitor.method);
 		pushParams.put("params", monitor.params);

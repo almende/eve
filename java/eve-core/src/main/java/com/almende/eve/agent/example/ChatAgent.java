@@ -63,6 +63,7 @@
 
 package com.almende.eve.agent.example;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +73,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -82,7 +84,7 @@ public class ChatAgent extends Agent {
 	 * @return
 	 * @throws Exception 
 	 */
-	public String getUsername() throws Exception {
+	public String getUsername() {
 		String username = (String) getState().get("username");
 		return (username != null) ? username : getMyUrl();
 	}
@@ -106,9 +108,10 @@ public class ChatAgent extends Agent {
 	 * @throws Exception 
 	 * @throws JSONException 
 	 * @throws IOException 
+	 * @throws JSONRPCException 
 	 * @throws RuntimeException 
 	 */
-	public void post(@Name("message") String message) throws Exception {
+	public void post(@Name("message") String message) throws IOException, JSONRPCException {
 		List<String> connections = getConnections();
 
 		// trigger a "post message"
@@ -132,11 +135,12 @@ public class ChatAgent extends Agent {
 	 * @param url
 	 * @param username
 	 * @param message
+	 * @throws IOException 
 	 * @throws Exception 
 	 */
 	public void receive(@Name("url") String url, 
 			@Name("username") String username, 
-			@Name("message") String message) throws Exception {
+			@Name("message") String message) throws IOException {
 		// trigger a "receive" message
 		ObjectNode params = JOM.createObjectNode();
 		params.put("url", url);
@@ -151,10 +155,11 @@ public class ChatAgent extends Agent {
 	/**
 	 * connect two agents with each other
 	 * @param url   Url of an ChatAgent
-	 * @throws Exception 
+	 * @throws JSONRPCException 
+	 * @throws IOException 
 	 */
 	@SuppressWarnings("unchecked")
-	public void connect(@Name("url") String url) throws Exception {
+	public void connect(@Name("url") String url) throws JSONRPCException, IOException {
 		boolean otherAlreadyConnected = false;
 		ArrayList<String> newConnections = new ArrayList<String>();
 		ArrayList<String> otherConnections = send(URI.create(url), "getConnections", JOM.getTypeFactory().constructArrayType(String.class));
@@ -219,10 +224,12 @@ public class ChatAgent extends Agent {
 
 	/**
 	 * Disconnect this agent from all other agents in the chat room
+	 * @throws JSONRPCException 
+	 * @throws IOException 
 	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
-	public void disconnect() throws Exception {
+	public void disconnect() throws JSONRPCException, IOException {
 		List<String> connections = (List<String>) getState().get("connections");
 		if (connections != null) {
 			getState().remove("connections");			
@@ -248,10 +255,11 @@ public class ChatAgent extends Agent {
 	/**
 	 * Remove an agent from connections list
 	 * @param url  Url of a connected ChatAgent
+	 * @throws IOException 
 	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
-	public void removeConnection(@Name("url") String url) throws Exception {
+	public void removeConnection(@Name("url") String url) throws IOException {
 		ArrayList<String> connections = (ArrayList<String>) getState().get("connections");
 		if (connections != null) {
 			connections.remove(url);

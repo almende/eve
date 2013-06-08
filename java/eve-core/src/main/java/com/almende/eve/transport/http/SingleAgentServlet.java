@@ -2,6 +2,7 @@ package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,7 +65,7 @@ public class SingleAgentServlet extends HttpServlet {
 				resource = "index.html";
 			}
 		}
-		String extension = resource.substring(resource.lastIndexOf(".") + 1);
+		String extension = resource.substring(resource.lastIndexOf('.') + 1);
 		
 		// retrieve and stream the resource
 		String mimetype = StreamingUtil.getMimeType(extension);
@@ -112,7 +113,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * initialize the agent factory
 	 * @throws Exception 
 	 */
-	protected void initAgentFactory() throws Exception {
+	protected void initAgentFactory() {
 		// TODO: be able to choose a different namespace 
 		agentFactory = AgentFactory.getInstance();
 		if (agentFactory != null) {
@@ -145,9 +146,10 @@ public class SingleAgentServlet extends HttpServlet {
 	
 	/**
 	 * Register this servlet at the agent factory
+	 * @throws InstantiationException 
 	 * @throws Exception 
 	 */
-	protected void initHttpTransport () throws Exception {
+	protected void initHttpTransport () throws InstantiationException {
 		// TODO: one servlet must be able to support multiple servlet_urls
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
@@ -161,7 +163,7 @@ public class SingleAgentServlet extends HttpServlet {
 			servletUrl = getInitParameter(globalParam);
 		}
 		if (servletUrl == null) {
-			throw new Exception("Cannot initialize HttpTransport: " +
+			throw new InstantiationException("Cannot initialize HttpTransport: " +
 					"Init Parameter '" + globalParam + "' or '" + envParam + "' " + 
 					"missing in servlet configuration web.xml.");
 		}
@@ -171,15 +173,21 @@ public class SingleAgentServlet extends HttpServlet {
 	
 	/**
 	 * Register this servlet at the agent factory
-	 * @throws Exception 
+	 * @throws NoSuchMethodException 
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * @throws ClassNotFoundException 
+	 * @throws JSONRPCException 
+	 * @throws IOException 
 	 */
-	protected void initAgent () throws Exception {
+	protected void initAgent () throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
 		// TODO: use agent bootstrap mechanism instead
 		
 		// retrieve the agents id
 		agentId = getInitParameter("agentId");
 		if (agentId == null) {
-			throw new Exception("Cannot initialize agent: " +
+			throw new InstantiationException("Cannot initialize agent: " +
 					"Init Parameter 'agentId' missing in servlet configuration web.xml.");
 		}
 		
@@ -188,7 +196,7 @@ public class SingleAgentServlet extends HttpServlet {
 		if (agent == null) {
 			String agentType = getInitParameter("agentType");
 			if (agentId == null) {
-				throw new Exception("Cannot create agent: " +
+				throw new InstantiationException("Cannot create agent: " +
 						"Init Parameter 'agentClass' missing in servlet configuration web.xml.");
 			}
 			

@@ -82,7 +82,7 @@ public class HttpService implements TransportService {
 		if (!this.servletUrl.endsWith("/")) {
 			this.servletUrl += "/";
 		}
-		int separator = this.servletUrl.indexOf(":");
+		int separator = this.servletUrl.indexOf(':');
 		if (separator != -1) {
 			String protocol = this.servletUrl.substring(0, separator);
 			if (!protocols.contains(protocol)) {
@@ -218,7 +218,7 @@ public class HttpService implements TransportService {
 			}
 			
 			if (agentUrl.startsWith(servletUrl)) {
-				int separator = agentUrl.indexOf("/", servletUrl.length());
+				int separator = agentUrl.indexOf('/', servletUrl.length());
 				try {
 					if (separator != -1) {
 						return URLDecoder.decode(agentUrl.substring(
@@ -256,7 +256,7 @@ public class HttpService implements TransportService {
 			}
 			
 			if (agentUrl.startsWith(servletUrl)) {
-				int separator = agentUrl.indexOf("/", servletUrl.length());
+				int separator = agentUrl.indexOf('/', servletUrl.length());
 				if (separator != -1) {
 					return agentUrl.substring(separator + 1);
 				} else {
@@ -282,7 +282,7 @@ public class HttpService implements TransportService {
 		if (protocolSeparator != -1) {
 			int fromIndex = (protocolSeparator != -1) ? protocolSeparator + 3
 					: 0;
-			int pathSeparator = url.indexOf("/", fromIndex);
+			int pathSeparator = url.indexOf('/', fromIndex);
 			if (pathSeparator != -1) {
 				return url.substring(0, pathSeparator);
 			}

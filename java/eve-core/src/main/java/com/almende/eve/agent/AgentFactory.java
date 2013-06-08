@@ -125,8 +125,9 @@ public class AgentFactory {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
 	
-	private AgentFactory() {}
-		
+	private AgentFactory() {
+	}
+	
 	/**
 	 * Get a shared AgentFactory instance with the default namespace "default"
 	 * 
@@ -547,7 +548,9 @@ public class AgentFactory {
 			return;
 		}
 		Agent agent = getAgent(agentId);
-		if (agent == null) return;
+		if (agent == null) {
+			return;
+		}
 		
 		if (getScheduler(agent) != null) {
 			schedulerFactory.destroyScheduler(agentId);
