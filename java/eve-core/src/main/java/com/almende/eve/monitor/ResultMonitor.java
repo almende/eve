@@ -116,8 +116,8 @@ public class ResultMonitor implements Serializable {
 			newmonitors.put(id, this);
 			if (!agent.getState().putIfUnchanged("_monitors",
 					(Serializable) newmonitors, (Serializable) monitors)) {
-				store(); // recursive retry.
-			}
+				// recursive retry.
+				store();			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't find monitors:" + agentId + "."
 					+ id, e);
@@ -141,7 +141,8 @@ public class ResultMonitor implements Serializable {
 			
 			if (!agent.getState().putIfUnchanged("_monitors",
 					(Serializable) newmonitors, (Serializable) monitors)) {
-				delete(); // recursive retry.
+				// recursive retry.
+				delete(); 
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't delete monitor:" + agentId + "."

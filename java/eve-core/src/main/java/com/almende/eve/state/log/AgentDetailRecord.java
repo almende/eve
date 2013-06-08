@@ -4,6 +4,20 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class AgentDetailRecord implements Serializable {
+	// agent url
+	private String	agent;
+	// agent class name
+	private String	type;
+	// method name
+	private String	method;
+	// timestamp in ISO datetime format
+	private String	timestamp;
+	// duration of execution of the call in ms
+	private Long	duration;
+	// true if call was succesfull, false if an
+	// exception was thrown
+	private Boolean	success;
+
 	public AgentDetailRecord() {
 	}
 	
@@ -70,11 +84,4 @@ public class AgentDetailRecord implements Serializable {
 		return success;
 	}
 	
-	private String	agent;		// agent url
-	private String	type;		// agent class name
-	private String	method;	// method name
-	private String	timestamp;	// timestamp in ISO datetime format
-	private Long	duration;	// duration of execution of the call in ms
-	private Boolean	success;	// true if call was succesfull, false if an
-								// exception was thrown
 }

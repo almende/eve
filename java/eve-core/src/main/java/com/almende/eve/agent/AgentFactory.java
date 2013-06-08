@@ -76,7 +76,7 @@ import com.almende.util.TypeUtil;
  * 
  * @author jos
  */
-public class AgentFactory {
+public final class AgentFactory {
 	
 	// Note: the CopyOnWriteArrayList is inefficient but thread safe.
 	private List<TransportService>					transportServices	= new CopyOnWriteArrayList<TransportService>();
@@ -365,7 +365,7 @@ public class AgentFactory {
 		T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					public Object invoke(Object proxy, Method method,
-							Object[] args) throws Throwable {
+							Object[] args) throws ProtocolException, JSONRPCException {
 						JSONRequest request = JSONRPC.createRequest(method,
 								args);
 						JSONResponse response = send(sender, receiverUrl,
@@ -861,7 +861,7 @@ public class AgentFactory {
 	 * 
 	 * @return config A configuration file
 	 */
-	public final void setConfig(Config config) {
+	public void setConfig(Config config) {
 		this.config = config;
 	}
 	
@@ -887,7 +887,7 @@ public class AgentFactory {
 	 * 
 	 * @param config
 	 */
-	public final void setStateFactory(Config config) {
+	public void setStateFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -938,11 +938,11 @@ public class AgentFactory {
 			
 			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
-			StateFactory stateFactory = (StateFactory) stateClass
+			StateFactory sf = (StateFactory) stateClass
 					.getConstructor(Map.class).newInstance(params);
 			
-			setStateFactory(stateFactory);
-			LOG.info("Initialized state factory: " + stateFactory.toString());
+			setStateFactory(sf);
+			LOG.info("Initialized state factory: " + sf.toString());
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
@@ -956,7 +956,7 @@ public class AgentFactory {
 	 * 
 	 * @param config
 	 */
-	public final void addAgents(Config config) {
+	public void addAgents(Config config) {
 		Map<String, String> agents = config.get("bootstrap", "agents");
 		if (agents != null) {
 			for (Entry<String, String> entry : agents.entrySet()) {
@@ -984,7 +984,7 @@ public class AgentFactory {
 	 * 
 	 * @param stateFactory
 	 */
-	public final void setStateFactory(StateFactory stateFactory) {
+	public void setStateFactory(StateFactory stateFactory) {
 		this.stateFactory = stateFactory;
 	}
 	
@@ -1005,7 +1005,7 @@ public class AgentFactory {
 	 * 
 	 * @param config
 	 */
-	public final void setSchedulerFactory(Config config) {
+	public void setSchedulerFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -1052,14 +1052,14 @@ public class AgentFactory {
 			}
 			
 			// initialize the scheduler factory
-			SchedulerFactory schedulerFactory = (SchedulerFactory) schedulerClass
+			SchedulerFactory sf = (SchedulerFactory) schedulerClass
 					.getConstructor(AgentFactory.class, Map.class).newInstance(
 							this, params);
 			
-			setSchedulerFactory(schedulerFactory);
+			setSchedulerFactory(sf);
 			
 			LOG.info("Initialized scheduler factory: "
-					+ schedulerFactory.getClass().getName());
+					+ sf.getClass().getName());
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
@@ -1071,7 +1071,7 @@ public class AgentFactory {
 	 * 
 	 * @param config
 	 */
-	public final void addTransportServices(Config config) {
+	public void addTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
 			LOG.log(Level.WARNING, "", e);
@@ -1152,7 +1152,7 @@ public class AgentFactory {
 	 * 
 	 * @param transportService
 	 */
-	public final void addTransportService(TransportService transportService) {
+	public void addTransportService(TransportService transportService) {
 		transportServices.add(transportService);
 		LOG.info("Registered transport service: " + transportService.toString());
 	}
