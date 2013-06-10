@@ -47,7 +47,7 @@ public class AsyncProxy<T> {
 		
 		return new DecoratedFuture(pool.submit(new Callable<Object>(){
 			@Override
-			public Object call() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+			public Object call() throws IllegalAccessException, InvocationTargetException {
 				return method.invoke(proxy, args);
 			}
 		}),ClassUtil.wrap(method.getReturnType()));

@@ -823,7 +823,7 @@ public final class AgentFactory {
 	 *            The environment, for example "Production" or "Development"
 	 * @return
 	 */
-	public static final void setEnvironment(String env) {
+	public static void setEnvironment(String env) {
 		Config.setEnvironment(env);
 	}
 	

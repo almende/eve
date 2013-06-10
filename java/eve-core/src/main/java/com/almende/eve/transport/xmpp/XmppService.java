@@ -31,21 +31,20 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.SyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.EncryptionUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class XmppService implements TransportService {
+	private static final String				CONNKEY				= "_XMPP_Connections";
 	private AgentFactory					agentFactory		= null;
 	private String							host				= null;
 	private Integer							port				= null;
 	private String							service				= null;
 	
-	private Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>(); // xmpp
-																													// url
-																													// as
-																													// key
-																													// "xmpp:username@host"
+	// xmpp url as key "xmpp:username@host"
+	private Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>(); 
 	private static List<String>				protocols			= Arrays.asList("xmpp");
 	
 	private static final Logger				LOG					= Logger.getLogger(XmppService.class
@@ -96,6 +95,18 @@ public class XmppService implements TransportService {
 		init();
 	}
 	
+	private ArrayNode getConns(String agentId) throws IOException,
+			JSONRPCException {
+		State state = agentFactory.getStateFactory().get(agentId);
+		
+		ArrayNode conns = null;
+		if (state.containsKey(CONNKEY)) {
+			conns = (ArrayNode) JOM.getInstance().readTree(
+					(String) state.get(CONNKEY));
+		}
+		return conns;
+	}
+	
 	/**
 	 * Get the first XMPP url of an agent from its id.
 	 * If no agent with given id is connected via XMPP, null is returned.
@@ -107,13 +118,7 @@ public class XmppService implements TransportService {
 	@Override
 	public String getAgentUrl(String agentId) {
 		try {
-			State state = agentFactory.getStateFactory().get(agentId);
-			
-			ArrayNode conns = null;
-			if (state.containsKey("_XMPP_Connections")) {
-				conns = (ArrayNode) JOM.getInstance().readTree(
-						(String) state.get("_XMPP_Connections"));
-			}
+			ArrayNode conns = getConns(agentId);
 			if (conns != null) {
 				for (JsonNode conn : conns) {
 					ObjectNode params = (ObjectNode) conn;
@@ -256,7 +261,7 @@ public class XmppService implements TransportService {
 		
 		State state = agentFactory.getStateFactory().get(agentId);
 		
-		String conns = (String) state.get("_XMPP_Connections");
+		String conns = (String) state.get(CONNKEY);
 		ArrayNode newConns;
 		if (conns != null) {
 			newConns = (ArrayNode) JOM.getInstance().readTree(conns);
@@ -276,7 +281,7 @@ public class XmppService implements TransportService {
 			}
 		}
 		newConns.add(params);
-		if (!state.putIfUnchanged("_XMPP_Connections", JOM.getInstance()
+		if (!state.putIfUnchanged(CONNKEY, JOM.getInstance()
 				.writeValueAsString(newConns), conns)) {
 			// recursive retry
 			storeConnection(agentId, username, password, resource);
@@ -285,7 +290,7 @@ public class XmppService implements TransportService {
 	
 	private void delConnections(String agentId) throws JSONRPCException {
 		State state = agentFactory.getStateFactory().get(agentId);
-		state.remove("_XMPP_Connections");
+		state.remove(CONNKEY);
 	}
 	
 	/**
@@ -297,12 +302,7 @@ public class XmppService implements TransportService {
 	public final void disconnect(String agentId) {
 		
 		try {
-			State state = agentFactory.getStateFactory().get(agentId);
-			ArrayNode conns = null;
-			if (state.containsKey("_XMPP_Connections")) {
-				conns = (ArrayNode) JOM.getInstance().readTree(
-						(String) state.get("_XMPP_Connections"));
-			}
+			ArrayNode conns = getConns(agentId);
 			if (conns != null) {
 				for (JsonNode conn : conns) {
 					ObjectNode params = (ObjectNode) conn;
@@ -379,7 +379,8 @@ public class XmppService implements TransportService {
 				throw new JSONRPCException("Receiver url must start with '"
 						+ protocol + "' (receiver='" + receiver + "')");
 			}
-			String fullUsername = receiver.substring(protocol.length()); // username@domain
+			 // username@domain
+			String fullUsername = receiver.substring(protocol.length());
 			connection.send(fullUsername, request, callback);
 		} else {
 			// TODO: use an anonymous xmpp connection when the sender agent has
@@ -421,13 +422,7 @@ public class XmppService implements TransportService {
 	
 	@Override
 	public void reconnect(String agentId) throws JSONRPCException, IOException {
-		State state = agentFactory.getStateFactory().get(agentId);
-		ArrayNode conns = null;
-		if (state.containsKey("_XMPP_Connections")) {
-			conns = (ArrayNode) JOM.getInstance().readTree(
-					(String) state.get("_XMPP_Connections"));
-		}
-		
+		ArrayNode conns = getConns(agentId);
 		if (conns != null) {
 			for (JsonNode conn : conns) {
 				ObjectNode params = (ObjectNode) conn;

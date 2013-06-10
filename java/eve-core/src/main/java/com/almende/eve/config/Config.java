@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 public class Config extends YamlConfig {
 	private static final Logger	LOG					= Logger.getLogger(Config.class
 															.getCanonicalName());
-	private static String		ENVIRONMENT_PATH[]	= new String[] {
+	private static final String		ENVIRONMENTPATH[]	= new String[] {
 			"com.google.appengine.runtime.environment",
 			"com.almende.eve.runtime.environment"	};
 	private static String		environment			= null;
@@ -40,7 +40,7 @@ public class Config extends YamlConfig {
 	
 	public static String getEnvironment() {
 		if (environment == null) {
-			for (String path : ENVIRONMENT_PATH) {
+			for (String path : ENVIRONMENTPATH) {
 				environment = System.getProperty(path);
 				if (environment != null) {
 					LOG.info("Current environment: '" + environment
@@ -56,7 +56,7 @@ public class Config extends YamlConfig {
 				String msg = "No environment variable found. "
 						+ "Environment set to '" + environment
 						+ "'. Checked paths: ";
-				for (String path : ENVIRONMENT_PATH) {
+				for (String path : ENVIRONMENTPATH) {
 					msg += path + ", ";
 				}
 				LOG.warning(msg);
