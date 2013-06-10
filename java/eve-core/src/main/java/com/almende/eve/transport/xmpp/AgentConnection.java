@@ -76,7 +76,6 @@ public class AgentConnection {
 	 * @param resource
 	 *            optional
 	 * @throws JSONRPCException
-	 * @throws Exception
 	 */
 	public void connect(String agentId, String host, Integer port,
 			String serviceName, String username, String password,
@@ -149,7 +148,7 @@ public class AgentConnection {
 	 * 
 	 * @param username
 	 * @param message
-	 * @throws Exception
+	 * @throws JSONRPCException
 	 */
 	public void send(String username, JSONRequest request,
 			AsyncCallback<JSONResponse> callback) throws JSONRPCException {
@@ -225,9 +224,7 @@ public class AgentConnection {
 		public void processPacket(Packet packet) {
 			Message message = (Message) packet;
 			String body = message.getBody();
-			// System.out.println("recieve from=" + message.getFrom() + " to=" +
-			// message.getTo() + " body=" + body); // TODO: cleanup
-			
+
 			if (body != null && body.startsWith("{")
 					|| body.trim().startsWith("{")) {
 				// the body contains a JSON object
@@ -243,13 +240,6 @@ public class AgentConnection {
 								.pull(id) : null;
 						if (callback != null) {
 							callback.onSuccess(new JSONResponse(body));
-						} else {
-							/*
-							 * // TODO: is it needed to send this error back?
-							 * // can possibly result in weird loops?
-							 * throw new Exception("Callback with id '" + id +
-							 * "' not found");
-							 */
 						}
 					} else if (isRequest(json)) {
 						// this is a request
@@ -306,8 +296,6 @@ public class AgentConnection {
 					}
 					
 					if (response != null) {
-						// String from =
-						// StringUtils.parseBareAddress(senderUrl);
 						Message reply = new Message();
 						reply.setTo(senderUrl);
 						reply.setBody(response.toString());

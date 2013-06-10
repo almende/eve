@@ -53,11 +53,6 @@ public class JSONRequest implements Serializable {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'method' is no String");
 		}
-		/*
-		 * TODO: cleanup if (!request.has("params")) { throw new
-		 * JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
-		 * "Member 'params' missing in request"); }
-		 */
 		if (request.has("params") && !(request.get("params").isObject())) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'params' is no ObjectNode");
@@ -66,10 +61,6 @@ public class JSONRequest implements Serializable {
 		init(request.get("id"), request.get("method").asText(),
 				(ObjectNode) request.get("params"));
 	}
-	
-	/*
-	 * public JSONRequest (String method) { init (null, method, null); }
-	 */
 	
 	public JSONRequest(String method, ObjectNode params) {
 		init(null, method, params);

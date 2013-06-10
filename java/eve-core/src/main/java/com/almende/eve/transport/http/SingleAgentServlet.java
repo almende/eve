@@ -154,7 +154,8 @@ public class SingleAgentServlet extends HttpServlet {
 		
 		// try to read servlet url from init parameter environment.<environment>.servlet_url
 		//String environment = agentFactory.getEnvironment();
-		String environment = "Production"; // TODO: get real environment
+		// TODO: get real environment
+		String environment = "Production"; 
 		String envParam = "environment." + environment + ".servlet_url";
 		String globalParam = "servlet_url";
 		String servletUrl = getInitParameter(envParam);

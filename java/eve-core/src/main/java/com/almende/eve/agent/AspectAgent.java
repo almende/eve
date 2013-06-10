@@ -33,7 +33,7 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Namespace("sub")
+	@Namespace("aspect")
 	@Access(AccessType.PUBLIC)
 	public T getAspect() {
 		if (aspect == null) {

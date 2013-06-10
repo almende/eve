@@ -82,7 +82,6 @@ public class ChatAgent extends Agent {
 	/**
 	 * Get the username
 	 * @return
-	 * @throws Exception 
 	 */
 	public String getUsername() {
 		String username = (String) getState().get("username");
@@ -105,11 +104,8 @@ public class ChatAgent extends Agent {
 	/**
 	 * Post a message to all registered agents (including itself).
 	 * @param message 
-	 * @throws Exception 
-	 * @throws JSONException 
 	 * @throws IOException 
 	 * @throws JSONRPCException 
-	 * @throws RuntimeException 
 	 */
 	public void post(@Name("message") String message) throws IOException, JSONRPCException {
 		List<String> connections = getConnections();
@@ -136,7 +132,6 @@ public class ChatAgent extends Agent {
 	 * @param username
 	 * @param message
 	 * @throws IOException 
-	 * @throws Exception 
 	 */
 	public void receive(@Name("url") String url, 
 			@Name("username") String username, 
@@ -226,7 +221,6 @@ public class ChatAgent extends Agent {
 	 * Disconnect this agent from all other agents in the chat room
 	 * @throws JSONRPCException 
 	 * @throws IOException 
-	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
 	public void disconnect() throws JSONRPCException, IOException {
@@ -256,7 +250,6 @@ public class ChatAgent extends Agent {
 	 * Remove an agent from connections list
 	 * @param url  Url of a connected ChatAgent
 	 * @throws IOException 
-	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
 	public void removeConnection(@Name("url") String url) throws IOException {
@@ -295,7 +288,6 @@ public class ChatAgent extends Agent {
 	private void log(String message) {
 		Logger logger = Logger.getLogger(this.getClass().getName());		
 		logger.info(message);
-		// System.out.println(message);
 	}
 	
 	@Override

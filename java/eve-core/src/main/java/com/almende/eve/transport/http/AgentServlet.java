@@ -76,7 +76,7 @@ public class AgentServlet extends HttpServlet {
 		
 		String token = TokenStore.get(time);
 		if (token == null) {
-			res.sendError(400);
+			res.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		} else {
 			res.setHeader("X-Eve-replyToken", token);
 			res.setStatus(HttpServletResponse.SC_OK);
@@ -129,7 +129,7 @@ public class AgentServlet extends HttpServlet {
 					.getParam("authentication", "true"));
 			if (hs.equals(Handshake.NAK) && doAuthentication) {
 				if (!req.isSecure()) {
-					res.sendError(400,
+					res.sendError(HttpServletResponse.SC_BAD_REQUEST,
 							"Request needs to be secured with SSL for session management!");
 					return false;
 				}
@@ -140,7 +140,7 @@ public class AgentServlet extends HttpServlet {
 			// generate new session:
 			req.getSession(true);
 		} catch (Exception e) {
-			res.sendError(500,
+			res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 					"Exception running HandleSession:" + e.getMessage());
 			LOG.log(Level.WARNING, "", e);
 			return false;
@@ -168,7 +168,7 @@ public class AgentServlet extends HttpServlet {
 		// check if the agent exists
 		try {
 			if (!agentFactory.hasAgent(agentId)) {
-				resp.sendError(404, "Agent with id '" + agentId
+				resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Agent with id '" + agentId
 						+ "' not found.");
 				return;
 			}
@@ -185,7 +185,7 @@ public class AgentServlet extends HttpServlet {
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
-					resp.sendError(401);
+					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				}
 				return;
 			}
@@ -223,7 +223,7 @@ public class AgentServlet extends HttpServlet {
 				JOM.getInstance().writer().writeValue(resp.getWriter(), logs);
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "", e);
-				resp.sendError(500, e.getMessage());
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 		} else {
 			// load the resource
@@ -259,14 +259,14 @@ public class AgentServlet extends HttpServlet {
 			agentUrl = req.getRequestURI();
 			agentId = httpTransport.getAgentId(agentUrl);
 			if (agentId == null || agentId.isEmpty()) {
-				resp.sendError(400, "No agentId found in url.");
+				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No agentId found in url.");
 				return;
 			}
 			
 			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
-					resp.sendError(401);
+					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				}
 				return;
 			}
@@ -316,7 +316,7 @@ public class AgentServlet extends HttpServlet {
 		
 		if (!handleSession(req, resp)) {
 			if (!resp.isCommitted()) {
-				resp.sendError(401);
+				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 			}
 			return;
 		}
@@ -327,11 +327,11 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		if (agentId == null) {
-			resp.sendError(400, "No agentId found in url.");
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No agentId found in url.");
 			return;
 		}
 		if (agentType == null || agentType.isEmpty()) {
-			resp.sendError(400, "Query parameter 'type' missing in url.");
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Query parameter 'type' missing in url.");
 			return;
 		}
 		
@@ -357,12 +357,12 @@ public class AgentServlet extends HttpServlet {
 		
 		if (!handleSession(req, resp)) {
 			if (!resp.isCommitted()) {
-				resp.sendError(401);
+				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 			}
 			return;
 		}
 		if (agentId == null) {
-			resp.sendError(400, "No agentId found in url.");
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No agentId found in url.");
 			return;
 		}
 		
