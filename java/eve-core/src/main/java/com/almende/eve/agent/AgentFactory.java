@@ -85,11 +85,6 @@ public final class AgentFactory {
 	private Config									config				= null;
 	private EventLogger								eventLogger			= new EventLogger(
 																				this);
-	
-	private static String							ENVIRONMENT_PATH[]	= new String[] {
-			"com.google.appengine.runtime.environment",
-			"com.almende.eve.runtime.environment"						};
-	private static String							environment			= null;
 	private static boolean							doesShortcut		= true;
 	
 	private static final Map<String, AgentFactory>	FACTORIES			= new ConcurrentHashMap<String, AgentFactory>();
@@ -818,31 +813,7 @@ public final class AgentFactory {
 	 * @return environment
 	 */
 	public static String getEnvironment() {
-		if (environment == null) {
-			for (String path : ENVIRONMENT_PATH) {
-				environment = System.getProperty(path);
-				if (environment != null) {
-					LOG.info("Current environment: '" + environment
-							+ "' (read from path '" + path + "')");
-					break;
-				}
-			}
-			
-			if (environment == null) {
-				// no environment variable found. Fall back to "Production"
-				environment = "Production";
-				
-				String msg = "No environment variable found. "
-						+ "Environment set to '" + environment
-						+ "'. Checked paths: ";
-				for (String path : ENVIRONMENT_PATH) {
-					msg += path + ", ";
-				}
-				LOG.warning(msg);
-			}
-		}
-		
-		return environment;
+		return Config.getEnvironment();
 	}
 	
 	/**
@@ -853,7 +824,7 @@ public final class AgentFactory {
 	 * @return
 	 */
 	public static final void setEnvironment(String env) {
-		environment = env;
+		Config.setEnvironment(env);
 	}
 	
 	/**
