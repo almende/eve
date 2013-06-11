@@ -21,7 +21,7 @@ public class TestAgentFactory extends TestCase {
 		factory.setStateFactory(stateFactory);
 		
 		Test2AgentInterface agent = factory.createAgentProxy(null, 
-				URI.create("http://eveagents.appspot.com/agents/test/"), 
+				URI.create("local:test"), 
 				Test2AgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);

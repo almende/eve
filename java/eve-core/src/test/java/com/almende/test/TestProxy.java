@@ -25,6 +25,9 @@ public class TestProxy extends TestCase {
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		factory.setStateFactory(stateFactory);
 		
+		if (factory.hasAgent("TestAgent")){
+			factory.deleteAgent("TestAgent");
+		}
 		@SuppressWarnings("unused")
 		TestAgent agent = factory.createAgent(TestAgent.class, "TestAgent");
 		
