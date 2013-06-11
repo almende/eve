@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
@@ -10,7 +11,6 @@ import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -23,13 +23,11 @@ public interface ResultMonitorInterface {
 	 * part of a connection.
 	 * 
 	 * @param monitorId
-	 * @throws JsonProcessingException
 	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * @throws IOException 
 	 * @throws Exception
 	 */
-	void doPoll(@Name("monitorId") String monitorId) throws ProtocolException,
-			JSONRPCException, JsonProcessingException;
+	void doPoll(@Name("monitorId") String monitorId) throws JSONRPCException, IOException;
 	
 	/**
 	 * Callback method for monitoring framework, doing the work for pushing data
@@ -110,12 +108,12 @@ public interface ResultMonitorInterface {
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * @throws IOException
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filter_parms,
-			JavaType returnType) throws ProtocolException, JSONRPCException;
+			JavaType returnType) throws IOException, JSONRPCException;
 	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
@@ -128,10 +126,10 @@ public interface ResultMonitorInterface {
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * @throws IOException
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws ProtocolException, JSONRPCException;
+			Class<T> returnType) throws IOException, JSONRPCException;
 }

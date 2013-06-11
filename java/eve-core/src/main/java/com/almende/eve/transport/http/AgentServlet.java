@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentSignal;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
@@ -341,7 +342,7 @@ public class AgentServlet extends HttpServlet {
 			for (String url : agent.getUrls()) {
 				resp.getWriter().println(url);
 			}
-			agent.destroy();
+			agent.signal_agent(new AgentSignal<Void>("destroy",null));
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}

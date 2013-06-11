@@ -49,7 +49,7 @@ public class Push implements ResultMonitorConfigType {
 		ObjectNode wrapper = JOM.createObjectNode();
 		ObjectNode pushParams = JOM.createObjectNode();
 		
-		pushParams.put("monitorId", monitor.id);
+		pushParams.put("monitorId", monitor.getId());
 		if (interval > 0) {
 			pushParams.put("interval", interval);
 		}
@@ -58,11 +58,11 @@ public class Push implements ResultMonitorConfigType {
 			pushParams.put("event", event);
 		}
 		pushParams.put("onChange", onChange);
-		pushParams.put("method", monitor.method);
-		pushParams.put("params", monitor.params);
+		pushParams.put("method", monitor.getMethod());
+		pushParams.put("params", monitor.getParams());
 		
 		wrapper.put("pushParams", pushParams);
 		List<String> result = new ArrayList<String>();
-		return agent.send(result, monitor.url, "monitor.registerPush", wrapper);
+		return agent.send(result, monitor.getUrl(), "monitor.registerPush", wrapper);
 	}
 }

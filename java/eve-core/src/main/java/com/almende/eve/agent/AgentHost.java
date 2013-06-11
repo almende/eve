@@ -89,9 +89,9 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	/**
-	 * Get a shared AgentFactory instance with the default namespace "default"
+	 * Get the shared AgentFactory instance
 	 * 
-	 * @return factory Returns the factory instance, or null when not existing
+	 * @return factory Returns the factory instance
 	 */
 	public static AgentHost getInstance() {
 		return FACTORY;
@@ -111,11 +111,10 @@ public final class AgentHost implements AgentHostInterface {
 			FACTORY.setSchedulerFactory(config);
 			FACTORY.addAgents(config);
 		}
-		FACTORY.boot();
 	}
 	
 	@Override
-	public void boot() {
+	public void signal_agents(AgentSignal<?> event) {
 		if (stateFactory != null) {
 			Iterator<String> iter = stateFactory.getAllAgentIds();
 			if (iter != null) {
@@ -123,7 +122,7 @@ public final class AgentHost implements AgentHostInterface {
 					try {
 						Agent agent = getAgent(iter.next());
 						if (agent != null) {
-							agent.boot();
+							agent.signal_agent(event);
 						}
 					} catch (Exception e) {
 					}
@@ -136,7 +135,7 @@ public final class AgentHost implements AgentHostInterface {
 	public Agent getAgent(String agentId) throws JSONRPCException,
 			ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException {
+			NoSuchMethodException, IOException {
 		
 		if (agentId == null) {
 			return null;
@@ -169,7 +168,7 @@ public final class AgentHost implements AgentHostInterface {
 		// instantiate the agent
 		agent = (Agent) agentType.getConstructor().newInstance();
 		agent.constr(this, state);
-		agent.init();
+		agent.signal_agent(new AgentSignal<Void>("init"));
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
@@ -272,8 +271,8 @@ public final class AgentHost implements AgentHostInterface {
 		// instantiate the agent
 		T agent = (T) agentType.getConstructor().newInstance();
 		agent.constr(this, state);
-		agent.create();
-		agent.init();
+		agent.signal_agent(new AgentSignal<Void>("create"));
+		agent.signal_agent(new AgentSignal<Void>("init"));
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
@@ -295,14 +294,16 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public void deleteAgent(String agentId) throws JSONRPCException,
-			ClassNotFoundException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException {
+	public void deleteAgent(String agentId) {
 		if (agentId == null) {
 			return;
 		}
-		Agent agent = getAgent(agentId);
+		Agent agent = null;
+		try {
+			agent = getAgent(agentId);
+		} catch (Exception e){
+			LOG.log(Level.WARNING,"Couldn't get agent to delete.",e);
+		}
 		if (agent == null) {
 			return;
 		}
@@ -312,8 +313,8 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		try {
 			// get the agent and execute the delete method
-			agent.destroy();
-			agent.delete();
+			agent.signal_agent(new AgentSignal<Void>("destroy"));
+			agent.signal_agent(new AgentSignal<Void>("delete"));
 			AgentCache.delete(agentId);
 			agent = null;
 		} catch (Exception e) {
@@ -343,7 +344,6 @@ public final class AgentHost implements AgentHostInterface {
 			if (receiver != null) {
 				JSONResponse response = JSONRPC.invoke(receiver, request,
 						requestParams, receiver);
-				receiver.destroy();
 				return response;
 			}
 		} catch (Exception e) {
@@ -580,7 +580,6 @@ public final class AgentHost implements AgentHostInterface {
 					if (agent == null) {
 						// agent does not yet exist. create it
 						agent = createAgent(agentType, agentId);
-						agent.destroy();
 						LOG.info("Bootstrap created agent id=" + agentId
 								+ ", type=" + agentType);
 					}
@@ -598,6 +597,8 @@ public final class AgentHost implements AgentHostInterface {
 			return;
 		}
 		this.stateFactory = stateFactory;
+		FACTORY.signal_agents(new AgentSignal<StateFactory>("setStateFactory",stateFactory));
+
 	}
 	
 	@Override
@@ -750,6 +751,9 @@ public final class AgentHost implements AgentHostInterface {
 	public void addTransportService(TransportService transportService) {
 		transportServices.add(transportService);
 		LOG.info("Registered transport service: " + transportService.toString());
+		if (FACTORY != null){
+			FACTORY.signal_agents(new AgentSignal<TransportService>("addTransportService",transportService));
+		}
 	}
 	
 	@Override
@@ -757,6 +761,8 @@ public final class AgentHost implements AgentHostInterface {
 		transportServices.remove(transportService);
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
+		FACTORY.signal_agents(new AgentSignal<TransportService>("removeTransportService",transportService));
+
 	}
 	
 	@Override
@@ -800,6 +806,7 @@ public final class AgentHost implements AgentHostInterface {
 			LOG.warning("Replacing earlier schedulerFactory.");
 		}
 		this.schedulerFactory = schedulerFactory;
+		FACTORY.signal_agents(new AgentSignal<SchedulerFactory>("setSchedulerFactory",schedulerFactory));
 	}
 	
 	@Override

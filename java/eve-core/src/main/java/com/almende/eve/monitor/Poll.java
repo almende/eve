@@ -21,7 +21,7 @@ public class Poll implements ResultMonitorConfigType {
 	
 	public String init(ResultMonitor monitor, Agent agent){
 		ObjectNode params = JOM.createObjectNode();
-		params.put("monitorId",monitor.id);
+		params.put("monitorId",monitor.getId());
 		JSONRequest request = new JSONRequest("monitor.doPoll",params);
 		
 		return agent.getScheduler().createTask(request, interval, true, false);

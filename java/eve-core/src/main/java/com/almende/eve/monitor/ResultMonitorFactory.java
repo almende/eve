@@ -1,5 +1,6 @@
 package com.almende.eve.monitor;
 
+import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -72,11 +73,11 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException 
-	 * @throws ProtocolException 
+	 * @throws IOException 
 	 * @throws Exception
 	 */
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
-			Class<T> returnType) throws ProtocolException, JSONRPCException{
+			Class<T> returnType) throws IOException, JSONRPCException{
 		return getResult(monitorId, filter_parms, JOM.getTypeFactory()
 				.constructSimpleType(returnType, new JavaType[0]));
 	}
@@ -92,12 +93,13 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException 
-	 * @throws ProtocolException 
+	 * @throws IOException 
+	 * @throws JsonProcessingException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getResult(String monitorId, ObjectNode filter_parms,
-			JavaType returnType) throws ProtocolException, JSONRPCException {
+			JavaType returnType) throws JSONRPCException, IOException {
 		T result = null;
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
@@ -107,8 +109,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				result = (T) monitor.getCache().get();
 			}
 			if (result == null) {
-				result = myAgent.send(monitor.url, monitor.method,
-						monitor.params, returnType);
+				result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
+						monitor.getParams(), returnType);
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);
 				}
@@ -131,14 +133,14 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		// TODO: Let the cancelation be managed by the original objects
 		// (Pushes/Polls/Caches, etc.)
 		if (monitor != null) {
-			for (String task : monitor.schedulerIds) {
+			for (String task : monitor.getSchedulerIds()) {
 				myAgent.getScheduler().cancelTask(task);
 			}
-			for (String remote : monitor.remoteIds) {
+			for (String remote : monitor.getRemoteIds()) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("pushId", remote);
 				try {
-					myAgent.send(monitor.url, "monitor.unregisterPush", params);
+					myAgent.send(monitor.getUrl(), "monitor.unregisterPush", params);
 				} catch (Exception e) {
 					LOG.log(Level.WARNING,"Failed to unregister Push",e);
 				}
@@ -148,19 +150,19 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final void doPoll(@Name("monitorId") String monitorId) throws ProtocolException, JSONRPCException, JsonProcessingException
+	public final void doPoll(@Name("monitorId") String monitorId) throws JSONRPCException, IOException
 			{
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
 		if (monitor != null) {
-			Object result = myAgent.send(monitor.url, monitor.method,
-					monitor.params, TypeFactory.unknownType());
-			if (monitor.callbackMethod != null) {
+			Object result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
+					monitor.getParams(), TypeFactory.unknownType());
+			if (monitor.getCallbackMethod() != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",
 						JOM.getInstance().writeValueAsString(result));
 				myAgent.send(URI.create("local://" + myAgent.getId()),
-						monitor.callbackMethod, params);
+						monitor.getCallbackMethod(), params);
 			}
 			if (monitor.hasCache()) {
 				monitor.getCache().store(result);
@@ -208,7 +210,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 			ResultMonitor monitor = ResultMonitor.getMonitorById(
 					myAgent.getId(), monitorId);
 			if (monitor != null) {
-				if (monitor.callbackMethod != null) {
+				if (monitor.getCallbackMethod() != null) {
 					
 					ObjectNode params = JOM.createObjectNode();
 					if (callbackParams != null) {
@@ -217,7 +219,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
 					myAgent.send(URI.create("local://" + myAgent.getId()),
-							monitor.callbackMethod, params);
+							monitor.getCallbackMethod(), params);
 				}
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);

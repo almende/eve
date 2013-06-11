@@ -65,13 +65,10 @@ interface AgentHostInterface {
 
 	
 		/**
-		 * Should be called every time a new AgentHost is started or if new
-		 * agents become available (through setStateFactory())
-		 * 
+		 * Signal all agents about AgentHost event.
+		 * @param event
 		 */
-	//TODO: private?
-		void boot();
-		
+		void signal_agents(AgentSignal<?> event);	
 		
 		/**
 		 * Get an agent by its id. Returns null if the agent does not exist
@@ -91,7 +88,7 @@ interface AgentHostInterface {
 		Agent getAgent(String agentId) throws JSONRPCException,
 				ClassNotFoundException, InstantiationException,
 				IllegalAccessException, InvocationTargetException,
-				NoSuchMethodException;
+				NoSuchMethodException, IOException;
 		/**
 		 * Create an agent proxy from an java interface
 		 * 
@@ -495,6 +492,9 @@ interface AgentHostInterface {
 		 * @param agentId
 		 * @return scheduler
 		 */
-		Scheduler getScheduler(Agent agent);		
+		Scheduler getScheduler(Agent agent);
+
+	
+
 
 }

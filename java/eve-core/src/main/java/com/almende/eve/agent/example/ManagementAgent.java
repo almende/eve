@@ -57,8 +57,9 @@ public class ManagementAgent extends Agent {
 	 * @throws InstantiationException 
 	 * @throws ClassNotFoundException 
 	 * @throws JSONRPCException 
+	 * @throws IOException 
 	 */
-	public List<String> get(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public List<String> get(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
 		Agent agent = getAgentFactory().getAgent(id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
@@ -73,8 +74,9 @@ public class ManagementAgent extends Agent {
 	 * @throws InstantiationException 
 	 * @throws ClassNotFoundException 
 	 * @throws JSONRPCException 
+	 * @throws IOException 
 	 */
-	public boolean exists(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public boolean exists(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
 		Agent agent = getAgentFactory().getAgent(id);
 		return (agent != null);
 	}

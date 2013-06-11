@@ -67,7 +67,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Agent implements AgentInterface {
 	private static final Logger			LOG				= Logger.getLogger(Agent.class
 																.getCanonicalName());
-	protected AgentHost				agentFactory	= null;
+	protected AgentHost					agentFactory	= null;
 	protected State						state			= null;
 	protected Scheduler					scheduler		= null;
 	protected ResultMonitorInterface	monitorFactory	= null;
@@ -110,12 +110,62 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public void create() {
+	public void signal_agent(AgentSignal<?> event) throws JSONRPCException,
+			IOException {
+		if ("create".equals(event.getEvent())) {
+			create();
+		} else if ("init".equals(event.getEvent())) {
+			init();
+		} else if ("delete".equals(event.getEvent())) {
+			delete();
+		} else if ("addSchedulerFactory".equals(event.getEvent())) {
+			// init scheduler tasks
+			getScheduler();
+		} else if ("addTransportService".equals(event.getEvent())) {
+			TransportService service = (TransportService) event.getService();
+			service.reconnect(getId());
+		}
 	}
 	
-	@Override
+	/**
+	 * This method is called once in the life time of an agent, at the moment
+	 * the agent is being created by the AgentFactory.
+	 * It can be overridden and used to perform some action when the agent
+	 * is create, in that case super.create() should be called in
+	 * the overridden create().
+	 */
 	@Access(AccessType.UNAVAILABLE)
-	public void delete() {
+	protected void create() {
+	}
+	
+	/**
+	 * This method is called directly after the agent and its state is
+	 * initiated.
+	 * It can be overridden and used to perform some action when the agent
+	 * is initialized, in that case super.init() should be called in
+	 * the overridden init().
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void init() {
+	}
+	
+	/**
+	 * This method is called by the finalize method (GC) upon unloading of the
+	 * agent from memory.
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void destroy() {
+	}
+	
+	/**
+	 * This method is called once in the life time of an agent, at the moment
+	 * the agent is being deleted by the AgentFactory.
+	 * It can be overridden and used to perform some action when the agent
+	 * is deleted, in that case super.delete() should be called in
+	 * the overridden delete().
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void delete() {
 		// TODO: unsubscribe from all subscriptions
 		
 		// cancel all scheduled tasks.
@@ -131,33 +181,9 @@ public abstract class Agent implements AgentInterface {
 		
 		// save the agents class again in the state
 		state.put(State.KEY_AGENT_TYPE, getClass().getName());
-		state = null; // forget local reference, as it can keep the State alive
-						// even if the agentFactory removes the file.
-	}
-	
-	@Override
-	@Access(AccessType.UNAVAILABLE)
-	public void boot() throws JSONRPCException, IOException {
-		// init scheduler tasks
-		getScheduler();
-		// if applicable reconnect existing connections.
-		List<TransportService> services = agentFactory.getTransportServices();
-		if (services != null) {
-			for (TransportService service : services) {
-				service.reconnect(getId());
-			}
-		}
-	}
-	
-	@Override
-	@Access(AccessType.UNAVAILABLE)
-	public void init() {
-	}
-	
-	@Override
-	@Access(AccessType.UNAVAILABLE)
-	public void destroy() {
-		getState().destroy();
+		state = null;
+		// forget local reference, as it can keep the State alive
+		// even if the agentFactory removes the file.
 	}
 	
 	@Override
@@ -165,6 +191,7 @@ public abstract class Agent implements AgentInterface {
 	protected void finalize() throws Throwable {
 		// ensure the state is cleanup when the agent's method destroy is not
 		// called.
+		destroy();
 		getState().destroy();
 		super.finalize();
 	}

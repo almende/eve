@@ -100,50 +100,14 @@ public interface AgentInterface extends JSONAuthorizor {
 	List<Object> getMethods();
 	
 	/**
-	 * This method is called once in the life time of an agent, at the moment
-	 * the agent is being created by the AgentFactory.
-	 * It can be overridden and used to perform some action when the agent
-	 * is create, in that case super.create() should be called in
-	 * the overridden create().
-	 */
-	void create();
-	
-	/**
-	 * This method is called once in the life time of an agent, at the moment
-	 * the agent is being deleted by the AgentFactory.
-	 * It can be overridden and used to perform some action when the agent
-	 * is deleted, in that case super.delete() should be called in
-	 * the overridden delete().
-	 */
-	void delete();
-	
-	/**
-	 * This method is called when the containing AgentFactory is started.
-	 * It can be overridden and used to perform some action (like alerting
-	 * owners about the reboot),
-	 * in that case super.boot() should be called in
-	 * the overridden boot().
+	 * This method is called every time something changes to the AgentHost, like
+	 * booting, adding or removal of services, etc.
 	 * 
+	 * @param event
+	 * @throws IOException 
+	 * @throws JSONRPCException 
 	 */
-	void boot() throws JSONRPCException, IOException;
-	
-	/**
-	 * This method is called directly after the agent and its state is
-	 * initiated.
-	 * It can be overridden and used to perform some action when the agent
-	 * is initialized, in that case super.init() should be called in
-	 * the overridden init().
-	 */
-	void init();
-	
-	/**
-	 * This method can is called when the agent is uninitialized, and is
-	 * needed finalize the state of the agent.
-	 * It can be overridden and used to perform some action when the agent
-	 * is uninitialized, in that case super.destroy() should be called in
-	 * the overridden destroy().
-	 */
-	void destroy();
+	void signal_agent(AgentSignal<?> event) throws JSONRPCException, IOException;
 	
 	/**
 	 * Get the first url of the agents urls. Returns local://<agentId> if the
