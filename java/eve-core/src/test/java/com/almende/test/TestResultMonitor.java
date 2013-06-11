@@ -6,21 +6,21 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
+import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestResultMonitorAgent;
 
 public class TestResultMonitor extends TestCase {
 	
 	@Test
 	public void test() throws Exception {
-		AgentFactory factory = AgentFactory.getInstance();
-		if (factory == null) {
-			factory = AgentFactory.createInstance();
-			factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
-		}
+		AgentHost factory = AgentHost.getInstance();
+		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		factory.setStateFactory(stateFactory);
+		factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
 		
 		if (factory.hasAgent("alice")) factory.deleteAgent("alice");
 		if (factory.hasAgent("bob")) factory.deleteAgent("bob");

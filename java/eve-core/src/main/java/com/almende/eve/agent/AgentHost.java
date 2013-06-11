@@ -13,12 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.joda.time.DateTime;
 
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.log.EventLogger;
@@ -32,7 +29,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
-import com.almende.eve.state.MemoryStateFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.transport.AsyncCallback;
@@ -41,24 +37,27 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
 import com.almende.util.TypeUtil;
 
-public final class AgentFactory implements AgentFactoryInterface {
+public final class AgentHost implements AgentHostInterface {
 	
+	private static final Logger					LOG					= Logger.getLogger(AgentHost.class
+																			.getSimpleName());
+	private static final AgentHost				FACTORY				= new AgentHost();
 	// Note: the CopyOnWriteArrayList is inefficient but thread safe.
-	private List<TransportService>					transportServices	= new CopyOnWriteArrayList<TransportService>();
-	private StateFactory							stateFactory		= null;
-	private SchedulerFactory						schedulerFactory	= null;
-	private Config									config				= null;
-	private EventLogger								eventLogger			= new EventLogger(
-																				this);
-	private boolean									doesShortcut		= true;
+	private List<TransportService>				transportServices	= new CopyOnWriteArrayList<TransportService>();
+	private StateFactory						stateFactory		= null;
+	private SchedulerFactory					schedulerFactory	= null;
+	private Config								config				= null;
+	private EventLogger							eventLogger			= new EventLogger(
+																			this);
+	private boolean								doesShortcut		= true;
 	
-	private static final Map<String, AgentFactory>	FACTORIES			= new ConcurrentHashMap<String, AgentFactory>();
-	private static final Map<String, String>		STATE_FACTORIES		= new HashMap<String, String>();
-	private static final Map<String, String>		SCHEDULERS			= new HashMap<String, String>();
-	private static final Map<String, String>		TRANSPORT_SERVICES	= new HashMap<String, String>();
-	private static final RequestParams				EVEREQUESTPARAMS	= new RequestParams();
-	private static final Logger						LOG					= Logger.getLogger(AgentFactory.class
-																				.getSimpleName());
+	/*
+	 * Several classname maps for configuration conveniency:
+	 */
+	private static final Map<String, String>	STATE_FACTORIES		= new HashMap<String, String>();
+	private static final Map<String, String>	SCHEDULERS			= new HashMap<String, String>();
+	private static final Map<String, String>	TRANSPORT_SERVICES	= new HashMap<String, String>();
+	private static final RequestParams			EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		STATE_FACTORIES.put("FileStateFactory",
 				"com.almende.eve.state.FileStateFactory");
@@ -85,7 +84,8 @@ public final class AgentFactory implements AgentFactoryInterface {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
 	
-	private AgentFactory() {
+	private AgentHost() {
+		this.addTransportService(new HttpService());
 	}
 	
 	/**
@@ -93,140 +93,25 @@ public final class AgentFactory implements AgentFactoryInterface {
 	 * 
 	 * @return factory Returns the factory instance, or null when not existing
 	 */
-	public static AgentFactory getInstance() {
-		return getInstance(null);
+	public static AgentHost getInstance() {
+		return FACTORY;
 	}
 	
-	/**
-	 * Get a shared AgentFactory instance with a specific namespace
-	 * 
-	 * @param namespace
-	 *            If null, "default" namespace will be loaded.
-	 * @return factory Returns the factory instance, or null when not existing
-	 */
-	public static AgentFactory getInstance(String namespace) {
-		if (namespace == null) {
-			namespace = "default";
-		}
-		
-		return FACTORIES.get(namespace);
-	}
-	
-	/**
-	 * Create a shared AgentFactory instance with the default namespace
-	 * "default"
-	 * 
-	 * @return factory
-	 */
-	public static synchronized AgentFactory createInstance() {
-		return createInstance(null, null);
-	}
-	
-	/**
-	 * Create a shared AgentFactory instance with the default namespace
-	 * "default"
-	 * 
-	 * @param config
-	 * @return factory
-	 */
-	public static synchronized AgentFactory createInstance(Config config) {
-		return createInstance(null, config);
-	}
-	
-	/**
-	 * Create a shared AgentFactory instance with a specific namespace
-	 * 
-	 * @param namespace
-	 * @return factory
-	 */
-	public static synchronized AgentFactory createInstance(String namespace) {
-		return createInstance(namespace, null);
-	}
-	/**
-	 * Use the given AgentFactory as the new shared AgentFactory instance.
-	 * @param factory
-	 */
-	public static synchronized void registerInstance(AgentFactory factory) {
-		registerInstance(null, factory);
-	}
-	
-	/**
-	 * Use the given AgentFactory as the new shared AgentFactory instance with a specific namespace.
-	 * @param factory
-	 */
-	public static synchronized void registerInstance(String namespace,
-			AgentFactory factory) {
-		if (namespace == null) {
-			namespace = "default";
-		}
-		FACTORIES.put(namespace, factory);
-	}
-	
-	/**
-	 * Create a shared AgentFactory instance with a specific namespace
-	 * 
-	 * @param namespace
-	 *            If null, "default" namespace will be loaded.
-	 * @param config
-	 *            If null, a non-configured AgentFactory will be created.
-	 * @return factory
-	 */
-	public static synchronized AgentFactory createInstance(String namespace,
-			Config config) {
-		if (namespace == null) {
-			namespace = "default";
-		}
-		
-		if (FACTORIES.containsKey(namespace)) {
-			throw new IllegalStateException(
-					"Shared AgentFactory with namespace '"
-							+ namespace
-							+ "' already exists. "
-							+ "A shared AgentFactory can only be created once. "
-							+ "Use getInstance instead to get the existing shared instance.");
-		}
-		
-		AgentFactory factory = new AgentFactory();
-		factory.setConfig(config);
+	@Override
+	// TODO: prevent duplication of Services
+	public void loadConfig(Config config) {
+		FACTORY.setConfig(config);
 		if (config != null) {
 			AgentCache.configCache(config);
-			
 			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first,
 			// then the state and transport services, and lastly scheduler.
-			factory.setStateFactory(config);
-			factory.addTransportServices(config);
-			// ensure there is always an HttpService for outgoing calls
-			factory.addTransportService(new HttpService());
-			factory.setSchedulerFactory(config);
-			factory.addAgents(config);
-		} else {
-			// ensure there is at least a memory state service
-			factory.setStateFactory(new MemoryStateFactory());
-			// ensure there is always an HttpService for outgoing calls
-			factory.addTransportService(new HttpService());
+			FACTORY.setStateFactory(config);
+			FACTORY.addTransportServices(config);
+			FACTORY.setSchedulerFactory(config);
+			FACTORY.addAgents(config);
 		}
-		FACTORIES.put(namespace, factory);
-		factory.boot();
-		return factory;
-	}
-	
-	/**
-	 * Get string describing this environment (e.g. Production or Development)
-	 * @return
-	 */
-	public static String getEnvironment() {
-		//TODO: make this non-static?
-		return Config.getEnvironment();
-	}
-	
-	/**
-	 * Set the current environment
-	 * @param env
-	 */
-	public static void setEnvironment(String env) {
-		//TODO: make this non-static?
-		Config.setEnvironment(env);
+		FACTORY.boot();
 	}
 	
 	@Override
@@ -252,6 +137,7 @@ public final class AgentFactory implements AgentFactoryInterface {
 			ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
+		
 		if (agentId == null) {
 			return null;
 		}
@@ -595,7 +481,6 @@ public final class AgentFactory implements AgentFactoryInterface {
 		return null;
 	}
 	
-	
 	@Override
 	public void setConfig(Config config) {
 		this.config = config;
@@ -618,6 +503,11 @@ public final class AgentFactory implements AgentFactoryInterface {
 	
 	@Override
 	public void setStateFactory(Config config) {
+		if (this.stateFactory != null) {
+			LOG.warning("Not loading statefactory from config, there is already a statefactory available.");
+			return;
+		}
+		
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
@@ -703,13 +593,17 @@ public final class AgentFactory implements AgentFactoryInterface {
 	
 	@Override
 	public void setStateFactory(StateFactory stateFactory) {
+		if (this.stateFactory != null) {
+			LOG.warning("Not setting new stateFactory, there is already a factory initialized.");
+			return;
+		}
 		this.stateFactory = stateFactory;
 	}
 	
 	@Override
-	public StateFactory getStateFactory() throws JSONRPCException {
+	public StateFactory getStateFactory() {
 		if (stateFactory == null) {
-			throw new JSONRPCException("No state factory initialized.");
+			LOG.warning("No state factory initialized.");
 		}
 		return stateFactory;
 	}
@@ -763,7 +657,7 @@ public final class AgentFactory implements AgentFactoryInterface {
 			
 			// initialize the scheduler factory
 			SchedulerFactory sf = (SchedulerFactory) schedulerClass
-					.getConstructor(AgentFactory.class, Map.class).newInstance(
+					.getConstructor(AgentHost.class, Map.class).newInstance(
 							this, params);
 			
 			setSchedulerFactory(sf);
@@ -834,7 +728,7 @@ public final class AgentFactory implements AgentFactoryInterface {
 						
 						// initialize the transport service
 						TransportService transport = (TransportService) transportClass
-								.getConstructor(AgentFactory.class, Map.class)
+								.getConstructor(AgentHost.class, Map.class)
 								.newInstance(this, transportParams);
 						
 						// register the service with the agent factory
@@ -900,24 +794,18 @@ public final class AgentFactory implements AgentFactoryInterface {
 	}
 	
 	@Override
-	public synchronized void setSchedulerFactory(
+	public void setSchedulerFactory(
 			SchedulerFactory schedulerFactory) {
+		if (schedulerFactory != null){
+			LOG.warning("Replacing earlier schedulerFactory.");
+		}
 		this.schedulerFactory = schedulerFactory;
-		this.notifyAll();
 	}
 	
 	@Override
-	public synchronized Scheduler getScheduler(Agent agent) {
-		DateTime start = DateTime.now();
-		while (schedulerFactory == null && start.plus(30000).isBeforeNow()) {
-			try {
-				this.wait();
-			} catch (InterruptedException e) {
-				LOG.log(Level.WARNING, "", e);
-			}
-		}
+	public Scheduler getScheduler(Agent agent) {
 		if (schedulerFactory == null) {
-			LOG.severe("SchedulerFactory is null, while agent " + agent.getId()
+			LOG.warning("SchedulerFactory is null, while agent " + agent.getId()
 					+ " calls for getScheduler");
 			return null;
 		}

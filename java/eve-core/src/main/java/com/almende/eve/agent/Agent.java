@@ -67,7 +67,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Agent implements AgentInterface {
 	private static final Logger			LOG				= Logger.getLogger(Agent.class
 																.getCanonicalName());
-	protected AgentFactory				agentFactory	= null;
+	protected AgentHost				agentFactory	= null;
 	protected State						state			= null;
 	protected Scheduler					scheduler		= null;
 	protected ResultMonitorInterface	monitorFactory	= null;
@@ -86,7 +86,7 @@ public abstract class Agent implements AgentInterface {
 	public Agent() {
 	}
 	
-	public void constr(AgentFactory factory, State state) {
+	public void constr(AgentHost factory, State state) {
 		if (this.state == null) {
 			this.agentFactory = factory;
 			this.state = state;
@@ -183,7 +183,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final AgentFactory getAgentFactory() {
+	public final AgentHost getAgentFactory() {
 		return agentFactory;
 	}
 	

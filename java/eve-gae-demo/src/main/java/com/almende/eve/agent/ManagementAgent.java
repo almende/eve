@@ -68,7 +68,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public Map<String, Object> register(@Name("id") String id) throws Exception {
-		AgentFactory factory = getAgentFactory();
+		AgentHost factory = getAgentFactory();
 		Agent agent = factory.getAgent(id);
 		if (agent != null) {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();

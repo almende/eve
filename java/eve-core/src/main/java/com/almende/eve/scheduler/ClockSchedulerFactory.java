@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -26,7 +26,7 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	private static final Logger		LOG				= Logger.getLogger(ClockSchedulerFactory.class
 															.getCanonicalName());
 	private Map<String, Scheduler>	schedulers		= new HashMap<String, Scheduler>();
-	private AgentFactory			agentFactory	= null;
+	private AgentHost			agentFactory	= null;
 	
 	/**
 	 * This constructor is called when constructed by the AgentFactory
@@ -34,12 +34,12 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	 * @param agentFactory
 	 * @param params
 	 */
-	public ClockSchedulerFactory(AgentFactory agentFactory,
+	public ClockSchedulerFactory(AgentHost agentFactory,
 			Map<String, Object> params) {
 		this(agentFactory, "");
 	}
 	
-	public ClockSchedulerFactory(AgentFactory agentFactory, String id) {
+	public ClockSchedulerFactory(AgentHost agentFactory, String id) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -76,7 +76,7 @@ class ClockScheduler implements Scheduler, Runnable {
 	private final Clock				myClock;
 	private final ClockScheduler	_this	= this;
 	
-	public ClockScheduler(Agent myAgent, AgentFactory factory) {
+	public ClockScheduler(Agent myAgent, AgentHost factory) {
 		this.myAgent = myAgent;
 		myClock = new RunnableClock();
 	}

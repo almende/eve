@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -78,7 +78,7 @@ public class ResultMonitor implements Serializable {
 	}
 	
 	public void addPoll(Poll config) {
-		AgentFactory factory = AgentFactory.getInstance();
+		AgentHost factory = AgentHost.getInstance();
 		
 		try {
 			Agent agent = factory.getAgent(agentId);
@@ -90,7 +90,7 @@ public class ResultMonitor implements Serializable {
 	}
 	
 	public void addPush(Push config) {
-		AgentFactory factory = AgentFactory.getInstance();
+		AgentHost factory = AgentHost.getInstance();
 		
 		try {
 			Agent agent = factory.getAgent(agentId);
@@ -102,7 +102,7 @@ public class ResultMonitor implements Serializable {
 	}
 	
 	public String store() {
-		AgentFactory factory = AgentFactory.getInstance();
+		AgentHost factory = AgentHost.getInstance();
 		
 		try {
 			Agent agent = factory.getAgent(agentId);
@@ -126,7 +126,7 @@ public class ResultMonitor implements Serializable {
 	}
 	
 	public void delete() {
-		AgentFactory factory = AgentFactory.getInstance();
+		AgentHost factory = AgentHost.getInstance();
 		
 		try {
 			Agent agent = factory.getAgent(agentId);
@@ -151,7 +151,7 @@ public class ResultMonitor implements Serializable {
 	}
 	
 	public static ResultMonitor getMonitorById(String agentId, String id) {
-		AgentFactory factory = AgentFactory.getInstance();
+		AgentHost factory = AgentHost.getInstance();
 		
 		try {
 			Agent agent = factory.getAgent(agentId);

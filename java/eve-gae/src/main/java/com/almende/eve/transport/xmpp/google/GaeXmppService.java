@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -25,7 +25,7 @@ public class GaeXmppService implements TransportService {
 	 * @param agentFactory
 	 * @param params
 	 */
-	public GaeXmppService(AgentFactory agentFactory, Map<String, Object> params) {
+	public GaeXmppService(AgentHost agentFactory, Map<String, Object> params) {
 		this();
 	}
 

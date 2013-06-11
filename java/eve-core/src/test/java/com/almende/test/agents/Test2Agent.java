@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -497,7 +497,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	public void xmppConnect(@Name("username") String username, 
 			@Name("password") String password) throws Exception {
-		AgentFactory factory = getAgentFactory();
+		AgentHost factory = getAgentFactory();
 		
 		XmppService service = (XmppService) factory.getTransportService("xmpp");
 		if (service != null) {
@@ -509,7 +509,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void xmppDisconnect() throws Exception {
-		AgentFactory factory = getAgentFactory();
+		AgentHost factory = getAgentFactory();
 		XmppService service = (XmppService) factory.getTransportService("xmpp");
 		if (service != null) {
 			service.disconnect(getId());

@@ -15,8 +15,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.log.Log;
+import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
@@ -34,18 +35,18 @@ public class AgentServlet extends HttpServlet {
 													.getSimpleName());
 	
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
-	static AgentFactory			agentFactory;
+	static AgentHost			agentFactory;
 	static HttpService			httpTransport;
 	
 	@Override
 	public void init() {
-		if (AgentFactory.getInstance() == null) {
+		if (AgentHost.getInstance().getStateFactory() == null) {
 			LOG.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		agentFactory = AgentFactory.getInstance();
+		agentFactory = AgentHost.getInstance();
 		
-		String environment = AgentFactory.getEnvironment();
+		String environment = Config.getEnvironment();
 		String envParam = "environment." + environment + ".servlet_url";
 		String globalParam = "servlet_url";
 		String servletUrl = getInitParameter(envParam);

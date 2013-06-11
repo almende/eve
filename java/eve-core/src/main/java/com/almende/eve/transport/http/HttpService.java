@@ -14,7 +14,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -40,7 +40,7 @@ public class HttpService implements TransportService {
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(AgentFactory agentFactory, Map<String, Object> params) {
+	public HttpService(AgentHost agentFactory, Map<String, Object> params) {
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}

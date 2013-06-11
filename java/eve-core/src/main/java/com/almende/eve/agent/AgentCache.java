@@ -15,6 +15,10 @@ public class AgentCache {
 	protected static List<MetaInfo>			scores	= new ArrayList<MetaInfo>(
 															maxSize);
 	
+	/**
+	 * Reinitialize cache, using given configuration. (currently only "AgentCache"."maxSize" is used from config)
+	 * @param config
+	 */
 	public static void configCache(Config config) {
 		synchronized (cache) {
 			Integer maxSize = config.get("AgentCache", "maxSize");
@@ -27,6 +31,11 @@ public class AgentCache {
 		}
 	}
 	
+	/**
+	 * Get agent instance from cache, if exiting. Returns null if no agent is stored in cache.
+	 * @param agentId
+	 * @return
+	 */
 	public static Agent get(String agentId) {
 		MetaInfo result = cache.get(agentId);
 		if (result != null) {
@@ -36,6 +45,11 @@ public class AgentCache {
 		return null;
 	}
 	
+	/**
+	 * Put agent instance into the cache from later retrieval. Runs eviction policy after entry of agent.
+	 * @param agentId
+	 * @param agent
+	 */
 	public static void put(String agentId, Agent agent) {
 		synchronized (cache) {
 			MetaInfo entry = new MetaInfo(agent);
@@ -63,6 +77,10 @@ public class AgentCache {
 		}
 	}
 	
+	/** 
+	 * Remove specific agent from cache.
+	 * @param agentId
+	 */
 	public static void delete(String agentId) {
 		cache.remove(agentId);
 	}

@@ -12,7 +12,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -26,14 +26,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class AgentConnection {
 	private static final Logger					LOG				= Logger.getLogger(AgentConnection.class
 																		.getCanonicalName());
-	private AgentFactory						agentFactory	= null;
+	private AgentHost						agentFactory	= null;
 	private String								agentId			= null;
 	private String								username		= null;
 	private String								resource		= null;
 	private XMPPConnection						conn			= null;
 	private AsyncCallbackQueue<JSONResponse>	callbacks		= new AsyncCallbackQueue<JSONResponse>();
 	
-	public AgentConnection(AgentFactory agentFactory) {
+	public AgentConnection(AgentHost agentFactory) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -180,11 +180,11 @@ public class AgentConnection {
 	 */
 	private static class JSONRPCListener implements PacketListener {
 		private XMPPConnection						conn			= null;
-		private AgentFactory						agentFactory	= null;
+		private AgentHost						agentFactory	= null;
 		private String								agentId			= null;
 		private AsyncCallbackQueue<JSONResponse>	callbacks		= null;
 		
-		public JSONRPCListener(XMPPConnection conn, AgentFactory agentFactory,
+		public JSONRPCListener(XMPPConnection conn, AgentHost agentFactory,
 				String agentId, AsyncCallbackQueue<JSONResponse> callbacks) {
 			this.conn = conn;
 			this.agentFactory = agentFactory;

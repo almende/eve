@@ -4,8 +4,9 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
+import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestAccessAgent;
 
 public class TestAccess extends TestCase {
@@ -14,30 +15,26 @@ public class TestAccess extends TestCase {
 
 	@Test
 	public void testAccess() throws Exception {
-		AgentFactory agentFactory = AgentFactory.getInstance();
+		AgentHost factory = AgentHost.getInstance();
+		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		factory.setStateFactory(stateFactory);
+		
 		String filename = "eve.yaml";
 		String fullname = "src/test/webapp/WEB-INF/" + filename;
 		Config config = new Config(fullname);
-		if (agentFactory == null) {
-			agentFactory = AgentFactory.createInstance();
-		}
-		agentFactory.setStateFactory(config);
-		agentFactory.addTransportServices(config);
-		agentFactory.setConfig(config);
-		agentFactory.setSchedulerFactory(config);
-		agentFactory.addAgents(config);
+		factory.loadConfig(config);
 		TestAccessAgent testAgent;
-		if (agentFactory.hasAgent(TEST1)) {
-			testAgent = (TestAccessAgent) agentFactory.getAgent(TEST1);
+		if (factory.hasAgent(TEST1)) {
+			testAgent = (TestAccessAgent) factory.getAgent(TEST1);
 		} else {
-			testAgent = agentFactory.createAgent(TestAccessAgent.class, TEST1);
+			testAgent = factory.createAgent(TestAccessAgent.class, TEST1);
 		}
 		System.err.println("testAgent:"+testAgent.getId()+":"+testAgent.getUrls());
 		TestAccessAgent agent;
-		if (agentFactory.hasAgent(TEST2)) {
-			agent = (TestAccessAgent) agentFactory.getAgent(TEST2);
+		if (factory.hasAgent(TEST2)) {
+			agent = (TestAccessAgent) factory.getAgent(TEST2);
 		} else {
-			agent = (TestAccessAgent) agentFactory.createAgent(
+			agent = (TestAccessAgent) factory.createAgent(
 					TestAccessAgent.class, TEST2);
 		}
 		boolean[] result = agent.run((String)testAgent.getUrls().get(0));

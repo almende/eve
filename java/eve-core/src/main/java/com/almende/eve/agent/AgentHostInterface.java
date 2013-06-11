@@ -20,23 +20,23 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 
 /**
- * The AgentFactory is a factory to instantiate and invoke Eve Agents within the
- * configured state. The AgentFactory can invoke local as well as remote agents.
+ * The AgentHost is a factory to instantiate and invoke Eve Agents within the
+ * configured state. The AgentHost can invoke local as well as remote agents.
  * 
- * An AgentFactory must be instantiated with a valid Eve configuration file.
+ * An AgentHost must be instantiated with a valid Eve configuration file.
  * This configuration is needed to load the configured agent classes and
  * instantiate a state for each agent.
  * 
  * Example usage: // generic constructor Config config = new Config("eve.yaml");
- * AgentFactory factory = new AgentFactory(config);
+ * AgentHost factory = new AgentHost(config);
  * 
  * // construct in servlet InputStream is =
  * getServletContext().getResourceAsStream("/WEB-INF/eve.yaml"); Config config =
- * new Config(is); AgentFactory factory = new AgentFactory(config);
+ * new Config(is); AgentHost factory = new AgentHost(config);
  * 
- * // create or get a shared instance of the AgentFactory AgentFactory factory =
- * AgentFactory.createInstance(namespace, config); AgentFactory factory =
- * AgentFactory.getInstance(namespace);
+ * // create or get a shared instance of the AgentHost AgentHost factory =
+ * AgentHost.createInstance(namespace, config); AgentHost factory =
+ * AgentHost.getInstance(namespace);
  * 
  * // invoke a local agent by its id response = factory.invoke(agentId,
  * request);
@@ -54,10 +54,18 @@ import com.almende.eve.transport.TransportService;
  * 
  * @author jos
 */
-interface AgentFactoryInterface {
+interface AgentHostInterface {
 		
+	
 		/**
-		 * Should be called every time a new AgentFactory is started or if new
+		 * Instantiate the services from the given config.
+		 * @param config
+		 */
+		void loadConfig(Config config);
+
+	
+		/**
+		 * Should be called every time a new AgentHost is started or if new
 		 * agents become available (through setStateFactory())
 		 * 
 		 */

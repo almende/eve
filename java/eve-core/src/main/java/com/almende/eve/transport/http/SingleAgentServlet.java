@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
@@ -25,7 +25,7 @@ import com.almende.util.StringUtil;
 public class SingleAgentServlet extends HttpServlet {
 	private static final Logger LOG = Logger.getLogger(SingleAgentServlet.class.getSimpleName());
 	
-	private AgentFactory agentFactory = null;
+	private AgentHost agentFactory = null;
 	private HttpService httpTransport = null;
 	private String agentId = null;
 	private static String RESOURCES = "/com/almende/eve/resources/";
@@ -114,34 +114,22 @@ public class SingleAgentServlet extends HttpServlet {
 	 * @throws Exception 
 	 */
 	protected void initAgentFactory() {
-		// TODO: be able to choose a different namespace 
-		agentFactory = AgentFactory.getInstance();
-		if (agentFactory != null) {
-			// agentFactory already exists. Add our http transport service
-			agentFactory.addTransportService(httpTransport);
-		}
-		else {
-			// if the agent factory is not yet loaded, load it from config
-			String filename = getInitParameter("config");
-			if (filename == null) {
-				filename = "eve.yaml";
-				LOG.warning(
+		// if the agent factory is not yet loaded, load it from config
+		String filename = getInitParameter("config");
+		if (filename == null) {
+			filename = "eve.yaml";
+			LOG.warning(
 					"Init parameter 'config' missing in servlet configuration web.xml. " +
 					"Trying default filename '" + filename + "'.");
-			}
-			String fullname = "/WEB-INF/" + filename;
-			LOG.info("loading configuration file '" + 
-					getServletContext().getRealPath(fullname) + "'...");
-			Config config = new Config(getServletContext().getResourceAsStream(fullname));
-
-			// TODO: create the agentFactory in a synchronized way
-			agentFactory = AgentFactory.createInstance();
-			agentFactory.setStateFactory(config);
-			agentFactory.addTransportServices(config);
-			agentFactory.addTransportService(httpTransport);
-			agentFactory.setSchedulerFactory(config);
-			agentFactory.addAgents(config);
 		}
+		String fullname = "/WEB-INF/" + filename;
+		LOG.info("loading configuration file '" + 
+				getServletContext().getRealPath(fullname) + "'...");
+		Config config = new Config(getServletContext().getResourceAsStream(fullname));
+		// TODO: create the agentFactory in a synchronized way
+		agentFactory = AgentHost.getInstance();
+		agentFactory.loadConfig(config);
+		agentFactory.addTransportService(httpTransport);
 	}
 	
 	/**

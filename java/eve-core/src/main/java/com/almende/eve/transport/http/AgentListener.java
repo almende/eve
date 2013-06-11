@@ -9,7 +9,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRegistration;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
 
 public class AgentListener implements ServletContextListener {
@@ -60,7 +60,7 @@ public class AgentListener implements ServletContextListener {
 
 			Config config = new Config(c.getResourceAsStream(fullname));
 			try {
-				AgentFactory.createInstance(config);
+				AgentHost.getInstance().loadConfig(config);
 			} catch (Exception e) {
 				LOG.log(Level.WARNING,"",e);
 			}

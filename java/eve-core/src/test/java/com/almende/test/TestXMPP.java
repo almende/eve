@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.xmpp.XmppService;
 import com.almende.test.agents.Test2Agent;
@@ -15,10 +15,7 @@ public class TestXMPP extends TestCase {
 	@Test
 	public void testXMPP() throws Exception {
 		//Create TestAgent according to TestInterface
-		AgentFactory factory = AgentFactory.getInstance();
-		if (factory == null){
-			factory = AgentFactory.createInstance();
-		}
+		AgentHost factory = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		factory.setStateFactory(stateFactory);
 

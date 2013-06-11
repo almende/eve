@@ -69,7 +69,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * Get the associated agentFactory of this agent
 	 * 
 	 */
-	AgentFactory getAgentFactory();
+	AgentHost getAgentFactory();
 	
 	/**
 	 * Get the scheduler to schedule tasks for the agent to be executed later

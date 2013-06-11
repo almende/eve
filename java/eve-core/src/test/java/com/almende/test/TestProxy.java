@@ -9,8 +9,9 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.proxy.AsyncProxy;
+import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestAgent;
 import com.almende.test.agents.TestInterface;
 import com.almende.test.agents.entity.Person;
@@ -20,10 +21,10 @@ public class TestProxy extends TestCase {
 	@Test
 	public void testProxy() throws Exception {
 		//Create TestAgent according to TestInterface
-		AgentFactory factory = AgentFactory.getInstance();
-		if (factory == null){
-			factory = AgentFactory.createInstance();
-		}
+		AgentHost factory = AgentHost.getInstance();
+		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		factory.setStateFactory(stateFactory);
+		
 		@SuppressWarnings("unused")
 		TestAgent agent = factory.createAgent(TestAgent.class, "TestAgent");
 		

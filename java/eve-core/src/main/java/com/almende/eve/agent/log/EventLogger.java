@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.AgentFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 public class EventLogger {
@@ -16,7 +16,7 @@ public class EventLogger {
 	protected EventLogger() {
 	}
 	
-	public EventLogger(AgentFactory agentFactory) {
+	public EventLogger(AgentHost agentFactory) {
 		this.agentFactory = agentFactory;
 	}
 	
@@ -53,5 +53,5 @@ public class EventLogger {
 		return "_logagent_" + agentId;
 	}
 	
-	private AgentFactory	agentFactory	= null;
+	private AgentHost	agentFactory	= null;
 }
