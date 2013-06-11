@@ -214,7 +214,7 @@ public class ResultMonitor implements Serializable {
 		this.method = method;
 	}
 
-	public JsonNode getParams() throws JsonProcessingException, IOException {
+	public JsonNode getParams() throws IOException {
 		return JOM.getInstance().readTree(params);
 	}
 

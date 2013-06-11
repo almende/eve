@@ -114,7 +114,7 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public void signal_agents(AgentSignal<?> event) {
+	public void signalAgents(AgentSignal<?> event) {
 		if (stateFactory != null) {
 			Iterator<String> iter = stateFactory.getAllAgentIds();
 			if (iter != null) {
@@ -122,7 +122,7 @@ public final class AgentHost implements AgentHostInterface {
 					try {
 						Agent agent = getAgent(iter.next());
 						if (agent != null) {
-							agent.signal_agent(event);
+							agent.signalAgent(event);
 						}
 					} catch (Exception e) {
 					}
@@ -168,7 +168,7 @@ public final class AgentHost implements AgentHostInterface {
 		// instantiate the agent
 		agent = (Agent) agentType.getConstructor().newInstance();
 		agent.constr(this, state);
-		agent.signal_agent(new AgentSignal<Void>("init"));
+		agent.signalAgent(new AgentSignal<Void>("init"));
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
@@ -271,8 +271,8 @@ public final class AgentHost implements AgentHostInterface {
 		// instantiate the agent
 		T agent = (T) agentType.getConstructor().newInstance();
 		agent.constr(this, state);
-		agent.signal_agent(new AgentSignal<Void>("create"));
-		agent.signal_agent(new AgentSignal<Void>("init"));
+		agent.signalAgent(new AgentSignal<Void>("create"));
+		agent.signalAgent(new AgentSignal<Void>("init"));
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
@@ -313,8 +313,8 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		try {
 			// get the agent and execute the delete method
-			agent.signal_agent(new AgentSignal<Void>("destroy"));
-			agent.signal_agent(new AgentSignal<Void>("delete"));
+			agent.signalAgent(new AgentSignal<Void>("destroy"));
+			agent.signalAgent(new AgentSignal<Void>("delete"));
 			AgentCache.delete(agentId);
 			agent = null;
 		} catch (Exception e) {
@@ -597,7 +597,7 @@ public final class AgentHost implements AgentHostInterface {
 			return;
 		}
 		this.stateFactory = stateFactory;
-		FACTORY.signal_agents(new AgentSignal<StateFactory>("setStateFactory",stateFactory));
+		FACTORY.signalAgents(new AgentSignal<StateFactory>("setStateFactory",stateFactory));
 
 	}
 	
@@ -752,7 +752,7 @@ public final class AgentHost implements AgentHostInterface {
 		transportServices.add(transportService);
 		LOG.info("Registered transport service: " + transportService.toString());
 		if (FACTORY != null){
-			FACTORY.signal_agents(new AgentSignal<TransportService>("addTransportService",transportService));
+			FACTORY.signalAgents(new AgentSignal<TransportService>("addTransportService",transportService));
 		}
 	}
 	
@@ -761,7 +761,7 @@ public final class AgentHost implements AgentHostInterface {
 		transportServices.remove(transportService);
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
-		FACTORY.signal_agents(new AgentSignal<TransportService>("removeTransportService",transportService));
+		FACTORY.signalAgents(new AgentSignal<TransportService>("removeTransportService",transportService));
 
 	}
 	
@@ -806,7 +806,7 @@ public final class AgentHost implements AgentHostInterface {
 			LOG.warning("Replacing earlier schedulerFactory.");
 		}
 		this.schedulerFactory = schedulerFactory;
-		FACTORY.signal_agents(new AgentSignal<SchedulerFactory>("setSchedulerFactory",schedulerFactory));
+		FACTORY.signalAgents(new AgentSignal<SchedulerFactory>("setSchedulerFactory",schedulerFactory));
 	}
 	
 	@Override

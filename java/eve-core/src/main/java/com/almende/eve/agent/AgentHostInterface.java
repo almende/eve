@@ -68,7 +68,7 @@ interface AgentHostInterface {
 		 * Signal all agents about AgentHost event.
 		 * @param event
 		 */
-		void signal_agents(AgentSignal<?> event);	
+		void signalAgents(AgentSignal<?> event);	
 		
 		/**
 		 * Get an agent by its id. Returns null if the agent does not exist

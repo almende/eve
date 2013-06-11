@@ -110,7 +110,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public void signal_agent(AgentSignal<?> event) throws JSONRPCException,
+	public void signalAgent(AgentSignal<?> event) throws JSONRPCException,
 			IOException {
 		if ("create".equals(event.getEvent())) {
 			create();
