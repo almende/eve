@@ -28,7 +28,7 @@ public class TestXMPP extends TestCase {
 		XmppService xmppService = new XmppService(factory, host, port, serviceName);
 		factory.addTransportService(xmppService);
 		
-		AgentFactory.setDoesShortcut(false);
+		factory.setDoesShortcut(false);
 		
 		// instantiate an agent and connect it to a messenger service
 		String agentId = "alex";
@@ -58,7 +58,7 @@ public class TestXMPP extends TestCase {
 		xmppService.disconnect("gloria");
 		xmppService.disconnect("alex");
 		
-		AgentFactory.setDoesShortcut(true);
+		factory.setDoesShortcut(true);
 	}
 
 }

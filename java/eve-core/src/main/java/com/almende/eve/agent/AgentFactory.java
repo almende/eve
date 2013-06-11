@@ -41,42 +41,7 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
 import com.almende.util.TypeUtil;
 
-/**
- * The AgentFactory is a factory to instantiate and invoke Eve Agents within the
- * configured state. The AgentFactory can invoke local as well as remote agents.
- * 
- * An AgentFactory must be instantiated with a valid Eve configuration file.
- * This configuration is needed to load the configured agent classes and
- * instantiate a state for each agent.
- * 
- * Example usage: // generic constructor Config config = new Config("eve.yaml");
- * AgentFactory factory = new AgentFactory(config);
- * 
- * // construct in servlet InputStream is =
- * getServletContext().getResourceAsStream("/WEB-INF/eve.yaml"); Config config =
- * new Config(is); AgentFactory factory = new AgentFactory(config);
- * 
- * // create or get a shared instance of the AgentFactory AgentFactory factory =
- * AgentFactory.createInstance(namespace, config); AgentFactory factory =
- * AgentFactory.getInstance(namespace);
- * 
- * // invoke a local agent by its id response = factory.invoke(agentId,
- * request);
- * 
- * // invoke a local or remote agent by its url response =
- * factory.send(senderId, receiverUrl, request);
- * 
- * // create a new agent Agent agent = factory.createAgent(agentType, agentId);
- * String desc = agent.getDescription(); // use the agent agent.destroy(); //
- * neatly shutdown the agents state
- * 
- * // instantiate an existing agent Agent agent = factory.getAgent(agentId);
- * String desc = agent.getDescription(); // use the agent agent.destroy(); //
- * neatly shutdown the agents state
- * 
- * @author jos
- */
-public final class AgentFactory {
+public final class AgentFactory implements AgentFactoryInterface {
 	
 	// Note: the CopyOnWriteArrayList is inefficient but thread safe.
 	private List<TransportService>					transportServices	= new CopyOnWriteArrayList<TransportService>();
@@ -85,7 +50,7 @@ public final class AgentFactory {
 	private Config									config				= null;
 	private EventLogger								eventLogger			= new EventLogger(
 																				this);
-	private static boolean							doesShortcut		= true;
+	private boolean									doesShortcut		= true;
 	
 	private static final Map<String, AgentFactory>	FACTORIES			= new ConcurrentHashMap<String, AgentFactory>();
 	private static final Map<String, String>		STATE_FACTORIES		= new HashMap<String, String>();
@@ -177,11 +142,18 @@ public final class AgentFactory {
 	public static synchronized AgentFactory createInstance(String namespace) {
 		return createInstance(namespace, null);
 	}
-	
+	/**
+	 * Use the given AgentFactory as the new shared AgentFactory instance.
+	 * @param factory
+	 */
 	public static synchronized void registerInstance(AgentFactory factory) {
 		registerInstance(null, factory);
 	}
 	
+	/**
+	 * Use the given AgentFactory as the new shared AgentFactory instance with a specific namespace.
+	 * @param factory
+	 */
 	public static synchronized void registerInstance(String namespace,
 			AgentFactory factory) {
 		if (namespace == null) {
@@ -240,10 +212,24 @@ public final class AgentFactory {
 	}
 	
 	/**
-	 * Should be called every time a new AgentFactory is started or if new
-	 * agents become available (through setStateFactory())
-	 * 
+	 * Get string describing this environment (e.g. Production or Development)
+	 * @return
 	 */
+	public static String getEnvironment() {
+		//TODO: make this non-static?
+		return Config.getEnvironment();
+	}
+	
+	/**
+	 * Set the current environment
+	 * @param env
+	 */
+	public static void setEnvironment(String env) {
+		//TODO: make this non-static?
+		Config.setEnvironment(env);
+	}
+	
+	@Override
 	public void boot() {
 		if (stateFactory != null) {
 			Iterator<String> iter = stateFactory.getAllAgentIds();
@@ -261,21 +247,7 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Get an agent by its id. Returns null if the agent does not exist
-	 * 
-	 * Before deleting the agent, the method agent.destroy() must be executed to
-	 * neatly shutdown the instantiated state.
-	 * 
-	 * @param agentId
-	 * @return agent
-	 * @throws ClassNotFoundException
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws SecurityException
-	 */
+	@Override
 	public Agent getAgent(String agentId) throws JSONRPCException,
 			ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
@@ -321,34 +293,14 @@ public final class AgentFactory {
 		return agent;
 	}
 	
-	/**
-	 * Create an agent proxy from an java interface
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: createAgentProxy(sender,receiverUrl,agentInterface);"
-	 * @param receiverUrl
-	 *            Url of the receiving agent
-	 * @param agentInterface
-	 *            A java Interface, extending AgentInterface
-	 * @return
-	 */
 	@Deprecated
+	@Override
 	public <T> T createAgentProxy(final URI receiverUrl, Class<T> agentInterface) {
 		return createAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
-	/**
-	 * Create an agent proxy from an java interface
-	 * 
-	 * @param sender
-	 *            Sender Agent, used to authentication purposes.
-	 * @param receiverUrl
-	 *            Url of the receiving agent
-	 * @param agentInterface
-	 *            A java Interface, extending AgentInterface
-	 * @return
-	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T> T createAgentProxy(final AgentInterface sender,
 			final URI receiverUrl, Class<T> agentInterface) {
 		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
@@ -360,7 +312,8 @@ public final class AgentFactory {
 		T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					public Object invoke(Object proxy, Method method,
-							Object[] args) throws ProtocolException, JSONRPCException {
+							Object[] args) throws ProtocolException,
+							JSONRPCException {
 						JSONRequest request = JSONRPC.createRequest(method,
 								args);
 						JSONResponse response = send(sender, receiverUrl,
@@ -385,63 +338,22 @@ public final class AgentFactory {
 		return proxy;
 	}
 	
-	/**
-	 * Create an asynchronous agent proxy from an java interface, each call will
-	 * return a future for handling the results.
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: createAgentProxy(sender,receiverUrl,agentInterface);"
-	 * @param receiverUrl
-	 *            Url of the receiving agent
-	 * @param agentInterface
-	 *            A java Interface, extending AgentInterface
-	 * @return
-	 */
 	@Deprecated
+	@Override
 	public <T> AsyncProxy<T> createAsyncAgentProxy(final URI receiverUrl,
 			Class<T> agentInterface) {
 		return createAsyncAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
-	/**
-	 * Create an asynchronous agent proxy from an java interface, each call will
-	 * return a future for handling the results.
-	 * 
-	 * @param senderId
-	 *            Internal id of the sender agent. Not required for all
-	 *            transport services (for example not for outgoing HTTP
-	 *            requests)
-	 * @param receiverUrl
-	 *            Url of the receiving agent
-	 * @param agentInterface
-	 *            A java Interface, extending AgentInterface
-	 * @return
-	 */
+	@Override
 	public <T> AsyncProxy<T> createAsyncAgentProxy(final AgentInterface sender,
 			final URI receiverUrl, Class<T> agentInterface) {
 		return new AsyncProxy<T>(createAgentProxy(sender, receiverUrl,
 				agentInterface));
 	}
 	
-	/**
-	 * Create an agent.
-	 * 
-	 * Before deleting the agent, the method agent.destroy() must be executed to
-	 * neatly shutdown the instantiated state.
-	 * 
-	 * @param agentType
-	 *            full class path
-	 * @param agentId
-	 * @return
-	 * @throws ClassNotFoundException
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws JSONRPCException
-	 * @throws IOException
-	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T extends Agent> T createAgent(String agentType, String agentId)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
@@ -449,23 +361,8 @@ public final class AgentFactory {
 		return (T) createAgent((Class<T>) Class.forName(agentType), agentId);
 	}
 	
-	/**
-	 * Create an agent.
-	 * 
-	 * Before deleting the agent, the method agent.destroy() must be executed to
-	 * neatly shutdown the instantiated state.
-	 * 
-	 * @param agentType
-	 * @param agentId
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws IOException
-	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
@@ -500,20 +397,7 @@ public final class AgentFactory {
 		return agent;
 	}
 	
-	/**
-	 * Create a new agent, using the base AspectAgent class. This agent has a
-	 * namespace "sub", to which the given class's methods are added.
-	 * 
-	 * @param aspect
-	 * @param agentId
-	 * @return
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws JSONRPCException
-	 * @throws IOException
-	 */
+	@Override
 	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
 			String agentId) throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
@@ -524,17 +408,7 @@ public final class AgentFactory {
 		return result;
 	}
 	
-	/**
-	 * Delete an agent
-	 * 
-	 * @param agentId
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 * @throws JSONRPCException
-	 */
+	@Override
 	public void deleteAgent(String agentId) throws JSONRPCException,
 			ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
@@ -565,37 +439,17 @@ public final class AgentFactory {
 		getStateFactory().delete(agentId);
 	}
 	
-	/**
-	 * Test if an agent exists
-	 * 
-	 * @param agentId
-	 * @return true if the agent exists
-	 * @throws JSONRPCException
-	 */
+	@Override
 	public boolean hasAgent(String agentId) throws JSONRPCException {
 		return getStateFactory().exists(agentId);
 	}
 	
-	/**
-	 * Get the event logger. The event logger is used to temporary log triggered
-	 * events, and display them on the agents web interface.
-	 * 
-	 * @return eventLogger
-	 */
+	@Override
 	public EventLogger getEventLogger() {
 		return eventLogger;
 	}
 	
-	/**
-	 * Invoke a local agent
-	 * 
-	 * @param receiverId
-	 *            Id of the receiver agent
-	 * @param request
-	 * @param requestParams
-	 * @return
-	 * @throws JSONRPCException
-	 */
+	@Override
 	public JSONResponse receive(String receiverId, JSONRequest request,
 			RequestParams requestParams) throws JSONRPCException {
 		try {
@@ -614,41 +468,14 @@ public final class AgentFactory {
 				+ "' not found");
 	}
 	
-	/**
-	 * Invoke a local or remote agent. In case of an local agent, the agent is
-	 * invoked immediately. In case of an remote agent, an HTTP Request is sent
-	 * to the concerning agent.
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: send(sender,receiverUrl,request);"
-	 * 
-	 * @param receiverUrl
-	 * @param request
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 */
 	@Deprecated
+	@Override
 	public JSONResponse send(URI receiverUrl, JSONRequest request)
 			throws ProtocolException, JSONRPCException {
 		return send(null, receiverUrl, request);
 	}
 	
-	/**
-	 * Invoke a local or remote agent. In case of an local agent, the agent is
-	 * invoked immediately. In case of an remote agent, an HTTP Request is sent
-	 * to the concerning agent.
-	 * 
-	 * @param sender
-	 *            Sending agent. Not required for all
-	 *            transport services (for example not for outgoing HTTP
-	 *            requests), in which cases a "null" value may be passed.
-	 * @param receiverUrl
-	 * @param request
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 */
+	@Override
 	public JSONResponse send(AgentInterface sender, URI receiverUrl,
 			JSONRequest request) throws ProtocolException, JSONRPCException {
 		String receiverId = getAgentId(receiverUrl.toASCIIString());
@@ -679,38 +506,15 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Asynchronously invoke a request on an agent.
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: sendAsync(sender,receiverUrl,request,callback);"
-	 * 
-	 * @param receiverUrl
-	 * @param request
-	 * @param callback
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 */
 	@Deprecated
+	@Override
 	public void sendAsync(final URI receiverUrl, final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback)
 			throws ProtocolException, JSONRPCException {
 		sendAsync(null, receiverUrl, request, callback);
 	}
 	
-	/**
-	 * Asynchronously invoke a request on an agent.
-	 * 
-	 * @param sender
-	 *            Internal id of the sender agent. Not required for all
-	 *            transport services (for example not for outgoing HTTP
-	 *            requests)
-	 * @param receiverUrl
-	 * @param request
-	 * @param callback
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 */
+	@Override
 	public void sendAsync(final AgentInterface sender, final URI receiverUrl,
 			final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback)
@@ -758,16 +562,8 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Get the agentId from given agentUrl. The url can be any protocol. If the
-	 * url matches any of the registered transport services, an agentId is
-	 * returned. This means that the url represents a local agent. It is
-	 * possible that no agent with this id exists.
-	 * 
-	 * @param agentUrl
-	 * @return agentId
-	 */
-	private String getAgentId(String agentUrl) {
+	@Override
+	public String getAgentId(String agentUrl) {
 		if (agentUrl.startsWith("local:")) {
 			return agentUrl.replaceFirst("local:/?/?", "");
 		}
@@ -780,14 +576,8 @@ public final class AgentFactory {
 		return null;
 	}
 	
-	/**
-	 * Determines best senderUrl for this agent, match receiverUrl transport
-	 * method if possible. (fallback from HTTPS to HTTP included)
-	 * 
-	 * @param agentUrl
-	 * @return agentId
-	 */
-	private String getSenderUrl(String agentId, String receiverUrl) {
+	@Override
+	public String getSenderUrl(String agentId, String receiverUrl) {
 		if (receiverUrl.startsWith("local:")) {
 			return "local://" + agentId;
 		}
@@ -805,59 +595,28 @@ public final class AgentFactory {
 		return null;
 	}
 	
-	/**
-	 * Retrieve the current environment, using the configured State. Can return
-	 * values like "Production", "Development". If no environment variable is
-	 * found, "Production" is returned.
-	 * 
-	 * @return environment
-	 */
-	public static String getEnvironment() {
-		return Config.getEnvironment();
-	}
 	
-	/**
-	 * Programmatically set the environment
-	 * 
-	 * @param env
-	 *            The environment, for example "Production" or "Development"
-	 * @return
-	 */
-	public static void setEnvironment(String env) {
-		Config.setEnvironment(env);
-	}
-	
-	/**
-	 * Get the loaded config file
-	 * 
-	 * @return config A configuration file
-	 */
+	@Override
 	public void setConfig(Config config) {
 		this.config = config;
 	}
 	
-	/**
-	 * Get the loaded config file
-	 * 
-	 * @return config A configuration file
-	 */
+	@Override
 	public Config getConfig() {
 		return config;
 	}
 	
-	public static boolean isDoesShortcut() {
+	@Override
+	public boolean isDoesShortcut() {
 		return doesShortcut;
 	}
 	
-	public static void setDoesShortcut(boolean doesShortcut) {
-		AgentFactory.doesShortcut = doesShortcut;
+	@Override
+	public void setDoesShortcut(boolean doesShortcut) {
+		this.doesShortcut = doesShortcut;
 	}
 	
-	/**
-	 * Load a state factory from config
-	 * 
-	 * @param config
-	 */
+	@Override
 	public void setStateFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
@@ -909,8 +668,8 @@ public final class AgentFactory {
 			
 			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
-			StateFactory sf = (StateFactory) stateClass
-					.getConstructor(Map.class).newInstance(params);
+			StateFactory sf = (StateFactory) stateClass.getConstructor(
+					Map.class).newInstance(params);
 			
 			setStateFactory(sf);
 			LOG.info("Initialized state factory: " + sf.toString());
@@ -919,14 +678,7 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Create agents from a config (only when they do not yet exist). Agents
-	 * will be read from the configuration path bootstrap.agents, which must
-	 * contain a map where the keys are agentId's and the values are the agent
-	 * types (full java class path).
-	 * 
-	 * @param config
-	 */
+	@Override
 	public void addAgents(Config config) {
 		Map<String, String> agents = config.get("bootstrap", "agents");
 		if (agents != null) {
@@ -949,21 +701,12 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Set a state factory. The state factory is used to get/create/delete an
-	 * agents state.
-	 * 
-	 * @param stateFactory
-	 */
+	@Override
 	public void setStateFactory(StateFactory stateFactory) {
 		this.stateFactory = stateFactory;
 	}
 	
-	/**
-	 * Get the configured state factory.
-	 * 
-	 * @return stateFactory
-	 */
+	@Override
 	public StateFactory getStateFactory() throws JSONRPCException {
 		if (stateFactory == null) {
 			throw new JSONRPCException("No state factory initialized.");
@@ -971,11 +714,7 @@ public final class AgentFactory {
 		return stateFactory;
 	}
 	
-	/**
-	 * Load a scheduler factory from a config file
-	 * 
-	 * @param config
-	 */
+	@Override
 	public void setSchedulerFactory(Config config) {
 		// get the class name from the config file
 		// first read from the environment specific configuration,
@@ -1036,12 +775,7 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Load transport services for incoming and outgoing messages from a config
-	 * (for example http and xmpp services).
-	 * 
-	 * @param config
-	 */
+	@Override
 	public void addTransportServices(Config config) {
 		if (config == null) {
 			Exception e = new Exception("Configuration uninitialized");
@@ -1118,43 +852,25 @@ public final class AgentFactory {
 		}
 	}
 	
-	/**
-	 * Add a new transport service
-	 * 
-	 * @param transportService
-	 */
+	@Override
 	public void addTransportService(TransportService transportService) {
 		transportServices.add(transportService);
 		LOG.info("Registered transport service: " + transportService.toString());
 	}
 	
-	/**
-	 * Remove a registered a transport service
-	 * 
-	 * @param transportService
-	 */
+	@Override
 	public void removeTransportService(TransportService transportService) {
 		transportServices.remove(transportService);
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
 	}
 	
-	/**
-	 * Get all registered transport services
-	 * 
-	 * @return transportService
-	 */
+	@Override
 	public List<TransportService> getTransportServices() {
 		return transportServices;
 	}
 	
-	/**
-	 * Get all registered transport services which can handle given protocol
-	 * 
-	 * @param protocol
-	 *            A protocol, for example "http" or "xmpp"
-	 * @return transportService
-	 */
+	@Override
 	public List<TransportService> getTransportServices(String protocol) {
 		List<TransportService> filteredServices = new ArrayList<TransportService>();
 		
@@ -1168,15 +884,7 @@ public final class AgentFactory {
 		return filteredServices;
 	}
 	
-	/**
-	 * Get the first registered transport service which supports given protocol.
-	 * Returns null when none of the registered transport services can handle
-	 * the protocol.
-	 * 
-	 * @param protocol
-	 *            A protocol, for example "http" or "xmpp"
-	 * @return service
-	 */
+	@Override
 	public TransportService getTransportService(String protocol) {
 		List<TransportService> services = getTransportServices(protocol);
 		if (services.size() > 0) {
@@ -1185,29 +893,20 @@ public final class AgentFactory {
 		return null;
 	}
 	
+	@Override
 	public List<Object> getMethods(Agent agent) {
 		Boolean asString = false;
 		return JSONRPC.describe(agent, EVEREQUESTPARAMS, asString);
 	}
 	
-	/**
-	 * Set a scheduler factory. The scheduler factory is used to
-	 * get/create/delete an agents scheduler.
-	 * 
-	 * @param schedulerFactory
-	 */
+	@Override
 	public synchronized void setSchedulerFactory(
 			SchedulerFactory schedulerFactory) {
 		this.schedulerFactory = schedulerFactory;
 		this.notifyAll();
 	}
 	
-	/**
-	 * create a scheduler for an agent
-	 * 
-	 * @param agentId
-	 * @return scheduler
-	 */
+	@Override
 	public synchronized Scheduler getScheduler(Agent agent) {
 		DateTime start = DateTime.now();
 		while (schedulerFactory == null && start.plus(30000).isBeforeNow()) {

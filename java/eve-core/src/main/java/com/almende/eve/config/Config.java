@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class Config extends YamlConfig {
+	//TODO: https://github.com/mojombo/toml
 	private static final Logger	LOG					= Logger.getLogger(Config.class
 															.getCanonicalName());
 	private static final String		ENVIRONMENTPATH[]	= new String[] {
