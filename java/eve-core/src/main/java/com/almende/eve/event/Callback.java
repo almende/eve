@@ -25,8 +25,33 @@ public class Callback implements Serializable {
 		}
 	}
 	
-	public String id = null;
-	public String url = null;
-	public String method = null;
-	public String params = null;
+	private String id = null;
+	private String url = null;
+	private String method = null;
+	private String params = null;
+
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
+	}
+	public String getMethod() {
+		return method;
+	}
+	public void setMethod(String method) {
+		this.method = method;
+	}
+	public String getParams() {
+		return params;
+	}
+	public void setParams(String params) {
+		this.params = params;
+	}
 }

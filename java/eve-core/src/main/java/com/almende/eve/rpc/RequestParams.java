@@ -6,6 +6,10 @@ import java.util.Map;
 
 // TODO: rework the RequestParams class to something more generic
 public class RequestParams {
+	// map with full class path of an annotation type as key,
+	// and an arbitrary object as value
+	private Map<String, Object> params = new HashMap<String, Object>();
+
 	public RequestParams() {
 	}
 	
@@ -29,7 +33,4 @@ public class RequestParams {
 		return has(annotation.annotationType());
 	}
 	
-	// map with full class path of an annotation type as key,
-	// and an arbitrary object as value
-	Map<String, Object> params = new HashMap<String, Object>();
 }

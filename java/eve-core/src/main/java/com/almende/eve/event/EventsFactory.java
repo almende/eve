@@ -218,15 +218,15 @@ public class EventsFactory implements EventsInterface {
 			// trigger method
 			ObjectNode triggerParams = baseParams.deepCopy();
 			
-			triggerParams.put("subscriptionId", subscription.id);
+			triggerParams.put("subscriptionId", subscription.getId());
 			
 			ObjectNode taskParams = JOM.createObjectNode();
-			taskParams.put("url", subscription.url);
-			taskParams.put("method", subscription.method);
+			taskParams.put("url", subscription.getUrl());
+			taskParams.put("method", subscription.getMethod());
 			
-			if (subscription.params != null) {
+			if (subscription.getParams() != null) {
 				ObjectNode parms = (ObjectNode) JOM.getInstance().readTree(
-						subscription.params);
+						subscription.getParams());
 				triggerParams = (ObjectNode) parms.putAll(triggerParams);
 			}
 			taskParams.put("params", triggerParams);
@@ -243,15 +243,15 @@ public class EventsFactory implements EventsInterface {
 			@Required(false) @Name("callbackParams") ObjectNode params) {
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
-			if (subscription.url == null || subscription.method == null) {
+			if (subscription.getUrl() == null || subscription.getMethod() == null) {
 				continue;
 			}
-			if (subscription.url.equals(callbackUrl)
-					&& subscription.method.equals(callbackMethod)
-					&& ((subscription.params == null && params == null) || subscription.params != null)
-					&& subscription.params.equals(params)) {
+			if (subscription.getUrl().equals(callbackUrl)
+					&& subscription.getMethod().equals(callbackMethod)
+					&& ((subscription.getParams() == null && params == null) || subscription.getParams() != null)
+					&& subscription.getParams().equals(params)) {
 				// The callback already exists. do not duplicate it
-				return subscription.id;
+				return subscription.getId();
 			}
 		}
 		
@@ -290,13 +290,13 @@ public class EventsFactory implements EventsInterface {
 					Callback subscription = subscriptions.get(i);
 					boolean matched = false;
 					if (subscriptionId != null
-							&& subscriptionId.equals(subscription.id)) {
+							&& subscriptionId.equals(subscription.getId())) {
 						// callback with given subscriptionId is found
 						matched = true;
 					} else if (callbackUrl != null
-							&& callbackUrl.equals(subscription.url)
+							&& callbackUrl.equals(subscription.getUrl())
 							&& (callbackMethod == null || callbackMethod
-									.equals(subscription.method))
+									.equals(subscription.getMethod()))
 							&& (event == null || event
 									.equals(subscriptionEvent))) {
 						// callback with matching properties is found

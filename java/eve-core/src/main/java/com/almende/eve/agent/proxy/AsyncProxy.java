@@ -53,8 +53,8 @@ public class AsyncProxy<T> {
 		}),ClassUtil.wrap(method.getReturnType()));
 	}
 	class DecoratedFuture<V> implements Future<V>{
-		Future<?> future;
-		Class<V> myType;
+		private Future<?> future;
+		private Class<V> myType;
 		
 		DecoratedFuture(Future<?> future, Class<V> type){
 			this.future=future;
