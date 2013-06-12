@@ -433,7 +433,7 @@ public class HttpUtil {
 	    
 	    // response
 	    InputStream is = conn.getInputStream();
-	    String response = streamToString(is);
+	    String response = StringUtil.streamToString(is);
 	    is.close();
 	    
 	    // handle redirects
@@ -445,18 +445,4 @@ public class HttpUtil {
 	    return response;
 	}
 	
-	/**
-	 * Read an input stream into a string
-	 * @param in
-	 * @return
-	 * @throws IOException
-	 */
-	public static String streamToString(InputStream in) throws IOException {
-		StringBuffer out = new StringBuffer();
-		byte[] b = new byte[4096];
-		for (int n; (n = in.read(b)) != -1;) {
-			out.append(new String(b, 0, n));
-		}
-		return out.toString();
-	}
 }

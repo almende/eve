@@ -68,16 +68,15 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * Otherwise it will run the actual RPC call (similar to "send");
 	 * 
 	 * @param monitorId
-	 * @param filter_parms
+	 * @param filterParms
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException 
 	 * @throws IOException 
-	 * @throws Exception
 	 */
-	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+	public <T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException{
-		return getResult(monitorId, filter_parms, JOM.getTypeFactory()
+		return getResult(monitorId, filterParms, JOM.getTypeFactory()
 				.constructSimpleType(returnType, new JavaType[0]));
 	}
 	
@@ -88,23 +87,21 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * Otherwise it will run the actual RPC call (similar to "send");
 	 * 
 	 * @param monitorId
-	 * @param filter_parms
+	 * @param filterParms
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException 
 	 * @throws IOException 
-	 * @throws JsonProcessingException 
-	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getResult(String monitorId, ObjectNode filter_parms,
+	public <T> T getResult(String monitorId, ObjectNode filterParms,
 			JavaType returnType) throws JSONRPCException, IOException {
 		T result = null;
 		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
 				monitorId);
 		if (monitor != null) {
 			if (monitor.hasCache() && monitor.getCache() != null
-					&& monitor.getCache().filter(filter_parms)) {
+					&& monitor.getCache().filter(filterParms)) {
 				result = (T) monitor.getCache().get();
 			}
 			if (result == null) {

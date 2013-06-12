@@ -13,7 +13,12 @@ public class StringUtil {
 	public static String streamToString(InputStream in) throws IOException {
 		StringBuffer out = new StringBuffer();
 		byte[] b = new byte[4096];
-		for (int n; (n = in.read(b)) != -1;) {
+		int n = 0;
+		while(true){
+			n = in.read(b);
+			if (n == -1) {
+				break;
+			}
 			out.append(new String(b, 0, n));
 		}
 		return out.toString();

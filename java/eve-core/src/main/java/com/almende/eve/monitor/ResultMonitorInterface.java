@@ -104,7 +104,7 @@ public interface ResultMonitorInterface {
 	 * Otherwise it will run the actual RPC call (similar to "send");
 	 * 
 	 * @param monitorId
-	 * @param filter_parms
+	 * @param filterParms
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException
@@ -112,7 +112,7 @@ public interface ResultMonitorInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	<T> T getResult(String monitorId, ObjectNode filter_parms,
+	<T> T getResult(String monitorId, ObjectNode filterParms,
 			JavaType returnType) throws IOException, JSONRPCException;
 	
 	/**
@@ -122,7 +122,7 @@ public interface ResultMonitorInterface {
 	 * Otherwise it will run the actual RPC call (similar to "send");
 	 * 
 	 * @param monitorId
-	 * @param filter_parms
+	 * @param filterParms
 	 * @param returnType
 	 * @return
 	 * @throws JSONRPCException
@@ -130,6 +130,6 @@ public interface ResultMonitorInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	<T> T getResult(String monitorId, ObjectNode filter_parms,
+	<T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException;
 }
