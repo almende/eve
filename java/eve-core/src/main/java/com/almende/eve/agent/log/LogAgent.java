@@ -13,7 +13,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 
 @Access(AccessType.PUBLIC)
 public class LogAgent extends Agent {
-	private static long	TIME_TO_LIVE	= 20 * 60 * 1000;	// milliseconds
+	private static final long	TIMETOLIVE	= 20 * 60 * 1000;	// milliseconds
 															
 	public void log(Log log) {
 		@SuppressWarnings("unchecked")
@@ -47,7 +47,7 @@ public class LogAgent extends Agent {
 		
 		// reset the time to live for the agent. It will stay alive when
 		// regularly requested for logs
-		setTimeToLive(TIME_TO_LIVE);
+		setTimeToLive(TIMETOLIVE);
 		
 		return output;
 	}

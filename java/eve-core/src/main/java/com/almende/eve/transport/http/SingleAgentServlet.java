@@ -28,7 +28,7 @@ public class SingleAgentServlet extends HttpServlet {
 	private AgentHost agentFactory = null;
 	private HttpService httpTransport = null;
 	private String agentId = null;
-	private static String RESOURCES = "/com/almende/eve/resources/";
+	private static final String RESOURCES = "/com/almende/eve/resources/";
 	
 	/**
 	 * Initialize the agent factory and instantiate the agent on initialization

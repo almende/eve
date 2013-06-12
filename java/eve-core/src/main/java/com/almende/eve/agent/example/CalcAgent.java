@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)
 public class CalcAgent extends Agent {
-	private static String CALC_API_URL = "http://www.google.com/ig/calculator";
+	private static final String CALCAPIURL = "http://www.google.com/ig/calculator";
 
 	/**
 	 * Evaluate given expression
@@ -50,7 +50,7 @@ public class CalcAgent extends Agent {
 	 * @throws IOException 
 	 */
 	public String eval(@Name("expr") String expr) throws IOException {
-		String url = CALC_API_URL + "?q=" + URLEncoder.encode(expr, "UTF-8");
+		String url = CALCAPIURL + "?q=" + URLEncoder.encode(expr, "UTF-8");
 		String resp = HttpUtil.get(url);
 		
 		// the field names in resp are not enclosed by quotes :( 

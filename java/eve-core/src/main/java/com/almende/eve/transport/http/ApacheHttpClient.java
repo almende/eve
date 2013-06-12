@@ -103,7 +103,7 @@ public class ApacheHttpClient {
 		
 		@Override
 		public void addCookie(Cookie cookie) {
-			myState.put(new Integer(COOKIESTORE.hashCode()).toString(),
+			myState.put(Integer.valueOf(COOKIESTORE.hashCode()).toString(),
 					(BasicClientCookie) cookie);
 		}
 		

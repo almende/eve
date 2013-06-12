@@ -106,7 +106,7 @@ public class MessageAgent extends Agent {
 		String event = "receive";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", JOM.getInstance().convertValue(message, ObjectNode.class));
-		eventsFactory.trigger(event, params);
+		getEventsFactory().trigger(event, params);
 	}
 	
 	/**
@@ -153,7 +153,7 @@ public class MessageAgent extends Agent {
 		String event = "send";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("message", JOM.getInstance().convertValue(message, ObjectNode.class));
-		eventsFactory.trigger(event, params);
+		getEventsFactory().trigger(event, params);
 	}
 
 	/**

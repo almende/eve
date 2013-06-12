@@ -120,4 +120,9 @@ public class GaeXmppService implements TransportService {
 	public void reconnect(String agentId) {
 		//Nothing todo here
 	}
+
+	@Override
+	public String getKey() {
+		return host;
+	}
 }

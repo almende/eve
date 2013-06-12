@@ -65,13 +65,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
 public abstract class Agent implements AgentInterface {
-	private static final Logger			LOG				= Logger.getLogger(Agent.class
-																.getCanonicalName());
-	protected AgentHost					agentFactory	= null;
-	protected State						state			= null;
-	protected Scheduler					scheduler		= null;
-	protected ResultMonitorInterface	monitorFactory	= null;
-	protected EventsInterface			eventsFactory	= null;
+	private static final Logger		LOG				= Logger.getLogger(Agent.class
+															.getCanonicalName());
+	private AgentHost				agentFactory	= null;
+	private State					state			= null;
+	private Scheduler				scheduler		= null;
+	private ResultMonitorInterface	monitorFactory	= null;
+	private EventsInterface			eventsFactory	= null;
 	
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {

@@ -30,7 +30,6 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 
-
 /**
  * Documentation on Scheduling:
  * http://docs.oracle.com/javase/1.5.0/docs/api/java
@@ -40,7 +39,7 @@ import com.almende.eve.state.State;
 public class RunnableSchedulerFactory implements SchedulerFactory {
 	private State									state			= null;
 	private String									stateId			= null;
-	private AgentHost							agentFactory	= null;
+	private AgentHost								host	= null;
 	private long									count			= 0;
 	private ScheduledExecutorService				scheduler		= Executors
 																			.newScheduledThreadPool(10);
@@ -63,7 +62,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	}
 	
 	public RunnableSchedulerFactory(AgentHost agentFactory, String id) {
-		this.agentFactory = agentFactory;
+		this.host = agentFactory;
 		this.stateId = id;
 		
 		init();
@@ -94,9 +93,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		try {
 			// TODO: dangerous to use a generic state (can possibly conflict
 			// with the id a regular agent)
-			state = agentFactory.getStateFactory().get(stateId);
+			state = host.getStateFactory().get(stateId);
 			if (state == null) {
-				state = agentFactory.getStateFactory().create(stateId);
+				state = host.getStateFactory().create(stateId);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Can't init State", e);
@@ -183,8 +182,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			agentId = params.get("agentId");
 			request = new JSONRequest(params.get("request"));
 			timestamp = new DateTime(params.get("timestamp"));
-			interval = new Long(params.get("interval"));
-			sequential = new Boolean(params.get("sequential"));
+			interval = Long.valueOf(params.get("interval"));
+			sequential = Boolean.valueOf(params.get("sequential"));
 			
 			long delay = 0;
 			if (timestamp.isAfterNow()) {
@@ -223,7 +222,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						params.put(Sender.class, senderUrl); // TODO: provide
 																// itself
 						
-						JSONResponse resp = agentFactory.receive(agentId,
+						JSONResponse resp = host.receive(agentId,
 								request, params);
 						
 						if (interval > 0 && sequential && !cancelled()) {

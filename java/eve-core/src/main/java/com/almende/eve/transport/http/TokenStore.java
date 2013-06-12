@@ -26,16 +26,16 @@ public class TokenStore {
 														.getCanonicalName());
 	static final TokenStore				ME		= new TokenStore();
 	static final int					SIZE	= 5;
-	static Map<String, Serializable>	TOKENS;
+	static Map<String, Serializable>	tokens;
 	static DateTime						last	= DateTime.now();
 	
 	private TokenStore() {
 		FileStateFactory factory = new FileStateFactory(".evecookies");
 		if (factory.exists("_TokenStore")) {
-			TOKENS = factory.get("_TokenStore");
+			tokens = factory.get("_TokenStore");
 		} else {
 			try {
-				TOKENS = factory.create("_TokenStore");
+				tokens = factory.create("_TokenStore");
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "", e);
 			}
@@ -44,26 +44,26 @@ public class TokenStore {
 	
 	public static String get(String time) {
 		try {
-			return (String) TOKENS.get(time);
+			return (String) tokens.get(time);
 		} catch (Exception e) {
 			return null;
 		}
 	}
 	
 	public static TokenRet create() {
-		synchronized (TOKENS) {
+		synchronized (tokens) {
 			TokenRet result;
-			if (TOKENS.size() == 0 || TOKENS.get(last.toString()) == null
+			if (tokens.size() == 0 || tokens.get(last.toString()) == null
 					|| last.plus(3600000).isBeforeNow()) {
 				DateTime now = DateTime.now();
 				String token = UUID.randomUUID().toString();
 				result = ME.new TokenRet(token, now);
-				TOKENS.put(now.toString(), token);
+				tokens.put(now.toString(), token);
 				last = now;
 				
-				if (TOKENS.size() > SIZE + 2) {
+				if (tokens.size() > SIZE + 2) {
 					DateTime oldest = last;
-					for (String time : TOKENS.keySet()) {
+					for (String time : tokens.keySet()) {
 						try {
 							if (DateTime.parse(time).isBefore(oldest)) {
 								oldest = DateTime.parse(time);
@@ -71,10 +71,10 @@ public class TokenStore {
 						} catch (Exception e) {
 						}
 					}
-					TOKENS.remove(oldest);
+					tokens.remove(oldest);
 				}
 			} else {
-				result = ME.new TokenRet((String) TOKENS.get(last.toString()),
+				result = ME.new TokenRet((String) tokens.get(last.toString()),
 						last);
 			}
 			return result;

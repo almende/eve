@@ -39,7 +39,7 @@ public class EchoAgent extends Agent {
 		// trigger event
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("message", message);
-		eventsFactory.trigger("ping", params);
+		getEventsFactory().trigger("ping", params);
 		
 		// return the message itself
 		return message;

@@ -30,7 +30,7 @@ public class TestResultMonitorAgent extends Agent {
 		System.err.println("BobEvent triggered!");
 		ObjectNode params = JOM.createObjectNode();
 		params.put("hello", "world");
-		eventsFactory.trigger("Go", params);
+		getEventsFactory().trigger("Go", params);
 		
 	}
 	

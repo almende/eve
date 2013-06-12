@@ -25,8 +25,8 @@ public class TestAgentFactory extends TestCase {
 				Test2AgentInterface.class);
 		
 		Double res = agent.add(3.1, 4.2);
-		assertEquals(new Double(7.300000000000001),res); //result not exact due to intermediate binary representation
-		
+		//result not exact due to intermediate binary representation
+		assertEquals(new Double(7.300000000000001),res); 
 		res = agent.multiply(3.1, 4.2);
 		assertEquals(new Double(13.020000000000001),res);
 
@@ -36,7 +36,8 @@ public class TestAgentFactory extends TestCase {
 		
 		System.err.println("checking local https call 1:");
 		res = agent.add(3.1, 4.2);
-		assertEquals(new Double(7.300000000000001),res); //result not exact due to intermediate binary representation
+		//result not exact due to intermediate binary representation
+		assertEquals(new Double(7.300000000000001),res); 
 		
 		System.err.println("checking local https call 2:");
 		res = agent.multiply(3.1, 4.2);

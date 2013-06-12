@@ -34,13 +34,13 @@ public class EncryptionUtil {
 			"which should definetely NOT be stored in the code!").toCharArray();
 	
 	// salt
-    private static byte[] S = {
+    private static final byte[] S = {
         (byte)0xc7, (byte)0x73, (byte)0x21, (byte)0x8c,
         (byte)0x7e, (byte)0xc8, (byte)0xee, (byte)0x99
     };
 
     // Iteration count
-    private static int C = 20;
+    private static final int C = 20;
 
 	/**
 	 * Encrypt a string

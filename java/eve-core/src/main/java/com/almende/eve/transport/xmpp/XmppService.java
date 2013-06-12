@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class XmppService implements TransportService {
 	private static final String				CONNKEY				= "_XMPP_Connections";
-	private AgentHost					agentFactory		= null;
+	private AgentHost						agentHost			= null;
 	private String							host				= null;
 	private Integer							port				= null;
 	private String							service				= null;
@@ -65,7 +65,7 @@ public class XmppService implements TransportService {
 	 *            {String} id
 	 */
 	public XmppService(AgentHost agentFactory, Map<String, Object> params) {
-		this.agentFactory = agentFactory;
+		this.agentHost = agentFactory;
 		
 		if (params != null) {
 			host = (String) params.get("host");
@@ -86,7 +86,7 @@ public class XmppService implements TransportService {
 	 */
 	public XmppService(AgentHost agentFactory, String host, Integer port,
 			String service) {
-		this.agentFactory = agentFactory;
+		this.agentHost = agentFactory;
 		this.host = host;
 		this.port = port;
 		this.service = service;
@@ -96,7 +96,7 @@ public class XmppService implements TransportService {
 	
 	private ArrayNode getConns(String agentId) throws IOException,
 			JSONRPCException {
-		State state = agentFactory.getStateFactory().get(agentId);
+		State state = agentHost.getStateFactory().get(agentId);
 		
 		ArrayNode conns = null;
 		if (state.containsKey(CONNKEY)) {
@@ -241,7 +241,7 @@ public class XmppService implements TransportService {
 			connection = connectionsByUrl.get(agentUrl);
 		} else {
 			// instantiate open the connection
-			connection = new AgentConnection(agentFactory);
+			connection = new AgentConnection(agentHost);
 		}
 		
 		connection.connect(agentId, host, port, service, username, password,
@@ -258,7 +258,7 @@ public class XmppService implements TransportService {
 			InvalidKeySpecException, NoSuchPaddingException,
 			IllegalBlockSizeException, BadPaddingException {
 		
-		State state = agentFactory.getStateFactory().get(agentId);
+		State state = agentHost.getStateFactory().get(agentId);
 		
 		String conns = (String) state.get(CONNKEY);
 		ArrayNode newConns;
@@ -288,7 +288,7 @@ public class XmppService implements TransportService {
 	}
 	
 	private void delConnections(String agentId) throws JSONRPCException {
-		State state = agentFactory.getStateFactory().get(agentId);
+		State state = agentHost.getStateFactory().get(agentId);
 		state.remove(CONNKEY);
 	}
 	
@@ -451,5 +451,10 @@ public class XmppService implements TransportService {
 				}
 			}
 		}
+	}
+
+	@Override
+	public String getKey() {
+		return "xmpp://"+host+":"+port+"/"+service;
 	}
 }

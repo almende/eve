@@ -263,7 +263,7 @@ public final class JSONRPC {
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
 				if (isAvailable(method, null, requestParams, null)) {
-					if (asString != true) {
+					if (!asString) {
 						// format as JSON
 						List<Object> descParams = new ArrayList<Object>();
 						for (AnnotatedParam param : method.getParams()) {

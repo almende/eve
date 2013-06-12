@@ -46,7 +46,7 @@ public class ManagementAgent extends Agent {
 			datastore.store(meta);
 			
 			try {
-				eventsFactory.trigger("create", toInfo(meta));
+				getEventsFactory().trigger("create", toInfo(meta));
 			}
 			catch (Exception e) {}
 			
@@ -84,7 +84,7 @@ public class ManagementAgent extends Agent {
 			datastore.store(meta);
 			
 			try {
-				eventsFactory.trigger("register", toInfo(meta));
+				getEventsFactory().trigger("register", toInfo(meta));
 			}
 			catch (Exception e) {}
 			
@@ -103,7 +103,7 @@ public class ManagementAgent extends Agent {
 		AgentMetaData meta = datastore.load(AgentMetaData.class, id);
 		if (meta != null) {
 			try {
-				eventsFactory.trigger("unregister", toInfo(meta));
+				getEventsFactory().trigger("unregister", toInfo(meta));
 				datastore.delete(meta);
 			}
 			catch (Exception e) {}
@@ -121,7 +121,7 @@ public class ManagementAgent extends Agent {
 		AgentMetaData meta = datastore.load(AgentMetaData.class, id);
 		if (meta != null) {
 			try {
-				eventsFactory.trigger("delete", toInfo(meta));
+				getEventsFactory().trigger("delete", toInfo(meta));
 			}
 			catch (Exception e) {}
 			

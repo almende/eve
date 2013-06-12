@@ -62,5 +62,11 @@ public interface TransportService {
 	 * @param url
 	 */
 	void reconnect(String agentId) throws JSONRPCException, IOException;
+
+	/**
+	 * Generate unique key for this transport service
+	 * @return
+	 */
+	String getKey();
 	
 }

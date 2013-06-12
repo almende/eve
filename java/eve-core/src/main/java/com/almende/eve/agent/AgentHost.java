@@ -8,12 +8,13 @@ import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,25 +40,24 @@ import com.almende.util.TypeUtil;
 
 public final class AgentHost implements AgentHostInterface {
 	
-	private static final Logger					LOG					= Logger.getLogger(AgentHost.class
-																			.getSimpleName());
-	private static final AgentHost				FACTORY				= new AgentHost();
-	// Note: the CopyOnWriteArrayList is inefficient but thread safe.
-	private List<TransportService>				transportServices	= new CopyOnWriteArrayList<TransportService>();
-	private StateFactory						stateFactory		= null;
-	private SchedulerFactory					schedulerFactory	= null;
-	private Config								config				= null;
-	private EventLogger							eventLogger			= new EventLogger(
-																			this);
-	private boolean								doesShortcut		= true;
+	private static final Logger							LOG					= Logger.getLogger(AgentHost.class
+																					.getSimpleName());
+	private static final AgentHost						FACTORY				= new AgentHost();
+	private ConcurrentHashMap<String, TransportService>	transportServices	= new ConcurrentHashMap<String, TransportService>();
+	private StateFactory								stateFactory		= null;
+	private SchedulerFactory							schedulerFactory	= null;
+	private Config										config				= null;
+	private EventLogger									eventLogger			= new EventLogger(
+																					this);
+	private boolean										doesShortcut		= true;
 	
 	/*
 	 * Several classname maps for configuration conveniency:
 	 */
-	private static final Map<String, String>	STATE_FACTORIES		= new HashMap<String, String>();
-	private static final Map<String, String>	SCHEDULERS			= new HashMap<String, String>();
-	private static final Map<String, String>	TRANSPORT_SERVICES	= new HashMap<String, String>();
-	private static final RequestParams			EVEREQUESTPARAMS	= new RequestParams();
+	private static final Map<String, String>			STATE_FACTORIES		= new HashMap<String, String>();
+	private static final Map<String, String>			SCHEDULERS			= new HashMap<String, String>();
+	private static final Map<String, String>			TRANSPORT_SERVICES	= new HashMap<String, String>();
+	private static final RequestParams					EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		STATE_FACTORIES.put("FileStateFactory",
 				"com.almende.eve.state.FileStateFactory");
@@ -301,8 +301,8 @@ public final class AgentHost implements AgentHostInterface {
 		Agent agent = null;
 		try {
 			agent = getAgent(agentId);
-		} catch (Exception e){
-			LOG.log(Level.WARNING,"Couldn't get agent to delete.",e);
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't get agent to delete.", e);
 		}
 		if (agent == null) {
 			return;
@@ -365,19 +365,20 @@ public final class AgentHost implements AgentHostInterface {
 	public JSONResponse send(AgentInterface sender, URI receiverUrl,
 			JSONRequest request) throws ProtocolException, JSONRPCException {
 		String receiverId = getAgentId(receiverUrl.toASCIIString());
+		String protocol = receiverUrl.getScheme();
 		String senderUrl = null;
 		if (sender != null) {
 			senderUrl = getSenderUrl(sender.getId(),
 					receiverUrl.toASCIIString());
 		}
-		if (doesShortcut && receiverId != null) {
+		
+		if ("local".equals(protocol) || (doesShortcut && receiverId != null)) {
 			// local shortcut
 			RequestParams requestParams = new RequestParams();
 			requestParams.put(Sender.class, senderUrl);
 			return receive(receiverId, request, requestParams);
 		} else {
 			TransportService service = null;
-			String protocol = receiverUrl.getScheme();
 			service = getTransportService(protocol);
 			
 			if (service != null) {
@@ -453,7 +454,7 @@ public final class AgentHost implements AgentHostInterface {
 		if (agentUrl.startsWith("local:")) {
 			return agentUrl.replaceFirst("local:/?/?", "");
 		}
-		for (TransportService service : transportServices) {
+		for (TransportService service : transportServices.values()) {
 			String agentId = service.getAgentId(agentUrl);
 			if (agentId != null) {
 				return agentId;
@@ -467,7 +468,7 @@ public final class AgentHost implements AgentHostInterface {
 		if (receiverUrl.startsWith("local:")) {
 			return "local://" + agentId;
 		}
-		for (TransportService service : transportServices) {
+		for (TransportService service : transportServices.values()) {
 			List<String> protocols = service.getProtocols();
 			for (String protocol : protocols) {
 				if (receiverUrl.startsWith(protocol + ":")) {
@@ -597,8 +598,9 @@ public final class AgentHost implements AgentHostInterface {
 			return;
 		}
 		this.stateFactory = stateFactory;
-		FACTORY.signalAgents(new AgentSignal<StateFactory>("setStateFactory",stateFactory));
-
+		FACTORY.signalAgents(new AgentSignal<StateFactory>("setStateFactory",
+				stateFactory));
+		
 	}
 	
 	@Override
@@ -749,10 +751,16 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public void addTransportService(TransportService transportService) {
-		transportServices.add(transportService);
-		LOG.info("Registered transport service: " + transportService.toString());
-		if (FACTORY != null){
-			FACTORY.signalAgents(new AgentSignal<TransportService>("addTransportService",transportService));
+		if (!transportServices.contains(transportService.getKey())) {
+			transportServices.put(transportService.getKey(), transportService);
+			LOG.info("Registered transport service: "
+					+ transportService.toString());
+			if (FACTORY != null) {
+				FACTORY.signalAgents(new AgentSignal<TransportService>(
+						"addTransportService", transportService));
+			}
+		} else {
+			LOG.warning("Not adding transport service, as it already exists.");
 		}
 	}
 	
@@ -761,20 +769,23 @@ public final class AgentHost implements AgentHostInterface {
 		transportServices.remove(transportService);
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
-		FACTORY.signalAgents(new AgentSignal<TransportService>("removeTransportService",transportService));
-
+		FACTORY.signalAgents(new AgentSignal<TransportService>(
+				"removeTransportService", transportService));
+		
 	}
 	
 	@Override
 	public List<TransportService> getTransportServices() {
-		return transportServices;
+		// TODO: check efficiency of this method, is there something simpler?
+		return Collections.list(Collections.enumeration(transportServices
+				.values()));
 	}
 	
 	@Override
 	public List<TransportService> getTransportServices(String protocol) {
 		List<TransportService> filteredServices = new ArrayList<TransportService>();
 		
-		for (TransportService service : transportServices) {
+		for (TransportService service : transportServices.values()) {
 			List<String> protocols = service.getProtocols();
 			if (protocols.contains(protocol)) {
 				filteredServices.add(service);
@@ -800,20 +811,20 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public void setSchedulerFactory(
-			SchedulerFactory schedulerFactory) {
-		if (schedulerFactory != null){
+	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
+		if (schedulerFactory != null) {
 			LOG.warning("Replacing earlier schedulerFactory.");
 		}
 		this.schedulerFactory = schedulerFactory;
-		FACTORY.signalAgents(new AgentSignal<SchedulerFactory>("setSchedulerFactory",schedulerFactory));
+		FACTORY.signalAgents(new AgentSignal<SchedulerFactory>(
+				"setSchedulerFactory", schedulerFactory));
 	}
 	
 	@Override
 	public Scheduler getScheduler(Agent agent) {
 		if (schedulerFactory == null) {
-			LOG.warning("SchedulerFactory is null, while agent " + agent.getId()
-					+ " calls for getScheduler");
+			LOG.warning("SchedulerFactory is null, while agent "
+					+ agent.getId() + " calls for getScheduler");
 			return null;
 		}
 		return schedulerFactory.getScheduler(agent);

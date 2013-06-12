@@ -833,7 +833,7 @@ public class MeetingAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("description", issue.getMessage());
 			params.put("data", data);
-			eventsFactory.trigger(event, params);
+			getEventsFactory().trigger(event, params);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

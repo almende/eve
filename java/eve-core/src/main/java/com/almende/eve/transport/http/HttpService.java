@@ -302,5 +302,10 @@ public class HttpService implements TransportService {
 	public void reconnect(String agentId) {
 		// Nothing todo at this point
 	}
+
+	@Override
+	public String getKey() {
+		return "http://"+(this.getServletUrl()==null?"outbound":this.getServletUrl());
+	}
 	
 }

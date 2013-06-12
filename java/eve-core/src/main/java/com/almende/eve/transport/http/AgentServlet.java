@@ -89,7 +89,9 @@ public class AgentServlet extends HttpServlet {
 	
 	private Handshake doHandShake(HttpServletRequest req) {
 		String tokenTupple = req.getHeader("X-Eve-Token");
-		if (tokenTupple == null) return Handshake.NAK;
+		if (tokenTupple == null) {
+			return Handshake.NAK;
+		}
 		
 		try {
 			String senderUrl = req.getHeader("X-Eve-SenderUrl");

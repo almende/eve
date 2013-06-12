@@ -115,7 +115,7 @@ public class ChatAgent extends Agent {
 		params.put("url", getMyUrl());
 		params.put("username", getUsername());
 		params.put("message", message);
-		eventsFactory.trigger("post", params);
+		getEventsFactory().trigger("post", params);
 		
 		log(getUsername() + " posts message '" + message + "'" + 
 				" to " + connections.size() + " agent(s)"); 
@@ -141,7 +141,7 @@ public class ChatAgent extends Agent {
 		params.put("url", url);
 		params.put("username", username);
 		params.put("message", message);
-		eventsFactory.trigger("receive", params);
+		getEventsFactory().trigger("receive", params);
 
 		log(getUsername() + " received message from " + 
 				username + ": " + message);	
@@ -178,7 +178,7 @@ public class ChatAgent extends Agent {
 					// trigger a "connected" event
 					ObjectNode params = JOM.createObjectNode();
 					params.put("url", connection);
-					eventsFactory.trigger("connected", params);
+					getEventsFactory().trigger("connected", params);
 
 					log(getUsername() + " connected to " + connection);
 				}
@@ -197,7 +197,7 @@ public class ChatAgent extends Agent {
 				// trigger a "connected" event
 				ObjectNode params = JOM.createObjectNode();
 				params.put("url", url);
-				eventsFactory.trigger("connected", params);
+				getEventsFactory().trigger("connected", params);
 				
 				log(getUsername() + " connected to " + url);
 		}
@@ -241,7 +241,7 @@ public class ChatAgent extends Agent {
 				// trigger a "disconnected" event
 				ObjectNode triggerParams = JOM.createObjectNode();
 				triggerParams.put("url", url);
-				eventsFactory.trigger("disconnected", triggerParams);
+				getEventsFactory().trigger("disconnected", triggerParams);
 			}			
 		}		
 	}
@@ -262,7 +262,7 @@ public class ChatAgent extends Agent {
 			// trigger a "connected" event
 			ObjectNode params = JOM.createObjectNode();
 			params.put("url", url);
-			eventsFactory.trigger("disconnected", params);			
+			getEventsFactory().trigger("disconnected", params);			
 		}
 	}
 
