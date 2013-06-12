@@ -6,25 +6,24 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.state.StateEntry;
 
 public class StateLock implements TemporalLock {
-	
+	private static final int MINWAIT = 10;
 	private final Agent	myAgent;
-	
+	private final StateEntry<HashMap<String, Long>>	MYMETHODTIMEOUTS	= 
+			new StateEntry<HashMap<String, Long>>("methodTimeouts") {
+				@Override
+				public HashMap<String, Long> defaultValue() {
+					return new HashMap<String, Long>();
+				}
+			};
+
 	public StateLock(Agent myAgent) {
 		this.myAgent = myAgent;
 	}
 	
-	private final StateEntry<HashMap<String, Long>>	MY_METHOD_TIMEOUTS	= new StateEntry<HashMap<String, Long>>(
-																				"methodTimeouts") {
-																			@Override
-																			public HashMap<String, Long> defaultValue() {
-																				return new HashMap<String, Long>();
-																			}
-																		};
-	
 	@Override
 	public long getLockMillisRemaining(final String semaphoreID) {
-		final Long timeout = MY_METHOD_TIMEOUTS.getValue(myAgent.getState())
-				.get(semaphoreID);
+		final Long timeout = MYMETHODTIMEOUTS.getValue(myAgent.getState()).get(
+				semaphoreID);
 		return timeout == null ? -1L : timeout.longValue()
 				- System.currentTimeMillis();
 	}
@@ -37,7 +36,7 @@ public class StateLock implements TemporalLock {
 			while (millis > 0L) {
 				try {
 					synchronized (this) {
-						wait(Math.min(10, millis));
+						wait(Math.min(MINWAIT, millis));
 					}
 				} catch (final InterruptedException ignore) {
 				}
@@ -53,11 +52,11 @@ public class StateLock implements TemporalLock {
 	protected void updateLock(final String semaphoreID, final long remainingMS) {
 		HashMap<String, Long> currentTimeouts, newTimeouts;
 		do {
-			currentTimeouts = MY_METHOD_TIMEOUTS.getValue(myAgent.getState());
+			currentTimeouts = MYMETHODTIMEOUTS.getValue(myAgent.getState());
 			newTimeouts = new HashMap<String, Long>(currentTimeouts);
 			newTimeouts.put(semaphoreID, remainingMS <= 0L ? Long.valueOf(0L)
 					: System.currentTimeMillis() + remainingMS);
-		} while (!MY_METHOD_TIMEOUTS.putValueIfUnchanged(myAgent.getState(),
+		} while (!MYMETHODTIMEOUTS.putValueIfUnchanged(myAgent.getState(),
 				newTimeouts, currentTimeouts));
 	}
 	

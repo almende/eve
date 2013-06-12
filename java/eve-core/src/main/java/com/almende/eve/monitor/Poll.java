@@ -6,7 +6,7 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Poll implements ResultMonitorConfigType {
-	int interval;
+	private int interval;
 	
 	public Poll(int interval){
 		this.interval=interval;

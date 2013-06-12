@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class ResultMonitorFactory implements ResultMonitorInterface {
 	private static final Logger LOG = Logger.getLogger(ResultMonitorFactory.class.getCanonicalName());
-	Agent	myAgent	= null;
+	private Agent	myAgent	= null;
 	
 	public ResultMonitorFactory(Agent agent) {
 		this.myAgent = agent;

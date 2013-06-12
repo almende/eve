@@ -5,8 +5,8 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Cache implements ResultMonitorConfigType {
-	DateTime	stored	= null;
-	Object		value	= null;
+	private DateTime	stored	= null;
+	private Object		value	= null;
 	
 	public boolean filter(ObjectNode params) {
 		if (!params.has("maxAge") || !params.get("maxAge").isInt()

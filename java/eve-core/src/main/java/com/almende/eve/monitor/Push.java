@@ -10,10 +10,10 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
-	int		interval	= -1;
-	boolean	onEvent		= false;
-	boolean	onChange	= false;
-	String	event		= "";
+	private int		interval	= -1;
+	private boolean	onEvent		= false;
+	private boolean	onChange	= false;
+	private String	event		= "";
 	
 	public Push(int interval, boolean onEvent) {
 		this.interval = interval;
