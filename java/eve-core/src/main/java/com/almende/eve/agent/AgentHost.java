@@ -150,6 +150,9 @@ public final class AgentHost implements AgentHostInterface {
 		
 		// load the State
 		State state = null;
+		if (getStateFactory() == null) {
+			return null;
+		}
 		state = getStateFactory().get(agentId);
 		if (state == null) {
 			// agent does not exist
@@ -304,23 +307,20 @@ public final class AgentHost implements AgentHostInterface {
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't get agent to delete.", e);
 		}
-		if (agent == null) {
-			return;
+		if (agent != null) {
+			if (getScheduler(agent) != null) {
+				schedulerFactory.destroyScheduler(agentId);
+			}
+			try {
+				// get the agent and execute the delete method
+				agent.signalAgent(new AgentSignal<Void>("destroy"));
+				agent.signalAgent(new AgentSignal<Void>("delete"));
+				AgentCache.delete(agentId);
+				agent = null;
+			} catch (Exception e) {
+				LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);
+			}
 		}
-		
-		if (getScheduler(agent) != null) {
-			schedulerFactory.destroyScheduler(agentId);
-		}
-		try {
-			// get the agent and execute the delete method
-			agent.signalAgent(new AgentSignal<Void>("destroy"));
-			agent.signalAgent(new AgentSignal<Void>("delete"));
-			AgentCache.delete(agentId);
-			agent = null;
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);
-		}
-		
 		// delete the state, even if the agent.destroy or agent.delete
 		// failed.
 		getStateFactory().delete(agentId);

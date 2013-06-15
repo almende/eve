@@ -15,7 +15,7 @@
 	<url>http://almende.github.com/eve</url>
 
 	<properties>
-		<jackson.version>2.2.0</jackson.version>
+		<jackson.version>2.2.1</jackson.version>
 		<joda-time.version>2.1</joda-time.version>
 		<snakeyaml.version>1.11</snakeyaml.version>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>

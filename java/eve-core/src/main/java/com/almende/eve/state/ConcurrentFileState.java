@@ -60,16 +60,16 @@ public class ConcurrentFileState extends FileState {
 	protected ConcurrentFileState() {
 	}
 	
-	private boolean						json		= false;
-	private String						filename	= null;
-	private FileChannel					channel		= null;
-	private FileLock					lock		= null;
-	private InputStream					fis			= null;
-	private OutputStream				fos			= null;
-	private ObjectMapper				om			= null;
-	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
+	protected boolean						json		= false;
+	protected String					filename	= null;
+	protected FileChannel					channel		= null;
+	protected FileLock					lock		= null;
+	protected InputStream					fis			= null;
+	protected OutputStream				fos			= null;
+	protected ObjectMapper				om			= null;
+	protected static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
 	
-	private Map<String, Serializable>	properties	= Collections
+	protected Map<String, Serializable>	properties	= Collections
 															.synchronizedMap(new HashMap<String, Serializable>());
 	
 	public ConcurrentFileState(String agentId, String filename) {
@@ -93,21 +93,23 @@ public class ConcurrentFileState extends FileState {
 	}
 	
 	@SuppressWarnings("resource")
-	private void openFile() throws IOException {
+	protected void openFile() throws IOException {
 		synchronized (locked) {
 			while (locked.containsKey(filename) && locked.get(filename)) {
 				// logger.warning("Starting to wait for locked! "+filename);
 				try {
 					locked.wait();
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException e) {
+				}
 			}
 			locked.put(filename, true);
 			File file = new File(this.filename);
 			if (!file.exists()) {
 				locked.put(filename, false);
 				locked.notifyAll();
-				throw new IllegalStateException("Warning: File doesn't exist (anymore):'"
-						+ this.filename + "'");
+				throw new IllegalStateException(
+						"Warning: File doesn't exist (anymore):'"
+								+ this.filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
 			try {
@@ -120,15 +122,15 @@ public class ConcurrentFileState extends FileState {
 				lock = null;
 				locked.put(filename, false);
 				locked.notifyAll();
-				throw new IllegalStateException("error, couldn't obtain file lock on:"
-						+ filename, e);
+				throw new IllegalStateException(
+						"error, couldn't obtain file lock on:" + filename, e);
 			}
 			fis = Channels.newInputStream(channel);
 			fos = Channels.newOutputStream(channel);
 		}
 	}
 	
-	private void closeFile() {
+	protected void closeFile() {
 		synchronized (locked) {
 			if (lock.isValid()) {
 				try {
@@ -161,7 +163,10 @@ public class ConcurrentFileState extends FileState {
 	 * @throws IOException
 	 */
 	private void write() throws IOException {
-		channel.position(0);
+		System.err.println("Writing properties to disk");
+		if (channel != null){
+			channel.position(0);
+		}
 		if (json) {
 			om.writeValue(fos, properties);
 			fos.flush();
@@ -184,9 +189,13 @@ public class ConcurrentFileState extends FileState {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void _read(boolean retry) throws IOException, ClassNotFoundException {
+	private void _read(boolean retry) throws IOException,
+			ClassNotFoundException {
+		System.err.println("Reading properties from disk, retry:"+retry);
 		try {
-			channel.position(0);
+			if (channel != null){
+				channel.position(0);
+			}
 			properties.clear();
 			if (json ^ retry) {
 				properties.putAll(om.readValue(fis, HashMap.class));
@@ -197,7 +206,7 @@ public class ConcurrentFileState extends FileState {
 		} catch (EOFException eof) {
 			// empty file, new agent?
 		} catch (StreamCorruptedException sce) {
-			if (channel.position() != 0) {
+			if (channel != null && channel.position() != 0) {
 				if (!retry) {
 					_read(true);
 				} else {
@@ -206,7 +215,7 @@ public class ConcurrentFileState extends FileState {
 			}
 			// empty file, new agent?
 		} catch (JsonMappingException map) {
-			if (channel.position() != 0) {
+			if (channel != null && channel.position() != 0) {
 				if (!retry) {
 					_read(true);
 				} else {

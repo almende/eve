@@ -55,7 +55,7 @@ public class FileStateFactory implements StateFactory {
 	 * 
 	 * @param path
 	 */
-	private void setPath(String path) {
+	private synchronized void setPath(String path) {
 		if (path == null) {
 			path = ".eveagents";
 			logger.warning("Config parameter 'state.path' missing in Eve "
@@ -68,7 +68,10 @@ public class FileStateFactory implements StateFactory {
 		
 		// make the directory
 		File file = new File(path);
-		file.mkdir();
+		if (!file.exists() && !file.mkdir()){
+			logger.severe("Could not create State folder!");
+			throw new IllegalStateException();
+		}
 		
 		// log info
 		String info = "Agents will be stored in ";
@@ -178,30 +181,39 @@ public class FileStateFactory implements StateFactory {
 	public Iterator<String> getAllAgentIds() {
 		File folder = new File(path);
 		File[] files = folder.listFiles();
-		List<File> totalList = Arrays.asList(files);
-		final List<File> list = new ArrayList<File>(totalList.size());
-		for (File file : totalList) {
-			if (file.isFile() && file.canRead() && !file.isHidden()
-					&& file.length() > 2) {
-				try {
-					FileURLConnection conn = (FileURLConnection) file.toURI()
-							.toURL().openConnection();
-					if (!json
-							&& conn.getContentType().endsWith(
-									"java-serialized-object")) {
+		if (files == null){
+			files=new File[0];
+		}
+		final List<File> list = new ArrayList<File>(files.length);
+		
+		if (files.length > 0) {
+			List<File> totalList = Arrays.asList(files);
+			for (File file : totalList) {
+				if (file.isFile() && file.canRead() && !file.isHidden()
+						&& file.length() > 2) {
+					try {
+						FileURLConnection conn = (FileURLConnection) file
+								.toURI().toURL().openConnection();
+						if (!json
+								&& conn.getContentType().endsWith(
+										"java-serialized-object")) {
+							list.add(file);
+						}
+						if (json && conn.getContentType().contains("json")) {
+							list.add(file);
+						}
+						conn.close();
+					} catch (Exception e) {
+						logger.warning("Couldn't check contentType of potential state file:"
+								+ file.getName());
+					} catch (java.lang.NoClassDefFoundError e){
+						logger.warning("Couldn't check contentType of state file:"
+								+ file.getName());
 						list.add(file);
 					}
-					if (json && conn.getContentType().contains("json")) {
-						list.add(file);
-					}
-					conn.close();
-				} catch (Exception e) {
-					logger.warning("Couldn't check contentType of potential state file:"
-							+ file.getName());
 				}
 			}
 		}
-		
 		return new Iterator<String>() {
 			private int	pivot	= 0;
 			
