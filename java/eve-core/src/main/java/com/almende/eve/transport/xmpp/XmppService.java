@@ -244,6 +244,10 @@ public class XmppService implements TransportService {
 			connection = new AgentConnection(agentHost);
 		}
 		
+		if (username.indexOf('@') > 0){
+			System.err.println("Warning: Username should not contain a domain! "+username);
+		}
+		
 		connection.connect(agentId, host, port, service, username, password,
 				resource);
 		

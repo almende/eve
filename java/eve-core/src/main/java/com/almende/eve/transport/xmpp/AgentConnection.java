@@ -93,6 +93,10 @@ public class AgentConnection {
 			// configure and connect
 			ConnectionConfiguration connConfig = new ConnectionConfiguration(
 					host, port, serviceName);
+//			connConfig.setSASLAuthenticationEnabled(false);
+//			connConfig.setSecurityMode(SecurityMode.disabled);
+			
+			connConfig.setSASLAuthenticationEnabled(true);
 			connConfig.setReconnectionAllowed(true);
 			connConfig.setCompressionEnabled(true);
 			connConfig.setRosterLoadedAtLogin(false);
