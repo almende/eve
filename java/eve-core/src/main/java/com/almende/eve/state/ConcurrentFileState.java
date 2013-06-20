@@ -163,7 +163,6 @@ public class ConcurrentFileState extends FileState {
 	 * @throws IOException
 	 */
 	private void write() throws IOException {
-		System.err.println("Writing properties to disk");
 		if (channel != null){
 			channel.position(0);
 		}
@@ -191,7 +190,6 @@ public class ConcurrentFileState extends FileState {
 	@SuppressWarnings("unchecked")
 	private void _read(boolean retry) throws IOException,
 			ClassNotFoundException {
-		System.err.println("Reading properties from disk, retry:"+retry);
 		try {
 			if (channel != null){
 				channel.position(0);
