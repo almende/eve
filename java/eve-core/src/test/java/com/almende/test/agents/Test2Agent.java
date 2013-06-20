@@ -109,6 +109,15 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return resp;
 	}
 
+	public String callOtherAgent(@Name("url") String url, @Name("method") String method, 
+			@Name("params") ObjectNode params) 
+			throws IOException, JSONRPCException, Exception {
+		String resp = send(URI.create(url), method, params, JOM.getSimpleType(String.class));
+		System.out.println("callOtherAgent url="+ url+" method=" + method  + ", params=" + params.toString() + ", resp=" +  resp);
+		return resp;
+	}
+
+	
 	public STATUS testEnum(@Name("status") STATUS status) {
 		System.out.println("Status: " + status);
 		return status;
