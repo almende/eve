@@ -806,8 +806,7 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public List<Object> getMethods(Agent agent) {
-		Boolean asString = false;
-		return JSONRPC.describe(agent, EVEREQUESTPARAMS, asString);
+		return JSONRPC.describe(agent, EVEREQUESTPARAMS);
 	}
 	
 	@Override

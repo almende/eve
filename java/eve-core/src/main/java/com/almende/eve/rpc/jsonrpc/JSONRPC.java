@@ -190,126 +190,70 @@ public final class JSONRPC {
 		AnnotatedClass ac = null;
 		try {
 			ac = AnnotationUtil.get(c);
-		} catch (Exception e) {
-			logger.log(Level.WARNING,
-					"Class as a whole can't be wrapped for annotation", e);
-			errors.add("Class as a whole can't be wrapped for annotation");
-		}
-		if (ac != null) {
-			for (AnnotatedMethod method : ac.getMethods()) {
-				boolean available = false;
-				try {
-					available = isAvailable(method, null, requestParams, null);
-				} catch (Exception e) {
-					logger.log(
-							Level.WARNING,
-							"Problems running isAvailable method on annotated class.",
-							e);
-					errors.add("Problems running isAvailable method on annotated class.");
-				}
-				if (available) {
-					// The method name may only occur once
-					String name = method.getName();
-					if (methodNames.contains(name)) {
-						errors.add("Public method '" + name
-								+ "' is defined more than once, which is not"
-								+ " allowed for JSON-RPC.");
-					}
-					methodNames.add(name);
-					
-					// each of the method parameters must have the @Name
-					// annotation
-					List<AnnotatedParam> params = method.getParams();
-					for (int i = 0; i < params.size(); i++) {
-						List<Annotation> matches = new ArrayList<Annotation>();
-						for (Annotation a : params.get(i).getAnnotations()) {
-							if (requestParams != null && requestParams.has(a)) {
-								matches.add(a);
-							} else if (a instanceof Name) {
-								matches.add(a);
-							}
-						}
-						
-						if (matches.size() == 0) {
-							errors.add("Parameter "
-									+ i
-									+ " in public method '"
+			if (ac != null) {
+				for (AnnotatedMethod method : ac.getMethods()) {
+					boolean available = isAvailable(method, null,
+							requestParams, null);
+					if (available) {
+						// The method name may only occur once
+						String name = method.getName();
+						if (methodNames.contains(name)) {
+							errors.add("Public method '"
 									+ name
-									+ "' is missing the @Name annotation, which is"
-									+ " required for JSON-RPC.");
-						} else if (matches.size() > 1) {
-							String str = "";
-							for (Annotation a : matches) {
-								str += a + " ";
-							}
-							
-							errors.add("Parameter " + i + " in public method '"
-									+ name + "' contains " + matches.size()
-									+ " annotations " + "(" + str
-									+ "), but only one is allowed.");
+									+ "' is defined more than once, which is not"
+									+ " allowed for JSON-RPC.");
 						}
+						methodNames.add(name);
+						
+						// TODO: I removed duplicate @Name check. If you reach
+						// this point the function at least has named
+						// parameters, due to the isAvailable() call. Should we
+						// add a duplicates check to isAvailable()?
 					}
 				}
 			}
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Problems wrapping class for annotation",
+					e);
+			errors.add("Class can't be wrapped for annotation, exception raised:"
+					+ e.getLocalizedMessage());
 		}
 		return errors;
 	}
 	
 	private static Map<String, Object> _describe(Object c,
-			RequestParams requestParams, Boolean asString, String namespace) {
+			RequestParams requestParams, String namespace) {
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
 			
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
 				if (isAvailable(method, null, requestParams, null)) {
-					if (!asString) {
-						// format as JSON
-						List<Object> descParams = new ArrayList<Object>();
-						for (AnnotatedParam param : method.getParams()) {
-							if (getRequestAnnotation(param, requestParams) == null) {
-								String name = getName(param);
-								Map<String, Object> paramData = new HashMap<String, Object>();
-								paramData.put("name", name);
-								paramData.put("type",
-										typeToString(param.getGenericType()));
-								paramData.put("required", isRequired(param));
-								descParams.add(paramData);
-							}
+					// format as JSON
+					List<Object> descParams = new ArrayList<Object>();
+					for (AnnotatedParam param : method.getParams()) {
+						if (getRequestAnnotation(param, requestParams) == null) {
+							String name = getName(param);
+							Map<String, Object> paramData = new HashMap<String, Object>();
+							paramData.put("name", name);
+							paramData.put("type",
+									typeToString(param.getGenericType()));
+							paramData.put("required", isRequired(param));
+							descParams.add(paramData);
 						}
-						
-						Map<String, Object> result = new HashMap<String, Object>();
-						result.put("type",
-								typeToString(method.getGenericReturnType()));
-						
-						Map<String, Object> desc = new HashMap<String, Object>();
-						String methodName = namespace.equals("") ? method
-								.getName() : namespace + "." + method.getName();
-						desc.put("method", methodName);
-						desc.put("params", descParams);
-						desc.put("result", result);
-						methods.put(methodName, desc);
-					} else {
-						// format as string
-						String p = "";
-						for (AnnotatedParam param : method.getParams()) {
-							if (getRequestAnnotation(param, requestParams) == null) {
-								String name = getName(param);
-								String type = typeToString(param
-										.getGenericType());
-								if (!p.isEmpty()) {
-									p += ", ";
-								}
-								String ps = type + " " + name;
-								p += isRequired(param) ? ps : ("[" + ps + "]");
-							}
-						}
-						String desc = typeToString(method
-								.getGenericReturnType())
-								+ " "
-								+ method.getName() + "(" + p + ")";
-						methods.put(method.getName(), desc);
 					}
+					
+					Map<String, Object> result = new HashMap<String, Object>();
+					result.put("type",
+							typeToString(method.getGenericReturnType()));
+					
+					Map<String, Object> desc = new HashMap<String, Object>();
+					String methodName = namespace.equals("") ? method.getName()
+							: namespace + "." + method.getName();
+					desc.put("method", methodName);
+					desc.put("params", descParams);
+					desc.put("result", result);
+					methods.put(methodName, desc);
 				}
 			}
 			for (AnnotatedMethod method : annotatedClass
@@ -318,7 +262,7 @@ public final class JSONRPC {
 						.value();
 				methods.putAll(_describe(
 						method.getActualMethod().invoke(c, (Object[]) null),
-						requestParams, asString, innerNamespace));
+						requestParams, innerNamespace));
 			}
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Failed to describe class", e);
@@ -340,11 +284,9 @@ public final class JSONRPC {
 	 *            to read string.
 	 * @return
 	 */
-	public static List<Object> describe(Object c, RequestParams requestParams,
-			Boolean asString) {
+	public static List<Object> describe(Object c, RequestParams requestParams) {
 		try {
-			Map<String, Object> methods = _describe(c, requestParams, asString,
-					"");
+			Map<String, Object> methods = _describe(c, requestParams, "");
 			
 			// create a sorted array
 			List<Object> sortedMethods = new ArrayList<Object>();
@@ -483,6 +425,8 @@ public final class JSONRPC {
 											"Required parameter '" + name
 													+ "' missing");
 								} else if (p.getType().isPrimitive()) {
+									// TODO: should this test be moved to
+									// isAvailable()?
 									throw new ClassCastException("Parameter '"
 											+ name
 											+ "' cannot be both optional and "
@@ -565,9 +509,8 @@ public final class JSONRPC {
 	
 	/**
 	 * Check whether a method is available for JSON-RPC calls. This is the case
-	 * when it is public, has named parameters, and has no annotation
-	 * 
-	 * @Access(UNAVAILABLE)
+	 * when it is public, has named parameters, and has a public or private @Access
+	 * annotation
 	 * 
 	 * @param annotatedMethod
 	 * @param requestParams
@@ -597,7 +540,7 @@ public final class JSONRPC {
 		}
 		if (methodAccess == null) {
 			// New default: UNAVAILABLE!
-			return false; 
+			return false;
 		}
 		if (methodAccess.value() == AccessType.UNAVAILABLE) {
 			return false;
