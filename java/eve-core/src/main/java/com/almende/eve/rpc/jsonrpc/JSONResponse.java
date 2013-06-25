@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONResponse {
-	protected ObjectNode		resp	= JOM.createObjectNode();
-	private static final Logger	LOG	= Logger.getLogger(JSONResponse.class
+	private ObjectNode			resp	= JOM.createObjectNode();
+	private static final Logger	LOG		= Logger.getLogger(JSONResponse.class
 												.getName());
 	
 	public JSONResponse() {
@@ -54,17 +54,16 @@ public class JSONResponse {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Response is null");
 		}
-		if (response.has("jsonrpc") && response.get("jsonrpc").isTextual() && !response.get("jsonrpc").asText().equals("2.0")) {
-				throw new JSONRPCException(
-						JSONRPCException.CODE.INVALID_REQUEST,
-						"Value of member 'jsonrpc' must be '2.0'");
+		if (response.has("jsonrpc") && response.get("jsonrpc").isTextual()
+				&& !response.get("jsonrpc").asText().equals("2.0")) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Value of member 'jsonrpc' must be '2.0'");
 		}
 		boolean hasError = response.has("error")
 				&& !response.get("error").isNull();
 		if (hasError && !(response.get("error").isObject())) {
-				throw new JSONRPCException(
-						JSONRPCException.CODE.INVALID_REQUEST,
-						"Member 'error' is no ObjectNode");
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Member 'error' is no ObjectNode");
 		}
 		
 		Object id = response.get("id");

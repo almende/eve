@@ -334,9 +334,9 @@ public class AnnotationUtil {
 		private Class<?> type = null;
 		private Type genericType = null;
 		
-		private AnnotatedParam() {}
+		public AnnotatedParam() {}
 		
-		private AnnotatedParam(Annotation[] annotations, Class<?> type, Type genericType) {
+		public AnnotatedParam(Annotation[] annotations, Class<?> type, Type genericType) {
 			this.type = type;
 			this.genericType = genericType;
 			

@@ -26,7 +26,7 @@ public class AgentListener implements ServletContextListener {
 	protected static String getParam(String param){
 		return getParam(param,null);
 	}
-	protected static String getParam(String param, String default_val){
+	protected static String getParam(String param, String defaultVal){
 		String result = c.getInitParameter(param);
 		if (result == null) {
 			for (Entry<String, ? extends ServletRegistration> ent : c.getServletRegistrations().entrySet()){
@@ -37,11 +37,11 @@ public class AgentListener implements ServletContextListener {
 				}
 			}
 		}
-		if (result == null && default_val != null) {
+		if (result == null && defaultVal != null) {
 			
-			result = default_val;
+			result = defaultVal;
 			LOG.warning("Init parameter '"+param+"' missing in servlet configuration web.xml. "
-					+ "Trying default value '" + default_val + "'.");
+					+ "Trying default value '" + defaultVal + "'.");
 		}
 		return result;
 	}

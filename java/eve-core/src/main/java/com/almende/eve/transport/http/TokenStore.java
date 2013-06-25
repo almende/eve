@@ -21,7 +21,7 @@ import com.almende.eve.state.FileStateFactory;
  * @author ludo
  * 
  */
-public class TokenStore {
+public final class TokenStore {
 	private static final Logger					LOG		= Logger.getLogger(TokenStore.class
 																.getCanonicalName());
 	private static final TokenStore				ME		= new TokenStore();

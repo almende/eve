@@ -40,18 +40,18 @@ public class TypeUtil<T> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> T inject(JavaType full_type, Object value) {
+	public static <T> T inject(JavaType fullType, Object value) {
 		if (value == null) {
 			return null;
 		}
-		if (full_type.hasRawClass(Void.class)) {
+		if (fullType.hasRawClass(Void.class)) {
 			return null;
 		}
 		ObjectMapper mapper = JOM.getInstance();
 		if (value instanceof JsonNode) {
-			return mapper.convertValue(value, full_type);
+			return mapper.convertValue(value, fullType);
 		}
-		return (T) full_type.getRawClass().cast(value);
+		return (T) fullType.getRawClass().cast(value);
 	}
 	
 	public static <T> T inject(T ret, Object value) throws IOException {

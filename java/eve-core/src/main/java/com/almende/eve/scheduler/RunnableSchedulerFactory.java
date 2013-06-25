@@ -152,8 +152,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 */
 		Task(final String agentId, final JSONRequest request, long delay,
 				boolean interval, boolean sequential) {
-			// TODO: throw exceptions when agentId, request are null or delay <
-			// 0
+			// TODO: throw exceptions when agentId, request are null or 
+			// delay < 0
 			this.agentId = agentId;
 			this.request = request;
 			if (interval) {
@@ -176,8 +176,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @throws JsonParseException
 		 */
 		Task(Map<String, String> params) throws JSONRPCException, IOException {
-			// TODO: throw exceptions when agentId, request are null or delay <
-			// 0
+			// TODO: throw exceptions when agentId, request are null or 
+			// delay < 0
 			
 			agentId = params.get("agentId");
 			request = new JSONRequest(params.get("request"));
@@ -219,8 +219,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						
 						RequestParams params = new RequestParams();
 						String senderUrl = "local://" + agentId;
-						params.put(Sender.class, senderUrl); // TODO: provide
-																// itself
+						params.put(Sender.class, senderUrl); 
+						// TODO: provide itself
 						
 						JSONResponse resp = host.receive(agentId,
 								request, params);
@@ -360,7 +360,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * interact with. It can only be instantiated by the factory using the
 	 * method getSchedular(agentId).
 	 */
-	public class RunnableScheduler implements Scheduler {
+	public final class RunnableScheduler implements Scheduler {
 		private RunnableScheduler(String agentId) {
 			this.agentId = agentId;
 		}

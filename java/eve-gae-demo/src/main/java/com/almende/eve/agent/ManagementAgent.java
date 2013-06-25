@@ -31,7 +31,7 @@ public class ManagementAgent extends Agent {
 	public Map<String, Object> create(@Name("id") String id, @Name("type") String type) 
 			throws Exception {
 		try {
-			getAgentFactory().createAgent(type, id);	
+			getAgentHost().createAgent(type, id);	
 		
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
 			
@@ -68,7 +68,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public Map<String, Object> register(@Name("id") String id) throws Exception {
-		AgentHost factory = getAgentFactory();
+		AgentHost factory = getAgentHost();
 		Agent agent = factory.getAgent(id);
 		if (agent != null) {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
@@ -128,7 +128,7 @@ public class ManagementAgent extends Agent {
 			datastore.delete(meta);
 		}		
 
-		getAgentFactory().deleteAgent(id);
+		getAgentHost().deleteAgent(id);
 	}
 	
 	/**
@@ -175,7 +175,7 @@ public class ManagementAgent extends Agent {
 		info.put("id", meta.getId());
 		info.put("type", meta.getType());
 		
-		Agent agent = getAgentFactory().getAgent(meta.getId());
+		Agent agent = getAgentHost().getAgent(meta.getId());
 		if (agent != null) {
 			info.put("urls", agent.getUrls());
 			return info;
@@ -199,7 +199,7 @@ public class ManagementAgent extends Agent {
 			return toInfo(meta);
 		}
 		else {
-			Agent agent = getAgentFactory().getAgent(id);
+			Agent agent = getAgentHost().getAgent(id);
 			if (agent != null) {
 				return register(id);
 			}
@@ -214,7 +214,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public boolean exists(@Name("id") String id) throws Exception {
-		Agent agent = getAgentFactory().getAgent(id);
+		Agent agent = getAgentHost().getAgent(id);
 		return (agent != null);
 	}
 	

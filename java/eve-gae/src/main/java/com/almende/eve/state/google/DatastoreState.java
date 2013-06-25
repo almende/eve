@@ -118,7 +118,7 @@ public class DatastoreState extends AbstractState {
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean loadFromCache() {
-		cacheValue = cache.getIdentifiable(agentId);
+		cacheValue = cache.getIdentifiable(getAgentId());
 		if (cacheValue != null && cacheValue.getValue() != null) {
 			properties = (Map<String, Serializable>) cacheValue.getValue();
 			return true;
@@ -136,10 +136,10 @@ public class DatastoreState extends AbstractState {
 	private boolean saveToCache() {
 		boolean success = false;
 		if (cacheValue != null) {
-			success = cache.putIfUntouched(agentId, cacheValue, properties);
+			success = cache.putIfUntouched(getAgentId(), cacheValue, properties);
 		}
 		else {
-			success = cache.put(agentId, properties, null, 
+			success = cache.put(getAgentId(), properties, null, 
 					SetPolicy.ADD_ONLY_IF_NOT_PRESENT);
 			if (success) {
 				// reload from cache to get the IdentifiableValue from cache,
@@ -162,7 +162,7 @@ public class DatastoreState extends AbstractState {
 	private boolean loadFromDatastore () {
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			KeyValue entity = datastore.load(KeyValue.class, agentId);
+			KeyValue entity = datastore.load(KeyValue.class, getAgentId());
 			
 			@SuppressWarnings("rawtypes")
 			Class<? extends HashMap> MAP_OBJECT_CLASS = 
@@ -196,7 +196,7 @@ public class DatastoreState extends AbstractState {
 	private boolean saveToDatastore () {
 		try {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
-			KeyValue entity = new KeyValue(agentId, properties);
+			KeyValue entity = new KeyValue(getAgentId(), properties);
 			datastore.store(entity);
 			return true;
 		} catch (IOException e) {
@@ -212,7 +212,7 @@ public class DatastoreState extends AbstractState {
 	 */
 	private void deleteFromDatastore () {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
-		KeyValue entity = datastore.load(KeyValue.class, agentId);
+		KeyValue entity = datastore.load(KeyValue.class, getAgentId());
 		if (entity != null) {
 			datastore.delete(entity);
 		}
@@ -223,7 +223,7 @@ public class DatastoreState extends AbstractState {
 	 * @param entity
 	 */
 	private void deleteFromCache () {
-		cache.delete(agentId);
+		cache.delete(getAgentId());
 		// TODO: check if deletion was successful?
 	}
 	

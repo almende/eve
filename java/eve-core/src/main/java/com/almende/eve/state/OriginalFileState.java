@@ -64,8 +64,8 @@ public class OriginalFileState extends FileState {
 	private boolean write() {
 		try {
 			FileOutputStream fos = new FileOutputStream(filename);
-			FileLock fl = fos.getChannel().lock();// block until lock is
-													// acquired.
+			// block until lock is acquired.
+			FileLock fl = fos.getChannel().lock();
 			if (fl != null) {
 				ObjectOutput out = new ObjectOutputStream(fos);
 				out.writeObject(properties);

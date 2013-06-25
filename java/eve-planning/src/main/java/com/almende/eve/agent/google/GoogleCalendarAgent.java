@@ -152,7 +152,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throw new Exception("No refresh token available");
 		}
 		
-		Config config = getAgentFactory().getConfig();
+		Config config = getAgentHost().getConfig();
 		String client_id = config.get("google", "client_id");
 		String client_secret = config.get("google", "client_secret");
 		

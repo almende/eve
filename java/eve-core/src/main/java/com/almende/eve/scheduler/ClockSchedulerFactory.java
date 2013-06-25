@@ -238,7 +238,8 @@ class ClockScheduler implements Scheduler, Runnable {
 		if (task != null) {
 			if (task.getDue().isBeforeNow()) {
 				runTask(task);
-				run();// recursive call next task
+				// recursive call next task
+				run();
 				return;
 			}
 			myClock.requestTrigger(myAgent.getId(), task.getDue(), this);

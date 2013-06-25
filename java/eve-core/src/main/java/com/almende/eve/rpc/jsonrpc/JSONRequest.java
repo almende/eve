@@ -14,9 +14,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONRequest implements Serializable {
-	private static final Logger LOG = Logger.getLogger(JSONRequest.class.getCanonicalName());
+	private static final Logger	LOG					= Logger.getLogger(JSONRequest.class
+															.getCanonicalName());
 	private static final long	serialVersionUID	= 1970046457233622444L;
-	protected ObjectNode		req					= JOM.createObjectNode();
+	private ObjectNode			req					= JOM.createObjectNode();
 	
 	public enum VERSION {
 		ONE, TWO
@@ -181,7 +182,7 @@ public class JSONRequest implements Serializable {
 		try {
 			return mapper.writeValueAsString(req);
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
+			LOG.log(Level.WARNING, "", e);
 		}
 		return null;
 	}

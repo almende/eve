@@ -69,8 +69,8 @@ public class EventsFactory implements EventsInterface {
 			newSubscriptions.putAll(allSubscriptions);
 		}
 		newSubscriptions.put(event, subscriptions);
-		if (!myAgent.getState().putIfUnchanged(SUBSCRIPTIONS,
-				newSubscriptions, allSubscriptions)) {
+		if (!myAgent.getState().putIfUnchanged(SUBSCRIPTIONS, newSubscriptions,
+				allSubscriptions)) {
 			// Recursive retry.
 			putSubscriptions(event, subscriptions);
 			return;
@@ -243,26 +243,34 @@ public class EventsFactory implements EventsInterface {
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
 			@Required(false) @Name("callbackParams") ObjectNode params) {
+		
+		// check if callback already existed, returning existing instead
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
-			if (subscription.getUrl() == null
-					|| subscription.getMethod() == null) {
+			if (subscription == null || subscription.getUrl() == null || subscription.getMethod() == null) {
 				continue;
 			}
-			if (subscription.getUrl().equals(callbackUrl)
-					&& subscription.getMethod().equals(callbackMethod)
-					&& ((subscription.getParams() == null && params == null) || subscription
-							.getParams() != null)
-					&& subscription.getParams().equals(params)) {
-				// The callback already exists. do not duplicate it
-				return subscription.getId();
+			if (!subscription.getUrl().equals(callbackUrl) || !subscription.getMethod().equals(callbackMethod)){
+				continue;
 			}
+			if (subscription.getParams() == null){
+				if (params != null){
+					continue;
+				}
+			} else {
+				if (!subscription.getParams().equals(params)){
+					continue;
+				}
+			}
+			//Callback already exists, returning existing callbackId.
+			return subscription.getId();
 		}
-		
-		// the callback does not yet exist. create it and store it
+		// create new callback
 		String subscriptionId = UUID.randomUUID().toString();
 		Callback callback = new Callback(subscriptionId, callbackUrl,
 				callbackMethod, params);
+		
+		// Callback didn't exist, store new callback.
 		subscriptions.add(callback);
 		
 		// store the subscriptions
@@ -318,8 +326,8 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// store state again
-		//TODO: Race condition on state
-		myAgent.getState().put(SUBSCRIPTIONS, allSubscriptions); 
+		// TODO: Race condition on state
+		myAgent.getState().put(SUBSCRIPTIONS, allSubscriptions);
 	}
 	
 	/**

@@ -36,7 +36,7 @@ import org.apache.http.params.HttpParams;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
 
-public class ApacheHttpClient {
+public final class ApacheHttpClient {
 	private static final Logger			LOG			= Logger.getLogger(ApacheHttpClient.class
 															.getCanonicalName());
 	private static DefaultHttpClient	httpClient	= null;
