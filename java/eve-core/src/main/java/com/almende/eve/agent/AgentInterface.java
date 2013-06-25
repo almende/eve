@@ -66,10 +66,19 @@ public interface AgentInterface extends JSONAuthorizor {
 	State getState();
 	
 	/**
-	 * Get the associated agentFactory of this agent
+	 * Get the associated AgentHost of this agent
+	 * 
+	 * @deprecated Use getAgentHost() instead
 	 * 
 	 */
+	@Deprecated
 	AgentHost getAgentFactory();
+	
+	/**
+	 * Get the associated agentHost of this agent
+	 * 
+	 */
+	AgentHost getAgentHost();
 	
 	/**
 	 * Get the scheduler to schedule tasks for the agent to be executed later
@@ -349,7 +358,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	
 	/**
 	 * Create a proxy to an other agent. Invoked methods will be send to the
-	 * actual agent via the AgentFactory.
+	 * actual agent via the AgentHost.
 	 * 
 	 * @param url
 	 * @param agentInterface
@@ -360,7 +369,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	
 	/**
 	 * Create a proxy to an other agent. Invoked methods will be send to the
-	 * actual agent via the AgentFactory.
+	 * actual agent via the AgentHost.
 	 * 
 	 * @param url
 	 * @param agentInterface

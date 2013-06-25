@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  *        The state extends a standard Java Map.
  * 
  *        Usage:<br>
- *        AgentFactory factory = new AgentFactory(config);<br>
+ *        AgentHost factory = AgentHost.getInstance(config);<br>
  *        State state = new State("agentId");<br>
  *        state.put("key", "value");<br>
  *        System.out.println(state.get("key")); // "value"<br>

@@ -23,24 +23,24 @@ import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
 
 public class ClockSchedulerFactory implements SchedulerFactory {
-	private static final Logger		LOG				= Logger.getLogger(ClockSchedulerFactory.class
-															.getCanonicalName());
-	private Map<String, Scheduler>	schedulers		= new HashMap<String, Scheduler>();
-	private AgentHost			agentFactory	= null;
+	private static final Logger		LOG			= Logger.getLogger(ClockSchedulerFactory.class
+														.getCanonicalName());
+	private Map<String, Scheduler>	schedulers	= new HashMap<String, Scheduler>();
+	private AgentHost				agentHost	= null;
 	
 	/**
-	 * This constructor is called when constructed by the AgentFactory
+	 * This constructor is called when constructed by the AgentHost
 	 * 
-	 * @param agentFactory
+	 * @param AgentHost
 	 * @param params
 	 */
-	public ClockSchedulerFactory(AgentHost agentFactory,
+	public ClockSchedulerFactory(AgentHost agentHost,
 			Map<String, Object> params) {
-		this(agentFactory, "");
+		this(agentHost, "");
 	}
 	
-	public ClockSchedulerFactory(AgentHost agentFactory, String id) {
-		this.agentFactory = agentFactory;
+	public ClockSchedulerFactory(AgentHost agentHost, String id) {
+		this.agentHost = agentHost;
 	}
 	
 	@Override
@@ -51,7 +51,7 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 			}
 			ClockScheduler scheduler;
 			try {
-				scheduler = new ClockScheduler(agent, agentFactory);
+				scheduler = new ClockScheduler(agent, agentHost);
 				scheduler.run();
 				schedulers.put(agent.getId(), scheduler);
 				return scheduler;
@@ -178,7 +178,7 @@ class ClockScheduler implements Scheduler, Runnable {
 					String senderUrl = "local://" + myAgent.getId();
 					params.put(Sender.class, senderUrl);
 					
-					JSONResponse resp = myAgent.getAgentFactory().receive(
+					JSONResponse resp = myAgent.getAgentHost().receive(
 							myAgent.getId(), task.getRequest(), params);
 					
 					if (task.getInterval() > 0 && task.isSequential()) {

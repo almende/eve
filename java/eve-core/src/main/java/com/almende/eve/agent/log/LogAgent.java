@@ -96,13 +96,13 @@ public class LogAgent extends Agent {
 	public void killMe() throws JSONRPCException, ClassNotFoundException,
 			InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException {
-		getAgentFactory().deleteAgent(getId());
+		getAgentHost().deleteAgent(getId());
 	}
 	
 	@Override
 	public String getDescription() {
 		return "The LogAgent can temporarily log events of an agent. "
-				+ "The agent is meant for internal use by the AgentFactory.";
+				+ "The agent is meant for internal use by the AgentHost.";
 	}
 	
 	@Override

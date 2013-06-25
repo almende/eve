@@ -66,13 +66,26 @@ public class NamespaceUtil {
 				destination = method.invoke(destination, (Object[]) null);
 			}
 		}
-		result.destination = destination;
-		result.methodName = reducedMethod;
+		result.setDestination(destination);
+		result.setMethodName(reducedMethod);
 		return result;
 	}
 	
 	public class CallTuple {
-		public Object	destination;
-		public String	methodName;
+		private Object	destination;
+		private String	methodName;
+		
+		public Object getDestination() {
+			return destination;
+		}
+		public void setDestination(Object destination) {
+			this.destination = destination;
+		}
+		public String getMethodName() {
+			return methodName;
+		}
+		public void setMethodName(String methodName) {
+			this.methodName = methodName;
+		}
 	}
 }

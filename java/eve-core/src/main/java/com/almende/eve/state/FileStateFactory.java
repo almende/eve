@@ -22,9 +22,8 @@ public class FileStateFactory implements StateFactory {
 	private Map<String, FileState>	states	= new HashMap<String, FileState>();
 	
 	/**
-	 * This constructor is called when constructed by the AgentFactory
+	 * This constructor is called when constructed by the AgentHost
 	 * 
-	 * @param agentFactory
 	 * @param params
 	 */
 	public FileStateFactory(Map<String, Object> params) {

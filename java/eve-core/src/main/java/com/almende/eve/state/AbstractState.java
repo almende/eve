@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.JavaType;
  * The state extends a standard Java Map.
  * 
  * Usage:<br>
- *     AgentFactory factory = AgentFactory(config);<br>
+ *     AgentHost factory = AgentHost.getInstance(config);<br>
  *     State state = new State("agentId");<br>
  *     state.put("key", "value");<br>
  *     System.out.println(state.get("key")); // "value"<br>
@@ -36,7 +36,7 @@ public abstract class AbstractState implements State {
 
 	/**
 	 * The implemented classes must have this public constructor with
-	 * parameters agentFactory, and agentId
+	 * parameters AgentHost, and agentId
 	 */
 	public AbstractState (String agentId) {
 		this.agentId = agentId;

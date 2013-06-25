@@ -67,7 +67,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Agent implements AgentInterface {
 	private static final Logger		LOG				= Logger.getLogger(Agent.class
 															.getCanonicalName());
-	private AgentHost				agentFactory	= null;
+	private AgentHost				agentHost		= null;
 	private State					state			= null;
 	private Scheduler				scheduler		= null;
 	private ResultMonitorInterface	monitorFactory	= null;
@@ -88,7 +88,7 @@ public abstract class Agent implements AgentInterface {
 	
 	public void constr(AgentHost factory, State state) {
 		if (this.state == null) {
-			this.agentFactory = factory;
+			this.agentHost = factory;
 			this.state = state;
 			this.scheduler = factory.getScheduler(this);
 			this.monitorFactory = new ResultMonitorFactory(this);
@@ -129,7 +129,7 @@ public abstract class Agent implements AgentInterface {
 	
 	/**
 	 * This method is called once in the life time of an agent, at the moment
-	 * the agent is being created by the AgentFactory.
+	 * the agent is being created by the AgentHost.
 	 * It can be overridden and used to perform some action when the agent
 	 * is create, in that case super.create() should be called in
 	 * the overridden create().
@@ -159,7 +159,7 @@ public abstract class Agent implements AgentInterface {
 	
 	/**
 	 * This method is called once in the life time of an agent, at the moment
-	 * the agent is being deleted by the AgentFactory.
+	 * the agent is being deleted by the AgentHost.
 	 * It can be overridden and used to perform some action when the agent
 	 * is deleted, in that case super.delete() should be called in
 	 * the overridden delete().
@@ -176,14 +176,14 @@ public abstract class Agent implements AgentInterface {
 			}
 		}
 		// remove all keys from the state
-		// Note: the state itself will be deleted by the AgentFactory
+		// Note: the state itself will be deleted by the AgentHost
 		state.clear();
 		
 		// save the agents class again in the state
 		state.put(State.KEY_AGENT_TYPE, getClass().getName());
 		state = null;
 		// forget local reference, as it can keep the State alive
-		// even if the agentFactory removes the file.
+		// even if the AgentHost removes the file.
 	}
 	
 	@Override
@@ -210,8 +210,17 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
+	public final AgentHost getAgentHost() {
+		return agentHost;
+		
+	}
+
+	@Override
+	@Deprecated
+	@Access(AccessType.UNAVAILABLE)
 	public final AgentHost getAgentFactory() {
-		return agentFactory;
+		return getAgentHost();
+		
 	}
 	
 	@Override
@@ -239,7 +248,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<Object> getMethods() {
-		return getAgentFactory().getMethods(this);
+		return getAgentHost().getMethods(this);
 	}
 	
 	private JSONResponse _send(URI url, String method, Object params)
@@ -255,11 +264,11 @@ public abstract class Agent implements AgentInterface {
 					ObjectNode.class);
 		}
 		
-		// invoke the other agent via the agentFactory, allowing the factory
+		// invoke the other agent via the AgentHost, allowing the factory
 		// to route the request internally or externally
 		String id = UUID.randomUUID().toString();
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
-		JSONResponse response = getAgentFactory().send(this, url, request);
+		JSONResponse response = getAgentHost().send(this, url, request);
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -356,15 +365,14 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T createAgentProxy(URI url, Class<T> agentInterface) {
-		return getAgentFactory().createAgentProxy(this, url, agentInterface);
+		return getAgentHost().createAgentProxy(this, url, agentInterface);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> AsyncProxy<T> createAsyncAgentProxy(URI url,
 			Class<T> agentInterface) {
-		return getAgentFactory().createAsyncAgentProxy(this, url,
-				agentInterface);
+		return getAgentHost().createAsyncAgentProxy(this, url, agentInterface);
 	}
 	
 	@Override
@@ -447,23 +455,23 @@ public abstract class Agent implements AgentInterface {
 			}
 		};
 		
-		getAgentFactory().sendAsync(this, url, request, responseCallback);
+		getAgentHost().sendAsync(this, url, request, responseCallback);
 	}
 	
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<String> getUrls() {
 		List<String> urls = new ArrayList<String>();
-		if (agentFactory != null) {
+		if (agentHost != null) {
 			String agentId = getId();
-			for (TransportService service : agentFactory.getTransportServices()) {
+			for (TransportService service : agentHost.getTransportServices()) {
 				String url = service.getAgentUrl(agentId);
 				if (url != null) {
 					urls.add(url);
 				}
 			}
 		} else {
-			LOG.severe("AgentFactory not initialized?!?");
+			LOG.severe("AgentHost not initialized?!?");
 		}
 		return urls;
 	}

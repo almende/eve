@@ -10,20 +10,21 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 public class EventLogger {
-	private static final Logger	LOG	= Logger.getLogger(EventLogger.class
-											.getCanonicalName());
+	private static final Logger	LOG			= Logger.getLogger(EventLogger.class
+													.getCanonicalName());
+	private AgentHost			agentHost	= null;
 	
 	protected EventLogger() {
 	}
 	
-	public EventLogger(AgentHost agentFactory) {
-		this.agentFactory = agentFactory;
+	public EventLogger(AgentHost agentHost) {
+		this.agentHost = agentHost;
 	}
 	
 	public void log(String agentId, String event, Object params) {
 		try {
 			String logAgentId = getLogAgentId(agentId);
-			LogAgent agent = (LogAgent) agentFactory.getAgent(logAgentId);
+			LogAgent agent = (LogAgent) agentHost.getAgent(logAgentId);
 			if (agent != null) {
 				// log only if the log agent exists
 				agent.log(new Log(agentId, event, params));
@@ -38,11 +39,11 @@ public class EventLogger {
 			InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, IOException {
 		String logAgentId = getLogAgentId(agentId);
-		LogAgent agent = (LogAgent) agentFactory.getAgent(logAgentId);
+		LogAgent agent = (LogAgent) agentHost.getAgent(logAgentId);
 		if (agent == null) {
 			// create the log agent if it does not yet exist
-			agent = (LogAgent) agentFactory.createAgent(LogAgent.class,
-					logAgentId);
+			agent = (LogAgent) agentHost
+					.createAgent(LogAgent.class, logAgentId);
 		}
 		return agent.getLogs(since);
 	}
@@ -53,5 +54,4 @@ public class EventLogger {
 		return "_logagent_" + agentId;
 	}
 	
-	private AgentHost	agentFactory	= null;
 }

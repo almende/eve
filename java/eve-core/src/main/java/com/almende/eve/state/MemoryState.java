@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <b>Warning, this implementation is not thread-safe!</b>
  * 
  * Usage:<br>
- *     AgentFactory factory = new AgentFactory(config);<br>
+ *     AgentHost factory = AgentHost.getInstance(config);<br>
  *     FileState state = new State("agentId");<br>
  *     state.put("key", "value");<br>
  *     System.out.println(state.get("key")); // "value"<br>

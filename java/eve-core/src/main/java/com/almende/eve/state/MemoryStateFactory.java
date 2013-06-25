@@ -11,8 +11,7 @@ public class MemoryStateFactory implements StateFactory {
 		new ConcurrentHashMap<String, MemoryState>();
 	
 	/**
-	 * This constructor is called when constructed by the AgentFactory
-	 * @param agentFactory
+	 * This constructor is called when constructed by the AgentHost
 	 * @param params
 	 */
 	public MemoryStateFactory (Map<String, Object> params) {}

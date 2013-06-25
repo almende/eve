@@ -55,7 +55,7 @@ public class XmppService implements TransportService {
 	/**
 	 * Construct an XmppService
 	 * This constructor is called when the TransportService is constructed
-	 * by the AgentFactory
+	 * by the AgentHost
 	 * 
 	 * @param params
 	 *            Available parameters:
@@ -64,8 +64,8 @@ public class XmppService implements TransportService {
 	 *            {String} serviceName
 	 *            {String} id
 	 */
-	public XmppService(AgentHost agentFactory, Map<String, Object> params) {
-		this.agentHost = agentFactory;
+	public XmppService(AgentHost agentHost, Map<String, Object> params) {
+		this.agentHost = agentHost;
 		
 		if (params != null) {
 			host = (String) params.get("host");
@@ -84,9 +84,9 @@ public class XmppService implements TransportService {
 	 * @param service
 	 *            service name
 	 */
-	public XmppService(AgentHost agentFactory, String host, Integer port,
+	public XmppService(AgentHost agentHost, String host, Integer port,
 			String service) {
-		this.agentHost = agentFactory;
+		this.agentHost = agentHost;
 		this.host = host;
 		this.port = port;
 		this.service = service;
@@ -245,7 +245,7 @@ public class XmppService implements TransportService {
 		}
 		
 		if (username.indexOf('@') > 0){
-			System.err.println("Warning: Username should not contain a domain! "+username);
+			LOG.warning("Warning: Username should not contain a domain! "+username);
 		}
 		
 		connection.connect(agentId, host, port, service, username, password,

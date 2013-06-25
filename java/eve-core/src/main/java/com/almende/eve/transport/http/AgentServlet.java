@@ -36,8 +36,8 @@ public class AgentServlet extends HttpServlet {
 													.getSimpleName());
 	
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
-	static AgentHost			agentFactory;
-	static HttpService			httpTransport;
+	private static AgentHost	agentHost;
+	private static HttpService	httpTransport;
 	
 	@Override
 	public void init() {
@@ -45,7 +45,7 @@ public class AgentServlet extends HttpServlet {
 			LOG.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		agentFactory = AgentHost.getInstance();
+		agentHost = AgentHost.getInstance();
 		
 		String environment = Config.getEnvironment();
 		String envParam = "environment." + environment + ".servlet_url";
@@ -62,7 +62,7 @@ public class AgentServlet extends HttpServlet {
 					+ "missing in context configuration web.xml.");
 		}
 		httpTransport = new HttpService(servletUrl);
-		agentFactory.addTransportService(httpTransport);
+		agentHost.addTransportService(httpTransport);
 	}
 	
 	enum Handshake {
@@ -171,9 +171,9 @@ public class AgentServlet extends HttpServlet {
 		
 		// check if the agent exists
 		try {
-			if (!agentFactory.hasAgent(agentId)) {
-				resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Agent with id '" + agentId
-						+ "' not found.");
+			if (!agentHost.hasAgent(agentId)) {
+				resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+						"Agent with id '" + agentId + "' not found.");
 				return;
 			}
 		} catch (Exception e) {
@@ -186,7 +186,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
+			if (JSONRPC.hasPrivate(agentHost.getAgent(agentId).getClass())
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -221,13 +221,14 @@ public class AgentServlet extends HttpServlet {
 			}
 			
 			try {
-				List<Log> logs = agentFactory.getEventLogger().getLogs(agentId,
+				List<Log> logs = agentHost.getEventLogger().getLogs(agentId,
 						since);
 				resp.addHeader("Content-type", "application/json");
 				JOM.getInstance().writer().writeValue(resp.getWriter(), logs);
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "", e);
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						e.getMessage());
 			}
 		} else {
 			// load the resource
@@ -263,11 +264,12 @@ public class AgentServlet extends HttpServlet {
 			agentUrl = req.getRequestURI();
 			agentId = httpTransport.getAgentId(agentUrl);
 			if (agentId == null || agentId.isEmpty()) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No agentId found in url.");
+				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+						"No agentId found in url.");
 				return;
 			}
 			
-			if (JSONRPC.hasPrivate(agentFactory.getAgent(agentId).getClass())
+			if (JSONRPC.hasPrivate(agentHost.getAgent(agentId).getClass())
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -284,7 +286,7 @@ public class AgentServlet extends HttpServlet {
 			requestParams.put(Sender.class, senderUrl);
 			
 			// invoke the agent
-			jsonResponse = agentFactory.receive(agentId, jsonRequest,
+			jsonResponse = agentHost.receive(agentId, jsonRequest,
 					requestParams);
 		} catch (Exception err) {
 			// generate JSON error response
@@ -331,20 +333,22 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		if (agentId == null) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No agentId found in url.");
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"No agentId found in url.");
 			return;
 		}
 		if (agentType == null || agentType.isEmpty()) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Query parameter 'type' missing in url.");
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"Query parameter 'type' missing in url.");
 			return;
 		}
 		
 		try {
-			Agent agent = agentFactory.createAgent(agentType, agentId);
+			Agent agent = agentHost.createAgent(agentType, agentId);
 			for (String url : agent.getUrls()) {
 				resp.getWriter().println(url);
 			}
-			agent.signalAgent(new AgentSignal<Void>("destroy",null));
+			agent.signalAgent(new AgentSignal<Void>("destroy", null));
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
@@ -366,12 +370,13 @@ public class AgentServlet extends HttpServlet {
 			return;
 		}
 		if (agentId == null) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No agentId found in url.");
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"No agentId found in url.");
 			return;
 		}
 		
 		try {
-			agentFactory.deleteAgent(agentId);
+			agentHost.deleteAgent(agentId);
 			resp.getWriter().write("Agent " + agentId + " deleted");
 		} catch (Exception e) {
 			throw new ServletException(e);

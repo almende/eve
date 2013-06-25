@@ -122,8 +122,8 @@ public final class JSONRPC {
 		try {
 			CallTuple tuple = NamespaceUtil.get(destination,
 					request.getMethod());
-			Object realDest = tuple.destination;
-			String realMethod = tuple.methodName;
+			Object realDest = tuple.getDestination();
+			String realMethod = tuple.getMethodName();
 			
 			AnnotatedMethod annotatedMethod = getMethod(realDest, realMethod,
 					requestParams, auth);

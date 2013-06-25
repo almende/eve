@@ -89,7 +89,7 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	/**
-	 * Get the shared AgentFactory instance
+	 * Get the shared AgentHost instance
 	 * 
 	 * @return factory Returns the factory instance
 	 */

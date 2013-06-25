@@ -24,17 +24,17 @@ import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AgentConnection {
-	private static final Logger					LOG				= Logger.getLogger(AgentConnection.class
-																		.getCanonicalName());
-	private AgentHost						agentFactory	= null;
-	private String								agentId			= null;
-	private String								username		= null;
-	private String								resource		= null;
-	private XMPPConnection						conn			= null;
-	private AsyncCallbackQueue<JSONResponse>	callbacks		= new AsyncCallbackQueue<JSONResponse>();
+	private static final Logger					LOG			= Logger.getLogger(AgentConnection.class
+																	.getCanonicalName());
+	private AgentHost							agentHost	= null;
+	private String								agentId		= null;
+	private String								username	= null;
+	private String								resource	= null;
+	private XMPPConnection						conn		= null;
+	private AsyncCallbackQueue<JSONResponse>	callbacks	= new AsyncCallbackQueue<JSONResponse>();
 	
-	public AgentConnection(AgentHost agentFactory) {
-		this.agentFactory = agentFactory;
+	public AgentConnection(AgentHost agentHost) {
+		this.agentHost = agentHost;
 	}
 	
 	/**
@@ -93,8 +93,6 @@ public class AgentConnection {
 			// configure and connect
 			ConnectionConfiguration connConfig = new ConnectionConfiguration(
 					host, port, serviceName);
-//			connConfig.setSASLAuthenticationEnabled(false);
-//			connConfig.setSecurityMode(SecurityMode.disabled);
 			
 			connConfig.setSASLAuthenticationEnabled(true);
 			connConfig.setReconnectionAllowed(true);
@@ -119,11 +117,11 @@ public class AgentConnection {
 					Roster.SubscriptionMode.accept_all);
 			
 			// instantiate a packet listener
-			conn.addPacketListener(new JSONRPCListener(conn, agentFactory,
+			conn.addPacketListener(new JSONRPCListener(conn, agentHost,
 					agentId, callbacks), null);
 		} catch (XMPPException e) {
-			LOG.log(Level.WARNING,"",e);
-			throw new JSONRPCException("Failed to connect to messenger",e);
+			LOG.log(Level.WARNING, "", e);
+			throw new JSONRPCException("Failed to connect to messenger", e);
 		}
 	}
 	
@@ -184,14 +182,14 @@ public class AgentConnection {
 	 */
 	private static class JSONRPCListener implements PacketListener {
 		private XMPPConnection						conn			= null;
-		private AgentHost						agentFactory	= null;
+		private AgentHost							host			= null;
 		private String								agentId			= null;
 		private AsyncCallbackQueue<JSONResponse>	callbacks		= null;
 		
-		public JSONRPCListener(XMPPConnection conn, AgentHost agentFactory,
+		public JSONRPCListener(XMPPConnection conn, AgentHost agentHost,
 				String agentId, AsyncCallbackQueue<JSONResponse> callbacks) {
 			this.conn = conn;
-			this.agentFactory = agentFactory;
+			this.host = agentHost;
 			this.agentId = agentId;
 			this.callbacks = callbacks;
 		}
@@ -228,7 +226,7 @@ public class AgentConnection {
 		public void processPacket(Packet packet) {
 			Message message = (Message) packet;
 			String body = message.getBody();
-
+			
 			if (body != null && body.startsWith("{")
 					|| body.trim().startsWith("{")) {
 				// the body contains a JSON object
@@ -258,7 +256,7 @@ public class AgentConnection {
 					// generate JSON error response
 					JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR,
-							e.getMessage(),e);
+							e.getMessage(), e);
 					JSONResponse response = new JSONResponse(jsonError);
 					
 					// send exception as response
@@ -289,7 +287,7 @@ public class AgentConnection {
 						params.put(Sender.class, senderUrl);
 						
 						// invoke the agent
-						response = agentFactory.receive(agentId, request,
+						response = host.receive(agentId, request,
 								params);
 					} catch (Exception err) {
 						// generate JSON error response

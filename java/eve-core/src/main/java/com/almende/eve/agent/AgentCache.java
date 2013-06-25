@@ -12,7 +12,7 @@ public class AgentCache {
 	private static int						maxSize	= 100;
 	private static Map<String, MetaInfo>	cache	= new ConcurrentHashMap<String, MetaInfo>(
 															maxSize);
-	protected static List<MetaInfo>			scores	= new ArrayList<MetaInfo>(
+	private static List<MetaInfo>			scores	= new ArrayList<MetaInfo>(
 															maxSize);
 	
 	/**
@@ -40,7 +40,7 @@ public class AgentCache {
 		MetaInfo result = cache.get(agentId);
 		if (result != null) {
 			result.use();
-			return result.agent;
+			return result.getAgent();
 		}
 		return null;
 	}
@@ -72,7 +72,7 @@ public class AgentCache {
 			}
 			scores = (List<MetaInfo>) scores.subList(amount, scores.size());
 			for (MetaInfo entry : toEvict) {
-				cache.remove(entry.agent.getId());
+				cache.remove(entry.getAgent().getId());
 			}
 		}
 	}
@@ -87,9 +87,9 @@ public class AgentCache {
 }
 
 class MetaInfo implements Comparable<MetaInfo> {
-	Agent	agent;
-	int		count	= 0;
-	long	created;
+	private Agent	agent;
+	private int		count	= 0;
+	private long	created;
 	
 	public MetaInfo(Agent agent) {
 		created = System.currentTimeMillis();
@@ -108,6 +108,14 @@ class MetaInfo implements Comparable<MetaInfo> {
 		return count / getAge();
 	}
 	
+	public Agent getAgent() {
+		return agent;
+	}
+
+	public void setAgent(Agent agent) {
+		this.agent = agent;
+	}
+
 	@Override
 	public int compareTo(MetaInfo o) {
 		return Double.compare(score(), o.score());

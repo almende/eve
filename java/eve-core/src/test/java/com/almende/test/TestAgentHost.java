@@ -10,17 +10,17 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.Test2AgentInterface;
 
-public class TestAgentFactory extends TestCase {
+public class TestAgentHost extends TestCase {
 
 	@Test
 	public void testAgentCall() throws Exception {
 
 		System.err.println(this.getClass().getName() + ":"+this.getClass().getClassLoader().hashCode());
-		AgentHost factory = AgentHost.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
-		factory.setStateFactory(stateFactory);
+		host.setStateFactory(stateFactory);
 		
-		Test2AgentInterface agent = factory.createAgentProxy(null, 
+		Test2AgentInterface agent = host.createAgentProxy(null, 
 				URI.create("local:test"), 
 				Test2AgentInterface.class);
 		
@@ -30,7 +30,7 @@ public class TestAgentFactory extends TestCase {
 		res = agent.multiply(3.1, 4.2);
 		assertEquals(new Double(13.020000000000001),res);
 
-		agent = factory.createAgentProxy(null, 
+		agent = host.createAgentProxy(null, 
 				URI.create("https://localhost:8443/agents/test/"), 
 				Test2AgentInterface.class);
 		

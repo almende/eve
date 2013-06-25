@@ -25,7 +25,7 @@ import com.almende.util.StringUtil;
 public class SingleAgentServlet extends HttpServlet {
 	private static final Logger LOG = Logger.getLogger(SingleAgentServlet.class.getSimpleName());
 	
-	private AgentHost agentFactory = null;
+	private AgentHost agentHost = null;
 	private HttpService httpTransport = null;
 	private String agentId = null;
 	private static final String RESOURCES = "/com/almende/eve/resources/";
@@ -38,7 +38,7 @@ public class SingleAgentServlet extends HttpServlet {
 	public void init() {
 		try {
 			initHttpTransport();
-			initAgentFactory();
+			initAgentHost();
 			initAgent();
 		} catch (Exception e) {
 			LOG.log(Level.WARNING,"",e);
@@ -89,7 +89,7 @@ public class SingleAgentServlet extends HttpServlet {
 			requestParams.put(Sender.class, null);
 
 			// invoke the agent
-			jsonResponse = agentFactory.receive(agentId, jsonRequest, requestParams);
+			jsonResponse = agentHost.receive(agentId, jsonRequest, requestParams);
 		} catch (Exception err) {
 			// generate JSON error response
 			JSONRPCException jsonError = null;
@@ -113,8 +113,7 @@ public class SingleAgentServlet extends HttpServlet {
 	 * initialize the agent factory
 	 * @throws Exception 
 	 */
-	protected void initAgentFactory() {
-		// if the agent factory is not yet loaded, load it from config
+	protected void initAgentHost() {
 		String filename = getInitParameter("config");
 		if (filename == null) {
 			filename = "eve.yaml";
@@ -126,10 +125,9 @@ public class SingleAgentServlet extends HttpServlet {
 		LOG.info("loading configuration file '" + 
 				getServletContext().getRealPath(fullname) + "'...");
 		Config config = new Config(getServletContext().getResourceAsStream(fullname));
-		// TODO: create the agentFactory in a synchronized way
-		agentFactory = AgentHost.getInstance();
-		agentFactory.loadConfig(config);
-		agentFactory.addTransportService(httpTransport);
+		agentHost = AgentHost.getInstance();
+		agentHost.loadConfig(config);
+		agentHost.addTransportService(httpTransport);
 	}
 	
 	/**
@@ -139,10 +137,6 @@ public class SingleAgentServlet extends HttpServlet {
 	 */
 	protected void initHttpTransport () throws InstantiationException {
 		// TODO: one servlet must be able to support multiple servlet_urls
-		
-		// try to read servlet url from init parameter environment.<environment>.servlet_url
-		//String environment = agentFactory.getEnvironment();
-		// TODO: get real environment
 		String environment = "Production"; 
 		String envParam = "environment." + environment + ".servlet_url";
 		String globalParam = "servlet_url";
@@ -181,7 +175,7 @@ public class SingleAgentServlet extends HttpServlet {
 		}
 		
 		// create the agent if it does not yet exist
-		Agent agent = agentFactory.getAgent(agentId);
+		Agent agent = agentHost.getAgent(agentId);
 		if (agent == null) {
 			String agentType = getInitParameter("agentType");
 			if (agentId == null) {
@@ -189,7 +183,7 @@ public class SingleAgentServlet extends HttpServlet {
 						"Init Parameter 'agentClass' missing in servlet configuration web.xml.");
 			}
 			
-			agent = agentFactory.createAgent(agentType, agentId);
+			agent = agentHost.createAgent(agentType, agentId);
 			LOG.info("Agent created: " + agent.toString());
 		}
 

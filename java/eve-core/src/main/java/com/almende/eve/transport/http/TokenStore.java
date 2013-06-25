@@ -22,12 +22,12 @@ import com.almende.eve.state.FileStateFactory;
  * 
  */
 public class TokenStore {
-	static final Logger					LOG		= Logger.getLogger(TokenStore.class
-														.getCanonicalName());
-	static final TokenStore				ME		= new TokenStore();
-	static final int					SIZE	= 5;
-	static Map<String, Serializable>	tokens;
-	static DateTime						last	= DateTime.now();
+	private static final Logger					LOG		= Logger.getLogger(TokenStore.class
+																.getCanonicalName());
+	private static final TokenStore				ME		= new TokenStore();
+	private static final int					SIZE	= 5;
+	private static Map<String, Serializable>	tokens;
+	private static DateTime						last	= DateTime.now();
 	
 	private TokenStore() {
 		FileStateFactory factory = new FileStateFactory(".evecookies");
@@ -82,8 +82,8 @@ public class TokenStore {
 	}
 	
 	class TokenRet {
-		String	token	= null;
-		String	time	= null;
+		private String	token	= null;
+		private String	time	= null;
 		
 		public TokenRet(String token, DateTime time) {
 			this.token = token;

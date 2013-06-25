@@ -506,7 +506,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	public void xmppConnect(@Name("username") String username, 
 			@Name("password") String password) throws Exception {
-		AgentHost factory = getAgentFactory();
+		AgentHost factory = getAgentHost();
 		
 		XmppService service = (XmppService) factory.getTransportService("xmpp");
 		if (service != null) {
@@ -518,7 +518,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void xmppDisconnect() throws Exception {
-		AgentHost factory = getAgentFactory();
+		AgentHost factory = getAgentHost();
 		XmppService service = (XmppService) factory.getTransportService("xmpp");
 		if (service != null) {
 			service.disconnect(getId());
@@ -529,7 +529,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void deleteMySelf() throws Exception {
-		getAgentFactory().deleteAgent(getId());
+		getAgentHost().deleteAgent(getId());
 	}
 	
 	public Double testAgentProxy() {

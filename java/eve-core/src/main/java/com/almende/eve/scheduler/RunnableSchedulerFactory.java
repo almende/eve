@@ -51,18 +51,18 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 																			.getSimpleName());
 	
 	/**
-	 * This constructor is called when constructed by the AgentFactory
+	 * This constructor is called when constructed by the AgentHost
 	 * 
-	 * @param agentFactory
+	 * @param AgentHost
 	 * @param params
 	 */
-	public RunnableSchedulerFactory(AgentHost agentFactory,
+	public RunnableSchedulerFactory(AgentHost agentHost,
 			Map<String, Object> params) {
-		this(agentFactory, (params != null) ? (String) params.get("id") : null);
+		this(agentHost, (params != null) ? (String) params.get("id") : null);
 	}
 	
-	public RunnableSchedulerFactory(AgentHost agentFactory, String id) {
-		this.host = agentFactory;
+	public RunnableSchedulerFactory(AgentHost agentHost, String id) {
+		this.host = agentHost;
 		this.stateId = id;
 		
 		init();

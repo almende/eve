@@ -190,7 +190,7 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// send a trigger to the agent factory
-		myAgent.getAgentFactory().getEventLogger()
+		myAgent.getAgentHost().getEventLogger()
 				.log(myAgent.getId(), event, params);
 		
 		// retrieve subscriptions from the event

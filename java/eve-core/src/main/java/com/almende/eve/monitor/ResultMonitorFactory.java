@@ -256,8 +256,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					CallTuple res = NamespaceUtil.get(myAgent,
 							pushParams.get("method").textValue());
 					
-					ac = AnnotationUtil.get(res.destination.getClass());
-					for (AnnotatedMethod method : ac.getMethods(res.methodName)) {
+					ac = AnnotationUtil.get(res.getDestination().getClass());
+					for (AnnotatedMethod method : ac.getMethods(res.getMethodName())) {
 						EventTriggered annotation = method
 								.getAnnotation(EventTriggered.class);
 						if (annotation != null) {

@@ -27,7 +27,7 @@ public class ManagementAgent extends Agent {
 	 */
 	public List<String> create(@Name("id") String id,
 			@Name("type") String type) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, IOException {
-		Agent agent = getAgentFactory().createAgent(type, id);
+		Agent agent = getAgentHost().createAgent(type, id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
@@ -43,7 +43,7 @@ public class ManagementAgent extends Agent {
 	 * @throws JSONRPCException 
 	 */
 	public void delete(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		getAgentFactory().deleteAgent(id);
+		getAgentHost().deleteAgent(id);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class ManagementAgent extends Agent {
 	 * @throws IOException 
 	 */
 	public List<String> get(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		Agent agent = getAgentFactory().getAgent(id);
+		Agent agent = getAgentHost().getAgent(id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
@@ -77,7 +77,7 @@ public class ManagementAgent extends Agent {
 	 * @throws IOException 
 	 */
 	public boolean exists(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		Agent agent = getAgentFactory().getAgent(id);
+		Agent agent = getAgentHost().getAgent(id);
 		return (agent != null);
 	}
 

@@ -25,22 +25,21 @@ import com.almende.eve.transport.TransportService;
 public class HttpService implements TransportService {
 	private static final Logger	LOG			= Logger.getLogger(HttpService.class
 													.getCanonicalName());
-	protected Config			config		= null;
-	protected String			servletUrl	= null;
-	protected List<String>		protocols	= Arrays.asList("http", "https");
+	private String				servletUrl	= null;
+	private List<String>		protocols	= Arrays.asList("http", "https");
 	
 	public HttpService() {
 	}
 	
 	/**
 	 * Construct an HttpService This constructor is called when the
-	 * TransportService is constructed by the AgentFactory
+	 * TransportService is constructed by the AgentHost
 	 * 
-	 * @param agentFactory
+	 * @param agentHost
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(AgentHost agentFactory, Map<String, Object> params) {
+	public HttpService(AgentHost agentHost, Map<String, Object> params) {
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}
@@ -52,13 +51,10 @@ public class HttpService implements TransportService {
 	 * servlet_url The HttpService will select the parameter based on the
 	 * current environment
 	 * 
-	 * @param agentFactory
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
 	public HttpService(Config config) {
-		// TODO: this seems unimplemented at this time.
-		this.config = config;
 	}
 	
 	/**
@@ -228,7 +224,7 @@ public class HttpService implements TransportService {
 								"UTF-8");
 					}
 				} catch (UnsupportedEncodingException e) {
-					LOG.log(Level.WARNING,"",e);
+					LOG.log(Level.WARNING, "", e);
 				}
 			}
 		}
@@ -302,10 +298,12 @@ public class HttpService implements TransportService {
 	public void reconnect(String agentId) {
 		// Nothing todo at this point
 	}
-
+	
 	@Override
 	public String getKey() {
-		return "http://"+(this.getServletUrl()==null?"outbound":this.getServletUrl());
+		return "http://"
+				+ (this.getServletUrl() == null ? "outbound" : this
+						.getServletUrl());
 	}
 	
 }

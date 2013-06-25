@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *        aditional methods: PutIfNotChanged() and PutAllIfNotChanged().
  * 
  *        Usage:<br>
- *        AgentFactory factory = new AgentFactory(config);<br>
+ *        AgentHost factory = AgentHost.getInstance(config);<br>
  *        ConcurrentFileState state = new
  *        ConcurrentFileState("agentId",".eveagents");<br>
  *        state.put("key", "value");<br>
@@ -55,21 +55,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author ludo
  */
 public class ConcurrentFileState extends FileState {
-	private static final Logger	LOG	= Logger.getLogger("ConcurrentFileState");
+	private static final Logger			LOG			= Logger.getLogger("ConcurrentFileState");
 	
-	protected ConcurrentFileState() {
-	}
+	private boolean						json		= false;
+	private String						filename	= null;
+	private FileChannel					channel		= null;
+	private FileLock					lock		= null;
+	private InputStream					fis			= null;
+	private OutputStream				fos			= null;
+	private ObjectMapper				om			= null;
+	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
 	
-	protected boolean						json		= false;
-	protected String					filename	= null;
-	protected FileChannel					channel		= null;
-	protected FileLock					lock		= null;
-	protected InputStream					fis			= null;
-	protected OutputStream				fos			= null;
-	protected ObjectMapper				om			= null;
-	protected static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
-	
-	protected Map<String, Serializable>	properties	= Collections
+	private Map<String, Serializable>	properties	= Collections
 															.synchronizedMap(new HashMap<String, Serializable>());
 	
 	public ConcurrentFileState(String agentId, String filename) {
@@ -163,8 +160,7 @@ public class ConcurrentFileState extends FileState {
 	 * @throws IOException
 	 */
 	private void write() throws IOException {
-		System.err.println("Writing properties to disk");
-		if (channel != null){
+		if (channel != null) {
 			channel.position(0);
 		}
 		if (json) {
@@ -191,9 +187,8 @@ public class ConcurrentFileState extends FileState {
 	@SuppressWarnings("unchecked")
 	private void _read(boolean retry) throws IOException,
 			ClassNotFoundException {
-		System.err.println("Reading properties from disk, retry:"+retry);
 		try {
-			if (channel != null){
+			if (channel != null) {
 				channel.position(0);
 			}
 			properties.clear();
