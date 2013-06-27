@@ -36,13 +36,14 @@ import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
+import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
 
 public final class AgentHost implements AgentHostInterface {
 	
 	private static final Logger							LOG					= Logger.getLogger(AgentHost.class
 																					.getSimpleName());
-	private static final AgentHost						FACTORY				= new AgentHost();
+	private static final AgentHost						HOST				= new AgentHost();
 	private ConcurrentHashMap<String, TransportService>	transportServices	= new ConcurrentHashMap<String, TransportService>();
 	private StateFactory								stateFactory		= null;
 	private SchedulerFactory							schedulerFactory	= null;
@@ -91,25 +92,25 @@ public final class AgentHost implements AgentHostInterface {
 	/**
 	 * Get the shared AgentHost instance
 	 * 
-	 * @return factory Returns the factory instance
+	 * @return factory Returns the host instance
 	 */
 	public static AgentHost getInstance() {
-		return FACTORY;
+		return HOST;
 	}
 	
 	@Override
 	// TODO: prevent duplication of Services
 	public void loadConfig(Config config) {
-		FACTORY.setConfig(config);
+		HOST.setConfig(config);
 		if (config != null) {
-			AgentCache.configCache(config);
+			ObjectCache.configCache(config);
 			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first,
 			// then the state and transport services, and lastly scheduler.
-			FACTORY.setStateFactory(config);
-			FACTORY.addTransportServices(config);
-			FACTORY.setSchedulerFactory(config);
-			FACTORY.addAgents(config);
+			HOST.setStateFactory(config);
+			HOST.addTransportServices(config);
+			HOST.setSchedulerFactory(config);
+			HOST.addAgents(config);
 		}
 	}
 	
@@ -142,7 +143,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		
 		// Check if agent is instantiated already, returning if it is:
-		Agent agent = AgentCache.get(agentId);
+		Agent agent = ObjectCache.get(agentId,Agent.class);
 		if (agent != null) {
 			return agent;
 		}
@@ -175,7 +176,7 @@ public final class AgentHost implements AgentHostInterface {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			AgentCache.put(agentId, agent);
+			ObjectCache.put(agentId, agent);
 		}
 		
 		return agent;
@@ -202,6 +203,10 @@ public final class AgentHost implements AgentHostInterface {
 					public Object invoke(Object proxy, Method method,
 							Object[] args) throws ProtocolException,
 							JSONRPCException {
+						
+						// TODO: if method calls for Namespace getter, return
+						// new proxy for subtype. All calls to that proxy need
+						// to add namespace to method name for JSON-RPC.
 						JSONRequest request = JSONRPC.createRequest(method,
 								args);
 						JSONResponse response = send(sender, receiverUrl,
@@ -221,7 +226,7 @@ public final class AgentHost implements AgentHostInterface {
 					}
 				});
 		
-		// TODO: for optimization, one can cache the created proxy's
+		// TODO: for optimization, one must cache the created proxy's
 		
 		return proxy;
 	}
@@ -279,7 +284,7 @@ public final class AgentHost implements AgentHostInterface {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			AgentCache.put(agentId, agent);
+			ObjectCache.put(agentId, agent);
 		}
 		
 		return agent;
@@ -315,7 +320,7 @@ public final class AgentHost implements AgentHostInterface {
 				// get the agent and execute the delete method
 				agent.signalAgent(new AgentSignal<Void>("destroy"));
 				agent.signalAgent(new AgentSignal<Void>("delete"));
-				AgentCache.delete(agentId);
+				ObjectCache.delete(agentId);
 				agent = null;
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);
@@ -598,7 +603,7 @@ public final class AgentHost implements AgentHostInterface {
 			return;
 		}
 		this.stateFactory = stateFactory;
-		FACTORY.signalAgents(new AgentSignal<StateFactory>("setStateFactory",
+		HOST.signalAgents(new AgentSignal<StateFactory>("setStateFactory",
 				stateFactory));
 		
 	}
@@ -755,8 +760,8 @@ public final class AgentHost implements AgentHostInterface {
 			transportServices.put(transportService.getKey(), transportService);
 			LOG.info("Registered transport service: "
 					+ transportService.toString());
-			if (FACTORY != null) {
-				FACTORY.signalAgents(new AgentSignal<TransportService>(
+			if (HOST != null) {
+				HOST.signalAgents(new AgentSignal<TransportService>(
 						"addTransportService", transportService));
 			}
 		} else {
@@ -769,7 +774,7 @@ public final class AgentHost implements AgentHostInterface {
 		transportServices.remove(transportService);
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
-		FACTORY.signalAgents(new AgentSignal<TransportService>(
+		HOST.signalAgents(new AgentSignal<TransportService>(
 				"removeTransportService", transportService));
 		
 	}
@@ -815,7 +820,7 @@ public final class AgentHost implements AgentHostInterface {
 			LOG.warning("Replacing earlier schedulerFactory.");
 		}
 		this.schedulerFactory = schedulerFactory;
-		FACTORY.signalAgents(new AgentSignal<SchedulerFactory>(
+		HOST.signalAgents(new AgentSignal<SchedulerFactory>(
 				"setSchedulerFactory", schedulerFactory));
 	}
 	
