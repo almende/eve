@@ -196,9 +196,13 @@ public final class AgentHost implements AgentHostInterface {
 			throw new IllegalArgumentException("agentInterface must extend "
 					+ AgentInterface.class.getName());
 		}
+		T proxy = ObjectCache.get("proxy_"+(sender != null ? sender.getId()+"_":"")+agentInterface, agentInterface);
+		if (proxy != null){
+			return proxy;
+		}
 		
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
-		T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
+		proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					public Object invoke(Object proxy, Method method,
 							Object[] args) throws ProtocolException,
@@ -226,7 +230,7 @@ public final class AgentHost implements AgentHostInterface {
 					}
 				});
 		
-		// TODO: for optimization, one must cache the created proxy's
+		ObjectCache.put("proxy_"+(sender != null ? sender.getId()+"_":"")+agentInterface.getCanonicalName(), proxy);
 		
 		return proxy;
 	}

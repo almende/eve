@@ -12,11 +12,13 @@ public class ObjectCache {
 	private static int						maxSize	= 100;
 	private static Map<String, MetaInfo<?>>	cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
 															maxSize);
-	private static List<MetaInfo<?>>			scores	= new ArrayList<MetaInfo<?>>(
+	private static List<MetaInfo<?>>		scores	= new ArrayList<MetaInfo<?>>(
 															maxSize);
 	
 	/**
-	 * Reinitialize cache, using given configuration. (currently only "ObjectCache"."maxSize" is used from config)
+	 * Reinitialize cache, using given configuration. (currently only
+	 * "ObjectCache"."maxSize" is used from config)
+	 * 
 	 * @param config
 	 */
 	public static void configCache(Config config) {
@@ -32,11 +34,13 @@ public class ObjectCache {
 	}
 	
 	/**
-	 * Get value instance from cache, if exiting. Returns null if no va;ue is stored in cache.
+	 * Get value instance from cache, if exiting. Returns null if no va;ue is
+	 * stored in cache.
+	 * 
 	 * @param agentId
 	 * @return
 	 */
-	public static <T>T get(String agentId, Class<T> type) {
+	public static <T> T get(String agentId, Class<T> type) {
 		MetaInfo<?> result = cache.get(agentId);
 		if (result != null && result.getClass().isAssignableFrom(type)) {
 			result.use();
@@ -46,13 +50,15 @@ public class ObjectCache {
 	}
 	
 	/**
-	 * Put agent instance into the cache from later retrieval. Runs eviction policy after entry of agent.
+	 * Put agent instance into the cache from later retrieval. Runs eviction
+	 * policy after entry of agent.
+	 * 
 	 * @param key
 	 * @param value
 	 */
 	public static <T> void put(String key, T value) {
 		synchronized (cache) {
-			MetaInfo<T> entry = new MetaInfo<T>(key,value);
+			MetaInfo<T> entry = new MetaInfo<T>(key, value);
 			cache.put(key, entry);
 			int overshoot = cache.size() - maxSize;
 			if (overshoot > 0) {
@@ -70,15 +76,17 @@ public class ObjectCache {
 				MetaInfo<?> entry = scores.get(i);
 				toEvict.add(entry);
 			}
-			scores = (List<MetaInfo<?>>) scores.subList(amount, scores.size());
+			scores = (ArrayList<MetaInfo<?>>) scores.subList(amount,
+					scores.size());
 			for (MetaInfo<?> entry : toEvict) {
 				cache.remove(entry.getKey());
 			}
 		}
 	}
 	
-	/** 
+	/**
 	 * Remove specific agent from cache.
+	 * 
 	 * @param key
 	 */
 	public static void delete(String key) {
@@ -86,8 +94,8 @@ public class ObjectCache {
 	}
 }
 
-class MetaInfo<T> implements Comparable<MetaInfo<T>> {
-	private String  key;
+class MetaInfo<T> implements Comparable<MetaInfo<?>> {
+	private String	key;
 	private T		value;
 	private int		count	= 0;
 	private long	created;
@@ -102,7 +110,7 @@ class MetaInfo<T> implements Comparable<MetaInfo<T>> {
 		count++;
 	}
 	
-	public String getKey(){
+	public String getKey() {
 		return this.key;
 	}
 	
@@ -117,13 +125,13 @@ class MetaInfo<T> implements Comparable<MetaInfo<T>> {
 	public T getValue() {
 		return value;
 	}
-
+	
 	public void setValue(T value) {
 		this.value = value;
 	}
-
+	
 	@Override
-	public int compareTo(MetaInfo<T> o) {
+	public int compareTo(MetaInfo<?> o) {
 		return Double.compare(score(), o.score());
 	}
 	
