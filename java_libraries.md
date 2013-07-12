@@ -56,8 +56,7 @@ They can be downloaded at the
   and contains a number of ready-made servlets to host the agents. 
   The core is independent from the deployment platform.
   
-  *Dependencies: 
-
+  *Dependencies:
     commons-codec-1.6.jar,
     commons-logging-1.1.1.jar,
     httpclient-4.2.3.jar,
@@ -70,6 +69,7 @@ They can be downloaded at the
     smack-3.1.0.jar, smackx-3.1.0.jar.
     Also depending on servlet-api.jar, which is automatically included when
     the project is set up as a web project.
+  *
 
 - **eve-gae.jar**
   Library needed for hosting Eve agents on Google App Engine.
