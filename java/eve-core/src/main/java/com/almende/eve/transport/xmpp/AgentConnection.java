@@ -299,7 +299,8 @@ public class AgentConnection {
 					
 					if (response != null) {
 						Message reply = new Message();
-						reply.setTo(senderUrl);
+						String sender = senderUrl.replaceFirst("xmpps?:", "");
+						reply.setTo(sender);
 						reply.setBody(response.toString());
 						conn.sendPacket(reply);
 					}
