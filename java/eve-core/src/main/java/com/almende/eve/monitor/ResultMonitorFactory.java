@@ -238,6 +238,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		ObjectNode wrapper = JOM.createObjectNode();
 		wrapper.put("pushParams", pushParams);
 		
+		System.err.println("Register Push:"+senderUrl);
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
 			JSONRequest request = new JSONRequest("monitor.doPush", wrapper);

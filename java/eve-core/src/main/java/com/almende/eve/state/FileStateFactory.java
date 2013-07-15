@@ -207,7 +207,7 @@ public class FileStateFactory implements StateFactory {
 								+ file.getName());
 					} catch (java.lang.NoClassDefFoundError e){
 						logger.warning("Couldn't check contentType of state file:"
-								+ file.getName());
+								+ file.getName() + " (On Android this is expected)");
 						list.add(file);
 					}
 				}

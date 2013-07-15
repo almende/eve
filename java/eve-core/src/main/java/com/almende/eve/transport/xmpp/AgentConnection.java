@@ -245,7 +245,7 @@ public class AgentConnection {
 						}
 					} else if (isRequest(json)) {
 						// this is a request
-						String senderUrl = message.getFrom();
+						String senderUrl = "xmpp:"+message.getFrom();
 						JSONRequest request = new JSONRequest(json);
 						invoke(senderUrl, request);
 					} else {

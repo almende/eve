@@ -360,7 +360,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * interact with. It can only be instantiated by the factory using the
 	 * method getSchedular(agentId).
 	 */
-	public final class RunnableScheduler implements Scheduler {
+	public final class RunnableScheduler extends AbstractScheduler {
 		private RunnableScheduler(String agentId) {
 			this.agentId = agentId;
 		}
@@ -433,6 +433,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		private String	agentId	= null;
+
+		@Override
+		public void cancelAllTasks() {
+			for (String id: getTasks()){
+				cancelTask(id);
+			}
+		}
 	}
 	
 	/**

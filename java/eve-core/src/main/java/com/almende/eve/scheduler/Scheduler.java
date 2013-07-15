@@ -32,6 +32,12 @@ public interface Scheduler {
 	 */
 	void cancelTask(String id);
 	
+	/**
+	 * Cancel all scheduled tasks
+	 * @param taskId
+	 */
+	void cancelAllTasks();
+	
 
 	/**
 	 * Retrieve a list with all scheduled tasks

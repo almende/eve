@@ -1,12 +1,11 @@
 package com.almende.eve.monitor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.transport.AsyncCallback;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
@@ -44,7 +43,7 @@ public class Push implements ResultMonitorConfigType {
 		return this;
 	}
 	
-	public List<String> init(ResultMonitor monitor, Agent agent) throws IOException, JSONRPCException
+	public void init(ResultMonitor monitor, Agent agent, AsyncCallback<?> callback, Class<?> callbackType) throws IOException, JSONRPCException
 			 {
 		ObjectNode wrapper = JOM.createObjectNode();
 		ObjectNode pushParams = JOM.createObjectNode();
@@ -62,7 +61,8 @@ public class Push implements ResultMonitorConfigType {
 		pushParams.put("params", monitor.getParams());
 		
 		wrapper.put("pushParams", pushParams);
-		List<String> result = new ArrayList<String>();
-		return agent.send(result, monitor.getUrl(), "monitor.registerPush", wrapper);
+
+		System.err.println("Registering push:"+monitor.getUrl());
+		agent.sendAsync(monitor.getUrl(), "monitor.registerPush", wrapper, callback, callbackType);
 	}
 }

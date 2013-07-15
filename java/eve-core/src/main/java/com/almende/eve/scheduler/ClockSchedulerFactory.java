@@ -34,8 +34,7 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	 * @param AgentHost
 	 * @param params
 	 */
-	public ClockSchedulerFactory(AgentHost agentHost,
-			Map<String, Object> params) {
+	public ClockSchedulerFactory(AgentHost agentHost, Map<String, Object> params) {
 		this(agentHost, "");
 	}
 	
@@ -70,7 +69,7 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	}
 }
 
-class ClockScheduler implements Scheduler, Runnable {
+class ClockScheduler extends AbstractScheduler implements Runnable {
 	private static final Logger		LOG		= Logger.getLogger("ClockScheduler");
 	private final Agent				myAgent;
 	private final Clock				myClock;
@@ -87,8 +86,13 @@ class ClockScheduler implements Scheduler, Runnable {
 				.get("_taskList");
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
-			while (task != null && task.isActive()) {
+			int count = 0;
+			while (task != null && task.isActive() && count < 100) {
+				count++;
 				task = timeline.higher(task);
+			}
+			if (count >= 100) {
+				LOG.warning("Oops: more than 100 tasks active at the same time?!?");
 			}
 			return task;
 		}
@@ -147,12 +151,14 @@ class ClockScheduler implements Scheduler, Runnable {
 				}
 			}
 		}
-		if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
-				oldTimeline)) {
-			LOG.severe("need to retry cancelTask...");
-			// recursive retry....
-			cancelTask(id);
-			return;
+		if (timeline != null) {
+			if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
+					oldTimeline)) {
+				LOG.severe("need to retry cancelTask...");
+				// recursive retry....
+				cancelTask(id);
+				return;
+			}
 		}
 	}
 	

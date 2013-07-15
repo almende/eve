@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.transport.AsyncCallback;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -96,13 +97,27 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
-	public void addPush(Push config) {
+	public void addPush(final Push config) {
 		AgentHost factory = AgentHost.getInstance();
-		
+		final ResultMonitor _this = this;
+		List<String> result = new ArrayList<String>();
 		try {
 			Agent agent = factory.getAgent(agentId);
-			List<String> remoteIds = config.init(this, agent);
-			this.remoteIds = remoteIds;
+			config.init(this, agent, new AsyncCallback<List<String>>(){
+
+				@Override
+				public void onSuccess(List<String> result) {
+					_this.remoteIds=result;
+				}
+
+				@Override
+				public void onFailure(Exception exception) {
+					LOG.log(Level.WARNING, "Couldn't init Pushing: "+config.toString());
+					LOG.log(Level.WARNING, "Exception:", exception);
+				}
+				
+			},result.getClass());
+			
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't init Pushing!", e);
 		}
@@ -178,6 +193,30 @@ public class ResultMonitor implements Serializable {
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't find monitor:" + agentId + "."
 					+ id, e);
+		}
+		return null;
+	}
+	
+	public static void cancelAll(String agentId){
+		for (ResultMonitor monitor: getMonitors(agentId).values()){
+			monitor.delete();
+		}
+	}
+	
+	public static Map<String,ResultMonitor> getMonitors(String agentId) {
+		AgentHost factory = AgentHost.getInstance();
+		
+		try {
+			Agent agent = factory.getAgent(agentId);
+			@SuppressWarnings("unchecked")
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
+					.getState().get("_monitors");
+			if (monitors == null) {
+				monitors = new HashMap<String, ResultMonitor>();
+			}
+			return monitors;
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't find monitors.", e);
 		}
 		return null;
 	}

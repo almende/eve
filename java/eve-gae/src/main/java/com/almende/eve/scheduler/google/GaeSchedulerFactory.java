@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.scheduler.AbstractScheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.TwigUtil;
@@ -57,7 +57,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	 * A scheduler for a single agent.
 	 *
 	 */
-	public class AppEngineScheduler implements Scheduler {
+	public class AppEngineScheduler extends AbstractScheduler {
 		/**
 		 * constructor
 		 * @param agentId
