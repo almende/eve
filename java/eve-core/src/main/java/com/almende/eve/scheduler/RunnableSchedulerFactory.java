@@ -161,7 +161,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				this.sequential = sequential;
 			}
 			
-			start(delay);
+			if (interval){
+				start(-1);
+			} else {
+				start(delay);
+			}
 		}
 		
 		/**
@@ -191,7 +195,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						.toDurationMillis();
 			}
 			
-			start(delay);
+			if (interval > 0){
+				start(0);
+			} else {
+				start(delay);
+			}
 		}
 		
 		/**

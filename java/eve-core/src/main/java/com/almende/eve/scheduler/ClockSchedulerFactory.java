@@ -214,7 +214,7 @@ class ClockScheduler extends AbstractScheduler implements Runnable {
 			boolean sequential) {
 		TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request,
 				(interval ? delay : 0), sequential);
-		if (delay <= 0) {
+		if (interval || delay <= 0) {
 			runTask(task);
 		} else {
 			putTask(task);
