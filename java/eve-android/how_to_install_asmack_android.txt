@@ -1,0 +1,10 @@
+The library asmack-android-7.jar is not available in a maven repository. 
+Therefore, this library must be added to your local maven repository.
+The library itself can be found in eve/java/misc/.
+
+To add the library to your local maven repository:
+
+    cd eve/java/
+    
+    mvn install:install-file -Dfile=misc/asmack-android-7.jar -DgroupId=de.measite.smack -DartifactId=asmack-android -Dversion=7 -Dpackaging=jar
+
