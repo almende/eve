@@ -11,6 +11,8 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.TaskAgent;
 import com.almende.eve.config.Config;
 import com.almende.eve.entity.calendar.Authorization;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@Access(AccessType.PUBLIC)
 public class GoogleTaskAgent extends Agent implements TaskAgent {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.almende.eve.state.AbstractState;
 import com.google.appengine.api.memcache.MemcacheService;
@@ -40,6 +41,11 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * @author jos
  */
 public class DatastoreState extends AbstractState {
+	private Map<String, Serializable> properties = new ConcurrentHashMap<String, Serializable>();
+	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+	private IdentifiableValue cacheValue = null;
+	private boolean isChanged = false;
+	
 	public DatastoreState() {}
 
 	public DatastoreState(String agentId) {
@@ -87,7 +93,7 @@ public class DatastoreState extends AbstractState {
 	 * If there is no state stored in both cache and Datastore, an empty
 	 * map with properties is initialized.
 	 */
-	private void refresh() {
+	private void load() {
 		// load from cache
 		boolean success = loadFromCache();
 		if (!success) {
@@ -102,13 +108,38 @@ public class DatastoreState extends AbstractState {
 	
 	/**
 	 * Store changes in the state into memcache, and mark the state as
-	 * changed. The state will be stored in the datastore when the method 
-	 * .destroy() is executed.
+	 * changed. The state will be stored in the datastore after a fixed delay
+	 * or when the method .destroy() is executed.
 	 * @return success    returns true if the change is saved in memcache.
 	 */
-	private boolean update() {
+	private boolean save() {
+		return save(false);
+	}
+	
+	/**
+	 * Store changes in the state into memcache, and mark the state as
+	 * changed. The state will be stored in the datastore after a fixed delay
+	 * or when the method .destroy() is executed.
+	 * @param force       If true, the save method will immediately write
+	 *                    The state to the datastore instead of after a delay.
+	 * @return success    returns true if the change is saved in memcache.
+	 */
+	private boolean save(boolean force) {
+		// save to memcache
 		isChanged = true;
 		boolean success = saveToCache();
+
+		if (force) {
+			// store immediately in the datastore
+			isChanged = false;
+			saveToDatastore();
+		}
+		else {
+			// TODO: (re)implement a mechanism to write to the datastore less often
+			isChanged = false;
+			saveToDatastore();
+		}
+		
 		return success;
 	}
 
@@ -231,17 +262,16 @@ public class DatastoreState extends AbstractState {
 	 * init is executed once before the agent method is invoked
 	 */
 	@Override
-	public synchronized void init() {}
+	public void init() {}
 
 	/**
 	 * If the state is changed, it will be stored in the datastore on destroy. 
 	 */
 	@Override
-	public synchronized void destroy() {
+	public void destroy() {
 		if (isChanged) {
-			refresh();
-			saveToDatastore();
 			isChanged = false;
+			saveToDatastore();
 		}
 	}
 
@@ -252,19 +282,21 @@ public class DatastoreState extends AbstractState {
 		clear();
 		deleteFromCache();
 		deleteFromDatastore();
+
+		isChanged = false;
 	}
 
 	@Override
 	public Serializable get(Object key) {
-		refresh();
+		load();
 		return properties.get(key);
 	}
 
 	@Override
 	public Serializable put(String key, Serializable value) {
-		refresh();
+		load();
 		Serializable ret = properties.put(key, value);
-		boolean success = update();
+		boolean success = save();
 		if (!success) {
 			ret = null;
 		}
@@ -273,67 +305,63 @@ public class DatastoreState extends AbstractState {
 
 	@Override
 	public boolean containsKey(Object key) {
-		refresh();
+		load();
 		return properties.containsKey(key);
 	}
 
 	@Override
 	public Serializable remove(Object key) {
-		refresh();
+		load();
 		Serializable value = properties.remove(key);
-		update();
+		save();
 		return value;
 	}
 
 	@Override
 	public void clear() {
-		refresh();
-
-		isChanged = false;
+		load();
 		properties.clear();
-		
-		deleteFromCache();
-		deleteFromDatastore();
+		save();
 	}
 	
 	@Override
 	public boolean containsValue(Object value) {
-		refresh();
+		load();
 		return properties.containsValue(value);
 	}
 
 	@Override
 	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
-		refresh();
+		load();
 		return properties.entrySet();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		refresh();
+		load();
 		return properties.isEmpty();
 	}
 
 	@Override
 	public Set<String> keySet() {
-		refresh();
+		load();
 		return properties.keySet();
 	}
 
 	@Override
 	public void putAll(Map<? extends String, ? extends Serializable> map) {
-		refresh();
+		load();
 		properties.putAll(map);
-		update();
+		save();
 	}
 
 	@Override
 	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		boolean result=false;
-		refresh();
+		load();
 		if ((oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
 			properties.put(key,newVal);
-			update();
+			save();
 			result=true;
 		}
 		return result;
@@ -341,20 +369,14 @@ public class DatastoreState extends AbstractState {
 	
 	@Override
 	public int size() {
-		refresh();
+		load();
 		return properties.size();
 	}
 
 	@Override
 	public Collection<Serializable> values() {
-		refresh();
+		load();
 		return properties.values();
 	}
-
-	private Map<String, Serializable> properties = new HashMap<String, Serializable>();
-	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-	private IdentifiableValue cacheValue = null;
-	private boolean isChanged = false;
-
 }
 

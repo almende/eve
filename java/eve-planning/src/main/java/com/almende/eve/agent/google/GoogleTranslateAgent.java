@@ -28,10 +28,13 @@ package com.almende.eve.agent.google;
 import java.net.URLEncoder;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.util.HttpUtil;
 
+@Access(AccessType.PUBLIC)
 public class GoogleTranslateAgent extends Agent {
 	static private String TRANSLATE_API_URL = 
 		"https://www.googleapis.com/language/translate/v2";

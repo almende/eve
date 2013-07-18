@@ -14,7 +14,7 @@
 	<description>EVE Google App Engine Demo</description>
 
 	<properties>
-		<appengine.version>1.7.5</appengine.version>
+		<appengine.version>1.8.1.1</appengine.version>
 	</properties>
 
 	<dependencies>

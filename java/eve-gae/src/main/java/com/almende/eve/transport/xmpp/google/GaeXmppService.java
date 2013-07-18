@@ -1,6 +1,7 @@
 package com.almende.eve.transport.xmpp.google;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -124,5 +125,14 @@ public class GaeXmppService implements TransportService {
 	@Override
 	public String getKey() {
 		return host;
+	}
+	
+	@Override
+	public String toString() {
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("class", this.getClass().getName());
+		data.put("host", host);
+		data.put("protocols", protocols);
+		return data.toString();
 	}
 }

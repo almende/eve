@@ -105,6 +105,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@Access(AccessType.PUBLIC)
 public class MeetingAgent extends Agent {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private final int LOOK_AHEAD_DAYS = 7; // number of days to look ahead when

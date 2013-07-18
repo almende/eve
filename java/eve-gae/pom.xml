@@ -17,7 +17,7 @@
 
 	<properties>
 		<twig-persist.version>2.0-rc</twig-persist.version>
-		<appengine.version>1.7.5</appengine.version>
+		<appengine.version>1.8.1.1</appengine.version>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 	</properties>
 
@@ -68,4 +68,5 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
+	
 </project>

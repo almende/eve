@@ -33,6 +33,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.HttpUtil;
@@ -40,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@Access(AccessType.PUBLIC)
 public class GoogleDirectionsAgent extends Agent {
 	static final String DIRECTIONS_SERVICE_URL = 
 		"http://maps.googleapis.com/maps/api/directions/json";

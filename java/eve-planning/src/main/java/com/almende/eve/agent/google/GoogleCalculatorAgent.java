@@ -29,12 +29,15 @@ package com.almende.eve.agent.google;
 import java.net.URLEncoder;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@Access(AccessType.PUBLIC)
 public class GoogleCalculatorAgent extends Agent {
 	static private String CALC_API_URL = "http://www.google.com/ig/calculator";
 
