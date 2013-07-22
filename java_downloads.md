@@ -23,7 +23,7 @@ Core library.
 
     <dependency>
         <groupId>com.almende.eve</groupId>
-        <artifactId>eve</artifactId>
+        <artifactId>eve-core</artifactId>
         <version>{{version}}</version>
     </dependency>
 
