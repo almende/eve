@@ -57,6 +57,10 @@ inside the &lt;web-app&gt; tag:
 		<param-name>config</param-name>
 		<param-value>eve.yaml</param-value>
 	</context-param>
+    <context-param>
+        <param-name>authentication</param-name>
+        <param-value>false</param-value>
+    </context-param>
 	<listener>
 		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
 	</listener>
@@ -94,11 +98,19 @@ The AgentListener supports the following context parameters:
     <tr>
         <td>config</td>
         <td>
-            The context-param `config` points to an eve configuration file
+            The context-param <code>config</code> points to an eve configuration file
             (for example eve.yaml). The configuration file is used by the AgentFactory
             and contains configuration for the state, scheduler, and services.
             The configuration of the AgentFactory is described on the page
             <a href="java_configuration.html">Configuration</a>.
+        </td>
+    </tr>
+    <tr>
+        <td>authentication</td>
+        <td>
+            The parameter <code>authentication</code> is a boolean and is
+            <code>true</code> by default. When authentication is enabled,
+            Eve uses SSL authentication to communicate between agents.
         </td>
     </tr>
 </table>

@@ -328,6 +328,10 @@ Example file: **war/WEB-INF/web.inf**
             <param-name>config</param-name>
             <param-value>eve.yaml</param-value>
         </context-param>
+        <context-param>
+            <param-name>authentication</param-name>
+            <param-value>false</param-value>
+        </context-param>
         <listener>
             <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
         </listener>
@@ -394,6 +398,10 @@ Example file: **war/WEB-INF/web.inf**
             <description>eve configuration (yaml file)</description>
             <param-name>config</param-name>
             <param-value>eve.yaml</param-value>
+        </context-param>
+        <context-param>
+            <param-name>authentication</param-name>
+            <param-value>false</param-value>
         </context-param>
         <listener>
             <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
@@ -466,6 +474,10 @@ Example file: **war/WEB-INF/web.inf**
             <description>eve configuration (yaml file)</description>
             <param-name>config</param-name>
             <param-value>eve.yaml</param-value>
+        </context-param>
+        <context-param>
+            <param-name>authentication</param-name>
+            <param-value>false</param-value>
         </context-param>
         <listener>
             <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
