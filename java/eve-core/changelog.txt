@@ -3,6 +3,10 @@ http://almende.github.com/eve/
 
 2013-05-02, version 1.1.0
 
+- Introduced advanced data monitoring: subscribe to data changes of other agents.
+  Supports both pull and push mechanisms.
+- Built-in agent functionality (like scheduler, events, monitor) is moved to separate 
+  modules (aspects). Namespacing is introduced to address sub modules via JSON RPC.
 - State only accepts Serializable (in most (new) error cases just cast to (Serializable))
 - Authorization model introduced, plus HTTPS support
 - Restart of AgentFactory now informs agents (agent.boot()), default implementation 
@@ -16,7 +20,9 @@ http://almende.github.com/eve/
   always returns JSON format and no String format.
 - All methods in AgentServlet and SingleAgentServlet are now protected instead
   of private, which makes it easier ot extend these servlets.
-- Introduction of "local://"-url support
+- Introduction of "local://" url support, to address agents running on the same host.
+- Stability improvements.
+
 
 2013-03-05, version 1.0.3
 
