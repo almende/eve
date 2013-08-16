@@ -295,6 +295,14 @@ function Controller($scope, $resource) {
         }
         $scope.updateEnableEvents();
 
+        // get id
+        send ('getId', {}, function (err, result) {
+            if (!err) {
+                $scope.id = result;
+                document.title = result;
+            }
+        });
+
         // get urls
         send ('getUrls', {}, function (err, result) {
             if (!err) {
