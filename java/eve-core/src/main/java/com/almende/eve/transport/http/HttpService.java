@@ -1,7 +1,9 @@
 package com.almende.eve.transport.http;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -189,7 +191,11 @@ public class HttpService implements TransportService {
 	@Override
 	public String getAgentUrl(String agentId) {
 		if (servletUrl != null) {
-			return servletUrl + agentId + "/";
+			try {
+				return servletUrl + URLEncoder.encode(agentId,"UTF-8") + "/";
+			} catch (UnsupportedEncodingException e) {
+				return servletUrl + agentId + "/";
+			}
 		} else {
 			return null;
 		}
