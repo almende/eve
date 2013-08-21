@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -137,5 +138,15 @@ public interface ResultMonitorFactoryInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public String store(ResultMonitor monitor);
 	
+	@Access(AccessType.UNAVAILABLE)
+	public void delete(String monitorId);
 	
+	@Access(AccessType.UNAVAILABLE)
+	public void cancelAll();
+
+	@Access(AccessType.UNAVAILABLE)
+	public ResultMonitor getMonitorById(String monitorId);
+	
+	@Access(AccessType.PUBLIC)
+	public Map<String, ResultMonitor> getMonitors();
 }
