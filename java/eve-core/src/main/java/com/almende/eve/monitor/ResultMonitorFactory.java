@@ -5,6 +5,7 @@ import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -292,5 +293,10 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		} catch (Exception e) {
 			LOG.severe("Failed to unsubscribe push:" + e);
 		}
+	}
+	
+	@Access(AccessType.PUBLIC)
+	public final Map<String,ResultMonitor> getMonitors(){
+		return ResultMonitor.getMonitors(myAgent.getId());
 	}
 }
