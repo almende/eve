@@ -30,12 +30,12 @@ public class ResultMonitor implements Serializable {
 	private String								method;
 	private String								params;
 	private String								callbackMethod;
-	private List<String>							schedulerIds		= new ArrayList<String>();
-	private List<String>							remoteIds			= new ArrayList<String>();
+	private List<String>						schedulerIds		= new ArrayList<String>();
+	private List<String>						remoteIds			= new ArrayList<String>();
 	private String								cacheType;
-	
+
 	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
-	
+
 	public ResultMonitor(String agentId, URI url, String method,
 			ObjectNode params, String callbackMethod) {
 		this.id = UUID.randomUUID().toString();
@@ -53,6 +53,17 @@ public class ResultMonitor implements Serializable {
 	public ResultMonitor(String agentId, URI url, String method,
 			ObjectNode params) {
 		this(agentId, url, method, params, null);
+	}
+	
+	public void init(){
+		if (!caches.containsKey(id)
+				&& cacheType != null) {
+			try {
+				addCache((Cache) Class.forName(cacheType).newInstance());
+			} catch (Exception e) {
+				LOG.warning("Couldn't load cache for monitor:"+id+" "+e.getLocalizedMessage());
+			}
+		}
 	}
 	
 	public ResultMonitor add(ResultMonitorConfigType config) {
@@ -121,104 +132,6 @@ public class ResultMonitor implements Serializable {
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't init Pushing!", e);
 		}
-	}
-	
-	public String store() {
-		AgentHost factory = AgentHost.getInstance();
-		
-		try {
-			Agent agent = factory.getAgent(agentId);
-			@SuppressWarnings("unchecked")
-			HashMap<String, ResultMonitor> monitors = (HashMap<String, ResultMonitor>) agent
-					.getState().get("_monitors");
-			HashMap<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
-			if (monitors != null) {
-				newmonitors.putAll(monitors);
-			}
-			newmonitors.put(id, this);
-			if (!agent.getState().putIfUnchanged("_monitors",
-					newmonitors, monitors)) {
-				// recursive retry.
-				store();			}
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't find monitors:" + agentId + "."
-					+ id, e);
-		}
-		return id;
-	}
-	
-	public void delete() {
-		AgentHost factory = AgentHost.getInstance();
-		
-		try {
-			Agent agent = factory.getAgent(agentId);
-			@SuppressWarnings("unchecked")
-			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
-					.getState().get("_monitors");
-			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
-			if (monitors != null) {
-				newmonitors.putAll(monitors);
-			}
-			newmonitors.remove(id);
-			
-			if (!agent.getState().putIfUnchanged("_monitors",
-					(Serializable) newmonitors, (Serializable) monitors)) {
-				// recursive retry.
-				delete(); 
-			}
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't delete monitor:" + agentId + "."
-					+ id, e);
-		}
-	}
-	
-	public static ResultMonitor getMonitorById(String agentId, String id) {
-		AgentHost factory = AgentHost.getInstance();
-		
-		try {
-			Agent agent = factory.getAgent(agentId);
-			@SuppressWarnings("unchecked")
-			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
-					.getState().get("_monitors");
-			if (monitors == null) {
-				monitors = new HashMap<String, ResultMonitor>();
-			}
-			ResultMonitor result = monitors.get(id);
-			if (result != null && !caches.containsKey(id)
-					&& result.cacheType != null) {
-				result.addCache((Cache) Class.forName(result.cacheType)
-						.newInstance());
-			}
-			return result;
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't find monitor:" + agentId + "."
-					+ id, e);
-		}
-		return null;
-	}
-	
-	public static void cancelAll(String agentId){
-		for (ResultMonitor monitor: getMonitors(agentId).values()){
-			monitor.delete();
-		}
-	}
-	
-	public static Map<String,ResultMonitor> getMonitors(String agentId) {
-		AgentHost factory = AgentHost.getInstance();
-		
-		try {
-			Agent agent = factory.getAgent(agentId);
-			@SuppressWarnings("unchecked")
-			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) agent
-					.getState().get("_monitors");
-			if (monitors == null) {
-				monitors = new HashMap<String, ResultMonitor>();
-			}
-			return monitors;
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't find monitors.", e);
-		}
-		return null;
 	}
 	
 	public String getId() {

@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 // Necessary for describe();
 @Access(AccessType.PUBLIC)
-public interface ResultMonitorInterface {
+public interface ResultMonitorFactoryInterface {
 	/**
 	 * Callback method for monitoring framework, doing the work for
 	 * requester-side polling
@@ -132,4 +132,10 @@ public interface ResultMonitorInterface {
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException;
+	
+	
+	@Access(AccessType.UNAVAILABLE)
+	public String store(ResultMonitor monitor);
+	
+	
 }

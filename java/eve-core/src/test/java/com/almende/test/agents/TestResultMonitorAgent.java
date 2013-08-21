@@ -45,7 +45,7 @@ public class TestResultMonitorAgent extends Agent {
 				null, new Push().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("pushKey", monitorID);
 		
-		monitorID = new ResultMonitor(getId(),URI.create("local://bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
+		monitorID = getResultMonitorFactory().store(new ResultMonitor(getId(),URI.create("local://bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache));
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
 		monitorID = getResultMonitorFactory().create(URI.create("local://bob"), "getData", JOM.createObjectNode(),

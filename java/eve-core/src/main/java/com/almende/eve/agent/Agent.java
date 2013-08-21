@@ -48,7 +48,7 @@ import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsFactory;
 import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactory;
-import com.almende.eve.monitor.ResultMonitorInterface;
+import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -70,7 +70,7 @@ public abstract class Agent implements AgentInterface {
 	private AgentHost				agentHost		= null;
 	private State					state			= null;
 	private Scheduler				scheduler		= null;
-	private ResultMonitorInterface	monitorFactory	= null;
+	private ResultMonitorFactoryInterface	monitorFactory	= null;
 	private EventsInterface			eventsFactory	= null;
 	
 	@Access(AccessType.PUBLIC)
@@ -225,7 +225,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Namespace("monitor")
-	public final ResultMonitorInterface getResultMonitorFactory() {
+	public final ResultMonitorFactoryInterface getResultMonitorFactory() {
 		return monitorFactory;
 	}
 	

@@ -9,7 +9,7 @@ import java.util.List;
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsInterface;
-import com.almende.eve.monitor.ResultMonitorInterface;
+import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.jsonrpc.JSONAuthorizor;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -93,7 +93,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * result monitors.
 	 */
 	@Namespace("monitor")
-	ResultMonitorInterface getResultMonitorFactory();
+	ResultMonitorFactoryInterface getResultMonitorFactory();
 	
 	/**
 	 * Get the eventsFactory, which can be used to subscribe and trigger events.

@@ -1,9 +1,11 @@
 package com.almende.eve.monitor;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,9 +33,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-public class ResultMonitorFactory implements ResultMonitorInterface {
-	private static final Logger LOG = Logger.getLogger(ResultMonitorFactory.class.getCanonicalName());
-	private Agent	myAgent	= null;
+public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
+	private static final Logger	LOG		= Logger.getLogger(ResultMonitorFactory.class
+												.getCanonicalName());
+	private Agent				myAgent	= null;
 	
 	public ResultMonitorFactory(Agent agent) {
 		this.myAgent = agent;
@@ -59,7 +62,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		for (ResultMonitorConfigType config : confs) {
 			monitor.add(config);
 		}
-		return monitor.store();
+		return store(monitor);
 	}
 	
 	/**
@@ -72,11 +75,11 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param filterParms
 	 * @param returnType
 	 * @return
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws JSONRPCException
+	 * @throws IOException
 	 */
 	public <T> T getResult(String monitorId, ObjectNode filterParms,
-			Class<T> returnType) throws IOException, JSONRPCException{
+			Class<T> returnType) throws IOException, JSONRPCException {
 		return getResult(monitorId, filterParms, JOM.getTypeFactory()
 				.constructSimpleType(returnType, new JavaType[0]));
 	}
@@ -91,15 +94,14 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param filterParms
 	 * @param returnType
 	 * @return
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws JSONRPCException
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getResult(String monitorId, ObjectNode filterParms,
 			JavaType returnType) throws JSONRPCException, IOException {
 		T result = null;
-		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
-				monitorId);
+		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
 			if (monitor.hasCache() && monitor.getCache() != null
 					&& monitor.getCache().filter(filterParms)) {
@@ -125,8 +127,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	 * @param monitorId
 	 */
 	public void cancel(String monitorId) {
-		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
-				monitorId);
+		ResultMonitor monitor = getMonitorById(monitorId);
 		// TODO: Let the cancelation be managed by the original objects
 		// (Pushes/Polls/Caches, etc.)
 		if (monitor != null) {
@@ -137,20 +138,20 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("pushId", remote);
 				try {
-					myAgent.send(monitor.getUrl(), "monitor.unregisterPush", params);
+					myAgent.send(monitor.getUrl(), "monitor.unregisterPush",
+							params);
 				} catch (Exception e) {
-					LOG.log(Level.WARNING,"Failed to unregister Push",e);
+					LOG.log(Level.WARNING, "Failed to unregister Push", e);
 				}
 			}
 		}
-		monitor.delete();
+		delete(monitor.getId());
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final void doPoll(@Name("monitorId") String monitorId) throws JSONRPCException, IOException
-			{
-		ResultMonitor monitor = ResultMonitor.getMonitorById(myAgent.getId(),
-				monitorId);
+	public final void doPoll(@Name("monitorId") String monitorId)
+			throws JSONRPCException, IOException {
+		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
 			Object result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
 					monitor.getParams(), TypeFactory.unknownType());
@@ -171,8 +172,8 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 	
 	@Access(AccessType.PUBLIC)
 	public final void doPush(@Name("pushParams") ObjectNode pushParams,
-			@Required(false) @Name("triggerParams") ObjectNode triggerParams) throws ProtocolException, JSONRPCException
-			{
+			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
+			throws ProtocolException, JSONRPCException {
 		String method = pushParams.get("method").textValue();
 		ObjectNode params = (ObjectNode) pushParams.get("params");
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
@@ -196,7 +197,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		
 		myAgent.send(URI.create(pushParams.get("url").textValue()),
 				"monitor.callbackPush", parms);
-		//TODO: If callback reports "old", unregisterPush();
+		// TODO: If callback reports "old", unregisterPush();
 	}
 	
 	@Access(AccessType.PUBLIC)
@@ -204,8 +205,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 			@Name("monitorId") String monitorId,
 			@Name("callbackParams") ObjectNode callbackParams) {
 		try {
-			ResultMonitor monitor = ResultMonitor.getMonitorById(
-					myAgent.getId(), monitorId);
+			ResultMonitor monitor = getMonitorById(monitorId);
 			if (monitor != null) {
 				if (monitor.getCallbackMethod() != null) {
 					
@@ -222,12 +222,12 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 					monitor.getCache().store(result);
 				}
 			} else {
-				LOG.severe("Couldn't find local monitor by id:"
-						+ monitorId);
+				LOG.severe("Couldn't find local monitor by id:" + monitorId);
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"Couldn't run local callbackMethod for push!"
-					+ monitorId,e);
+			LOG.log(Level.WARNING,
+					"Couldn't run local callbackMethod for push!" + monitorId,
+					e);
 		}
 	}
 	
@@ -239,7 +239,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		ObjectNode wrapper = JOM.createObjectNode();
 		wrapper.put("pushParams", pushParams);
 		
-		System.err.println("Register Push:"+senderUrl);
+		System.err.println("Register Push:" + senderUrl);
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
 			JSONRequest request = new JSONRequest("monitor.doPush", wrapper);
@@ -248,10 +248,10 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		}
 		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
 			// default
-			String event = "change"; 
+			String event = "change";
 			if (pushParams.has("event")) {
 				// Event param overrules
-				event = pushParams.get("event").textValue(); 
+				event = pushParams.get("event").textValue();
 			} else {
 				AnnotatedClass ac = null;
 				try {
@@ -259,16 +259,18 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 							pushParams.get("method").textValue());
 					
 					ac = AnnotationUtil.get(res.getDestination().getClass());
-					for (AnnotatedMethod method : ac.getMethods(res.getMethodName())) {
+					for (AnnotatedMethod method : ac.getMethods(res
+							.getMethodName())) {
 						EventTriggered annotation = method
 								.getAnnotation(EventTriggered.class);
 						if (annotation != null) {
-							// If no Event param, get it from annotation, else use default.
-							event = annotation.value(); 
+							// If no Event param, get it from annotation, else
+							// use default.
+							event = annotation.value();
 						}
 					}
 				} catch (Exception e) {
-					LOG.log(Level.WARNING,"",e);
+					LOG.log(Level.WARNING, "", e);
 				}
 			}
 			
@@ -277,7 +279,7 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 						.subscribe(myAgent.getFirstUrl(), event,
 								"monitor.doPush", wrapper));
 			} catch (Exception e) {
-				LOG.log(Level.WARNING,"Failed to register push Event",e);
+				LOG.log(Level.WARNING, "Failed to register push Event", e);
 			}
 		}
 		return result;
@@ -295,8 +297,89 @@ public class ResultMonitorFactory implements ResultMonitorInterface {
 		}
 	}
 	
+	public String store(ResultMonitor monitor) {
+		try {
+			@SuppressWarnings("unchecked")
+			HashMap<String, ResultMonitor> monitors = (HashMap<String, ResultMonitor>) myAgent
+					.getState().get("_monitors");
+			HashMap<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
+			if (monitors != null) {
+				newmonitors.putAll(monitors);
+			}
+			newmonitors.put(monitor.getId(), monitor);
+			if (!myAgent.getState().putIfUnchanged("_monitors", newmonitors,
+					monitors)) {
+				// recursive retry.
+				store(monitor);
+			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't find monitors:" + myAgent.getId()
+					+ "." + monitor.getId(), e);
+		}
+		return monitor.getId();
+	}
+	
+	public void delete(String monitorId) {
+		
+		try {
+			@SuppressWarnings("unchecked")
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
+					.getState().get("_monitors");
+			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
+			if (monitors != null) {
+				newmonitors.putAll(monitors);
+			}
+			newmonitors.remove(monitorId);
+			
+			if (!myAgent.getState().putIfUnchanged("_monitors",
+					(Serializable) newmonitors, (Serializable) monitors)) {
+				// recursive retry.
+				delete(monitorId);
+			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't delete monitor:" + myAgent.getId()
+					+ "." + monitorId, e);
+		}
+	}
+	
+	public ResultMonitor getMonitorById(String monitorId) {
+		try {
+			@SuppressWarnings("unchecked")
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
+					.getState().get("_monitors");
+			if (monitors == null) {
+				monitors = new HashMap<String, ResultMonitor>();
+			}
+			ResultMonitor result = monitors.get(monitorId);
+			result.init();
+			return result;
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't find monitor:" + myAgent.getId()
+					+ "." + monitorId, e);
+		}
+		return null;
+	}
+	
+	public void cancelAll() {
+		for (ResultMonitor monitor : getMonitors().values()) {
+			delete(monitor.getId());
+		}
+	}
+	
 	@Access(AccessType.PUBLIC)
-	public final Map<String,ResultMonitor> getMonitors(){
-		return ResultMonitor.getMonitors(myAgent.getId());
+	public Map<String, ResultMonitor> getMonitors() {
+		
+		try {
+			@SuppressWarnings("unchecked")
+			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
+					.getState().get("_monitors");
+			if (monitors == null) {
+				monitors = new HashMap<String, ResultMonitor>();
+			}
+			return monitors;
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't find monitors.", e);
+		}
+		return null;
 	}
 }
