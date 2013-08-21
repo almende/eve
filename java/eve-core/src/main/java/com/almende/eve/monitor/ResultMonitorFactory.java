@@ -38,6 +38,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 												.getCanonicalName());
 	private Agent				myAgent	= null;
 	
+	private static final String MONITORS = "_monitors";
+	
 	public ResultMonitorFactory(Agent agent) {
 		this.myAgent = agent;
 	}
@@ -239,7 +241,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		ObjectNode wrapper = JOM.createObjectNode();
 		wrapper.put("pushParams", pushParams);
 		
-		System.err.println("Register Push:" + senderUrl);
+		LOG.warning("Register Push:" + senderUrl);
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
 			JSONRequest request = new JSONRequest("monitor.doPush", wrapper);
@@ -301,13 +303,13 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		try {
 			@SuppressWarnings("unchecked")
 			HashMap<String, ResultMonitor> monitors = (HashMap<String, ResultMonitor>) myAgent
-					.getState().get("_monitors");
+					.getState().get(MONITORS);
 			HashMap<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
 			}
 			newmonitors.put(monitor.getId(), monitor);
-			if (!myAgent.getState().putIfUnchanged("_monitors", newmonitors,
+			if (!myAgent.getState().putIfUnchanged(MONITORS, newmonitors,
 					monitors)) {
 				// recursive retry.
 				store(monitor);
@@ -324,14 +326,14 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		try {
 			@SuppressWarnings("unchecked")
 			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
-					.getState().get("_monitors");
+					.getState().get(MONITORS);
 			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
 			}
 			newmonitors.remove(monitorId);
 			
-			if (!myAgent.getState().putIfUnchanged("_monitors",
+			if (!myAgent.getState().putIfUnchanged(MONITORS,
 					(Serializable) newmonitors, (Serializable) monitors)) {
 				// recursive retry.
 				delete(monitorId);
@@ -346,7 +348,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		try {
 			@SuppressWarnings("unchecked")
 			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
-					.getState().get("_monitors");
+					.getState().get(MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
@@ -372,7 +374,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		try {
 			@SuppressWarnings("unchecked")
 			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
-					.getState().get("_monitors");
+					.getState().get(MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}

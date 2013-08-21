@@ -169,7 +169,9 @@ public abstract class Agent implements AgentInterface {
 		// TODO: unsubscribe from all subscriptions
 		
 		// cancel all scheduled tasks.
-		Scheduler scheduler = getScheduler();
+		if (scheduler == null){
+			scheduler = getScheduler();
+		}
 		if (scheduler != null) {
 			for (String taskId : scheduler.getTasks()) {
 				scheduler.cancelTask(taskId);

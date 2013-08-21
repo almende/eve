@@ -11,7 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ClassUtil {
+public final class ClassUtil {
+	
+	private ClassUtil(){};
 	/**
 	 * Check if checkClass has implemented interfaceClass
 	 * 

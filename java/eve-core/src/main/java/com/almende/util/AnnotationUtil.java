@@ -51,11 +51,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class AnnotationUtil {
+public final class AnnotationUtil {
+	
+	
 	private static Map<String, AnnotatedClass> cache = 
 			new ConcurrentHashMap<String, AnnotatedClass>();
 	private static Map<String, AnnotatedClass> cacheIncludingObject = 
 			new ConcurrentHashMap<String, AnnotatedClass>();
+	
+	private AnnotationUtil(){};
 	
 	/**
 	 * Get all annotations of a class, methods, and parameters.
@@ -224,7 +228,7 @@ public class AnnotationUtil {
 		private Class<?> returnType = null;
 		private Type genericReturnType = null;
 		private List<Annotation> annotations = new ArrayList<Annotation>();
-		private List<AnnotatedParam> params = new ArrayList<AnnotatedParam>();
+		private List<AnnotatedParam> parameters = new ArrayList<AnnotatedParam>();
 		
 		public AnnotatedMethod(Method method) {
 			this.method = method;
@@ -249,12 +253,12 @@ public class AnnotationUtil {
 			Class<?>[] types = method.getParameterTypes();
 			Type[] genericTypes = method.getGenericParameterTypes();
 			for (int i = 0; i < params.length; i++) {
-				if (i > this.params.size() - 1) {
-					this.params.add(new AnnotatedParam(params[i], types[i], 
+				if (i > this.parameters.size() - 1) {
+					this.parameters.add(new AnnotatedParam(params[i], types[i], 
 							genericTypes[i]));
 				}
 				else {
-					this.params.get(i).merge(params[i]);
+					this.parameters.get(i).merge(params[i]);
 				}
 			}
 		}
@@ -322,7 +326,7 @@ public class AnnotationUtil {
 		 * @return params
 		 */
 		public List<AnnotatedParam> getParams() {
-			return params;
+			return parameters;
 		}
 	}
 	

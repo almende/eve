@@ -8,7 +8,9 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-public class StreamingUtil {
+public final class StreamingUtil {
+	
+	private StreamingUtil(){};
 	
 	/**
 	 * Stream an input stream to a servlet response
@@ -33,7 +35,7 @@ public class StreamingUtil {
 	}
 	
 	
-	static Map<String,String> mimeTypes;
+	private static Map<String,String> mimeTypes;
 	static {
 		mimeTypes = new HashMap<String,String>();
 		mimeTypes.put("pdf","application/pdf");

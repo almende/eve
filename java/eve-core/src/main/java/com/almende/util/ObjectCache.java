@@ -8,12 +8,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.almende.eve.config.Config;
 
-public class ObjectCache {
+public final class ObjectCache {
 	private static int						maxSize	= 100;
 	private static Map<String, MetaInfo<?>>	cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
 															maxSize);
 	private static List<MetaInfo<?>>		scores	= new ArrayList<MetaInfo<?>>(
 															maxSize);
+	
+	private ObjectCache() {
+	};
 	
 	/**
 	 * Reinitialize cache, using given configuration. (currently only
@@ -23,9 +26,9 @@ public class ObjectCache {
 	 */
 	public static void configCache(Config config) {
 		synchronized (cache) {
-			Integer maxSize = config.get("ObjectCache", "maxSize");
-			if (maxSize != null) {
-				ObjectCache.maxSize = maxSize;
+			Integer max = config.get("ObjectCache", "maxSize");
+			if (max != null) {
+				ObjectCache.maxSize = max;
 			}
 			ObjectCache.cache = new ConcurrentHashMap<String, MetaInfo<?>>(
 					ObjectCache.maxSize + 1);

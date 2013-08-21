@@ -1,6 +1,7 @@
 package com.almende.eve.monitor;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -9,6 +10,8 @@ import com.almende.eve.transport.AsyncCallback;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
+	private static final Logger	LOG		= Logger.getLogger(Push.class
+			.getCanonicalName());
 	private int		interval	= -1;
 	private boolean	onEvent		= false;
 	private boolean	onChange	= false;
@@ -62,7 +65,7 @@ public class Push implements ResultMonitorConfigType {
 		
 		wrapper.put("pushParams", pushParams);
 
-		System.err.println("Registering push:"+monitor.getUrl());
+		LOG.warning("Registering push:"+monitor.getUrl());
 		agent.sendAsync(monitor.getUrl(), "monitor.registerPush", wrapper, callback, callbackType);
 	}
 }

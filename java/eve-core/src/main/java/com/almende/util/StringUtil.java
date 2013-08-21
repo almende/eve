@@ -3,7 +3,9 @@ package com.almende.util;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class StringUtil {
+public final class StringUtil {
+	
+	private StringUtil(){};
 	
 	/**
 	 * Convert a stream to a string

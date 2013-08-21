@@ -3,7 +3,6 @@ package com.almende.eve.agent.log;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
@@ -14,6 +13,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 @Access(AccessType.PUBLIC)
 public class LogAgent extends Agent {
 	private static final long	TIMETOLIVE	= 20 * 60 * 1000;	// milliseconds
+	
 															
 	public void log(Log log) {
 		@SuppressWarnings("unchecked")
@@ -110,5 +110,5 @@ public class LogAgent extends Agent {
 		return "0.1";
 	}
 	
-	Logger	logger	= Logger.getLogger(this.getClass().getSimpleName());
+	
 }

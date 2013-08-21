@@ -15,7 +15,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-// Necessary for describe();
 @Access(AccessType.PUBLIC)
 public interface ResultMonitorFactoryInterface {
 	/**
@@ -136,17 +135,17 @@ public interface ResultMonitorFactoryInterface {
 	
 	
 	@Access(AccessType.UNAVAILABLE)
-	public String store(ResultMonitor monitor);
+	String store(ResultMonitor monitor);
 	
 	@Access(AccessType.UNAVAILABLE)
-	public void delete(String monitorId);
+	void delete(String monitorId);
 	
 	@Access(AccessType.UNAVAILABLE)
-	public void cancelAll();
+	void cancelAll();
 
 	@Access(AccessType.UNAVAILABLE)
-	public ResultMonitor getMonitorById(String monitorId);
+	ResultMonitor getMonitorById(String monitorId);
 	
 	@Access(AccessType.PUBLIC)
-	public Map<String, ResultMonitor> getMonitors();
+	Map<String, ResultMonitor> getMonitors();
 }

@@ -27,7 +27,9 @@ import org.jivesoftware.smack.util.Base64;
  * http://docs.oracle.com/javase/1.4.2/docs/guide/security/jce/JCERefGuide.html#PBEEx
  * http://stackoverflow.com/questions/1132567/encrypt-password-in-configuration-files-java
  */
-public class EncryptionUtil {
+public final class EncryptionUtil {
+	
+	private EncryptionUtil(){};
 	// master password
 	// FIXME: do not store the master password in the code
 	private static final char[] P = ("This is our secret master p......d, " +

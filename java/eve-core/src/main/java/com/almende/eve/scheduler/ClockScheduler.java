@@ -21,10 +21,12 @@ import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
-	private static final Logger		LOG		= Logger.getLogger("ClockScheduler");
+	private static final Logger		LOG			= Logger.getLogger("ClockScheduler");
 	private final Agent				myAgent;
 	private final Clock				myClock;
-	private final ClockScheduler	_this	= this;
+	private final ClockScheduler	_this		= this;
+	private static final String		TASKLIST	= "_taskList";
+	private static final int 		MAXCOUNT    = 100;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
 		this.myAgent = myAgent;
@@ -34,15 +36,15 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@SuppressWarnings("unchecked")
 	public TaskEntry getFirstTask() {
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get("_taskList");
+				.get(TASKLIST);
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
 			int count = 0;
-			while (task != null && task.isActive() && count < 100) {
+			while (task != null && task.isActive() && count < MAXCOUNT) {
 				count++;
 				task = timeline.higher(task);
 			}
-			if (count >= 100) {
+			if (count >= MAXCOUNT) {
 				LOG.warning("Oops: more than 100 tasks active at the same time?!?");
 			}
 			return task;
@@ -57,7 +59,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@SuppressWarnings("unchecked")
 	public void putTask(TaskEntry task, boolean onlyIfExists) {
 		Set<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get("_taskList");
+				.get(TASKLIST);
 		Set<TaskEntry> timeline = null;
 		boolean found = false;
 		if (oldTimeline != null) {
@@ -78,7 +80,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			}
 			timeline.add(task);
 		}
-		if (!myAgent.getState().putIfUnchanged("_taskList",
+		if (!myAgent.getState().putIfUnchanged(TASKLIST,
 				(Serializable) timeline, (Serializable) oldTimeline)) {
 			LOG.severe("need to retry putTask...");
 			// recursive retry....
@@ -91,7 +93,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@Override
 	public void cancelTask(String id) {
 		TreeSet<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent
-				.getState().get("_taskList");
+				.getState().get(TASKLIST);
 		TreeSet<TaskEntry> timeline = null;
 		if (oldTimeline != null) {
 			timeline = new TreeSet<TaskEntry>();
@@ -102,14 +104,13 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 				}
 			}
 		}
-		if (timeline != null) {
-			if (!myAgent.getState().putIfUnchanged("_taskList", timeline,
-					oldTimeline)) {
-				LOG.severe("need to retry cancelTask...");
-				// recursive retry....
-				cancelTask(id);
-				return;
-			}
+		if (timeline != null
+				&& !myAgent.getState().putIfUnchanged(TASKLIST, timeline,
+						oldTimeline)) {
+			LOG.severe("need to retry cancelTask...");
+			// recursive retry....
+			cancelTask(id);
+			return;
 		}
 	}
 	
@@ -179,7 +180,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	public Set<String> getTasks() {
 		Set<String> result = new HashSet<String>();
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get("_taskList");
+				.get(TASKLIST);
 		if (timeline == null) {
 			return result;
 		}
@@ -207,7 +208,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	public String toString() {
 		@SuppressWarnings("unchecked")
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get("_taskList");
+				.get(TASKLIST);
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
@@ -324,4 +325,3 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		}
 	}
 }
-

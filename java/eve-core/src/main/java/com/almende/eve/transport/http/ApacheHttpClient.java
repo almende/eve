@@ -65,7 +65,8 @@ public final class ApacheHttpClient {
 		try {
 			httpClient.setCookieStore(new MyCookieStore());
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"Failed to initialize persistent cookieStore!",e);
+			LOG.log(Level.WARNING,
+					"Failed to initialize persistent cookieStore!", e);
 		}
 		HttpParams params = httpClient.getParams();
 		
@@ -90,7 +91,7 @@ public final class ApacheHttpClient {
 		// TODO: make StateFactory and COOKIESTORE config parameters
 		
 		static final String	COOKIESTORE	= "_CookieStore";
-		State				myState		= null;
+		private State		myState		= null;
 		
 		MyCookieStore() throws IOException {
 			FileStateFactory factory = new FileStateFactory(".evecookies");
@@ -134,6 +135,14 @@ public final class ApacheHttpClient {
 		@Override
 		public void clear() {
 			myState.clear();
+		}
+
+		public State getMyState() {
+			return myState;
+		}
+
+		public void setMyState(State myState) {
+			this.myState = myState;
 		}
 	}
 }

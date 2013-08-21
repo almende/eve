@@ -9,9 +9,12 @@ import com.almende.eve.agent.annotation.Namespace;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 
-public class NamespaceUtil {
+public final class NamespaceUtil {
+	
 	private static Map<String, String[]>	cache		= new HashMap<String, String[]>();
 	private static NamespaceUtil			instance	= new NamespaceUtil();
+	
+	private NamespaceUtil(){};
 	
 	public static CallTuple get(Object destination, String path)
 			throws IllegalAccessException, InvocationTargetException,

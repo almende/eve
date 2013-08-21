@@ -11,7 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 
 public class YamlConfig {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	Map<String, Object> config = null;
+	private Map<String, Object> config = null;
 	
 	public YamlConfig() {}
 
