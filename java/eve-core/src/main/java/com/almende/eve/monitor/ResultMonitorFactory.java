@@ -47,9 +47,10 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	/**
 	 * Sets up a monitored RPC call subscription. Conveniency method, which can
 	 * also be expressed as:
-	 * new ResultMonitor(getId(), url,method,params).add(ResultMonitorConfigType
+	 * new ResultMonitor(monitorId, getId(), url,method,params).add(ResultMonitorConfigType
 	 * config).add(ResultMonitorConfigType config).store();
 	 * 
+	 * @param monitorId
 	 * @param url
 	 * @param method
 	 * @param params
@@ -57,9 +58,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	 * @param confs
 	 * @return
 	 */
-	public String create(URI url, String method, ObjectNode params,
+	public String create(String monitorId, URI url, String method, ObjectNode params,
 			String callbackMethod, ResultMonitorConfigType... confs) {
-		ResultMonitor monitor = new ResultMonitor(myAgent.getId(), url, method,
+		ResultMonitor monitor = new ResultMonitor(monitorId, myAgent.getId(), url, method,
 				params, callbackMethod);
 		for (ResultMonitorConfigType config : confs) {
 			monitor.add(config);

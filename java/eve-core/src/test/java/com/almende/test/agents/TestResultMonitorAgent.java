@@ -35,24 +35,24 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void prepare() {
-		String monitorID = getResultMonitorFactory().create(URI.create("local://bob"), "getData",
+		String monitorID = getResultMonitorFactory().create("testMonitor", URI.create("local://bob"), "getData",
 				JOM.createObjectNode(), null, new Poll(1000), new Cache());
 		
 		if (monitorID != null) getState().put("pollKey", monitorID);
 		
 		Cache testCache = new Cache();
-		monitorID = getResultMonitorFactory().create(URI.create("local://bob"), "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("testMonitor 2",URI.create("local://bob"), "getData", JOM.createObjectNode(),
 				null, new Push().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("pushKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().store(new ResultMonitor(getId(),URI.create("local://bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache));
+		monitorID = new ResultMonitor("testMonitor 2", getId(),URI.create("local://bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().create(URI.create("local://bob"), "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("testMonitor 3",URI.create("local://bob"), "getData", JOM.createObjectNode(),
 				"returnRes", new Poll(800), new Poll(1500));
 		if (monitorID != null) getState().put("LazyPollKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().create(URI.create("local://bob"), "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("testMonitor 4",URI.create("local://bob"), "getData", JOM.createObjectNode(),
 				"returnResParm", new Push().onEvent("Go"));
 		if (monitorID != null) getState().put("EventPushKey", monitorID);
 

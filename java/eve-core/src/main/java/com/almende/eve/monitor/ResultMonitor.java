@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,35 +32,51 @@ public class ResultMonitor implements Serializable {
 	private List<String>						schedulerIds		= new ArrayList<String>();
 	private List<String>						remoteIds			= new ArrayList<String>();
 	private String								cacheType;
-
+	
 	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
-
-	public ResultMonitor(String agentId, URI url, String method,
+	private transient Agent						myAgent				= null;
+	
+	public ResultMonitor(String id, String agentId, URI url, String method,
 			ObjectNode params, String callbackMethod) {
-		this.id = UUID.randomUUID().toString();
+		this.id = id;
 		this.agentId = agentId;
 		this.url = url;
 		this.method = method;
 		try {
 			this.params = JOM.getInstance().writeValueAsString(params);
 		} catch (JsonProcessingException e) {
-			LOG.log(Level.SEVERE,"Failed to process params.",e);
+			LOG.log(Level.SEVERE, "Failed to process params.", e);
 		}
 		this.callbackMethod = callbackMethod;
+		loadAgent();
 	}
 	
-	public ResultMonitor(String agentId, URI url, String method,
+	public final void loadAgent() {
+		if (myAgent == null) {
+			AgentHost factory = AgentHost.getInstance();
+			
+			try {
+				myAgent = factory.getAgent(agentId);
+			} catch (Exception e) {
+				LOG.severe("Couldn't load agent of ResultMonitor."
+						+ e.getLocalizedMessage());
+			}
+		}
+	}
+	
+	public ResultMonitor(String id, String agentId, URI url, String method,
 			ObjectNode params) {
-		this(agentId, url, method, params, null);
+		this(id, agentId, url, method, params, null);
 	}
 	
-	public void init(){
-		if (!caches.containsKey(id)
-				&& cacheType != null) {
+	public void init() {
+		loadAgent();
+		if (!caches.containsKey(id) && cacheType != null) {
 			try {
 				addCache((Cache) Class.forName(cacheType).newInstance());
 			} catch (Exception e) {
-				LOG.warning("Couldn't load cache for monitor:"+id+" "+e.getLocalizedMessage());
+				LOG.warning("Couldn't load cache for monitor:" + id + " "
+						+ e.getLocalizedMessage());
 			}
 		}
 	}
@@ -97,115 +112,121 @@ public class ResultMonitor implements Serializable {
 	}
 	
 	public void addPoll(Poll config) {
-		AgentHost factory = AgentHost.getInstance();
-		
-		try {
-			Agent agent = factory.getAgent(agentId);
-			String taskId = config.init(this, agent);
-			schedulerIds.add(taskId);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't init polling!", e);
-		}
+		loadAgent();
+		String taskId = config.init(this, myAgent);
+		schedulerIds.add(taskId);
 	}
 	
 	public void addPush(final Push config) {
-		AgentHost factory = AgentHost.getInstance();
+		loadAgent();
 		final ResultMonitor _this = this;
 		List<String> result = new ArrayList<String>();
 		try {
-			Agent agent = factory.getAgent(agentId);
-			config.init(this, agent, new AsyncCallback<List<String>>(){
-
+			config.init(this, myAgent, new AsyncCallback<List<String>>() {
+				
 				@Override
 				public void onSuccess(List<String> result) {
-					_this.remoteIds=result;
+					_this.remoteIds = result;
 				}
-
+				
 				@Override
 				public void onFailure(Exception exception) {
-					LOG.log(Level.WARNING, "Couldn't init Pushing: "+config.toString());
+					LOG.log(Level.WARNING,
+							"Couldn't init Pushing: " + config.toString());
 					LOG.log(Level.WARNING, "Exception:", exception);
 				}
 				
-			},result.getClass());
-			
+			}, result.getClass());
 		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't init Pushing!", e);
+			LOG.warning("Couldn't init Pushing:" + e);
 		}
+	}
+	
+	/**
+	 * Conveniency method to store ResultMonitor, equivalent to
+	 * ResultMonitorFactory.store(this);
+	 * 
+	 * @return MonitorId
+	 */
+	public String store() {
+		loadAgent();
+		ResultMonitorFactoryInterface factory = myAgent
+				.getResultMonitorFactory();
+		return factory.store(this);
 	}
 	
 	public String getId() {
 		return id;
 	}
-
+	
 	public void setId(String id) {
 		this.id = id;
 	}
-
+	
 	public String getAgentId() {
 		return agentId;
 	}
-
+	
 	public void setAgentId(String agentId) {
 		this.agentId = agentId;
 	}
-
+	
 	public URI getUrl() {
 		return url;
 	}
-
+	
 	public void setUrl(URI url) {
 		this.url = url;
 	}
-
+	
 	public String getMethod() {
 		return method;
 	}
-
+	
 	public void setMethod(String method) {
 		this.method = method;
 	}
-
+	
 	public JsonNode getParams() throws IOException {
 		return JOM.getInstance().readTree(params);
 	}
-
+	
 	public void setParams(String params) {
 		this.params = params;
 	}
-
+	
 	public String getCallbackMethod() {
 		return callbackMethod;
 	}
-
+	
 	public void setCallbackMethod(String callbackMethod) {
 		this.callbackMethod = callbackMethod;
 	}
-
+	
 	public List<String> getSchedulerIds() {
 		return schedulerIds;
 	}
-
+	
 	public void setSchedulerIds(List<String> schedulerIds) {
 		this.schedulerIds = schedulerIds;
 	}
-
+	
 	public List<String> getRemoteIds() {
 		return remoteIds;
 	}
-
+	
 	public void setRemoteIds(List<String> remoteIds) {
 		this.remoteIds = remoteIds;
 	}
-
+	
 	public String getCacheType() {
 		return cacheType;
 	}
-
+	
 	public void setCacheType(String cacheType) {
 		this.cacheType = cacheType;
 	}
-
+	
 	public String toString() {
 		try {
 			return JOM.getInstance().writeValueAsString(this);

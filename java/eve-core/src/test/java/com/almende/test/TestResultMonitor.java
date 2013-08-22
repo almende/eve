@@ -36,7 +36,7 @@ public class TestResultMonitor extends TestCase {
 				true, false);
 		
 		int count = 0;
-		while (count++ < 10) {
+		while (count++ < 20) {
 			Thread.sleep(1000);
 			List<Integer> res = alice.get_result();
 			
