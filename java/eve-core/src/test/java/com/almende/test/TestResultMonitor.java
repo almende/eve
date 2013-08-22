@@ -42,6 +42,7 @@ public class TestResultMonitor extends TestCase {
 			
 			System.out.println(count + " Alice, from Bob:" + res.get(0) + ":"
 					+ res.get(1) + ":" + res.get(2) + ":" + res.get(3));
+			
 		}
 		
 		alice.tear_down();

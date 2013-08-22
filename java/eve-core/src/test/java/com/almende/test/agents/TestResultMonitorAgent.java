@@ -35,24 +35,24 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void prepare() {
-		String monitorID = getResultMonitorFactory().create("testMonitor", URI.create("local://bob"), "getData",
+		String monitorID = getResultMonitorFactory().create("Poll", URI.create("local://bob"), "getData",
 				JOM.createObjectNode(), null, new Poll(1000), new Cache());
 		
-		if (monitorID != null) getState().put("pollKey", monitorID);
+		if (monitorID != null) getState().put("PollKey", monitorID);
 		
 		Cache testCache = new Cache();
-		monitorID = getResultMonitorFactory().create("testMonitor 2",URI.create("local://bob"), "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("Push",URI.create("local://bob"), "getData", JOM.createObjectNode(),
 				null, new Push().onInterval(1000).onChange(), testCache);
-		if (monitorID != null) getState().put("pushKey", monitorID);
+		if (monitorID != null) getState().put("PushKey", monitorID);
 		
-		monitorID = new ResultMonitor("testMonitor 2", getId(),URI.create("local://bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
+		monitorID = new ResultMonitor("LazyPush", getId(),URI.create("local://bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().create("testMonitor 3",URI.create("local://bob"), "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("LazyPoll",URI.create("local://bob"), "getData", JOM.createObjectNode(),
 				"returnRes", new Poll(800), new Poll(1500));
 		if (monitorID != null) getState().put("LazyPollKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().create("testMonitor 4",URI.create("local://bob"), "getData", JOM.createObjectNode(),
+		monitorID = getResultMonitorFactory().create("EventPush",URI.create("local://bob"), "getData", JOM.createObjectNode(),
 				"returnResParm", new Push().onEvent("Go"));
 		if (monitorID != null) getState().put("EventPushKey", monitorID);
 
@@ -70,10 +70,10 @@ public class TestResultMonitorAgent extends Agent {
 			List<Integer> result = new ArrayList<Integer>();
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
-			String monitorID = (String) getState().get("pushKey");
+			String monitorID = (String) getState().get("PushKey");
 			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
-			monitorID = (String) getState().get("pollKey");
+			monitorID = (String) getState().get("PollKey");
 			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
 			monitorID = (String) getState().get("LazyPushKey");

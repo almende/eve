@@ -65,7 +65,7 @@ public class Push implements ResultMonitorConfigType {
 		
 		wrapper.put("pushParams", pushParams);
 
-		LOG.warning("Registering push:"+monitor.getUrl());
+		LOG.info("Registering push:"+monitor.getUrl());
 		agent.sendAsync(monitor.getUrl(), "monitor.registerPush", wrapper, callback, callbackType);
 	}
 }
