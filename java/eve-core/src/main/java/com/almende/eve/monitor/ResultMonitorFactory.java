@@ -239,6 +239,15 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	@Access(AccessType.PUBLIC)
 	public final void registerPush(@Name("pushId") String id,
 			@Name("pushParams") ObjectNode pushParams, @Sender String senderUrl) {
+		
+		if (myAgent.getState().containsKey("_push_" + id)){
+			LOG.warning("reregistration of existing push, canceling old version.");
+			try {
+				unregisterPush(id);
+			} catch (Exception e) {
+				LOG.warning("Failed to unregister push:"+e);
+			}
+		}
 		ObjectNode result = JOM.createObjectNode();
 		
 		pushParams.put("url", senderUrl);
