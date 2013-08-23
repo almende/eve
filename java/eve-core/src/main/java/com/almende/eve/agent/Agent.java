@@ -65,13 +65,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
 public abstract class Agent implements AgentInterface {
-	private static final Logger		LOG				= Logger.getLogger(Agent.class
-															.getCanonicalName());
-	private AgentHost				agentHost		= null;
-	private State					state			= null;
-	private Scheduler				scheduler		= null;
+	private static final Logger				LOG				= Logger.getLogger(Agent.class
+																	.getCanonicalName());
+	private AgentHost						agentHost		= null;
+	private State							state			= null;
+	private Scheduler						scheduler		= null;
 	private ResultMonitorFactoryInterface	monitorFactory	= null;
-	private EventsInterface			eventsFactory	= null;
+	private EventsInterface					eventsFactory	= null;
 	
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
@@ -169,7 +169,7 @@ public abstract class Agent implements AgentInterface {
 		// TODO: unsubscribe from all subscriptions
 		
 		// cancel all scheduled tasks.
-		if (scheduler == null){
+		if (scheduler == null) {
 			scheduler = getScheduler();
 		}
 		if (scheduler != null) {
@@ -216,7 +216,7 @@ public abstract class Agent implements AgentInterface {
 		return agentHost;
 		
 	}
-
+	
 	@Override
 	@Deprecated
 	@Access(AccessType.UNAVAILABLE)
@@ -439,21 +439,34 @@ public abstract class Agent implements AgentInterface {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void onSuccess(JSONResponse response) {
-				Exception err = response.getError();
-				if (err != null) {
-					callback.onFailure(err);
-				}
-				if (type != null && !type.hasRawClass(Void.class)) {
-					callback.onSuccess((T) TypeUtil.inject(type,
-							response.getResult()));
+				if (callback == null) {
+					Exception err = response.getError();
+					if (err != null) {
+						LOG.warning("async RPC call failed, no callback handler available:"
+								+ err.getLocalizedMessage());
+					}
 				} else {
-					callback.onSuccess(null);
+					Exception err = response.getError();
+					if (err != null) {
+						callback.onFailure(err);
+					}
+					if (type != null && !type.hasRawClass(Void.class)) {
+						callback.onSuccess((T) TypeUtil.inject(type,
+								response.getResult()));
+					} else {
+						callback.onSuccess(null);
+					}
 				}
 			}
 			
 			@Override
 			public void onFailure(Exception exception) {
-				callback.onFailure(exception);
+				if (callback == null) {
+					LOG.warning("async RPC call failed, no callback handler available:"
+							+ exception.getLocalizedMessage());
+				} else {
+					callback.onFailure(exception);
+				}
 			}
 		};
 		
