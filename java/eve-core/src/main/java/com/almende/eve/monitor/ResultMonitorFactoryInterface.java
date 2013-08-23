@@ -11,6 +11,7 @@ import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -68,8 +69,10 @@ public interface ResultMonitorFactoryInterface {
 	 * Unregister a Push request, part of the monitoring framework.
 	 * 
 	 * @param id
+	 * @throws IOException 
+	 * @throws JsonProcessingException 
 	 */
-	void unregisterPush(@Name("pushId") String id);
+	void unregisterPush(@Name("pushId") String id) throws JsonProcessingException, IOException;
 	
 	/**
 	 * Sets up a monitored RPC call subscription. Conveniency method, which can

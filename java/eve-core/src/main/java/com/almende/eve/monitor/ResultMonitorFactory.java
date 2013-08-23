@@ -26,6 +26,7 @@ import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -295,9 +296,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final void unregisterPush(@Name("pushId") String id) {
-		ObjectNode config = myAgent.getState().get("_push_" + id,
-				ObjectNode.class);
+	public final void unregisterPush(@Name("pushId") String id) throws JsonProcessingException, IOException {
+		ObjectNode config = (ObjectNode) JOM.getInstance().readTree(myAgent.getState().get("_push_" + id,
+				String.class));
 		if (config == null) {
 			return;
 		}
