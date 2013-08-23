@@ -29,4 +29,18 @@ public class Cache implements ResultMonitorConfigType {
 	public DateTime getStored() {
 		return stored;
 	}
+
+	public void setStored(DateTime stored) {
+		this.stored = stored;
+	}
+	
+	public Object getValue() {
+		return value;
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
+	}
+
+
 }

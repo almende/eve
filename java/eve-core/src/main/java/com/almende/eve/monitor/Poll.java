@@ -37,4 +37,20 @@ public class Poll implements ResultMonitorConfigType {
 				.createTask(request, interval, true, false);
 		monitor.getPolls().add(this);
 	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
 }

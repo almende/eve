@@ -32,9 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-// TODO: Monitor todo: don't communicate local ids on push, but store at remote
-// agent. Only communicate MonitorId and AgentId.
-
 public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	private static final Logger	LOG			= Logger.getLogger(ResultMonitorFactory.class
 													.getCanonicalName());
