@@ -3,7 +3,6 @@ package com.almende.eve.monitor;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.rpc.annotation.Access;
@@ -62,7 +61,7 @@ public interface ResultMonitorFactoryInterface {
 	 * @param senderUrl
 	 * @return
 	 */
-	List<String> registerPush(@Name("params") ObjectNode pushParams,
+	void registerPush(@Name("pushId") String id, @Name("params") ObjectNode pushParams,
 			@Sender String senderUrl);
 	
 	/**

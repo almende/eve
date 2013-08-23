@@ -90,7 +90,7 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void tear_down() {
-		getResultMonitorFactory().cancel((String) getState().get("pushKey"));
+		getResultMonitorFactory().cancel((String) getState().get("PushKey"));
 	}
 	
 	@Override

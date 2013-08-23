@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Cache implements ResultMonitorConfigType {
+	private static final long	serialVersionUID	= 2159298023743341010L;
 	private DateTime	stored	= null;
 	private Object		value	= null;
 	

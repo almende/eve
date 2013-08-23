@@ -1,28 +1,32 @@
 package com.almende.eve.monitor;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.transport.AsyncCallback;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
+	private static final long	serialVersionUID	= -6113822981521869299L;
 	private static final Logger	LOG		= Logger.getLogger(Push.class
 			.getCanonicalName());
+	private String  pushId      = null;
 	private int		interval	= -1;
 	private boolean	onEvent		= false;
 	private boolean	onChange	= false;
 	private String	event		= "";
 	
 	public Push(int interval, boolean onEvent) {
+		this.pushId = UUID.randomUUID().toString();
 		this.interval = interval;
 		this.onEvent = onEvent;
 	}
 	
 	public Push() {
+		this.pushId = UUID.randomUUID().toString();
 	}
 	
 	public Push onInterval(int interval) {
@@ -46,7 +50,7 @@ public class Push implements ResultMonitorConfigType {
 		return this;
 	}
 	
-	public void init(ResultMonitor monitor, Agent agent, AsyncCallback<?> callback, Class<?> callbackType) throws IOException, JSONRPCException
+	public void init(ResultMonitor monitor, Agent agent) throws IOException, JSONRPCException
 			 {
 		ObjectNode wrapper = JOM.createObjectNode();
 		ObjectNode pushParams = JOM.createObjectNode();
@@ -66,6 +70,38 @@ public class Push implements ResultMonitorConfigType {
 		wrapper.put("pushParams", pushParams);
 
 		LOG.info("Registering push:"+monitor.getUrl());
-		agent.sendAsync(monitor.getUrl(), "monitor.registerPush", wrapper, callback, callbackType);
+		wrapper.put("pushId", pushId);
+
+		monitor.getPushes().add(this);
+		agent.sendAsync(monitor.getUrl(), "monitor.registerPush", wrapper,null,Void.class);
+	}
+	public void cancel(ResultMonitor monitor, Agent agent) throws IOException, JSONRPCException{
+		ObjectNode params = JOM.createObjectNode();
+		params.put("pushId",pushId);
+		agent.sendAsync(monitor.getUrl(), "monitor.unregisterPush", params, null, Void.class);
+	}
+
+	public String getPushId() {
+		return pushId;
+	}
+
+	public void setPushId(String pushId) {
+		this.pushId = pushId;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public String getEvent() {
+		return event;
+	}
+
+	public void setEvent(String event) {
+		this.event = event;
 	}
 }

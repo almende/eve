@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.transport.AsyncCallback;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -29,8 +28,8 @@ public class ResultMonitor implements Serializable {
 	private String								method;
 	private String								params;
 	private String								callbackMethod;
-	private List<String>						schedulerIds		= new ArrayList<String>();
-	private List<String>						remoteIds			= new ArrayList<String>();
+	private List<Poll>							polls				= new ArrayList<Poll>();
+	private List<Push>							pushes				= new ArrayList<Push>();
 	private String								cacheType;
 	
 	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
@@ -113,32 +112,16 @@ public class ResultMonitor implements Serializable {
 	
 	public void addPoll(Poll config) {
 		loadAgent();
-		String taskId = config.init(this, myAgent);
-		schedulerIds.add(taskId);
+		config.init(this, myAgent);
+		polls.add(config);
 	}
 	
 	public void addPush(final Push config) {
 		loadAgent();
-		final ResultMonitor _this = this;
-		List<String> result = new ArrayList<String>();
 		try {
-			config.init(this, myAgent, new AsyncCallback<List<String>>() {
-				
-				@Override
-				public void onSuccess(List<String> result) {
-					_this.remoteIds = result;
-				}
-				
-				@Override
-				public void onFailure(Exception exception) {
-					LOG.log(Level.WARNING,
-							"Couldn't init Pushing: " + config.toString());
-					LOG.log(Level.WARNING, "Exception:", exception);
-				}
-				
-			}, result.getClass());
+			config.init(this, myAgent);
 		} catch (Exception e) {
-			LOG.warning("Couldn't init Pushing:" + e);
+			LOG.warning("Failed to register push:" + e);
 		}
 	}
 	
@@ -203,20 +186,20 @@ public class ResultMonitor implements Serializable {
 		this.callbackMethod = callbackMethod;
 	}
 	
-	public List<String> getSchedulerIds() {
-		return schedulerIds;
+	public List<Poll> getPolls() {
+		return polls;
 	}
 	
-	public void setSchedulerIds(List<String> schedulerIds) {
-		this.schedulerIds = schedulerIds;
+	public void setPolls(List<Poll> polls) {
+		this.polls = polls;
 	}
 	
-	public List<String> getRemoteIds() {
-		return remoteIds;
+	public List<Push> getPushes() {
+		return pushes;
 	}
 	
-	public void setRemoteIds(List<String> remoteIds) {
-		this.remoteIds = remoteIds;
+	public void setPushes(List<Push> pushes) {
+		this.pushes = pushes;
 	}
 	
 	public String getCacheType() {

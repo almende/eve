@@ -1,5 +1,7 @@
 package com.almende.eve.monitor;
 
-public interface ResultMonitorConfigType {
+import java.io.Serializable;
+
+public interface ResultMonitorConfigType extends Serializable {
 	
 }

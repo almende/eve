@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.ProtocolException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,12 +31,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+// TODO: Monitor todo: don't communicate local ids on push, but store at remote
+// agent. Only communicate MonitorId and AgentId.
+
 public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
-	private static final Logger	LOG		= Logger.getLogger(ResultMonitorFactory.class
-												.getCanonicalName());
-	private Agent				myAgent	= null;
+	private static final Logger	LOG			= Logger.getLogger(ResultMonitorFactory.class
+													.getCanonicalName());
+	private Agent				myAgent		= null;
 	
-	private static final String MONITORS = "_monitors";
+	private static final String	MONITORS	= "_monitors";
 	
 	public ResultMonitorFactory(Agent agent) {
 		this.myAgent = agent;
@@ -47,7 +48,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	/**
 	 * Sets up a monitored RPC call subscription. Conveniency method, which can
 	 * also be expressed as:
-	 * new ResultMonitor(monitorId, getId(), url,method,params).add(ResultMonitorConfigType
+	 * new ResultMonitor(monitorId, getId(),
+	 * url,method,params).add(ResultMonitorConfigType
 	 * config).add(ResultMonitorConfigType config).store();
 	 * 
 	 * @param monitorId
@@ -58,10 +60,11 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	 * @param confs
 	 * @return
 	 */
-	public String create(String monitorId, URI url, String method, ObjectNode params,
-			String callbackMethod, ResultMonitorConfigType... confs) {
-		ResultMonitor monitor = new ResultMonitor(monitorId, myAgent.getId(), url, method,
-				params, callbackMethod);
+	public String create(String monitorId, URI url, String method,
+			ObjectNode params, String callbackMethod,
+			ResultMonitorConfigType... confs) {
+		ResultMonitor monitor = new ResultMonitor(monitorId, myAgent.getId(),
+				url, method, params, callbackMethod);
 		for (ResultMonitorConfigType config : confs) {
 			monitor.add(config);
 		}
@@ -131,24 +134,22 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	 */
 	public void cancel(String monitorId) {
 		ResultMonitor monitor = getMonitorById(monitorId);
-		// TODO: Let the cancelation be managed by the original objects
-		// (Pushes/Polls/Caches, etc.)
 		if (monitor != null) {
-			for (String task : monitor.getSchedulerIds()) {
-				myAgent.getScheduler().cancelTask(task);
+			for (Poll poll : monitor.getPolls()) {
+				poll.cancel(monitor, myAgent);
 			}
-			for (String remote : monitor.getRemoteIds()) {
-				ObjectNode params = JOM.createObjectNode();
-				params.put("pushId", remote);
+			for (Push push : monitor.getPushes()) {
 				try {
-					myAgent.send(monitor.getUrl(), "monitor.unregisterPush",
-							params);
+					push.cancel(monitor, myAgent);
 				} catch (Exception e) {
-					LOG.log(Level.WARNING, "Failed to unregister Push", e);
+					LOG.warning("Failed to cancel push:"
+							+ e.getLocalizedMessage());
 				}
 			}
+			delete(monitor.getId());
+		} else {
+			LOG.warning("Trying to cancel non existing monitor:"+myAgent.getId()+"."+monitorId);
 		}
-		delete(monitor.getId());
 	}
 	
 	@Access(AccessType.PUBLIC)
@@ -235,19 +236,22 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final List<String> registerPush(
+	public final void registerPush(@Name("pushId") String id,
 			@Name("pushParams") ObjectNode pushParams, @Sender String senderUrl) {
-		List<String> result = new ArrayList<String>();
+		ObjectNode result = JOM.createObjectNode();
+		
 		pushParams.put("url", senderUrl);
 		ObjectNode wrapper = JOM.createObjectNode();
 		wrapper.put("pushParams", pushParams);
 		
-		LOG.info("Register Push:" + senderUrl);
+		LOG.info("Register Push:" + senderUrl + " id:" + id);
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
 			JSONRequest request = new JSONRequest("monitor.doPush", wrapper);
-			result.add(myAgent.getScheduler().createTask(request, interval,
-					true, false));
+			result.put(
+					"taskId",
+					myAgent.getScheduler().createTask(request, interval, true,
+							false));
 		}
 		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
 			// default
@@ -278,25 +282,36 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			}
 			
 			try {
-				result.add(myAgent.getEventsFactory()
-						.subscribe(myAgent.getFirstUrl(), event,
-								"monitor.doPush", wrapper));
+				result.put(
+						"subscriptionId",
+						myAgent.getEventsFactory().subscribe(
+								myAgent.getFirstUrl(), event, "monitor.doPush",
+								wrapper));
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "Failed to register push Event", e);
 			}
 		}
-		return result;
+		myAgent.getState().put("_push_" + id, result.toString());
 	}
 	
 	@Access(AccessType.PUBLIC)
 	public final void unregisterPush(@Name("pushId") String id) {
-		// Just assume that id is either a taskId or an Event subscription Id.
-		// Both allow unknown ids, Postel's law rules!
-		myAgent.getScheduler().cancelTask(id);
-		try {
-			myAgent.getEventsFactory().unsubscribe(myAgent.getFirstUrl(), id);
-		} catch (Exception e) {
-			LOG.severe("Failed to unsubscribe push:" + e);
+		ObjectNode config = myAgent.getState().get("_push_" + id,
+				ObjectNode.class);
+		if (config == null) {
+			return;
+		}
+		if (config.has("taskId")) {
+			String taskId = config.get("taskId").textValue();
+			myAgent.getScheduler().cancelTask(taskId);
+		}
+		if (config.has("subscriptionId")) {
+			try {
+				myAgent.getEventsFactory().unsubscribe(myAgent.getFirstUrl(),
+						config.get("subscriptionId").textValue());
+			} catch (Exception e) {
+				LOG.severe("Failed to unsubscribe push:" + e);
+			}
 		}
 	}
 	
@@ -354,7 +369,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
 			ResultMonitor result = monitors.get(monitorId);
-			result.init();
+			if (result != null){
+				result.init();
+			}
 			return result;
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't find monitor:" + myAgent.getId()
