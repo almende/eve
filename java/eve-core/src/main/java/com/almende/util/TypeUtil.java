@@ -68,7 +68,7 @@ public class TypeUtil<T> {
 				}
 			} else {
 				LOG.log(Level.WARNING,
-						"Can't update object with non-JSON value.");
+						"Can't update object with non-JSON value, returning casted value.");
 				return inject(ret.getClass().getGenericSuperclass(), value);
 			}
 		}
