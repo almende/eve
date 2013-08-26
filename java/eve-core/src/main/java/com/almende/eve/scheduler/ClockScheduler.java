@@ -115,27 +115,28 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public void runTask(final TaskEntry task) {
-		if (task.getInterval() <= 0) {
-			// Remove from list
-			cancelTask(task.getTaskId());
-		} else {
-			if (!task.isSequential()) {
-				task.setDue(DateTime.now().plus(task.getInterval()));
-			} else {
-				task.setActive(true);
-			}
-			_this.putTask(task, true);
-			_this.run();
-		}
 		myClock.runInPool(new Runnable() {
 			@Override
 			public void run() {
 				try {
+					if (task.getInterval() <= 0) {
+						// Remove from list
+						cancelTask(task.getTaskId());
+					} else {
+						if (!task.isSequential()) {
+							task.setDue(DateTime.now().plus(task.getInterval()));
+						} else {
+							task.setActive(true);
+						}
+						_this.putTask(task, true);
+						_this.run();
+					}
 					
 					RequestParams params = new RequestParams();
 					String senderUrl = "local://" + myAgent.getId();
 					params.put(Sender.class, senderUrl);
 					
+					//Next call is potentially long duration:
 					JSONResponse resp = myAgent.getAgentHost().receive(
 							myAgent.getId(), task.getRequest(), params);
 					

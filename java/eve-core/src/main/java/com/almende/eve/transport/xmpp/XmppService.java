@@ -389,7 +389,7 @@ public class XmppService implements TransportService {
 			// TODO: use an anonymous xmpp connection when the sender agent has
 			// no xmpp connection.
 			throw new JSONRPCException("Cannot send an xmpp request, "
-					+ "agent is has no xmpp connection.");
+					+ "agent has no xmpp connection.");
 		}
 	}
 	

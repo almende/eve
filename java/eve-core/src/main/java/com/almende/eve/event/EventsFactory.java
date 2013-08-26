@@ -247,22 +247,24 @@ public class EventsFactory implements EventsInterface {
 		// check if callback already existed, returning existing instead
 		List<Callback> subscriptions = getSubscriptions(event);
 		for (Callback subscription : subscriptions) {
-			if (subscription == null || subscription.getUrl() == null || subscription.getMethod() == null) {
+			if (subscription == null || subscription.getUrl() == null
+					|| subscription.getMethod() == null) {
 				continue;
 			}
-			if (!subscription.getUrl().equals(callbackUrl) || !subscription.getMethod().equals(callbackMethod)){
+			if (!subscription.getUrl().equals(callbackUrl)
+					|| !subscription.getMethod().equals(callbackMethod)) {
 				continue;
 			}
-			if (subscription.getParams() == null){
-				if (params != null){
+			if (subscription.getParams() == null) {
+				if (params != null) {
 					continue;
 				}
 			} else {
-				if (!subscription.getParams().equals(params)){
+				if (!subscription.getParams().equals(params)) {
 					continue;
 				}
 			}
-			//Callback already exists, returning existing callbackId.
+			// Callback already exists, returning existing callbackId.
 			return subscription.getId();
 		}
 		// create new callback
@@ -346,5 +348,21 @@ public class EventsFactory implements EventsInterface {
 			throws ProtocolException, JSONRPCException {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
 		myAgent.send(URI.create(url), method, params);
+	}
+	
+	@Access(AccessType.PUBLIC)
+	public ObjectNode getSubscriptionStats() {
+		ObjectNode result = JOM.createObjectNode();
+		@SuppressWarnings("unchecked")
+		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) myAgent
+				.getState().get(SUBSCRIPTIONS);
+		if (allSubscriptions != null) {
+			result.put("nofSubscriptions", allSubscriptions.values().size());
+			result.put("nofEvents", allSubscriptions.keySet().size());
+		} else {
+			result.put("nofSubscriptions", 0);
+			result.put("nofEvents", 0);
+		}
+		return result;
 	}
 }
