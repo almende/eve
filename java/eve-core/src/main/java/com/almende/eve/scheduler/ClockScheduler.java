@@ -167,22 +167,22 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			boolean sequential) {
 		TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request,
 				(interval ? delay : 0), sequential);
+		putTask(task);
 		if (interval || delay <= 0) {
 			runTask(task);
 		} else {
-			putTask(task);
 			run();
 		}
 		return task.getTaskId();
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Set<String> getTasks() {
 		Set<String> result = new HashSet<String>();
+		@SuppressWarnings("unchecked")
 		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
 				.get(TASKLIST);
-		if (timeline == null) {
+		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
 		for (TaskEntry entry : timeline) {
