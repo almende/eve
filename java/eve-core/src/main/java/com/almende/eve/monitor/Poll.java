@@ -1,5 +1,7 @@
 package com.almende.eve.monitor;
 
+import java.util.logging.Logger;
+
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -7,6 +9,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Poll implements ResultMonitorConfigType {
 	private static final long	serialVersionUID	= 1521097261949700084L;
+	private static final Logger	LOG		= Logger.getLogger(Push.class
+			.getCanonicalName());
+
 	private int					interval;
 	private String				taskId				= null;
 	
@@ -35,6 +40,8 @@ public class Poll implements ResultMonitorConfigType {
 		
 		taskId = agent.getScheduler()
 				.createTask(request, interval, true, false);
+		
+		LOG.info("Poll task created:"+monitor.getUrl());
 		monitor.getPolls().add(this);
 	}
 
