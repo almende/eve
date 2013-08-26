@@ -118,7 +118,7 @@ public class AgentConnection {
 			
 			// instantiate a packet listener
 			conn.addPacketListener(new JSONRPCListener(conn, agentHost,
-					agentId, callbacks), null);
+					agentId, resource, callbacks), null);
 		} catch (XMPPException e) {
 			LOG.log(Level.WARNING, "", e);
 			throw new JSONRPCException("Failed to connect to messenger", e);
@@ -185,13 +185,15 @@ public class AgentConnection {
 		private AgentHost							host			= null;
 		private String								agentId			= null;
 		private AsyncCallbackQueue<JSONResponse>	callbacks		= null;
+		private String								resource		= null;
 		
 		public JSONRPCListener(XMPPConnection conn, AgentHost agentHost,
-				String agentId, AsyncCallbackQueue<JSONResponse> callbacks) {
+				String agentId, String resource, AsyncCallbackQueue<JSONResponse> callbacks) {
 			this.conn = conn;
 			this.host = agentHost;
 			this.agentId = agentId;
 			this.callbacks = callbacks;
+			this.resource = resource;
 		}
 		
 		/**
@@ -225,6 +227,19 @@ public class AgentConnection {
 		 */
 		public void processPacket(Packet packet) {
 			Message message = (Message) packet;
+			
+			//Check if resource is given and matches local resource. If not equal, silently drop packet.
+			String to = message.getTo();
+			if (resource != null && to != null){
+				int index = to.indexOf('/');
+				if (index > 0){
+					String resource = to.substring(index+1);
+					if (!this.resource.equals(resource)){
+						LOG.warning("Received stanza meant for another agent, disregarding.");
+						return;
+					}
+				}
+			}
 			String body = message.getBody();
 			
 			if (body != null && body.startsWith("{")
