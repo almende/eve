@@ -5,12 +5,11 @@ title: Concepts Introduction
 
 # Concepts Introduction {#top}
 
-Eve is a multipurpose, web based agent platform, in which existing web technologies are used. They provide an environment in which software agents can be developed. Eve is defined as an agent model and a communication protocol, which can be implemented in many programming languages en runtime infrastructures. This part of the documentation provides an introduction into these generic elements of Eve.
-
-This page has the following paragraphs:
-- [Agent model](#agentdefinition)
-- [Eve protocol](#protocoldriven)
-- [Open Source](#opensource)
+Eve is a multipurpose, web based agent platform, in which existing web technologies are used.
+They provide an environment in which software agents can be developed.
+Eve is defined as an [agent model](#agentdefinition) and a [communication protocol](#protocoldriven),
+which can be implemented in many programming languages en runtime infrastructures.
+This part of the documentation provides an introduction into these generic elements of Eve.
 
 
 ## Agent model {#agentdefinition}
@@ -23,7 +22,7 @@ For a good understanding of Eve, it is important to look at its concept "Agent".
 Eve provides these features as services to the agents, therefor the implementation of the agent can focus on the domain specific logic and data management.
 
 <img src="/eve/img/eve_agent.png"
-  style="margin-top: 30px;width:75%;margin-left:auto;margin-right:auto;display:block" 
+  style="margin-top: 30px;width:60%;margin-left:auto;margin-right:auto;display:block"
   title="Eve agentmodel infograph">
 
 The main reason for providing a separate memory service to the agents is that, in most implementations, Eve agents have a request based lifecycle. The agent is only instantiated to handle a single incoming request and is destroyed again as soon as the request has been handled. Only the externally stored state is kept between requests. The agent identity is formed by the address of its state, not by an in-memory, running instance of some class. The clock-scheduler service provides requests at scheduled times, thus instantiating the agent at that time.
@@ -45,16 +44,4 @@ Eve is defined by its agent model and its RPC protocol. But the JSON-RPC message
 An important part of any agent platform is its addressing and directory service. In line with maximum reuse of existing protocols and runtime environments, Eve also reuses existing addressing frameworks for its agents: The HTTP transport services assigns a normal public URL for each agent, allowing using normal DNS servers as directory services. Similarly, the XMPP transport uses the JIDs as agent addresses, allowing the server roster to be used as directory service.
 
 In the current implementations Eve is working on servlet based servers (e.g. Google App Engine, Amazon Webservices, etc.), as standalone applications, on mobile devices (e.g. Android) and in-browser, through its Javascript implementation.
-
-## Open source {#opensource}
-
-Eve is an open platform, and it is encouraged to help extending the
-platform by providing new libraries with agents, or create implementations in
-other programming languages, or improve existing code. 
-One of the key issues for the platform to be successful is that it needs to be
-accessible, open, and easy to implement for any developer in any development
-environment. 
-
-Offering the software as open source is a logic result of the aims for 
-openness and collaborative development.
 

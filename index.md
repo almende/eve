@@ -5,20 +5,46 @@ title: Introduction
 
 {% assign version = '1.1.0' %}
 
-#<center>Eve - the open agent platform</center>
-Eve is a multipurpose, web based agent platform.
+#Eve - a web-based agent platform
+
+<!--
+<div style="float: right; margin-left: 20px; border: 1px solid lightgray;">
+    <a href="/eve/img/eve_overview.png" target="_blank">
+        <img src="/eve/img/eve_overview_small.png" alt="schematic overview" title="Click for a larger view">
+    </a>
+</div>
+-->
+
+Eve is a multipurpose, web-based agent platform.
 Eve envisions to be an open and dynamic environment where agents can live and
 act anywhere: in the cloud, on smartphones, on desktops, in browsers, robots,
 home automation devices, and others. The agents communicate with each other using simple, existing protocols
 (JSON-RPC) over existing transport layers (HTTP, XMPP), offering a language and platform agnostic solution.
-[Discover more](global_introduction.html) in the architecture section.
+[Discover more](concepts/introduction.html) in the architecture section.
 
-## Multiple variants
+<div style="text-align: center;">
+    <a href="img/eve_overview.png" target="_blank">
+        <img src="img/eve_overview_small.png" alt="schematic overview" title="Click for a larger view"
+            style="border: 1px solid lightgray;">
+        <br>
+        <i>(click for a larger overview)</i>
+    </a>
 
-Currently there are two main implementations of Eve: A [Java](java_overview.html) version and a [Javascript](nodejs_overview.html) version. The Java version is more mature and has more features available. Ongoing work is done to get the Javascript implementation at the same level and provide other languages as well. Effectively any language that has good library support for JSON-RPC can be used to implement Eve.
+</div>
 
-Due to the current maturity of the Java implementation, this site focusses somewhat exclusively on this version. This is definitely going to change as other implementations getting more mature.
+## Implementations
 
+Effectively, any language that has good library support for JSON-RPC can be used to implement Eve.
+Currently there are two main implementations of Eve:
+
+- A mature and feature rich [Java](implementations/java/introduction.html) version.
+- A [Javascript](implementations/javascript/introduction.html) version in early stage.
+- In the future, implementions in other languages will follow.
+
+There is extensive documenation for each of the implementations available on this website.
+
+
+<!-- TODO: cleanup
 ## Download
 
 The easiest way to get Eve for Java is through Maven:
@@ -32,6 +58,7 @@ The easiest way to get Eve for Java is through Maven:
 
 Eve is entirely open-source (Apache License, version 2.0) so you can also [fork](https://github.com/almende/eve) the project on github.
 Full information on Java downloads can be found on the [Java downloads](java_downloads.html) section.
+-->
 
 ## Why?
 <div class="highlight">
@@ -49,7 +76,20 @@ Eve aims to make it very easy to use the concept of software agents in your proj
 Through it's service-offering architecture, Eve offers agents that are very simple to develop. You can also turn your existing APIs into software agents, allowing your API to be accessed asynchronous, 
 
 
-## About us
+## Open source {#opensource}
+
+Eve is an open platform, and it is encouraged to help extending the
+platform by providing new libraries with agents, or create implementations in
+other programming languages, or improve existing code.
+One of the key issues for the platform to be successful is that it needs to be
+accessible, open, and easy to implement for any developer in any development
+environment.
+
+Offering the software as open source is a logic result of the aims for
+openness and collaborative development.
+
+
+## About us {#about_us}
 
 Eve is being developed by [Almende](http://www.almende.com),
 a Dutch research company specialized in information and communication technologies.

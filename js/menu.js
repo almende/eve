@@ -3,14 +3,14 @@
  http://jasalguero.com/ledld/development/web/expandable-list/
  */
 
-var toggleDuration = 0;
+var loaded = false;
 
 function prepareMenu() {
     $('#menu-tree').find('li:has(ul)')
         .click( function(event) {
             if (this == event.target) {
                 $(this).toggleClass('expanded');
-                $(this).children('ul').toggle(toggleDuration);
+                $(this).children('ul').toggle(loaded ? 400: 0);
 
                 storeExpanded();
 
@@ -22,7 +22,7 @@ function prepareMenu() {
 
     loadExpanded();
 
-    toggleDuration = 400;
+    loaded = true;
 }
 
 // store the expanded menu items in local storage
