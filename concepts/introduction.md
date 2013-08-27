@@ -5,18 +5,18 @@ title: Concepts Introduction
 
 # Concepts Introduction {#top}
 
-Eve is a multipurpose, web based agent platform, in which existing web technologies are used to provide an environment in which software agents can be developed. Eve is defined as an agent model and a communication protocol, which can be implemented in many programming languages en runtime infrastructures. This part of the documentation provides an introduction into these generic elements of Eve, with separate sections dedicated to the existing implementations.
+Eve is a multipurpose, web based agent platform, in which existing web technologies are used. They provide an environment in which software agents can be developed. Eve is defined as an agent model and a communication protocol, which can be implemented in many programming languages en runtime infrastructures. This part of the documentation provides an introduction into these generic elements of Eve.
 
 This page has the following paragraphs:
-- [Agent definition](#agentdefinition)
-- [Protocol driven](#protocoldriven)
+- [Agent model](#agentdefinition)
+- [Eve protocol](#protocoldriven)
 - [Open Source](#opensource)
 
 
-## "Agent" definition {#agentdefinition}
+## Agent model {#agentdefinition}
 
-For a good understanding of Eve, it is important to look at it's concept "Agent". The basic definition of agent is: A software entity that represents existing, external, sometimes abstract, entities. Examples of such entities are: human beings, physical objects, abstract goals, etc. To be able to function, the agent needs to be able to run independently of the entity it represents. This autonomous behavior requires a basic set of features, which Eve provides for its agents. These features are: 
-- **time independence**, own scheduling, independent of the represented entity.
+For a good understanding of Eve, it is important to look at its concept "Agent". The basic definition of agent is: A software entity that represents existing, external, sometimes abstract, entities. Examples of such entities are: human beings, physical objects, abstract goals, etc. To be able to function, the agent needs to be able to run independently of the entity it represents. This autonomous behavior requires a basic set of features, which Eve provides for its agents. These features are: 
+- **time independence**, scheduling, independent of the represented entity.
 - **memory**, the possibility to keep a model of the state of the world
 - **communication**, a common language to communicate between agents
 
@@ -36,7 +36,7 @@ The model has some design constrains that are important to understand: It is pos
 This model mimics the way modern webservers handle servlets, allowing any servlet to become an Eve agent. Out of the box, a single agent (=single state) can therefor execute requests in parallel, multi-threaded, and (depending on the state-implementation) distributed among multiple servers. This model also allows for easier handling of asynchronous agent designs.
 
 
-## Protocol driven {#protocoldriven}
+## Eve protocol {#protocoldriven}
 
 The agent model is based on request driven instantiation. The requests, that trigger this instantiation, are JSON-RPC encoded. In the [Protocol](/eve/concepts/protocol.html) section, this protocol is further defined and described. Using JSON as its base, Eve is highly programming language independent; for most mainstream languages there are existing JSON handling libraries. Any implementation that adheres to the described protocol and basic agent model, is therefor considered an Eve implementation. This high level definition allowed effective reuse of existing tools and protocols in the implementation of Eve. 
 
