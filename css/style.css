@@ -17,24 +17,12 @@ body {
 
 #container {
     margin: 0 auto;
-    width: 900px;
-
-    /* TODO: cleanup
-    height: 100%;
-    */
+    width: 950px;
 }
 
 #menu {
-    width: 150px;
+    width: 200px;
     float: left;
-    text-align: right;
-
-    /* TODO: cleanup
-    height: 100%;
-    position: fixed;
-    overflow-x: hidden;
-    overflow-y: auto;
-    */
 }
 
 #menu-inner {
@@ -42,9 +30,6 @@ body {
 }
 
 #contents {
-    /* TODO: cleanup
-    margin-left: 150px;
-    */
     padding: 50px 25px;
 
     width: 700px;
@@ -79,78 +64,6 @@ th, td {
     text-align: left;
     vertical-align: top;
 }
-
-/*
-ul.nav {
-  text-decoration: none;
-  text-transform: uppercase;
-
-  margin-bottom: 30px;
-  padding-left: 0px;
-}
-li.nav {
-  list-style: none;
-}
-
-ul li.nav {
-  text-decoration: none;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-size: 11pt;
-  color: #F0209B;
-
-  margin-top: 5px;
-}
-
-ul li ul li.nav {
-  text-decoration: none;
-  text-transform: none;
-  font-weight: normal;
-  font-size: 11pt;
-  color: #4D4D4D;
-}
-*/
-
-div.nav ul {
-    text-decoration: none;
-    text-transform: uppercase;
-
-    margin-bottom: 30px;
-    padding-left: 0;
-}
-li.nav {
-
-}
-
-div.nav ul li {
-    text-decoration: none;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 11pt;
-    color: #F0209B;
-
-    list-style: none;
-    margin-top: 5px;
-}
-
-div.nav ul li ul li {
-    text-decoration: none;
-    text-transform: none;
-    font-weight: normal;
-    font-size: 11pt;
-    color: #4D4D4D;
-
-    list-style: none;
-}
-
-a.nav {
-    color: #4D4D4D;
-}
-
-a.nav:hover {
-    color: #BE1F85;
-}
-
 
 table.example {
     border-collapse: collapse;
@@ -194,4 +107,27 @@ div.lastupdate {
 
     border-top: 1px solid #FACAE6;
     color: #F0209B;
+}
+
+
+pre .nt {
+    color: gray;
+}
+
+div.highlight {
+    float:right;
+    width:300px;
+    font-style: italic;
+    font-size: 10pt;
+    text-align: center;
+    border: 1px solid lightgray;
+    background: #f5f5f5;
+    border-radius: 5px;
+    padding: 10px;
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+div.highlight span {
+    font-weight: bold;
 }
