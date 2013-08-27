@@ -3,7 +3,8 @@ layout: default
 title: Getting Started
 ---
 
-{% assign eve_nodejs_package = 'eve-nodejs-0.1' %}
+{% assign eve_nodejs = 'eve-nodejs-0.1.zip' %}
+{% assign eve_nodejs_file = 'files/eve-nodejs-0.1.zip' %}
 
 
 # Getting Started
@@ -29,7 +30,7 @@ and the Eve library must be downloaded.
   There are installers available for Windows, Mac. To install on Linux,
   enter `sudo apt-get install nodejs` in a terminal.
 
-- Download the Eve library [{{eve_nodejs_package}}.zip]({{eve_nodejs_package}}.zip).
+- Download the Eve library for JavaScript, [{{eve_nodejs}}]({{eve_nodejs_file}}).
   Unzip it somewhere on your system.
 
 
