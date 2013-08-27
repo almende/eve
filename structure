@@ -1,0 +1,53 @@
+Eve documentation:
+
+Intro
+	-What is an agent?
+	-What does Eve offer?
+		-Language agnostic through JSON-RPC base
+		-Scheduler
+		-State
+	-Why? Robustness, flexibility, ease of development
+	-Use cases: Anything
+	-Design strategy
+Code samples
+Getting started Guide
+Maven dependency
+Papers/presentations
+Life demo? Screenshots agent management interface...
+Reference/Javadoc
+
+
+Designing robust, distributed software systems is notoriously hard. At the same time, humans are pretty good at distributing work among themselves and forming robust organizations and/or teams. Designing and using software agents is inspired by such human organizations, making software designs fit closer to our collective experience, providing a boost in stability, scalability and maintainability of the software system.
+
+
+
+
+
+
+Home screen:  Wat is het (twee zinnen en een link naar algemeen)
+	      Hoe krijg ik het? (per taal: Java ->mavendependency) (verwijzing naar Github)
+	      Hoe te beginnen? twee zinnen, simpel example, link naar Java introductie sectie
+	      Why? Robustness, flexibility, ease of development
+              Documentatie? Linkjes naar JavaDoc, secties links
+	      Wie zijn we? ALmende
+	      Join community
+	      License/open-source/disclaimer
+
+Algemene introductie:
+	      Agent Structure, services voor vormen van agent
+	      Protocol
+	      Architecture summary?
+	      Comparison
+              Language agnostic?
+	      Reference to papers, download links
+
+Java introductie:
+	      Tutorial, developing a demo
+              Development/design approach -> -Why? Robustness, flexibility, ease of development
+	      JavaDoc
+              Services, monitoring
+	      
+NodeJS introductie:
+	      Overview
+	      getting started
+
