@@ -4,8 +4,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.Namespace;
-import com.almende.eve.rpc.annotation.Access;
-import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.state.State;
 
 /**
@@ -34,7 +32,6 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 	
 	@SuppressWarnings("unchecked")
 	@Namespace("aspect")
-	@Access(AccessType.PUBLIC)
 	public T getAspect() {
 		if (aspect == null) {
 			String AspectType = myState.get("_aspectType", String.class);
