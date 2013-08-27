@@ -6,7 +6,10 @@
 var loaded = false;
 
 function prepareMenu() {
-    $('#menu-tree').find('li:has(ul)')
+    var menuTree = $('#menu-tree');
+
+    // make all expandable list items clickable
+    menuTree.find('li:has(ul)')
         .click( function(event) {
             if (this == event.target) {
                 $(this).toggleClass('expanded');
@@ -20,7 +23,26 @@ function prepareMenu() {
         .addClass('collapsed')
         .children('ul').hide();
 
+    // restore the last state: expanded.collapsed items
     loadExpanded();
+
+    // find the page where we are now
+    menuTree.find('a').each(function (index, elem) {
+        if (elem.href == location.href) {
+            // highlight it
+            var parent =  $(elem).parent();
+            parent.addClass('current');
+
+            // expand all elements to this path
+            while (parent[0]) {
+                if (parent.hasClass('collapsed') && !parent.hasClass('expanded')) {
+                    parent.click();
+                }
+
+                parent = parent.parent();
+            }
+        }
+    });
 
     loaded = true;
 }

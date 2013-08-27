@@ -34,7 +34,7 @@ home automation devices, and others. The agents communicate with each other usin
 
 ## Implementations
 
-Effectively, any language that has good library support for JSON-RPC can be used to implement Eve.
+Effectively, Eve can be implemented in any language that has good library support for JSON-RPC.
 Currently there are two main implementations of Eve:
 
 - A mature and feature rich [Java](implementations/java/introduction.html) version.

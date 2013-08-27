@@ -10,7 +10,7 @@ title: Downloads
 
 The Eve libraries for java are available in the
 [Maven Central Repository](http://search.maven.org/#search%7Cga%7C1%7Ceve).
-
+All libraries are licensed under the [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
 
 ## Maven
 

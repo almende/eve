@@ -44,6 +44,11 @@ http://jasalguero.com/ledld/development/web/expandable-list/
     text-decoration: none;
 }
 
+#menu-tree li.current {
+    background-color: #FACAE6;
+    text-decoration: none;
+}
+
 #menu-tree li a:hover {
     color: #F0209B;
     text-decoration: underline;

@@ -164,7 +164,7 @@ web servlet.
 
   In stead of downloading all libraries individually, it is easier to create a
   maven project and add eve-gae as dependency. This will automatically resolve
-  all dependencies. See [Downloads](java_downloads.html).
+  all dependencies. See [Downloads](downloads.html).
   
 - Right-click the added jars in Eclipse, and click Build Path, "Add to Build Path". 
 
@@ -260,7 +260,7 @@ web servlet.
   you can add these settings to the configuration file.
 
   More detailed information on the Eve configuration can be found on the page
-  [Configuration](java_configuration.html).
+  [Configuration](configuration.html).
 
 
 ## Usage {#usage}
