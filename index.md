@@ -5,22 +5,26 @@ title: Introduction
 
 {% assign version = '1.1.0' %}
 
+
 #Eve - a web-based agent platform
 
-<!--
-<div style="float: right; margin-left: 20px; border: 1px solid lightgray;">
-    <a href="/eve/img/eve_overview.png" style="width:450px; height: 345px;" target="_blank">
-        <img src="/eve/img/eve_overview_small.png" alt="schematic overview" title="Click for a larger view">
-    </a>
+
+<div style="float: right;">
+    <div id="dropdown-1" class="dropdown dropdown-tip">
+        <ul class="dropdown-menu">
+            <li><a href="/eve/implementations/java/downloads.html">Eve Java</a></li>
+            <li><a href="/eve/implementations/javascript/downloads.html">Eve JavaScript</a></li>
+        </ul>
+    </div>
+    <a class="download" href="#" title="Download Eve" data-dropdown="#dropdown-1">Download &nbsp; &#x25BC;</a>
 </div>
--->
 
 Eve is a multipurpose, web-based agent platform.
 Eve envisions to be an open and dynamic environment where agents can live and
 act anywhere: in the cloud, on smartphones, on desktops, in browsers, robots,
 home automation devices, and others. The agents communicate with each other using simple, existing protocols
 (JSON-RPC) over existing transport layers (HTTP, XMPP), offering a language and platform agnostic solution.
-[Discover more](concepts/introduction.html) in the architecture section.
+Discover more in the [concepts section](concepts/introduction.html).
 
 <div style="text-align: center;">
     <a href="img/eve_overview.png" target="_blank">

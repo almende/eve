@@ -28,7 +28,7 @@ function prepareMenu() {
 
     // find the page where we are now
     menuTree.find('a').each(function (index, elem) {
-        if (elem.href == location.href) {
+        if (location.href.indexOf(elem.href) == 0) {
             // highlight it
             var parent =  $(elem).parent();
             parent.addClass('current');

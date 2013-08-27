@@ -64,3 +64,35 @@ http://jasalguero.com/ledld/development/web/expandable-list/
 #menu-tree .expanded {
     background-image: url('img/expanded.png');
 }
+
+.download {
+    display: inline-block;
+    margin: 0 0 20px 40px;
+    padding: 10px 20px;
+
+    background-color: #5da423;
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    text-transform: uppercase;
+
+    border-radius: 5px;
+}
+
+.download:hover {
+    color: white;
+    text-decoration: none;
+    background-color: #70c52a;
+}
+
+.dropdown .dropdown-menu LI > A,
+.dropdown .dropdown-menu LABEL {
+    padding: 10px 15px;
+}
+
+.dropdown .dropdown-menu LI > A:hover,
+.dropdown .dropdown-menu LABEL:hover {
+    background-color: #F0209B;
+}
+
