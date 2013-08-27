@@ -20,9 +20,9 @@ This page introduces the core concepts of Eve:
 
 We've prepared an overview of the differences in Eve's approach to agents, [compared](comparison.html) to other agent platforms.
 
-[<img src="img/eve_overview_small.png" 
+[<img src="/eve/img/eve_overview_small.png"
   style="margin-top: 30px;" 
-  title="Click for a larger view">](img/eve_overview.png)
+  title="Click for a larger view">](/eve/img/eve_overview.png)
 
 ## Web-based, decentral, and scalable {#scalable}
 
