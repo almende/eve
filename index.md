@@ -22,20 +22,8 @@ Due to the current maturity of the Java implementation, this site focusses somew
 ## Download
 
 The easiest way to get Eve for Java is through Maven:
-<style type="text/css">
-.nt {
-	color:#000080
-}
-.highlight pre {
-	font-size: 13px;
-	line-height: 19px;
-	font-family: Consolas, "Liberation Mono", Courier, monospace;
-	white-space: pre;
-	margin: 1em 0px;
-	font: 13px Helvetica, arial, freesans, clean, sans-serif;
-}
-</style>
-<div class="highlight"><pre><span class="nt">&lt;dependency&gt;</span>
+
+<div class="code"><pre><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>com.almende.eve<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>eve-core<span class="nt">&lt;/artifactId&gt;</span>
     <span class="nt">&lt;version&gt;</span>{{version}}<span class="nt">&lt;/version&gt;</span>
@@ -46,8 +34,8 @@ Eve is entirely open-source (Apache License, version 2.0) so you can also [fork]
 Full information on Java downloads can be found on the [Java downloads](java_downloads.html) section.
 
 ## Why?
-<div style="float:right; width:300px; font-style: italic; font-size: 8pt; text-align: center; border: 1px solid lightgray; background: #f5f5f5; border-radius: 5px; padding: 10px; margin-left: 20px; margin-bottom: 10px;">
-<span style="font-weight:bold">Why software agents?</span><br>
+<div class="highlight">
+<span>Why software agents?</span><br>
 Designing robust, distributed software systems is notoriously hard. At the same time, humans are pretty good at distributing work among themselves and forming robust organizations and/or teams. Designing and using software agents is inspired by such human organizations, making software designs fit closer to our collective experience, providing a boost in stability, scalability and maintainability of the software system.
 </div>
 

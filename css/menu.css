@@ -1,0 +1,95 @@
+/*
+expandable menu
+http://jasalguero.com/ledld/development/web/expandable-list/
+*/
+
+#menu-tree-container {
+    margin-bottom: 30px;
+    padding-left: 0;
+}
+
+#menu-tree {
+    padding-left: 0;
+}
+
+#menu-tree ul, #menu-tree li {
+    list-style: none;
+    margin: 0 0;
+    padding: 5px 0;
+}
+
+#menu-tree li {
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 11pt;
+    color: #F0209B;
+
+    line-height:140%;
+    text-indent:0;
+    background-position: 2px 10px;
+    background-repeat: no-repeat;
+
+    padding-left: 20px;
+}
+
+#menu-tree li li, #menu-tree li.home {
+    text-decoration: none;
+    text-transform: none;
+    font-weight: normal;
+}
+
+#menu-tree li a {
+    color: #4D4D4D;
+    text-decoration: none;
+}
+
+#menu-tree li a:hover {
+    color: #F0209B;
+    text-decoration: underline;
+}
+
+/* Collapsed state for list element */
+#menu-tree .collapsed {
+    background-image: url('img/collapsed.png');
+}
+
+/* Expanded state for list element
+/* NOTE: This class must be located UNDER the collapsed one */
+#menu-tree .expanded {
+    background-image: url('img/expanded.png');
+}
+
+
+
+/*
+#menu-tree-container ul {
+    text-decoration: none;
+    text-transform: uppercase;
+
+    margin-bottom: 30px;
+    padding-left: 0;
+}
+
+#menu-tree-container ul li {
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 11pt;
+    color: #F0209B;
+
+    list-style: none;
+    margin-top: 5px;
+}
+
+#menu-tree-container ul li ul li {
+    text-decoration: none;
+    text-transform: none;
+    font-weight: normal;
+    font-size: 11pt;
+    color: #4D4D4D;
+
+    list-style: none;
+}
+
+*/
