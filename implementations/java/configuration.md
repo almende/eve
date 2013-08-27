@@ -9,7 +9,7 @@ title: Configuration
 Eve needs a configuration file containing settings for persistency of the agents
 state, settings for transport services such as HTTP and XMPP, and other
 environment settings. The servlet used to host the Eve agents points to an Eve
-configuration file, as explained on the page [Services](java_services.html).
+configuration file, as explained on the page [Services](services.html).
 
 The configuration file is a [YAML](http://en.wikipedia.org/wiki/YAML) file.
 The file can have any name and is normally located in the same folder as
@@ -101,11 +101,11 @@ Description of the available properties:
         All agents will be accessible via a servlet, for example the AgentServlet.
         The servlet initiates and registers an HttpService itself,
         there is no need to configure an HttpService in eve.yaml. See
-        <a href="java_services.html#HttpService">HttpService</a> for more details.
+        <a href="services.html#HttpService">HttpService</a> for more details.
 
         <h4>XmppService</h4>
         Allows communication of agents via XMPP. Each agent needs to have an account.
-        See <a href="java_services.html#XmppService">XmppService</a> for more details.
+        See <a href="services.html#XmppService">XmppService</a> for more details.
 
         Available configuration parameters:
         <p></p>

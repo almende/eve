@@ -9,7 +9,7 @@ title: Introduction
 
 <!--
 <div style="float: right; margin-left: 20px; border: 1px solid lightgray;">
-    <a href="/eve/img/eve_overview.png" target="_blank">
+    <a href="/eve/img/eve_overview.png" style="width:450px; height: 345px;" target="_blank">
         <img src="/eve/img/eve_overview_small.png" alt="schematic overview" title="Click for a larger view">
     </a>
 </div>
@@ -39,9 +39,9 @@ Currently there are two main implementations of Eve:
 
 - A mature and feature rich [Java](implementations/java/introduction.html) version.
 - A [Javascript](implementations/javascript/introduction.html) version in early stage.
-- In the future, implementions in other languages will follow.
+- In the future, implementations in other languages will follow.
 
-There is extensive documenation for each of the implementations available on this website.
+There is extensive documentation for each of the implementations available on this website.
 
 
 <!-- TODO: cleanup

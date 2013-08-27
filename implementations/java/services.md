@@ -102,7 +102,7 @@ The AgentListener supports the following context parameters:
             (for example eve.yaml). The configuration file is used by the AgentFactory
             and contains configuration for the state, scheduler, and services.
             The configuration of the AgentFactory is described on the page
-            <a href="java_configuration.html">Configuration</a>.
+            <a href="configuration.html">Configuration</a>.
         </td>
     </tr>
     <tr>

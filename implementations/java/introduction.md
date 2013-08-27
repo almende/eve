@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Overview
+title: Introduction
 ---
 
-# Overview
+# Introduction
 
 Eve has libraries available for Java. 
 This makes it very easy to create and run your own agents.
@@ -17,12 +17,12 @@ The agents are hosted via a regular web servlet.
 ## Downloads {#downloads}
 
 All available libraries can be downloaded on the 
-[downloads page](java_downloads.html).
+[downloads page](downloads.html).
 
 
 ## Getting Started {#gettingstarted}
 
-The page [Getting Started](java_gettingstarted.html) gives a detailed tutorial
+The page [Getting Started](getting_started.html) gives a detailed tutorial
 on how to set up a Java project running your self created Eve agent in the cloud, 
 using Google App Engine.
 
@@ -39,7 +39,7 @@ The libraries are spread over three different layers:
 - An application layer containing the actual implementations of agents.
 
 The libraries are explained in detail on the page 
-[Libraries](java_libraries.html).
+[Libraries](libraries.html).
 
 
 ## Services {#services}
@@ -56,7 +56,7 @@ A single Eve application can have multiple XmppServices and HttpServices configu
 This allows exposure of the agents via multiple transport services at the same time.
 An agent can be accessible via both XMPP and HTTP at the same time.
 
-More on services is explained at the page [Services](java_services.html).
+More on services is explained at the page [Services](services.html).
 
 
 ## Agents {#agents}
@@ -69,6 +69,6 @@ An agent can persist data in its state, which offers a simple
 key/value storage.
 
 The agents are explained in detail on the page 
-[Agents](java_agents.html).
+[Agents](agents.html).
 
 

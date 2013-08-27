@@ -10,7 +10,7 @@ The class must inherit from the base class Agent.
 Public methods will be made available via [JSON-RPC](protocol.html).
 The methods must have named parameters.
 An agent can be accessed via a servlet or via an xmpp server
-(see [Services](java_services.html)), depending on the Eve configuration.
+(see [Services](services.html)), depending on the Eve configuration.
 
 The Java code of a basic Eve agent looks as follows:
 
@@ -354,7 +354,7 @@ file (typically eve.yaml), and read by the agent:
     String database_url = config.get('database_url');
 
 See also the page
-[Configuration](java_configuration.html#accessing_configuration_properties).
+[Configuration](configuration.html#accessing_configuration_properties).
 
 
 ## Database {#database}

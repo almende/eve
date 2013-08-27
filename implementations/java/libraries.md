@@ -47,7 +47,7 @@ The image below shows a schematic overview of the layers and libraries.
 
 The following Java libraries are currently available.  
 They can be downloaded at the
-[downloads page](java_downloads.html).
+[downloads page](downloads.html).
 
 - **eve-core.jar**  
   This is the basis of Eve, and is always required.
@@ -55,21 +55,6 @@ They can be downloaded at the
   offers functionality for communication between agents, 
   and contains a number of ready-made servlets to host the agents. 
   The core is independent from the deployment platform.
-  
-  *Dependencies:
-    commons-codec-1.6.jar,
-    commons-logging-1.1.1.jar,
-    httpclient-4.2.3.jar,
-    httpcore-4.2.2.jar,
-    jackson-databind-2.0.0.jar,
-    jackson-core-2.0.0.jar, 
-    jackson-annotations-2.0.0.jar,
-    joda-time-2.1.jar,
-    snakeyaml-1.11.jar. Optional (needed for XMPP support):
-    smack-3.1.0.jar, smackx-3.1.0.jar.
-    Also depending on servlet-api.jar, which is automatically included when
-    the project is set up as a web project.
-  *
 
 - **eve-gae.jar**
   Library needed for hosting Eve agents on Google App Engine.
@@ -77,20 +62,7 @@ They can be downloaded at the
    a persistent state for the agents (DatastoreStateFactory),
   and a scheduler (AppEngineSchedulerFactory).
 
-  *Dependencies: 
-    eve-core.jar,
-    guava-10.0.jar,
-    guice-3.0.jar,
-    twig-persist-2.0-rc.jar.
-    Also depending on the Google App Engine libraries, which are automatically
-    included when the project is set up as a GAE project.
-  *
-
 - **eve-planning.jar**  
   Contains agents acting on the domain of calendaring and planning.
   Contains a set of agents using various Google API's such as calendar,
   directions, translate. Also contains a servlet for authorizing agents.
-
-  *Dependencies: 
-    eve-core.jar
-  *
