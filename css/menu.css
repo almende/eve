@@ -59,37 +59,3 @@ http://jasalguero.com/ledld/development/web/expandable-list/
 #menu-tree .expanded {
     background-image: url('img/expanded.png');
 }
-
-
-
-/*
-#menu-tree-container ul {
-    text-decoration: none;
-    text-transform: uppercase;
-
-    margin-bottom: 30px;
-    padding-left: 0;
-}
-
-#menu-tree-container ul li {
-    text-decoration: none;
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 11pt;
-    color: #F0209B;
-
-    list-style: none;
-    margin-top: 5px;
-}
-
-#menu-tree-container ul li ul li {
-    text-decoration: none;
-    text-transform: none;
-    font-weight: normal;
-    font-size: 11pt;
-    color: #4D4D4D;
-
-    list-style: none;
-}
-
-*/

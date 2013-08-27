@@ -94,6 +94,10 @@ pre {
     padding: 5px;
 }
 
+pre .nt {
+    color: gray;
+}
+
 pre.example {
     background-color: transparent;
     border: none;
@@ -107,11 +111,6 @@ div.lastupdate {
 
     border-top: 1px solid #FACAE6;
     color: #F0209B;
-}
-
-
-pre .nt {
-    color: gray;
 }
 
 div.highlight {
