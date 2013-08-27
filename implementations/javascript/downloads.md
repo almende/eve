@@ -5,14 +5,7 @@ title: Downloads
 
 # Downloads
 
-Download Eve libraries for Node.js.
+Download Eve libraries for JavaScript.
 The bundles contain the library including all dependencies. 
 
-<div>
-<div id="nodejs_files">loading...</div>
-<script type="text/javascript">
-  var pattern = new RegExp("^.*\.zip$");
-  pattern = null;
-  list_files('files/nodejs', pattern, 'nodejs_files');
-</script>
-</div>
+[eve-nodejs-0.1.zip](files/eve-nodejs-0.1.zip)
