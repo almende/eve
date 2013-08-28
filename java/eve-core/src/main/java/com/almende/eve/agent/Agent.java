@@ -128,7 +128,7 @@ public abstract class Agent implements AgentInterface {
 			init();
 		} else if ("delete".equals(event.getEvent())) {
 			delete();
-		} else if ("addSchedulerFactory".equals(event.getEvent())) {
+		} else if ("setSchedulerFactory".equals(event.getEvent())) {
 			// init scheduler tasks
 			getScheduler();
 		} else if ("addTransportService".equals(event.getEvent())) {
