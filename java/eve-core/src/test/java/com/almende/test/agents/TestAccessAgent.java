@@ -27,7 +27,6 @@ public class TestAccessAgent extends Agent {
 
 	@Override
 	public boolean onAccess(String sender, String functionTag){
-		System.err.println("Got sender:"+sender);
 		if (sender == null) return false;
 		
 		String senderLabel = (String) this.getState().get("senderLabel");
@@ -36,6 +35,11 @@ public class TestAccessAgent extends Agent {
 		}
 		
 		return sender.contains(senderLabel);
+	}
+	
+	@Access(AccessType.SELF)
+	public boolean self(){
+		return true;
 	}
 	
 	@Access(AccessType.PUBLIC)
@@ -72,7 +76,7 @@ public class TestAccessAgent extends Agent {
 	public boolean[] run(@Name("url") String urls){
 		URI url = URI.create(urls);
 		boolean[] result = new boolean[0];
-		result = Arrays.copyOf(result, 7);
+		result = Arrays.copyOf(result, 8);
 		try{ result[0] = (Boolean)send(url,"allowed",JOM.getSimpleType(Boolean.class)); } catch (Exception e){ e.printStackTrace(); };
 		try{ result[1] = (Boolean)send(url,"forbidden",JOM.getSimpleType(Boolean.class)); } catch (Exception e){};
 		try{ result[2] = (Boolean)send(url,"depends",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
@@ -80,6 +84,7 @@ public class TestAccessAgent extends Agent {
 		try{ result[4] = (Boolean)send(url,"dependUnTag",JOM.getSimpleType(Boolean.class)); } catch (Exception e){};
 		try{ result[5] = (Boolean)send(url,"unmodified",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
 		try{ result[6] = (Boolean)send(url,"param",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
+		try{ result[7] = (Boolean)send(url,"self",JOM.getSimpleType(Boolean.class)); } catch (Exception e){};
 		return result;
 	}
 

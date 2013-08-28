@@ -551,6 +551,10 @@ public final class JSONRPC {
 					(String) requestParams.get(Sender.class),
 					methodAccess.tag()) : false;
 		}
+		if (methodAccess.value() == AccessType.SELF) {
+			return auth != null ? auth.ifSelf(
+					(String) requestParams.get(Sender.class)) : false;
+		}
 		return true;
 	}
 	

@@ -150,7 +150,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
-	@Access(AccessType.PUBLIC)
+	@Access(AccessType.SELF)
 	public final void doPoll(@Name("monitorId") String monitorId)
 			throws JSONRPCException, IOException {
 		ResultMonitor monitor = getMonitorById(monitorId);
@@ -172,7 +172,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	private JsonNode	lastRes	= null;
 	
-	@Access(AccessType.PUBLIC)
+	@Access(AccessType.SELF)
 	public final void doPush(@Name("pushParams") ObjectNode pushParams,
 			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
 			throws ProtocolException, JSONRPCException {

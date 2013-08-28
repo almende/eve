@@ -342,7 +342,7 @@ public class EventsFactory implements EventsInterface {
 	 * @throws JSONRPCException
 	 * @throws ProtocolException
 	 */
-	@Access(AccessType.PUBLIC)
+	@Access(AccessType.SELF)
 	public final void doTrigger(@Name("url") String url,
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws ProtocolException, JSONRPCException {
@@ -350,7 +350,7 @@ public class EventsFactory implements EventsInterface {
 		myAgent.send(URI.create(url), method, params);
 	}
 	
-	@Access(AccessType.PUBLIC)
+	@Access(AccessType.SELF)
 	public ObjectNode getSubscriptionStats() {
 		ObjectNode result = JOM.createObjectNode();
 		@SuppressWarnings("unchecked")

@@ -38,7 +38,7 @@ public class TestAccess extends TestCase {
 					TestAccessAgent.class, TEST2);
 		}
 		boolean[] result = agent.run((String)testAgent.getUrls().get(0));
-		assertEquals(7, result.length);
+		assertEquals(8, result.length);
 		assertEquals(true, result[0]);// allowed
 		assertEquals(false, result[1]);// forbidden
 		assertEquals(true, result[2]);// depends
@@ -46,11 +46,12 @@ public class TestAccess extends TestCase {
 		assertEquals(false, result[4]);// dependsUnTag
 		assertEquals(true, result[5]);// unmodified
 		assertEquals(false, result[6]);// param
-
+		assertEquals(false, result[7]);// self
+		
 		// retry though non-local URL (https in this case);
 		result = agent
 				.run("https://localhost:8443/agents/" + testAgent.getId());
-		assertEquals(7, result.length);
+		assertEquals(8, result.length);
 		assertEquals(true, result[0]);// allowed
 		assertEquals(false, result[1]);// forbidden
 		assertEquals(true, result[2]);// depends
@@ -58,5 +59,18 @@ public class TestAccess extends TestCase {
 		assertEquals(false, result[4]);// dependsUnTag
 		assertEquals(true, result[5]);// unmodified
 		assertEquals(false, result[6]);// param
+		assertEquals(false, result[7]);// self
+		
+		//retry calling itself
+		result = agent.run(agent.getFirstUrl().toString());
+		assertEquals(8, result.length);
+		assertEquals(true, result[0]);// allowed
+		assertEquals(false, result[1]);// forbidden
+		assertEquals(true, result[2]);// depends
+		assertEquals(true, result[3]);// dependsTag
+		assertEquals(false, result[4]);// dependsUnTag
+		assertEquals(true, result[5]);// unmodified
+		assertEquals(false, result[6]);// param
+		assertEquals(true, result[7]);// self
 	}
 }

@@ -11,11 +11,11 @@ public interface JSONAuthorizor {
 	 * @Access(tag="foobar") annotation on the called method.
 	 *                       ( e.g. add roles to methods )
 	 * 
-	 * @param senderId
+	 * @param senderUrl
 	 * @param functionTag
 	 * @return
 	 */
-	boolean onAccess(String senderId, String functionTag);
+	boolean onAccess(String senderUrl, String functionTag);
 	
 	/**
 	 * Internal method, implementing this method allows adding authorization to
@@ -23,9 +23,19 @@ public interface JSONAuthorizor {
 	 * All methods annotated with AccessType.PRIVATE will only be called if this
 	 * method returns true.
 	 * 
-	 * @param senderId
+	 * @param senderUrl
 	 * @return
 	 */
-	boolean onAccess(String senderId);
-	 
+	boolean onAccess(String senderUrl);
+	
+	/**
+	 * This method should check if the sender equals the recipient.
+	 * All methods annotated with AccessType.SELF will only be called if this method returns true.
+	 * 
+	 * Default implementation checks all urls for senderUrl and allows all "web" sources.
+	 * 
+	 * @param senderUrl
+	 * @return
+	 */
+	boolean ifSelf(String senderUrl);
 }

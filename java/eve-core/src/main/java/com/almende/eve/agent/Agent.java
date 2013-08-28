@@ -98,14 +98,24 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public boolean onAccess(String senderId, String functionTag) {
+	public boolean onAccess(String senderUrl, String functionTag) {
 		return true;
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public boolean onAccess(String senderId) {
-		return onAccess(senderId, null);
+	public boolean onAccess(String senderUrl) {
+		return onAccess(senderUrl, null);
+	}
+	
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	public boolean ifSelf(String senderUrl) {
+		if (senderUrl.startsWith("web://")){
+			return true;
+		}
+		List<String> urls = getUrls();
+		return urls.contains(senderUrl);
 	}
 	
 	@Override
@@ -485,6 +495,7 @@ public abstract class Agent implements AgentInterface {
 					urls.add(url);
 				}
 			}
+			urls.add("local://"+agentId);
 		} else {
 			LOG.severe("AgentHost not initialized?!?");
 		}
