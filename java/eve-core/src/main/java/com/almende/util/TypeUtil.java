@@ -6,16 +6,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.StateEntry;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
-public class TypeUtil<T> {
+public abstract class TypeUtil<T> {
 	static final Logger		LOG	= Logger.getLogger(TypeUtil.class.getName());
 	
 	private final JavaType	valueType;
 	
+	/**
+	 * Usage example: <br>
+	 * 
+	 * TypeUtil&lt;TreeSet&lt;TaskEntry>> injector = new
+	 * TypeUtil&lt;TreeSet&lt;TaskEntry>>(){};<br>
+	 * TreeSet&lt;TaskEntry> value = injector.inject(Treeset_with_tasks);<br>
+	 * <br>
+	 * Note the trivial anonymous class declaration, extending abstract class
+	 * TypeUtil...
+	 */
 	public TypeUtil() {
 		this.valueType = JOM.getTypeFactory().constructType(
 				ClassUtil.getTypeArguments(TypeUtil.class, getClass()).get(0)

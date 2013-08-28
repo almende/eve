@@ -19,9 +19,11 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
+import com.almende.util.TypeUtil;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private static final Logger		LOG			= Logger.getLogger("ClockScheduler");
+	private static final TypeUtil<TreeSet<TaskEntry>> injector = new TypeUtil<TreeSet<TaskEntry>>(){};
 	private final Agent				myAgent;
 	private final Clock				myClock;
 	private final ClockScheduler	_this		= this;
@@ -33,10 +35,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		myClock = new RunnableClock();
 	}
 	
-	@SuppressWarnings("unchecked")
 	public TaskEntry getFirstTask() {
-		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get(TASKLIST);
+		TreeSet<TaskEntry> timeline =  injector.inject(myAgent.getState().get(TASKLIST));
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
 			int count = 0;
@@ -115,23 +115,21 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public void runTask(final TaskEntry task) {
+		task.setActive(true);
 		myClock.runInPool(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					if (task.getInterval() <= 0) {
 						// Remove from list
-						cancelTask(task.getTaskId());
+						_this.cancelTask(task.getTaskId());
 					} else {
 						if (!task.isSequential()) {
 							task.setDue(DateTime.now().plus(task.getInterval()));
-						} else {
-							task.setActive(true);
 						}
 						_this.putTask(task, true);
 						_this.run();
 					}
-					
 					RequestParams params = new RequestParams();
 					String senderUrl = "local://" + myAgent.getId();
 					params.put(Sender.class, senderUrl);

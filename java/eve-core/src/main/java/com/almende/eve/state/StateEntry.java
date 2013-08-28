@@ -27,7 +27,7 @@ public abstract class StateEntry<T extends Serializable>
 	private final String key;
 
 	/** */
-	private final TypeUtil<T> valueType = new TypeUtil<T>();
+	private final TypeUtil<T> valueType = new TypeUtil<T>(){};
 
 	/**
 	 * Constructs a {@link StateEntry} with specified {@code key} and
