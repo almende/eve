@@ -31,6 +31,7 @@ public class TestStateLocking extends TestCase {
 			@Override
 			public void run() {
 				state.put("test","test1");
+				state.put("test1","test");
 				state.put("test","test1");
 				state.get("test");
 				state.put("test1","test");
@@ -44,6 +45,7 @@ public class TestStateLocking extends TestCase {
 				state.put("test","test2");
 				state.put("test","test2");
 				state.get("test");
+				state.put("test","test2");
 				state.put("test1","test");
 				state.put("test1","test");
 				state.get("test1");
@@ -57,6 +59,7 @@ public class TestStateLocking extends TestCase {
 				state.put("test","test3");
 				state.get("test");
 				state.put("test1","test");
+				state.put("test","test3");
 				state.put("test1","test");
 				state.get("test1");
 			}
