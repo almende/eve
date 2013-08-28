@@ -18,7 +18,7 @@ public class TestResultMonitor extends TestCase {
 	@Test
 	public void test() throws Exception {
 		AgentHost factory = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		FileStateFactory stateFactory = new FileStateFactory(".eveagents_resultmonitor");
 		factory.setStateFactory(stateFactory);
 		factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
 		
@@ -40,7 +40,7 @@ public class TestResultMonitor extends TestCase {
 			Thread.sleep(1000);
 			List<Integer> res = alice.get_result();
 			
-			System.out.println(count + " Alice, from Bob:" + res.get(0) + ":"
+			System.err.println(count + " Alice, from Bob:" + res.get(0) + ":"
 					+ res.get(1) + ":" + res.get(2) + ":" + res.get(3));
 			
 		}

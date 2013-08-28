@@ -30,7 +30,7 @@ public class TestScheduler extends TestCase {
 	
 	public void schedule(boolean clock) throws Exception {
 		AgentHost af = AgentHost.getInstance();
-		af.setStateFactory(new FileStateFactory(".eveagents"));
+		af.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		af.addTransportService(new HttpService());
 
 		if (clock) {

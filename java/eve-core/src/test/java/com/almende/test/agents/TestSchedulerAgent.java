@@ -36,10 +36,9 @@ public class TestSchedulerAgent extends Agent {
 		DateTime startTime = new DateTime(startStr);
 		DateTime expected = new DateTime(expectedStr);
 
-		log.info("Duration since schedule:"
-				+ (new Duration(startTime, DateTime.now()).getMillis()));
 		if (interval){
-			log.info("Interval seq:"+sequential);
+			log.info("Duration since schedule:"
+					+ (new Duration(startTime, DateTime.now()).getMillis()) + " sequential:"+sequential);
 		} else {
 			log.info("Delay after expected runtime:"
 				+ (new Duration(expected,DateTime.now()).getMillis()));

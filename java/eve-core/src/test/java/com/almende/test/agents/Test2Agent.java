@@ -63,22 +63,22 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 
 	public void create() {
-		System.out.println("creating TestAgent/" + getId());
+		System.out.println("creating Test2Agent/" + getId());
 		super.create();
 	}
 	
 	public void delete() {
-		System.out.println("deleting TestAgent/" + getId());
+		System.out.println("deleting Test2Agent/" + getId());
 		super.delete();
 	}
 
 	public void init() {
-		System.out.println("initializing TestAgent/" + getId());
+		System.out.println("initializing Test2Agent/" + getId());
 		super.init();
 	}
 	
 	public void destroy() {
-		System.out.println("destroying TestAgent/" + getId());
+		System.out.println("destroying Test2Agent/" + getId());
 		super.destroy();
 	}
 
