@@ -5,7 +5,10 @@ import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.util.ClassUtil;
 import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.databind.JavaType;
 
 /**
  * {@link StateEntry} wraps agent state entry key and provides respective value
@@ -27,7 +30,7 @@ public abstract class StateEntry<T extends Serializable>
 	private final String key;
 
 	/** */
-	private final TypeUtil<T> valueType = new TypeUtil<T>(){};
+	private final JavaType valueType;
 
 	/**
 	 * Constructs a {@link StateEntry} with specified {@code key} and
@@ -39,6 +42,9 @@ public abstract class StateEntry<T extends Serializable>
 	public StateEntry(final String key)
 	{
 		this.key = key;
+		this.valueType = JOM.getTypeFactory().constructType(
+				ClassUtil.getTypeArguments(StateEntry.class, getClass()).get(0)
+						.getGenericSuperclass());
 	}
 
 	/** @return the {@link StateEntry} key's {@link String} value */
@@ -50,7 +56,7 @@ public abstract class StateEntry<T extends Serializable>
 	/** @return the {@link StateEntry} value's type */
 	public Type getValueType()
 	{
-		return this.valueType.getType();
+		return this.valueType;
 	}
 
 	/** @return the value to persist/provide if none exists yet */
@@ -100,7 +106,7 @@ public abstract class StateEntry<T extends Serializable>
 	{
 		try
 		{
-			return valueType.inject(state.put(getKey(), value));
+			return TypeUtil.inject(valueType, state.put(getKey(), value));
 		} catch (final ClassCastException e)
 		{
 			LOG.log(Level.WARNING,"Problem casting agent's previous state value, key: "
