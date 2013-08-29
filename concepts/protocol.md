@@ -155,6 +155,9 @@ For example a method `add(a,b)` can be described as:
 ## Interaction patterns {#patterns}
 
 This part of the protocol description defines expected capabilities of Eve agents. These capabilities are optional, but are highly advisable as they offer better system-wide robustness and usability. It may be expected from the various Eve implementations to provide these out-of-the-box.
+Currently the following patterns are described:
+- [Publish-subscribe model](#pubsub)
+- [Result monitor model](#resmon)
 
 ### Publish-subscribe model {#pubsub}
 
@@ -238,7 +241,7 @@ Through the event subscription model, agents can request to be informed when a c
 </table>
 
 
-### Result monitor model
+### Result monitor model {#resmon}
 
 #### Description
 The result monitor model offers robust, unidirectional synchronization of data. It basically allows an agent to keep up-to-date with the result value of a remote method. Traditionally this is achieved through an event subscription, indicating changed data, followed by a call to the specific method. Care must be taken to make sure the event is delivered to the agent, even in potentially unreliable network environments. A more robust, but less efficient solution would be to poll the method at a fixed interval. The result monitor model combines these solutions into one framework: it allows polling, event subscription and requesting a remote agent to push the result value at a fixed interval. Effectively it makes use of the time autonomy of the agents, making each responsible for trying to keep the data synchronized.
