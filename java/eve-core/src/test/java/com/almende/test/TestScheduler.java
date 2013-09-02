@@ -18,6 +18,34 @@ import com.almende.test.agents.TestSchedulerAgent;
 public class TestScheduler extends TestCase {
 	static final Logger	log	= Logger.getLogger("testScheduler");
 	
+	
+	@Test
+	public void testSingleShot() throws Exception {
+		AgentHost af = AgentHost.getInstance();
+		af.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
+		af.addTransportService(new HttpService());
+		af.setSchedulerFactory(new ClockSchedulerFactory(af, ""));
+
+		if (af.hasAgent("SingleShot")) {
+			log.severe("Removing old agent");
+			af.deleteAgent("SingleShot");
+			log.severe("Removed old agent");
+		}
+		log.severe("Setup new Agent");
+		TestSchedulerAgent test = af.createAgent(TestSchedulerAgent.class, "SingleShot");
+		log.severe("Running test");
+		
+		test.setTest("SingleShot",5000,false,false);
+		log.severe("Sleep");
+		
+		Thread.sleep(2000);
+		test.setTest("SingleShot",5000,false,false);
+		log.severe("More Sleep");
+		
+		
+		Thread.sleep(20000);
+	}
+	
 	@Test
 	public void testScheduler() throws Exception {
 		schedule(false);
