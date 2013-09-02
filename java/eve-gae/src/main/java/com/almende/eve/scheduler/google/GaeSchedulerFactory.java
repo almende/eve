@@ -12,6 +12,8 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.AbstractScheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
@@ -156,6 +158,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 		 * @return tasksIds
 		 */
 		@Override 
+		@Access(AccessType.PUBLIC)
 		public Set<String> getTasks() {
 			ObjectDatastore datastore = new AnnotationObjectDatastore();
 			QueryResultIterator<GaeTask> query = datastore.find()
@@ -178,6 +181,12 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 		}
 		
 		private String agentId = null;
+
+		@Override
+		@Access(AccessType.PUBLIC)
+		public Set<String> getDetailedTasks() {
+			return getTasks();
+		}
 	}
 
 	@Override

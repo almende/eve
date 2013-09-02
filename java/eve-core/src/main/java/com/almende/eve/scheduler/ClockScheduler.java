@@ -127,6 +127,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 						if (!task.isSequential()) {
 							task.setDue(DateTime.now().plus(task.getInterval()));
 						}
+						task.setActive(false);
 						_this.putTask(task, true);
 						_this.run();
 					}
@@ -188,7 +189,21 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 		return result;
 	}
-	
+
+	@Override
+	public Set<String> getDetailedTasks() {
+		Set<String> result = new HashSet<String>();
+		@SuppressWarnings("unchecked")
+		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
+				.get(TASKLIST);
+		if (timeline == null || timeline.size() == 0) {
+			return result;
+		}
+		for (TaskEntry entry : timeline) {
+			result.add(entry.toString());
+		}
+		return result;
+	}
 	@Override
 	public void run() {
 		TaskEntry task = getFirstTask();

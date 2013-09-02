@@ -45,5 +45,12 @@ public interface Scheduler {
 	 */
 	@Access(AccessType.PUBLIC)
 	Set<String> getTasks();
+
+	/**
+	 * Retrieve a list with all scheduled tasks
+	 * @return taskIds
+	 */
+	@Access(AccessType.PUBLIC)
+	Set<String> getDetailedTasks();
 	
 }

@@ -435,6 +435,23 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return new HashSet<String>();
 		}
 		
+		/**
+		 * Retrieve a list with all scheduled tasks
+		 * 
+		 * @return taskIds
+		 */
+		@Override
+		public synchronized Set<String> getDetailedTasks() {
+			Map<String, Task> tasks = allTasks.get(agentId);
+			HashSet<String> result = new HashSet<String>();
+			if (tasks != null) {
+				for (Task task: tasks.values()){
+					result.add(task.toString());
+				}
+			}
+			return new HashSet<String>();
+		}
+		
 		@Override
 		public String toString() {
 			return allTasks.toString();

@@ -31,10 +31,14 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	@Override
 	public Scheduler getScheduler(Agent agent) {
 		synchronized (schedulers) {
-			if (schedulers.containsKey(agent.getId())) {
-				return schedulers.get(agent.getId());
-			}
 			ClockScheduler scheduler;
+			if (schedulers.containsKey(agent.getId())) {
+				scheduler = (ClockScheduler) schedulers.get(agent.getId());
+				if (scheduler != null){
+					scheduler.run();
+					return scheduler;
+				}
+			}
 			try {
 				scheduler = new ClockScheduler(agent, agentHost);
 				scheduler.run();
