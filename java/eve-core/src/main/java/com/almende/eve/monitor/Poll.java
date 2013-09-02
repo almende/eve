@@ -38,6 +38,9 @@ public class Poll implements ResultMonitorConfigType {
 		params.put("monitorId", monitor.getId());
 		JSONRequest request = new JSONRequest("monitor.doPoll", params);
 		
+		//Try to cancel any protential existing tasks.
+		cancel(monitor,agent);
+		
 		taskId = agent.getScheduler()
 				.createTask(request, interval, true, false);
 		
