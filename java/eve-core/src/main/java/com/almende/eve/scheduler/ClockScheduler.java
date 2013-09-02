@@ -58,6 +58,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@SuppressWarnings("unchecked")
 	public void putTask(TaskEntry task, boolean onlyIfExists) {
+
 		Set<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent.getState()
 				.get(TASKLIST);
 		Set<TaskEntry> timeline = null;
@@ -116,6 +117,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	public void runTask(final TaskEntry task) {
 		task.setActive(true);
+		_this.putTask(task, true);
 		myClock.runInPool(new Runnable() {
 			@Override
 			public void run() {
