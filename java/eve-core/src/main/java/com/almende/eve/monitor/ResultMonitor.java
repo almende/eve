@@ -113,7 +113,6 @@ public class ResultMonitor implements Serializable {
 	public void addPoll(Poll config) {
 		loadAgent();
 		config.init(this, myAgent);
-		polls.add(config);
 	}
 	
 	public void addPush(final Push config) {
