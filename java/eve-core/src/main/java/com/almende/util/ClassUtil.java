@@ -1,5 +1,12 @@
 package com.almende.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -264,5 +271,26 @@ public final class ClassUtil {
 			typeArgumentsAsClasses.add(getClass(baseType));
 		}
 		return typeArgumentsAsClasses;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T extends Serializable> T cloneThroughSerialize(T t) throws Exception {
+	   ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	   serializeToOutputStream(t, bos);
+	   byte[] bytes = bos.toByteArray();
+	   ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+	   return (T)ois.readObject();
+	}
+
+	private static void serializeToOutputStream(Serializable ser, OutputStream os)
+	                                                          throws IOException {
+	   ObjectOutputStream oos = null;
+	   try {
+	      oos = new ObjectOutputStream(os);
+	      oos.writeObject(ser);
+	      oos.flush();
+	   } finally {
+	      oos.close();
+	   }
 	}
 }

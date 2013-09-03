@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
+
+import com.almende.util.ClassUtil;
 
 /**
  * @class MemoryState
@@ -29,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jos
  */
 public class MemoryState extends AbstractState {
+	private static final Logger			LOG			= Logger.getLogger(MemoryState.class
+															.getName());
 	private Map<String, Serializable>	properties	= new ConcurrentHashMap<String, Serializable>();
 	
 	public MemoryState() {
@@ -65,7 +70,13 @@ public class MemoryState extends AbstractState {
 	
 	@Override
 	public Serializable get(Object key) {
-		return properties.get(key);
+		try {
+			return ClassUtil.cloneThroughSerialize(properties.get(key));
+		} catch (Exception e) {
+			LOG.warning("Couldn't clone object: " + key + ", returning pointer to original object.");
+			e.printStackTrace();
+			return properties.get(key);
+		}
 	}
 	
 	@Override
@@ -87,7 +98,8 @@ public class MemoryState extends AbstractState {
 	public boolean putIfUnchanged(String key, Serializable newVal,
 			Serializable oldVal) {
 		boolean result = false;
-		if (!(oldVal == null && properties.containsKey(key) && properties.get(key) != null)
+		if (!(oldVal == null && properties.containsKey(key) && properties
+				.get(key) != null)
 				|| (properties.get(key) != null && properties.get(key).equals(
 						oldVal))) {
 			properties.put(key, newVal);
