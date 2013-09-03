@@ -273,6 +273,10 @@ public final class ClassUtil {
 		return typeArgumentsAsClasses;
 	}
 	
+	
+	//These methods were found at: http://www.javacodegeeks.com/2011/12/cloning-of-serializable-and-non.html
+	//@Author Craig Flichel
+	
 	@SuppressWarnings("unchecked")
 	public static <T extends Serializable> T cloneThroughSerialize(T t) throws Exception {
 	   ByteArrayOutputStream bos = new ByteArrayOutputStream();
