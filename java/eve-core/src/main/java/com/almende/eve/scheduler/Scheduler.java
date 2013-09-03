@@ -43,14 +43,14 @@ public interface Scheduler {
 	 * Retrieve a list with all scheduled tasks
 	 * @return taskIds
 	 */
-	@Access(AccessType.PUBLIC)
+	@Access(AccessType.SELF)
 	Set<String> getTasks();
 
 	/**
 	 * Retrieve a list with all scheduled tasks
 	 * @return taskIds
 	 */
-	@Access(AccessType.PUBLIC)
+	@Access(AccessType.SELF)
 	Set<String> getDetailedTasks();
 	
 }
