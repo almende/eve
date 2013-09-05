@@ -39,7 +39,7 @@ public class EventsFactory implements EventsInterface {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private List<Callback> getSubscriptions(String event) {
+	public List<Callback> getSubscriptions(String event) {
 		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) myAgent
 				.getState().get(SUBSCRIPTIONS);
 		if (allSubscriptions != null) {

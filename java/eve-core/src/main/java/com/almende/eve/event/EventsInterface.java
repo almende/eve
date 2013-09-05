@@ -3,6 +3,7 @@ package com.almende.eve.event;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.URI;
+import java.util.List;
 
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -13,6 +14,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)
 public interface EventsInterface {
+	
+	
+	/**
+	 * Get existing even subscriptions for a given event.
+	 * 
+	 * @param event
+	 * @return
+	 */
+	List<Callback> getSubscriptions(@Name("event") String event);
+	
 	/**
 	 * Subscribe to an event. The provided callback url and method will be
 	 * invoked when the event is triggered. The callback method is called

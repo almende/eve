@@ -79,7 +79,7 @@ public abstract class TypeUtil<T> {
 				}
 			} else {
 				LOG.log(Level.WARNING,
-						"Can't update object with non-JSON value, returning casted value.");
+						"Can't update object with non-JSON value, returning cast value.");
 				return inject(ret.getClass().getGenericSuperclass(), value);
 			}
 		}

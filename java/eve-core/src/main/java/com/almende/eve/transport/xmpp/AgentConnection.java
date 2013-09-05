@@ -159,8 +159,10 @@ public class AgentConnection {
 				// create a unique id
 				final String id = (String) request.getId();
 				
+				
+				String description = username + " -> "+ request.getMethod();
 				// queue the response callback
-				callbacks.push(id, callback);
+				callbacks.push(id, description, callback);
 				
 				// send the message
 				Message reply = new Message();
@@ -318,6 +320,8 @@ public class AgentConnection {
 						reply.setTo(sender);
 						reply.setBody(response.toString());
 						conn.sendPacket(reply);
+					} else {
+						LOG.severe("XMPP response is null? This shouldn't happen...");
 					}
 				}
 			}).start();

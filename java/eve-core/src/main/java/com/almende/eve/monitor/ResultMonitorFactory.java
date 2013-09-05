@@ -194,8 +194,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		parms.put("callbackParams", triggerParams == null ? pushParams
 				: pushParams.putAll(triggerParams));
 		
-		myAgent.send(URI.create(pushParams.get("url").textValue()),
-				"monitor.callbackPush", parms);
+		myAgent.sendAsync(URI.create(pushParams.get("url").textValue()),
+				"monitor.callbackPush", parms,null,Void.class);
 		// TODO: If callback reports "old", unregisterPush();
 	}
 	

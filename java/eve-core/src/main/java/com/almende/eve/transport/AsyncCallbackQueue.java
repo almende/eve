@@ -30,7 +30,7 @@ public class AsyncCallbackQueue<T> {
 	 * @param callback
 	 * @throws Exception
 	 */
-	public synchronized void push(final String id, AsyncCallback<T> callback) {
+	public synchronized void push(final String id, final String description, AsyncCallback<T> callback) {
 		if (queue.containsKey(id)) {
 			throw new IllegalStateException("Callback with id '" + id
 					+ "' already in queue");
@@ -45,7 +45,7 @@ public class AsyncCallbackQueue<T> {
 				AsyncCallback<T> callback = me.pull(id);
 				if (callback != null) {
 					callback.onFailure(new TimeoutException(
-							"Timeout occurred for request with id '" + id + "'"));
+							"Timeout occurred for request with id '" + id + "': "+description));
 				}
 			}
 		};

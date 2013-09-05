@@ -28,7 +28,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private final Clock				myClock;
 	private final ClockScheduler	_this		= this;
 	private static final String		TASKLIST	= "_taskList";
-	private static final int 		MAXCOUNT    = 100;
+	private static final int 		MAXCOUNT    = 1000;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
 		this.myAgent = myAgent;
@@ -151,7 +151,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 						throw resp.getError();
 					}
 				} catch (Exception e) {
-					LOG.log(Level.SEVERE, "Failed to run scheduled task", e);
+					LOG.log(Level.SEVERE, myAgent.getId()+": Failed to run scheduled task:"+task.toString(), e);
 				}
 			}
 			

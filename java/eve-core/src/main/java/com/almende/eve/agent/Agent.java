@@ -452,7 +452,7 @@ public abstract class Agent implements AgentInterface {
 				if (callback == null) {
 					Exception err = response.getError();
 					if (err != null) {
-						LOG.warning("async RPC call failed, no callback handler available:"
+						LOG.warning("async RPC call failed, and no callback handler available:"
 								+ err.getLocalizedMessage());
 					}
 				} else {
@@ -472,7 +472,7 @@ public abstract class Agent implements AgentInterface {
 			@Override
 			public void onFailure(Exception exception) {
 				if (callback == null) {
-					LOG.warning("async RPC call failed, no callback handler available:"
+					LOG.warning("async RPC call failed and no callback handler available:"
 							+ exception.getLocalizedMessage());
 				} else {
 					callback.onFailure(exception);
