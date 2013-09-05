@@ -85,6 +85,10 @@ http://jasalguero.com/ledld/development/web/expandable-list/
     display: block;
 }
 
+#menu-tree .title:hover {
+    background-color: #f5f5f5;
+}
+
 #menu-tree .collapsed li {
     cursor: default;
 }
