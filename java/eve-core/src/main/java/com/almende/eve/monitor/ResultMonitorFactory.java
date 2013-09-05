@@ -63,7 +63,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			ResultMonitorConfigType... confs) {
 		
 		ResultMonitor old = getMonitorById(monitorId);
-		if (old != null){
+		if (old != null) {
 			old.cancel();
 		}
 		
@@ -142,7 +142,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			monitor.cancel();
 			delete(monitor.getId());
 		} else {
-			LOG.warning("Trying to cancel non existing monitor:"+myAgent.getId()+"."+monitorId);
+			LOG.warning("Trying to cancel non existing monitor:"
+					+ myAgent.getId() + "." + monitorId);
 		}
 	}
 	
@@ -233,12 +234,12 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public final void registerPush(@Name("pushId") String id,
 			@Name("pushParams") ObjectNode pushParams, @Sender String senderUrl) {
 		
-		if (myAgent.getState().containsKey("_push_" + id)){
+		if (myAgent.getState().containsKey("_push_" + id)) {
 			LOG.warning("reregistration of existing push, canceling old version.");
 			try {
 				unregisterPush(id);
 			} catch (Exception e) {
-				LOG.warning("Failed to unregister push:"+e);
+				LOG.warning("Failed to unregister push:" + e);
 			}
 		}
 		ObjectNode result = JOM.createObjectNode();
@@ -298,9 +299,13 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final void unregisterPush(@Name("pushId") String id) throws JsonProcessingException, IOException {
-		ObjectNode config = (ObjectNode) JOM.getInstance().readTree(myAgent.getState().get("_push_" + id,
-				String.class));
+	public final void unregisterPush(@Name("pushId") String id)
+			throws JsonProcessingException, IOException {
+		ObjectNode config = null;
+		if (myAgent.getState() != null &&  myAgent.getState().containsKey("_push_" + id)) {
+			config = (ObjectNode) JOM.getInstance().readTree(
+					myAgent.getState().get("_push_" + id, String.class));
+		}
 		if (config == null) {
 			return;
 		}
@@ -372,7 +377,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
 			ResultMonitor result = monitors.get(monitorId);
-			if (result != null){
+			if (result != null) {
 				result.init();
 			}
 			return result;
