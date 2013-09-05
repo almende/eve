@@ -61,6 +61,12 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public String create(String monitorId, URI url, String method,
 			ObjectNode params, String callbackMethod,
 			ResultMonitorConfigType... confs) {
+		
+		ResultMonitor old = getMonitorById(monitorId);
+		if (old != null){
+			old.cancel();
+		}
+		
 		ResultMonitor monitor = new ResultMonitor(monitorId, myAgent.getId(),
 				url, method, params, callbackMethod);
 		for (ResultMonitorConfigType config : confs) {
@@ -133,17 +139,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public void cancel(String monitorId) {
 		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
-			for (Poll poll : monitor.getPolls()) {
-				poll.cancel(monitor, myAgent);
-			}
-			for (Push push : monitor.getPushes()) {
-				try {
-					push.cancel(monitor, myAgent);
-				} catch (Exception e) {
-					LOG.warning("Failed to cancel push:"
-							+ e.getLocalizedMessage());
-				}
-			}
+			monitor.cancel();
 			delete(monitor.getId());
 		} else {
 			LOG.warning("Trying to cancel non existing monitor:"+myAgent.getId()+"."+monitorId);

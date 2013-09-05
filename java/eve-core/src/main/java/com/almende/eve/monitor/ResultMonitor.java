@@ -124,6 +124,20 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	public void cancel() {
+		LOG.info("Canceling monitor:"+this.id);
+		for (Poll poll : getPolls()) {
+			poll.cancel(this, myAgent);
+		}
+		for (Push push : getPushes()) {
+			try {
+				push.cancel(this, myAgent);
+			} catch (Exception e) {
+				LOG.warning("Failed to cancel push:" + e.getLocalizedMessage());
+			}
+		}
+	}
+	
 	/**
 	 * Conveniency method to store ResultMonitor, equivalent to
 	 * ResultMonitorFactory.store(this);
