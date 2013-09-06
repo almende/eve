@@ -261,24 +261,11 @@ To participate in the result monitor model, the agent should be able to repetiti
 	<td>monitor.registerPush</td>
     <td>
         String&nbsp;pushId,<br>
-        ObjectNode&nbsp;pushParams<br>
+        <a href="#pushconfig">PushConfig</a>&nbsp;config<br>
     </td>
 	<td>none</td>
-	<td>Request the agent to start pushing the result of the method call, as described in the pushParams. This data should be delivered through a specified callback method.<br>
+	<td>Request the agent to start pushing the result of the method call, as described by the provided <a href="#pushconfig">push configuration</a>. This data should be delivered through a specified callback method.<br>
 		The given pushId is used as a key to facilitate the communication, it is chosen by the requesting agent. It can be assumed to be unique per requester. Multiple calls with the same pushId may replace the old push.<br>
-		Structure of the pushParams:<br>
-		<table><tr><th>field</th><th>description</th></tr>
-			<tr><td>String&nbsp;method</td><td>The method to use for obtaining the data to push</td></tr>
-			<tr><td>JsonNode&nbsp;params</td><td>The parameters for the method call used for obtaining the data to push</td></tr>
-			<tr><td>String&nbsp;callback</td><td>The method where the data should be pushed to. This method should at least have the following parameters:<br>
-				String&nbsp;pushId&nbsp;:The original pushId<br>
-				JsonNode&nbsp;result&nbsp;:The result data<br>
-				Specific implementations can choose to send back more information, like for example the original pushParams and/or event trigger params.
-			</td></tr>
-			<tr><td>Number&nbsp;interval</td><td>Interval in milliseconds at which the data should be pushed</td></tr>
-			<tr><td>String&nbsp;event</td><td>When set, the agent should subscribe this push to the given event. If the event is triggered, the method is called and the result send to the callback.</td></tr>
-			<tr><td>Boolean&nbsp;onChange</td><td>When true, the agent should organize some way to only push when the data changes, e.g. through a event or by locally polling and comparing.</td></tr>
-		</table>
     </td>
 </tr>
 <tr>
@@ -291,6 +278,62 @@ To participate in the result monitor model, the agent should be able to repetiti
 		This method is called to teardown all setup regarding the push.
 	</td>
 </tr>
+</table>
+
+
+#### Push configuration {#pushconfig}
+
+The function `monitor.registerPush` requires a push configuration object `PushConfig` to configure a push monitor.
+The `PushConfig` object contains the following parameters:
+
+<table>
+    <tr>
+        <th>Field</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>String&nbsp;method</td>
+        <td>The method to use for obtaining the data to push</td>
+    </tr>
+    <tr>
+        <td>Object&nbsp;params</td>
+        <td>The parameters for the method call used for obtaining the data to push</td>
+    </tr>
+    <tr>
+        <td>String&nbsp;callback</td>
+        <td>The method where the data should be pushed to. This method should at least have the following parameters:
+
+        <table>
+            <tr>
+                <th>Parameters</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>String&nbsp;pushId</td>
+                <td>The original pushId</td>
+            </tr>
+            <tr>
+                <td>Object&nbsp;result</td>
+                <td>The result data</td>
+            </tr>
+        </table>
+
+        Specific implementations can choose to send back more information, like for example the original pushParams and/or event trigger params.
+        </td>
+    </tr>
+    <tr>
+        <td>Number&nbsp;interval</td>
+        <td>Interval in milliseconds at which the data should be pushed</td>
+    </tr>
+    <tr>
+        <td>String&nbsp;event</td>
+        <td>When set, the agent should subscribe this push to the given event.
+        If the event is triggered, the method is called and the result send to the callback.</td>
+    </tr>
+    <tr>
+        <td>Boolean&nbsp;onChange</td>
+        <td>When true, the agent should organize some way to only push when the data changes, e.g. through a event or by locally polling and comparing.</td>
+    </tr>
 </table>
 
 ## Documentation {#documentation}

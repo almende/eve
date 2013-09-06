@@ -58,6 +58,7 @@ a:hover {
 
 table {
     border-collapse: collapse;
+    margin: 10px 0;
 }
 th {
     background-color: #E5E5E5;
