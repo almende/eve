@@ -99,6 +99,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.util.IntervalsUtil;
+import com.almende.util.TypeUtil;
 import com.almende.util.WeightsUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -536,15 +537,13 @@ public class MeetingAgent extends Agent {
 		}
 		
 		// get infeasible intervals
-		List<Interval> infeasible = new ArrayList<Interval>();
-		infeasible = state.get(infeasible,"infeasible");
+		ArrayList<Interval> infeasible = state.get("infeasible",new TypeUtil<ArrayList<Interval>>(){});
 		if (infeasible == null) {
 			infeasible = new ArrayList<Interval>();
 		}
 		
 		// get preferred intervals
-		List<Weight> preferred =  new ArrayList<Weight>();
-		preferred = state.get(preferred,"preferred");
+		List<Weight> preferred = state.get("preferred",new TypeUtil<ArrayList<Weight>>(){});
 		if (preferred == null) {
 			preferred = new ArrayList<Weight>();
 		}
@@ -801,8 +800,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public ArrayList<Issue> getIssues() {
-		ArrayList<Issue> issues = new ArrayList<Issue>();
-		issues = getState().get(issues,"issues");
+		ArrayList<Issue> issues = getState().get("issues",new TypeUtil<ArrayList<Issue>>(){});
 		if (issues == null) {
 			issues = new ArrayList<Issue>();
 		}
@@ -866,8 +864,7 @@ public class MeetingAgent extends Agent {
 	 */
 	// TODO: create some separate AgentData handling class, instead of methods in MeetingAgent
 	private AgentData getAgentData(String agentUrl) {
-		Map<String, AgentData> calendarAgents = new HashMap<String, AgentData>();
-		calendarAgents  = getState().get(calendarAgents, "calendarAgents");
+		HashMap<String, AgentData> calendarAgents  = getState().get("calendarAgents", new TypeUtil<HashMap<String, AgentData>>(){});
 
 		if (calendarAgents != null && calendarAgents.containsKey(agentUrl)) {
 			return calendarAgents.get(agentUrl);
@@ -883,8 +880,7 @@ public class MeetingAgent extends Agent {
 	 */
 	private void putAgentData(String agentUrl, AgentData data) {
 		State state = getState();
-		Map<String, AgentData> calendarAgents = new HashMap<String, AgentData>();
-		calendarAgents  = getState().get(calendarAgents, "calendarAgents");
+		Map<String, AgentData> calendarAgents  = getState().get("calendarAgents", new TypeUtil<HashMap<String, AgentData>>(){});
 
 		if (calendarAgents == null) {
 			calendarAgents = new HashMap<String, AgentData>();
@@ -901,8 +897,7 @@ public class MeetingAgent extends Agent {
 	 */
 	private void removeAgentData(String agent) {
 		State state = getState();
-		Map<String, AgentData> calendarAgents = new HashMap<String, AgentData>();
-		calendarAgents  = getState().get(calendarAgents, "calendarAgents");
+		Map<String, AgentData> calendarAgents  = getState().get("calendarAgents",new TypeUtil<HashMap<String, AgentData>>(){});
 		if (calendarAgents != null && calendarAgents.containsKey(agent)) {
 			calendarAgents.remove(agent);
 			state.put("calendarAgents", calendarAgents);
@@ -1285,10 +1280,8 @@ public class MeetingAgent extends Agent {
 	public ObjectNode getIntervals() {
 		ObjectNode intervals = JOM.createObjectNode();
 
-		List<Interval> infeasible = new ArrayList<Interval>();
-		infeasible = getState().get(infeasible,"infeasible");
-		List<Weight> preferred = new ArrayList<Weight>();
-		preferred = getState().get(preferred,"preferred");
+		List<Interval> infeasible = getState().get("infeasible", new TypeUtil<ArrayList<Interval>>(){});
+		List<Weight> preferred = getState().get("preferred", new TypeUtil<ArrayList<Weight>>(){});
 		List<Weight> solutions = calculateSolutions(); 
 
 		// merge the intervals
@@ -1386,7 +1379,7 @@ public class MeetingAgent extends Agent {
 			}
 
 			// get the busy intervals from the agent
-			ArrayNode array = send(JOM.createArrayNode(),URI.create(agent), "getBusy", params);
+			ArrayNode array = send(URI.create(agent), "getBusy", params, ArrayNode.class);
 
 			// convert from ArrayNode to List
 			List<Interval> busy = new ArrayList<Interval>();
