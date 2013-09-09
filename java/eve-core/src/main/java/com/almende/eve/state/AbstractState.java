@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
-@SuppressWarnings("unchecked")
 public abstract class AbstractState<V> implements State {
 	private static final Logger	LOG		= Logger.getLogger(AbstractState.class
 												.getCanonicalName());
@@ -37,6 +36,7 @@ public abstract class AbstractState<V> implements State {
 	 * 
 	 * @return agentId
 	 */
+	@Override
 	public synchronized String getAgentId() {
 		return agentId;
 	}
@@ -46,12 +46,14 @@ public abstract class AbstractState<V> implements State {
 	 * 
 	 * @return agentType
 	 */
+	@Override
 	public synchronized void setAgentType(Class<?> agentType) {
 		// TODO: dangerous to use a generic state parameter to store the agent
 		// class, can be accidentally overwritten
 		put(KEY_AGENT_TYPE, agentType.getName());
 	}
 	
+	@Override
 	public synchronized Object put(String key, Object value){
 		if (value == null || Serializable.class.isAssignableFrom(value.getClass())){
 			return _put(key,(Serializable) value);	
@@ -63,6 +65,7 @@ public abstract class AbstractState<V> implements State {
 		}
 	}
 	
+	@Override
 	public synchronized boolean putIfUnchanged(String key, Object newVal,
 			Object oldVal){
 		if (newVal == null || Serializable.class.isAssignableFrom(newVal.getClass())){
@@ -80,13 +83,14 @@ public abstract class AbstractState<V> implements State {
 	 * @return type
 	 * @throws ClassNotFoundException
 	 */
+	@Override
 	public synchronized Class<?> getAgentType() throws ClassNotFoundException {
 		String agentType = get(KEY_AGENT_TYPE,String.class);
 		if (agentType == null) {
 			// try deprecated "class"
 			agentType = get("class",String.class);
 			if (agentType != null) {
-				put(KEY_AGENT_TYPE, (V) agentType);
+				put(KEY_AGENT_TYPE, agentType);
 				remove("class");
 			}
 		}
@@ -99,26 +103,32 @@ public abstract class AbstractState<V> implements State {
 	
 	public abstract V get(String key);
 	
+	@Override
 	public <T> T get(String key, Class<T> type) {
 		return TypeUtil.inject(type, get(key));
 	}
 	
+	@Override
 	public <T> T get(String key, Type type) {
 		return TypeUtil.inject(type, get(key));
 	}
 	
+	@Override
 	public <T> T get(String key, JavaType type) {
 		return TypeUtil.inject(type, get(key));
 	}
 	
+	@Override
 	public <T> T get(String key, TypeUtil<T> type) {
 		return type.inject(get(key));
 	}
 	
+	@Override
 	public <T> T get(TypedKey<T> typedKey){
 		return get(typedKey.getKey(),typedKey.getType());
 	}
 	
+	@Override
 	public <T> T get(T ret, String key) {
 		try {
 			ret = TypeUtil.inject(ret, get(key));
@@ -142,6 +152,7 @@ public abstract class AbstractState<V> implements State {
 		return _putIfUnchanged(key, newVal.toString(), oldVal.toString());
 	}
 	
+	@Override
 	public synchronized Serializable _put(String key, Serializable value) {
 		ObjectMapper om = JOM.getInstance();
 		_put(key, om.valueToTree(value));
