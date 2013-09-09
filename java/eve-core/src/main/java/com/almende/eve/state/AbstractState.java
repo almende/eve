@@ -59,7 +59,7 @@ public abstract class AbstractState<V> implements State {
 		} else if (JsonNode.class.isAssignableFrom(value.getClass())){
 			return _put(key,(JsonNode) value);
 		} else {
-			System.err.println("Can't handle input that is not Serializable nor JsonNode.");
+			LOG.severe("Can't handle input that is not Serializable nor JsonNode.");
 			throw new IllegalArgumentException();
 		}
 	}
@@ -72,7 +72,7 @@ public abstract class AbstractState<V> implements State {
 		} else if (JsonNode.class.isAssignableFrom(newVal.getClass())){
 			return _putIfUnchanged(key,(JsonNode) newVal, (JsonNode) oldVal);
 		} else {
-			System.err.println("Can't handle input that is not Serializable nor JsonNode.");
+			LOG.severe("Can't handle input that is not Serializable nor JsonNode.");
 			throw new IllegalArgumentException();
 		}
 	}
