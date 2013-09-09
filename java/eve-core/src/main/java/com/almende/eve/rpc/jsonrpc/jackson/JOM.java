@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public class JOM {
 	private static ObjectMapper m = null;
@@ -22,6 +23,7 @@ public class JOM {
 		}
 		
 		m = createInstance();
+		m.registerModule(new JodaModule());
 		return m;
 	}
 	

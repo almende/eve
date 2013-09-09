@@ -31,6 +31,11 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-joda</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>${joda-time.version}</version>
@@ -140,13 +145,13 @@
 							<daemon>true</daemon>
 						</configuration>
 						<executions>
-                                                        <execution>
-                                                                <id>start-jetty</id>
-                                                                <phase>test-compile</phase>
-                                                                <goals>
-                                                                        <goal>run</goal>
-                                                                </goals>
-                                                        </execution>
+							<execution>
+								<id>start-jetty</id>
+								<phase>test-compile</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
 						</executions>
 					</plugin>
 				</plugins>
