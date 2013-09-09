@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.util.ClassUtil;
@@ -62,9 +63,8 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		try {
 			return ClassUtil.cloneThroughSerialize(properties.get(key));
 		} catch (Exception e) {
-			LOG.warning("Couldn't clone object: " + key
-					+ ", returning pointer to original object.");
-			e.printStackTrace();
+			LOG.log(Level.WARNING,"Couldn't clone object: " + key
+					+ ", returning pointer to original object.",e);
 			return properties.get(key);
 		}
 	}

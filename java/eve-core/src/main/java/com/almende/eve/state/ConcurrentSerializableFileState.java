@@ -77,7 +77,6 @@ public class ConcurrentSerializableFileState extends
 	protected void openFile() throws IOException {
 		synchronized (locked) {
 			while (locked.containsKey(filename) && locked.get(filename)) {
-				// logger.warning("Starting to wait for locked! "+filename);
 				try {
 					locked.wait();
 				} catch (InterruptedException e) {

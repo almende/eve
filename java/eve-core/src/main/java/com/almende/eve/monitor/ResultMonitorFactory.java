@@ -27,18 +27,19 @@ import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
-	private static final Logger	LOG			= Logger.getLogger(ResultMonitorFactory.class
-													.getCanonicalName());
-	private Agent				myAgent		= null;
+	private static final Logger										LOG			= Logger.getLogger(ResultMonitorFactory.class
+																						.getCanonicalName());
+	private Agent													myAgent		= null;
 	
-	private static final TypedKey<HashMap<String, ResultMonitor>>	MONITORS	= new TypedKey<HashMap<String, ResultMonitor>>("_monitors"){};
+	private static final TypedKey<HashMap<String, ResultMonitor>>	MONITORS	= new TypedKey<HashMap<String, ResultMonitor>>(
+																						"_monitors") {
+																				};
 	
 	public ResultMonitorFactory(Agent agent) {
 		this.myAgent = agent;
@@ -196,7 +197,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 				: pushParams.putAll(triggerParams));
 		
 		myAgent.sendAsync(URI.create(pushParams.get("url").textValue()),
-				"monitor.callbackPush", parms,null,Void.class);
+				"monitor.callbackPush", parms, null, Void.class);
 		// TODO: If callback reports "old", unregisterPush();
 	}
 	
@@ -301,9 +302,10 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	@Access(AccessType.PUBLIC)
 	public final void unregisterPush(@Name("pushId") String id)
-			throws JsonProcessingException, IOException {
+			throws IOException {
 		ObjectNode config = null;
-		if (myAgent.getState() != null &&  myAgent.getState().containsKey("_push_" + id)) {
+		if (myAgent.getState() != null
+				&& myAgent.getState().containsKey("_push_" + id)) {
 			config = (ObjectNode) JOM.getInstance().readTree(
 					myAgent.getState().get("_push_" + id, String.class));
 		}
@@ -326,14 +328,15 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	public String store(ResultMonitor monitor) {
 		try {
-			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(
+					MONITORS);
 			HashMap<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
 			}
 			newmonitors.put(monitor.getId(), monitor);
-			if (!myAgent.getState().putIfUnchanged(MONITORS.getKey(), newmonitors,
-					monitors)) {
+			if (!myAgent.getState().putIfUnchanged(MONITORS.getKey(),
+					newmonitors, monitors)) {
 				// recursive retry.
 				store(monitor);
 			}
@@ -347,7 +350,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public void delete(String monitorId) {
 		
 		try {
-			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(
+					MONITORS);
 			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
@@ -367,7 +371,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	public ResultMonitor getMonitorById(String monitorId) {
 		try {
-			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(
+					MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
@@ -393,7 +398,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public Map<String, ResultMonitor> getMonitors() {
 		
 		try {
-			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(
+					MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}

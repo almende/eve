@@ -72,7 +72,7 @@ public interface ResultMonitorFactoryInterface {
 	 * @throws IOException 
 	 * @throws JsonProcessingException 
 	 */
-	void unregisterPush(@Name("pushId") String id) throws JsonProcessingException, IOException;
+	void unregisterPush(@Name("pushId") String id) throws IOException;
 	
 	/**
 	 * Sets up a monitored RPC call subscription. Conveniency method, which can

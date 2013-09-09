@@ -87,7 +87,6 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		synchronized (locked) {
 			System.err.println("locked sync:" + System.currentTimeMillis());
 			while (locked.containsKey(filename) && locked.get(filename)) {
-				// logger.warning("Starting to wait for locked! "+filename);
 				try {
 					locked.wait();
 				} catch (InterruptedException e) {

@@ -278,7 +278,7 @@ public final class ClassUtil {
 	//@Author Craig Flichel
 	
 	@SuppressWarnings("unchecked")
-	public static <T extends Serializable> T cloneThroughSerialize(T t) throws Exception {
+	public static <T extends Serializable> T cloneThroughSerialize(T t) throws IOException, ClassNotFoundException {
 	   ByteArrayOutputStream bos = new ByteArrayOutputStream();
 	   serializeToOutputStream(t, bos);
 	   byte[] bytes = bos.toByteArray();
