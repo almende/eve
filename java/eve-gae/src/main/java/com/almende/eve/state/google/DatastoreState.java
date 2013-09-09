@@ -2,7 +2,6 @@ package com.almende.eve.state.google;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +39,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * 
  * @author jos
  */
-public class DatastoreState extends AbstractState {
+public class DatastoreState extends AbstractState<Serializable> {
 	private Map<String, Serializable> properties = new ConcurrentHashMap<String, Serializable>();
 	private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
 	private IdentifiableValue cacheValue = null;
@@ -286,14 +285,15 @@ public class DatastoreState extends AbstractState {
 		isChanged = false;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Serializable get(Object key) {
+	public Serializable get(String key) {
 		load();
 		return properties.get(key);
 	}
 
 	@Override
-	public Serializable put(String key, Serializable value) {
+	public Serializable _put(String key, Serializable value) {
 		load();
 		Serializable ret = properties.put(key, value);
 		boolean success = save();
@@ -304,13 +304,13 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public boolean containsKey(Object key) {
+	public boolean containsKey(String key) {
 		load();
 		return properties.containsKey(key);
 	}
 
 	@Override
-	public Serializable remove(Object key) {
+	public Serializable remove(String key) {
 		load();
 		Serializable value = properties.remove(key);
 		save();
@@ -323,20 +323,7 @@ public class DatastoreState extends AbstractState {
 		properties.clear();
 		save();
 	}
-	
-	@Override
-	public boolean containsValue(Object value) {
-		load();
-		return properties.containsValue(value);
-	}
 
-	@Override
-	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
-		load();
-		return properties.entrySet();
-	}
-
-	@Override
 	public boolean isEmpty() {
 		load();
 		return properties.isEmpty();
@@ -349,14 +336,7 @@ public class DatastoreState extends AbstractState {
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Serializable> map) {
-		load();
-		properties.putAll(map);
-		save();
-	}
-
-	@Override
-	public boolean putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
+	public boolean _putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		boolean result=false;
 		load();
 		if ((oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){
@@ -371,12 +351,6 @@ public class DatastoreState extends AbstractState {
 	public int size() {
 		load();
 		return properties.size();
-	}
-
-	@Override
-	public Collection<Serializable> values() {
-		load();
-		return properties.values();
 	}
 }
 

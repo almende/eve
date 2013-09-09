@@ -201,7 +201,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public String getUsername() {
-		return (String) getState().get("name");
+		return getState().get("name",String.class);
 	}
 	
 	/**
@@ -210,7 +210,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public String getEmail() {
-		return (String) getState().get("email");
+		return getState().get("email",String.class);
 	}
 	
 	/**
@@ -242,7 +242,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception
 	 */
 	private Authorization getAuthorization() throws Exception {
-		Authorization auth = (Authorization) getState().get("auth");
+		Authorization auth = getState().get("auth",Authorization.class);
 
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
@@ -371,7 +371,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getState().get("email");
+			calendarId = getState().get("email",String.class);
 		}
 		
 		// built url with query parameters
@@ -586,7 +586,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getState().get("email");
+			calendarId = getState().get("email",String.class);
 		}
 
 		// built url
@@ -634,7 +634,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getState().get("email");
+			calendarId = getState().get("email",String.class);
 		}
 
 		// built url
@@ -726,7 +726,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getState().get("email");
+			calendarId = getState().get("email",String.class);
 		}
 
 		// convert from Eve to Google event
@@ -773,7 +773,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
-			calendarId = (String) getState().get("email");
+			calendarId = getState().get("email",String.class);
 		}
 
 		// built url

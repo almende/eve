@@ -184,7 +184,7 @@ public class MeetingAgent extends Agent {
 	 */
 	public Activity updateActivity(@Name("activity") Activity updatedActivity)
 			throws Exception {
-		Activity activity = (Activity) getState().get("activity");
+		Activity activity = getState().get("activity",Activity.class);
 		if (activity == null) {
 			activity = new Activity();
 		}
@@ -223,7 +223,7 @@ public class MeetingAgent extends Agent {
 		// update all attendees, start timer to regularly check
 		update();
 
-		return (Activity) getState().get("activity");
+		return getState().get("activity",Activity.class);
 	}
 
 	/**
@@ -232,7 +232,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	public String getSummary() {
-		Activity activity = (Activity) getState().get("activity");
+		Activity activity = getState().get("activity",Activity.class);
 		return (activity != null) ? activity.getSummary() : null;
 	}
 
@@ -241,7 +241,7 @@ public class MeetingAgent extends Agent {
 	 * @return activity
 	 */
 	public Activity getActivity() {
-		return (Activity) getState().get("activity");
+		return getState().get("activity",Activity.class);
 	}
 
 	/**
@@ -260,7 +260,7 @@ public class MeetingAgent extends Agent {
 	 * @return changed    Returns true if the activity is changed
 	 */
 	private boolean applyConstraints() {
-		Activity activity = (Activity) getState().get("activity");
+		Activity activity = getState().get("activity",Activity.class);
 		boolean changed = false;
 		if (activity == null) {
 			return false;
@@ -445,7 +445,7 @@ public class MeetingAgent extends Agent {
 	private boolean scheduleActivity() {
 		logger.info("scheduleActivity started"); // TODO: cleanup
 		State state = getState();
-		Activity activity = (Activity) state.get("activity");
+		Activity activity = state.get("activity",Activity.class);
 		if (activity == null) {
 			return false;
 		}
@@ -523,7 +523,6 @@ public class MeetingAgent extends Agent {
 	 * If there are no solutions, an empty array is returned.
 	 * @return solutions
 	 */
-	@SuppressWarnings("unchecked")
 	private List<Weight> calculateSolutions() {
 		logger.info("calculateSolutions started"); // TODO: cleanup
 		
@@ -531,19 +530,21 @@ public class MeetingAgent extends Agent {
 		List<Weight> solutions = new ArrayList<Weight>();
 		
 		// get the activity
-		Activity activity = (Activity) state.get("activity");
+		Activity activity = state.get("activity",Activity.class);
 		if (activity == null) {
 			return solutions;
 		}
 		
 		// get infeasible intervals
-		List<Interval> infeasible = (List<Interval>) state.get("infeasible");
+		List<Interval> infeasible = new ArrayList<Interval>();
+		infeasible = state.get(infeasible,"infeasible");
 		if (infeasible == null) {
 			infeasible = new ArrayList<Interval>();
 		}
 		
 		// get preferred intervals
-		List<Weight> preferred = (List<Weight>) state.get("preferred");
+		List<Weight> preferred =  new ArrayList<Weight>();
+		preferred = state.get(preferred,"preferred");
 		if (preferred == null) {
 			preferred = new ArrayList<Weight>();
 		}
@@ -697,7 +698,7 @@ public class MeetingAgent extends Agent {
 	public void stopAutoUpdate() {
 		State state = getState();
 
-		String task = (String) state.get("updateTask");
+		String task = state.get("updateTask",String.class);
 		if (task != null) {
 			getScheduler().cancelTask(task);
 			state.remove("updateTask");
@@ -799,9 +800,9 @@ public class MeetingAgent extends Agent {
 	 * is returned
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public ArrayList<Issue> getIssues() {
-		ArrayList<Issue> issues = (ArrayList<Issue>) getState().get("issues");
+		ArrayList<Issue> issues = new ArrayList<Issue>();
+		issues = getState().get(issues,"issues");
 		if (issues == null) {
 			issues = new ArrayList<Issue>();
 		}
@@ -864,10 +865,9 @@ public class MeetingAgent extends Agent {
 	 *         CalendarAgentData is returned.
 	 */
 	// TODO: create some separate AgentData handling class, instead of methods in MeetingAgent
-	@SuppressWarnings("unchecked")
 	private AgentData getAgentData(String agentUrl) {
-		Map<String, AgentData> calendarAgents = 
-				(Map<String, AgentData>) getState().get("calendarAgents");
+		Map<String, AgentData> calendarAgents = new HashMap<String, AgentData>();
+		calendarAgents  = getState().get(calendarAgents, "calendarAgents");
 
 		if (calendarAgents != null && calendarAgents.containsKey(agentUrl)) {
 			return calendarAgents.get(agentUrl);
@@ -881,11 +881,11 @@ public class MeetingAgent extends Agent {
 	 * @param agentUrl
 	 * @param data
 	 */
-	@SuppressWarnings("unchecked")
 	private void putAgentData(String agentUrl, AgentData data) {
 		State state = getState();
-		HashMap<String, AgentData> calendarAgents = 
-				(HashMap<String, AgentData>) state.get("calendarAgents");
+		Map<String, AgentData> calendarAgents = new HashMap<String, AgentData>();
+		calendarAgents  = getState().get(calendarAgents, "calendarAgents");
+
 		if (calendarAgents == null) {
 			calendarAgents = new HashMap<String, AgentData>();
 		}
@@ -899,11 +899,10 @@ public class MeetingAgent extends Agent {
 	 * @param agent
 	 * @param data
 	 */
-	@SuppressWarnings("unchecked")
 	private void removeAgentData(String agent) {
 		State state = getState();
-		HashMap<String, AgentData> calendarAgents = (HashMap<String, AgentData>) state
-				.get("calendarAgents");
+		Map<String, AgentData> calendarAgents = new HashMap<String, AgentData>();
+		calendarAgents  = getState().get(calendarAgents, "calendarAgents");
 		if (calendarAgents != null && calendarAgents.containsKey(agent)) {
 			calendarAgents.remove(agent);
 			state.put("calendarAgents", calendarAgents);
@@ -949,7 +948,7 @@ public class MeetingAgent extends Agent {
 					// event was deleted by the user.
 
 					//e.printStackTrace();
-					Activity activity = (Activity) getState().get("activity");
+					Activity activity = getState().get("activity",Activity.class);
 					Attendee attendee = activity.withConstraints().withAttendee(agent);
 					attendee.setResponseStatus(RESPONSE_STATUS.declined);
 					getState().put("activity", activity);
@@ -996,7 +995,7 @@ public class MeetingAgent extends Agent {
 		Activity eventActivity = convertEventToActivity(event);
 		
 		// verify all kind of stuff
-		Activity activity = (Activity) state.get("activity");
+		Activity activity = state.get("activity",Activity.class);
 		if (activity == null) {
 			return; // oops no activity at all
 		}
@@ -1283,12 +1282,13 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	// TODO: remove this temporary method
-	@SuppressWarnings("unchecked")
 	public ObjectNode getIntervals() {
 		ObjectNode intervals = JOM.createObjectNode();
 
-		List<Interval> infeasible = (List<Interval>) getState().get("infeasible");
-		List<Weight> preferred = (List<Weight>) getState().get("preferred");
+		List<Interval> infeasible = new ArrayList<Interval>();
+		infeasible = getState().get(infeasible,"infeasible");
+		List<Weight> preferred = new ArrayList<Weight>();
+		preferred = getState().get(preferred,"preferred");
 		List<Weight> solutions = calculateSolutions(); 
 
 		// merge the intervals

@@ -58,7 +58,7 @@ public class GoogleTranslateAgent extends Agent {
 	public String translate(@Name("text") String text,
 			@Name("target") String target, 
 			@Name("source") @Required(false) String source) throws Exception {
-		String key = (String) getState().get("key");
+		String key = getState().get("key",String.class);
 		if (key == null) {
 			throw new Exception("No valid API Key set. " +
 					"Google Translate API is a paid service " +

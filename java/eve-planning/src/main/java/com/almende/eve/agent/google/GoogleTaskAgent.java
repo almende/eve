@@ -153,7 +153,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 * @throws Exception
 	 */
 	private Authorization getAuthorization() throws Exception {
-		Authorization auth = (Authorization) getState().get("auth");
+		Authorization auth = getState().get("auth",Authorization.class);
 
 		// check if access_token is expired
 		DateTime expires_at = (auth != null) ? auth.getExpiresAt() : null;
@@ -191,7 +191,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public String getUsername() {
-		return (String) getState().get("name");
+		return getState().get("name",String.class);
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public String getEmail() {
-		return (String) getState().get("email");
+		return getState().get("email",String.class);
 	}
 	
 	/**
@@ -209,7 +209,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	private String getDefaultTaskList() throws Exception {
 		
-		String defaultList=(String) getState().get("defaultList");
+		String defaultList= getState().get("defaultList",String.class);
 		if(defaultList==null) {
 			ArrayNode taskLists = getTaskList();
 			for(JsonNode taskList : taskLists) {
