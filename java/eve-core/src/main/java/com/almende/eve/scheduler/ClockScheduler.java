@@ -28,7 +28,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private final Clock				myClock;
 	private final ClockScheduler	_this		= this;
 	private static final String		TASKLIST	= "_taskList";
-	private static final TypedKey<TreeSet<TaskEntry>> TYPEDKEY = new TypedKey<TreeSet<TaskEntry>>(TASKLIST);
+	private static final TypedKey<TreeSet<TaskEntry>> TYPEDKEY = new TypedKey<TreeSet<TaskEntry>>(TASKLIST){};
 	private static final int 		MAXCOUNT    = 1000;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {

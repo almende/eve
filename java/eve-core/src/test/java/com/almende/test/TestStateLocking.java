@@ -81,7 +81,7 @@ public class TestStateLocking extends TestCase {
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted after:"+(System.currentTimeMillis()-start)+" ms.");
 		}
-		assertEquals("test",state.get(new TypedKey<String>("test1")));
+		assertEquals("test",state.get(new TypedKey<String>("test1"){}));
 		assertEquals("test2",state.get("test2",String.class));
 		assertTrue(state.get("test",String.class).startsWith("test"));
 		
