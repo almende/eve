@@ -124,10 +124,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 					} else {
 						if (!task.isSequential()) {
 							task.setDue(DateTime.now().plus(task.getInterval()));
+							task.setActive(false);
+							_this.putTask(task, true);
+							_this.run();
 						}
-						task.setActive(false);
-						_this.putTask(task, true);
-						_this.run();
 					}
 					RequestParams params = new RequestParams();
 					String senderUrl = "local://" + myAgent.getId();
