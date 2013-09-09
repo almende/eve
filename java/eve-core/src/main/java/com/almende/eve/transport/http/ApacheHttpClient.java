@@ -1,16 +1,13 @@
 package com.almende.eve.transport.http;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -111,21 +108,20 @@ public final class ApacheHttpClient {
 		@Override
 		public List<Cookie> getCookies() {
 			List<Cookie> result = new ArrayList<Cookie>(myState.size());
-			for (Entry<String, Serializable> entry : myState.entrySet()) {
-				result.add((Cookie) entry.getValue());
+			for (String entryKey : myState.keySet()) {
+				result.add(myState.get(entryKey,Cookie.class));
 			}
 			return result;
 		}
 		
 		@Override
 		public boolean clearExpired(Date date) {
-			Iterator<Entry<String, Serializable>> iter = myState.entrySet()
-					.iterator();
 			boolean result = false;
-			while (iter.hasNext()) {
-				Entry<String, Serializable> next = iter.next();
-				if (((Cookie) next.getValue()).isExpired(date)) {
-					iter.remove();
+			
+			for (String entryKey : myState.keySet()) {
+				Cookie cookie = myState.get(entryKey,Cookie.class);
+				if (cookie.isExpired(date)){
+					myState.remove(entryKey);
 					result = true;
 				}
 			}

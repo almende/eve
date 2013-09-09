@@ -30,6 +30,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
+import com.almende.eve.state.ExtendedState;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.transport.AsyncCallback;
@@ -150,7 +151,7 @@ public final class AgentHost implements AgentHostInterface {
 		// No agent found, normal initialization:
 		
 		// load the State
-		State state = null;
+		ExtendedState state = null;
 		if (getStateFactory() == null) {
 			return null;
 		}
@@ -276,7 +277,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		
 		// create the state
-		State state = getStateFactory().create(agentId);
+		ExtendedState state = getStateFactory().create(agentId);
 		state.setAgentType(agentType);
 		state.init();
 		

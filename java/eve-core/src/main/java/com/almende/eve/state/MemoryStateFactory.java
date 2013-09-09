@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryStateFactory implements StateFactory {
 	// Singleton containing all states, stored per id
-	private Map<String, MemoryState> states = 
-		new ConcurrentHashMap<String, MemoryState>();
+	private Map<String, ExtendedState> states = 
+		new ConcurrentHashMap<String, ExtendedState>();
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
@@ -24,7 +24,7 @@ public class MemoryStateFactory implements StateFactory {
 	 * @return state
 	 */
 	@Override
-	public MemoryState get(String agentId) {
+	public ExtendedState get(String agentId) {
 		return states.get(agentId);
 	}
 	
@@ -34,14 +34,13 @@ public class MemoryStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	@Override
-	public synchronized MemoryState create(String agentId) throws IOException {
+	public synchronized ExtendedState create(String agentId) throws IOException {
 		if (states.containsKey(agentId)) {
 			throw new IllegalStateException("Cannot create state, " + 
 					"state with id '" + agentId + "' already exists.");
 		}
 		
-		MemoryState state = new MemoryState(agentId); 
+		ExtendedState state = new MemoryState(agentId); 
 		states.put(agentId, state);
 		
 		return state;

@@ -60,7 +60,14 @@ public abstract class TypeUtil<T> {
 		}
 		ObjectMapper mapper = JOM.getInstance();
 		if (value instanceof JsonNode) {
-			return mapper.convertValue(value, fullType);
+			if (((JsonNode) value).isNull()) {
+				return null;
+			}
+			try {
+				return mapper.convertValue(value, fullType);
+			} catch (Exception e) {
+				LOG.log(Level.SEVERE, "Failed to convert value:" + value, e);
+			}
 		}
 		return (T) fullType.getRawClass().cast(value);
 	}

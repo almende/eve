@@ -1,5 +1,7 @@
 package com.almende.eve.state;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -11,11 +13,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
-import java.io.StreamCorruptedException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,12 +23,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @class FileState
@@ -54,33 +48,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author jos
  * @author ludo
  */
-public class ConcurrentFileState extends FileState {
+public class ConcurrentSerializableFileState extends
+		AbstractState<Serializable> {
 	private static final Logger			LOG			= Logger.getLogger("ConcurrentFileState");
 	
-	private boolean						json		= false;
 	private String						filename	= null;
 	private FileChannel					channel		= null;
 	private FileLock					lock		= null;
 	private InputStream					fis			= null;
 	private OutputStream				fos			= null;
-	private ObjectMapper				om			= null;
 	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
 	
 	private Map<String, Serializable>	properties	= Collections
 															.synchronizedMap(new HashMap<String, Serializable>());
 	
-	public ConcurrentFileState(String agentId, String filename) {
+	public ConcurrentSerializableFileState(String agentId, String filename) {
 		super(agentId);
 		this.filename = filename;
-	}
-	
-	public ConcurrentFileState(String agentId, String filename, boolean json) {
-		super(agentId);
-		this.filename = filename;
-		this.json = json;
-		om = JOM.getInstance();
-		om.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
-		om.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
 	}
 	
 	@Override
@@ -100,6 +84,7 @@ public class ConcurrentFileState extends FileState {
 				}
 			}
 			locked.put(filename, true);
+			
 			File file = new File(this.filename);
 			if (!file.exists()) {
 				locked.put(filename, false);
@@ -109,6 +94,7 @@ public class ConcurrentFileState extends FileState {
 								+ this.filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
+			
 			try {
 				// TODO: add support for shared locks, allowing parallel reading
 				// operations.
@@ -122,13 +108,15 @@ public class ConcurrentFileState extends FileState {
 				throw new IllegalStateException(
 						"error, couldn't obtain file lock on:" + filename, e);
 			}
-			fis = Channels.newInputStream(channel);
-			fos = Channels.newOutputStream(channel);
+			fis = new BufferedInputStream(Channels.newInputStream(channel));
+			fos = new BufferedOutputStream(Channels.newOutputStream(channel));
 		}
 	}
 	
 	protected void closeFile() {
+		
 		synchronized (locked) {
+			
 			if (lock.isValid()) {
 				try {
 					
@@ -137,10 +125,12 @@ public class ConcurrentFileState extends FileState {
 					LOG.log(Level.WARNING, "", e);
 				}
 			}
+			
 			try {
 				fos.close();
 				fis.close();
 				channel.close();
+				
 			} catch (IOException e) {
 				LOG.log(Level.WARNING, "", e);
 			}
@@ -163,14 +153,9 @@ public class ConcurrentFileState extends FileState {
 		if (channel != null) {
 			channel.position(0);
 		}
-		if (json) {
-			om.writeValue(fos, properties);
-			fos.flush();
-		} else {
-			ObjectOutput out = new ObjectOutputStream(fos);
-			out.writeObject(properties);
-			out.flush();
-		}
+		ObjectOutput out = new ObjectOutputStream(fos);
+		out.writeObject(properties);
+		out.flush();
 	}
 	
 	/**
@@ -180,43 +165,19 @@ public class ConcurrentFileState extends FileState {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	private void read() throws IOException, ClassNotFoundException {
-		_read(false);
-	}
-	
 	@SuppressWarnings("unchecked")
-	private void _read(boolean retry) throws IOException,
-			ClassNotFoundException {
+	private void read() throws IOException, ClassNotFoundException {
 		try {
 			if (channel != null) {
 				channel.position(0);
 			}
+			
 			properties.clear();
-			if (json ^ retry) {
-				properties.putAll(om.readValue(fis, HashMap.class));
-			} else {
-				ObjectInput in = new ObjectInputStream(fis);
-				properties.putAll((Map<String, Serializable>) in.readObject());
-			}
+			ObjectInput in = new ObjectInputStream(fis);
+			
+			properties.putAll((Map<String, Serializable>) in.readObject());
+			
 		} catch (EOFException eof) {
-			// empty file, new agent?
-		} catch (StreamCorruptedException sce) {
-			if (channel != null && channel.position() != 0) {
-				if (!retry) {
-					_read(true);
-				} else {
-					throw sce;
-				}
-			}
-			// empty file, new agent?
-		} catch (JsonMappingException map) {
-			if (channel != null && channel.position() != 0) {
-				if (!retry) {
-					_read(true);
-				} else {
-					throw map;
-				}
-			}
 			// empty file, new agent?
 		}
 	}
@@ -236,7 +197,6 @@ public class ConcurrentFileState extends FileState {
 	public void destroy() {
 	}
 	
-	@Override
 	public synchronized void clear() {
 		try {
 			openFile();
@@ -248,13 +208,13 @@ public class ConcurrentFileState extends FileState {
 		closeFile();
 	}
 	
-	@Override
 	public synchronized Set<String> keySet() {
 		Set<String> result = null;
 		try {
 			openFile();
 			read();
 			result = properties.keySet();
+			
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
@@ -262,13 +222,13 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
-	public synchronized boolean containsKey(Object key) {
+	public synchronized boolean containsKey(String key) {
 		boolean result = false;
 		try {
 			openFile();
 			read();
 			result = properties.containsKey(key);
+			
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
@@ -276,36 +236,8 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
-	public synchronized boolean containsValue(Object value) {
-		boolean result = false;
-		try {
-			openFile();
-			read();
-			result = properties.containsValue(value);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		closeFile();
-		return result;
-	}
-	
-	@Override
-	public synchronized Set<java.util.Map.Entry<String, Serializable>> entrySet() {
-		Set<java.util.Map.Entry<String, Serializable>> result = null;
-		try {
-			openFile();
-			read();
-			result = properties.entrySet();
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		closeFile();
-		return result;
-	}
-	
-	@Override
-	public synchronized Serializable get(Object key) {
+	@SuppressWarnings("unchecked")
+	public synchronized Serializable get(String key) {
 		Serializable result = null;
 		try {
 			openFile();
@@ -318,7 +250,6 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
 	public synchronized boolean isEmpty() {
 		boolean result = false;
 		try {
@@ -332,8 +263,7 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
-	public synchronized Serializable put(String key, Serializable value) {
+	public synchronized Serializable _put(String key, Serializable value) {
 		Serializable result = null;
 		try {
 			openFile();
@@ -347,29 +277,16 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
-	public synchronized void putAll(
-			Map<? extends String, ? extends Serializable> map) {
-		try {
-			openFile();
-			read();
-			properties.putAll(map);
-			write();
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		closeFile();
-	}
-	
-	@Override
-	public synchronized boolean putIfUnchanged(String key, Serializable newVal,
-			Serializable oldVal) {
+	public synchronized boolean _putIfUnchanged(String key,
+			Serializable newVal, Serializable oldVal) {
 		boolean result = false;
 		try {
 			openFile();
 			read();
-			if (!(oldVal == null && properties.containsKey(key) && properties.get(key) != null)
-					|| (properties.get(key) != null && properties.get(key).equals(oldVal))) {
+			if (!(oldVal == null && properties.containsKey(key) && properties
+					.get(key) != null)
+					|| (properties.get(key) != null && properties.get(key)
+							.equals(oldVal))) {
 				properties.put(key, newVal);
 				write();
 				result = true;
@@ -384,9 +301,8 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
-	public synchronized Serializable remove(Object key) {
-		Serializable result = null;
+	public synchronized Object remove(String key) {
+		Object result = null;
 		try {
 			openFile();
 			read();
@@ -399,27 +315,12 @@ public class ConcurrentFileState extends FileState {
 		return result;
 	}
 	
-	@Override
 	public synchronized int size() {
 		int result = -1;
 		try {
 			openFile();
 			read();
 			result = properties.size();
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		closeFile();
-		return result;
-	}
-	
-	@Override
-	public synchronized Collection<Serializable> values() {
-		Collection<Serializable> result = null;
-		try {
-			openFile();
-			read();
-			result = properties.values();
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}

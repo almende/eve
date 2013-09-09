@@ -1,7 +1,5 @@
 package com.almende.eve.transport.http;
 
-import java.io.Serializable;
-import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,6 +8,7 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.FileStateFactory;
+import com.almende.eve.state.State;
 
 /**
  * Simple token system: Each outbound call gets a token, which is newly
@@ -22,12 +21,12 @@ import com.almende.eve.state.FileStateFactory;
  * 
  */
 public final class TokenStore {
-	private static final Logger					LOG		= Logger.getLogger(TokenStore.class
-																.getCanonicalName());
-	private static final TokenStore				ME		= new TokenStore();
-	private static final int					SIZE	= 5;
-	private static Map<String, Serializable>	tokens;
-	private static DateTime						last	= DateTime.now();
+	private static final Logger		LOG		= Logger.getLogger(TokenStore.class
+													.getCanonicalName());
+	private static final TokenStore	ME		= new TokenStore();
+	private static final int		SIZE	= 5;
+	private static State			tokens;
+	private static DateTime			last	= DateTime.now();
 	
 	private TokenStore() {
 		FileStateFactory factory = new FileStateFactory(".evecookies");
@@ -44,7 +43,7 @@ public final class TokenStore {
 	
 	public static String get(String time) {
 		try {
-			return (String) tokens.get(time);
+			return tokens.get(time, String.class);
 		} catch (Exception e) {
 			return null;
 		}
@@ -53,7 +52,8 @@ public final class TokenStore {
 	public static TokenRet create() {
 		synchronized (tokens) {
 			TokenRet result;
-			if (tokens.size() == 0 || tokens.get(last.toString()) == null
+			if (tokens.size() == 0
+					|| tokens.get(last.toString(), String.class) == null
 					|| last.plus(3600000).isBeforeNow()) {
 				DateTime now = DateTime.now();
 				String token = UUID.randomUUID().toString();
@@ -71,11 +71,11 @@ public final class TokenStore {
 						} catch (Exception e) {
 						}
 					}
-					tokens.remove(oldest);
+					tokens.remove(oldest.toString());
 				}
 			} else {
-				result = ME.new TokenRet((String) tokens.get(last.toString()),
-						last);
+				result = ME.new TokenRet(tokens.get(last.toString(),
+						String.class), last);
 			}
 			return result;
 		}

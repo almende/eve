@@ -18,6 +18,7 @@ import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,10 +39,10 @@ public class EventsFactory implements EventsInterface {
 	 * @param event
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public List<Callback> getSubscriptions(String event) {
-		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) myAgent
-				.getState().get(SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
+		allSubscriptions = myAgent.getState().get(allSubscriptions,
+				SUBSCRIPTIONS);
 		if (allSubscriptions != null) {
 			List<Callback> eventSubscriptions = allSubscriptions.get(event);
 			if (eventSubscriptions != null) {
@@ -58,11 +59,11 @@ public class EventsFactory implements EventsInterface {
 	 * @param event
 	 * @param subscriptions
 	 */
-	@SuppressWarnings("unchecked")
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
 		
-		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent
-				.getState().get(SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
+		allSubscriptions = myAgent.getState().get(allSubscriptions,
+				SUBSCRIPTIONS);
 		
 		HashMap<String, List<Callback>> newSubscriptions = new HashMap<String, List<Callback>>();
 		if (allSubscriptions != null) {
@@ -288,9 +289,9 @@ public class EventsFactory implements EventsInterface {
 			@Required(false) @Name(EVENT) String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
-		@SuppressWarnings("unchecked")
-		HashMap<String, List<Callback>> allSubscriptions = (HashMap<String, List<Callback>>) myAgent
-				.getState().get(SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
+		allSubscriptions = myAgent.getState().get(allSubscriptions,
+				SUBSCRIPTIONS);
 		if (allSubscriptions == null) {
 			return;
 		}
@@ -353,9 +354,9 @@ public class EventsFactory implements EventsInterface {
 	@Access(AccessType.SELF)
 	public ObjectNode getSubscriptionStats() {
 		ObjectNode result = JOM.createObjectNode();
-		@SuppressWarnings("unchecked")
-		Map<String, List<Callback>> allSubscriptions = (Map<String, List<Callback>>) myAgent
-				.getState().get(SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
+		allSubscriptions = myAgent.getState().get(allSubscriptions,
+				SUBSCRIPTIONS);
 		if (allSubscriptions != null) {
 			result.put("nofSubscriptions", allSubscriptions.values().size());
 			result.put("nofEvents", allSubscriptions.keySet().size());

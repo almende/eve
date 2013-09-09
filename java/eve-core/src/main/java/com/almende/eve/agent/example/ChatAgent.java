@@ -84,7 +84,7 @@ public class ChatAgent extends Agent {
 	 * @return
 	 */
 	public String getUsername() {
-		String username = (String) getState().get("username");
+		String username = getState().get("username",String.class);
 		return (username != null) ? username : getMyUrl();
 	}
 
@@ -153,7 +153,6 @@ public class ChatAgent extends Agent {
 	 * @throws JSONRPCException 
 	 * @throws IOException 
 	 */
-	@SuppressWarnings("unchecked")
 	public void connect(@Name("url") String url) throws JSONRPCException, IOException {
 		boolean otherAlreadyConnected = false;
 		ArrayList<String> newConnections = new ArrayList<String>();
@@ -161,7 +160,8 @@ public class ChatAgent extends Agent {
 
 		// get my own connections from the state
 		String urlSelf = getMyUrl();
-		ArrayList<String> connections = (ArrayList<String>) getState().get("connections"); 
+		ArrayList<String> connections = new ArrayList<String>();
+		connections = getState().get(connections, "connections");
 		if (connections == null) {	
 			connections = new ArrayList<String>();
 		}
@@ -222,9 +222,9 @@ public class ChatAgent extends Agent {
 	 * @throws JSONRPCException 
 	 * @throws IOException 
 	 */
-	@SuppressWarnings("unchecked")
 	public void disconnect() throws JSONRPCException, IOException {
-		List<String> connections = (List<String>) getState().get("connections");
+		ArrayList<String> connections = new ArrayList<String>();
+		connections = getState().get(connections, "connections");
 		if (connections != null) {
 			getState().remove("connections");			
 
@@ -251,9 +251,9 @@ public class ChatAgent extends Agent {
 	 * @param url  Url of a connected ChatAgent
 	 * @throws IOException 
 	 */
-	@SuppressWarnings("unchecked")
 	public void removeConnection(@Name("url") String url) throws IOException {
-		ArrayList<String> connections = (ArrayList<String>) getState().get("connections");
+		ArrayList<String> connections = new ArrayList<String>();
+		connections = getState().get(connections, "connections");
 		if (connections != null) {
 			connections.remove(url);
 			getState().put("connections", connections);	
@@ -270,9 +270,9 @@ public class ChatAgent extends Agent {
 	 * Retrieve the urls of all agents that are connected
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public List<String> getConnections() {
-		List<String> connections = (List<String>) getState().get("connections");
+		ArrayList<String> connections = new ArrayList<String>();
+		connections = getState().get(connections, "connections");
 		if (connections != null) {
 			return connections;
 		}

@@ -9,7 +9,7 @@ public interface StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	State get(String agentId);
+	ExtendedState get(String agentId);
 	
 	/**
 	 * Create a state with given id. Will throw an exception when already
@@ -17,7 +17,7 @@ public interface StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	 State create(String agentId) throws IOException;
+	ExtendedState create(String agentId) throws IOException;
 	
 	/**
 	 * Delete a state. If the state does not exist, nothing will happen.

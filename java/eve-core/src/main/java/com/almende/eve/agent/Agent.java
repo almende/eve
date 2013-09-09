@@ -56,6 +56,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
+import com.almende.eve.state.ExtendedState;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
@@ -68,7 +69,7 @@ public abstract class Agent implements AgentInterface {
 	private static final Logger				LOG				= Logger.getLogger(Agent.class
 																	.getCanonicalName());
 	private AgentHost						agentHost		= null;
-	private State							state			= null;
+	private ExtendedState					state			= null;
 	private Scheduler						scheduler		= null;
 	private ResultMonitorFactoryInterface	monitorFactory	= null;
 	private EventsInterface					eventsFactory	= null;
@@ -86,7 +87,7 @@ public abstract class Agent implements AgentInterface {
 	public Agent() {
 	}
 	
-	public void constr(AgentHost factory, State state) {
+	public void constr(AgentHost factory, ExtendedState state) {
 		if (this.state == null) {
 			this.agentHost = factory;
 			this.state = state;
@@ -111,7 +112,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public boolean ifSelf(String senderUrl) {
-		if (senderUrl.startsWith("web://")){
+		if (senderUrl.startsWith("web://")) {
 			return true;
 		}
 		List<String> urls = getUrls();
@@ -211,6 +212,12 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final State getState() {
+		return state;
+	}
+
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	public final ExtendedState getBareState() {
 		return state;
 	}
 	
@@ -495,7 +502,7 @@ public abstract class Agent implements AgentInterface {
 					urls.add(url);
 				}
 			}
-			urls.add("local://"+agentId);
+			urls.add("local://" + agentId);
 		} else {
 			LOG.severe("AgentHost not initialized?!?");
 		}

@@ -1,31 +1,19 @@
 package com.almende.eve.state;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * @class State
- * 
- *        An interface for a state for Eve agents.
- *        The state provides general information for the agent (about itself,
- *        the environment, and the system configuration), and the agent can
- *        store
- *        persistent data in the state.
- *        The state extends a standard Java Map.
- * 
- *        Usage:<br>
- *        AgentHost factory = AgentHost.getInstance(config);<br>
- *        State state = new State("agentId");<br>
- *        state.put("key", "value");<br>
- *        System.out.println(state.get("key")); // "value"<br>
- * 
- * @author jos
- */
-public abstract class AbstractState implements State {
+
+@SuppressWarnings("unchecked")
+public abstract class AbstractState<V> implements ExtendedState {
 	private static final Logger	LOG		= Logger.getLogger(AbstractState.class
 												.getCanonicalName());
 	private String				agentId	= null;
@@ -64,6 +52,28 @@ public abstract class AbstractState implements State {
 		put(KEY_AGENT_TYPE, agentType.getName());
 	}
 	
+	public synchronized Object put(String key, Object value){
+		if (value == null || Serializable.class.isAssignableFrom(value.getClass())){
+			return _put(key,(Serializable) value);	
+		} else if (JsonNode.class.isAssignableFrom(value.getClass())){
+			return _put(key,(JsonNode) value);
+		} else {
+			System.err.println("Can't handle input that is not Serializable nor JsonNode.");
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	public synchronized boolean putIfUnchanged(String key, Object newVal,
+			Object oldVal){
+		if (newVal == null || Serializable.class.isAssignableFrom(newVal.getClass())){
+			return _putIfUnchanged(key,(Serializable) newVal, (Serializable) oldVal);
+		} else if (JsonNode.class.isAssignableFrom(newVal.getClass())){
+			return _putIfUnchanged(key,(JsonNode) newVal, (JsonNode) oldVal);
+		} else {
+			System.err.println("Can't handle input that is not Serializable nor JsonNode.");
+			throw new IllegalArgumentException();
+		}
+	}
 	/**
 	 * Get the configured agents type (the full class path).
 	 * 
@@ -71,12 +81,12 @@ public abstract class AbstractState implements State {
 	 * @throws ClassNotFoundException
 	 */
 	public synchronized Class<?> getAgentType() throws ClassNotFoundException {
-		String agentType = (String) get(KEY_AGENT_TYPE);
+		String agentType = get(KEY_AGENT_TYPE,String.class);
 		if (agentType == null) {
 			// try deprecated "class"
-			agentType = (String) get("class");
+			agentType = get("class",String.class);
 			if (agentType != null) {
-				put(KEY_AGENT_TYPE, agentType);
+				put(KEY_AGENT_TYPE, (V) agentType);
 				remove("class");
 			}
 		}
@@ -87,30 +97,20 @@ public abstract class AbstractState implements State {
 		}
 	}
 	
-	// init and destroy methods
+	public abstract V get(String key);
 	
-	// executed once after the agent is instantiated
-	public abstract void init();
-	
-	// executed once before the agent is destroyed
-	public abstract void destroy();
-	
-	@Override
 	public <T> T get(String key, Class<T> type) {
 		return TypeUtil.inject(type, get(key));
 	}
 	
-	@Override
 	public <T> T get(String key, Type type) {
 		return TypeUtil.inject(type, get(key));
 	}
 	
-	@Override
 	public <T> T get(String key, JavaType type) {
 		return TypeUtil.inject(type, get(key));
 	}
 	
-	@Override
 	public <T> T get(String key, TypeUtil<T> type) {
 		return type.inject(get(key));
 	}
@@ -122,5 +122,32 @@ public abstract class AbstractState implements State {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return ret;
+	}
+	
+	
+	@Override
+	public JsonNode _put(String key, JsonNode value) {
+		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
+		_put(key, value.toString());
+		return value;
+	}
+	
+	@Override
+	public boolean _putIfUnchanged(String key, JsonNode newVal, JsonNode oldVal) {
+		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
+		return _putIfUnchanged(key, newVal.toString(), oldVal.toString());
+	}
+	
+	public synchronized Serializable _put(String key, Serializable value) {
+		ObjectMapper om = JOM.getInstance();
+		_put(key, om.valueToTree(value));
+		return value;
+	}
+	
+	@Override
+	public boolean _putIfUnchanged(String key, Serializable newVal,
+			Serializable oldVal) {
+		ObjectMapper om = JOM.getInstance();
+		return _putIfUnchanged(key, om.valueToTree(newVal), om.valueToTree(oldVal));
 	}
 }

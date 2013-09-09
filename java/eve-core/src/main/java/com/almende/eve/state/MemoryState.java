@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import com.almende.util.ClassUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @class MemoryState
@@ -31,7 +32,7 @@ import com.almende.util.ClassUtil;
  * 
  * @author jos
  */
-public class MemoryState extends AbstractState {
+public class MemoryState extends AbstractState<Serializable> implements State {
 	private static final Logger			LOG			= Logger.getLogger(MemoryState.class
 															.getName());
 	private Map<String, Serializable>	properties	= new ConcurrentHashMap<String, Serializable>();
@@ -43,82 +44,82 @@ public class MemoryState extends AbstractState {
 		super(agentId);
 	}
 	
-	@Override
 	public void clear() {
 		properties.clear();
 	}
 	
-	@Override
 	public Set<String> keySet() {
 		return properties.keySet();
 	}
 	
-	@Override
-	public boolean containsKey(Object key) {
+	public boolean containsKey(String key) {
 		return properties.containsKey(key);
 	}
 	
-	@Override
-	public boolean containsValue(Object value) {
-		return properties.containsValue(value);
-	}
-	
-	@Override
-	public Set<java.util.Map.Entry<String, Serializable>> entrySet() {
-		return properties.entrySet();
-	}
-	
-	@Override
-	public Serializable get(Object key) {
+	@SuppressWarnings("unchecked")
+	public Serializable get(String key) {
 		try {
 			return ClassUtil.cloneThroughSerialize(properties.get(key));
 		} catch (Exception e) {
-			LOG.warning("Couldn't clone object: " + key + ", returning pointer to original object.");
+			LOG.warning("Couldn't clone object: " + key
+					+ ", returning pointer to original object.");
 			e.printStackTrace();
 			return properties.get(key);
 		}
 	}
 	
-	@Override
 	public boolean isEmpty() {
 		return properties.isEmpty();
 	}
 	
-	@Override
-	public Serializable put(String key, Serializable value) {
+	public Serializable _put(String key, Serializable value) {
 		return properties.put(key, value);
 	}
 	
-	@Override
+	public JsonNode _put(String key, JsonNode value) {
+		properties.put(key, value.toString());
+		return value;
+	}
+	
 	public void putAll(Map<? extends String, ? extends Serializable> map) {
 		properties.putAll(map);
 	}
 	
-	@Override
-	public boolean putIfUnchanged(String key, Serializable newVal,
+	public boolean _putIfUnchanged(String key, Serializable newVal,
 			Serializable oldVal) {
 		boolean result = false;
 		if (!(oldVal == null && properties.containsKey(key) && properties
 				.get(key) != null)
 				|| (properties.get(key) != null && properties.get(key).equals(
 						oldVal))) {
-			properties.put(key, newVal);
+			properties.put(key, (Serializable) newVal);
 			result = true;
 		}
 		return result;
 	}
+
+	public boolean _putIfUnchanged(String key, JsonNode newVal,
+			JsonNode oldVal) {
+		boolean result = false;
+		if (!(oldVal == null && properties.containsKey(key) && properties
+				.get(key) != null)
+				|| (properties.get(key) != null && properties.get(key).equals(
+						oldVal))) {
+			properties.put(key, newVal.toString());
+			result = true;
+		}
+		return result;
+	}
+
 	
-	@Override
-	public Serializable remove(Object key) {
+	public Serializable remove(String key) {
 		return properties.remove(key);
 	}
 	
-	@Override
 	public int size() {
 		return properties.size();
 	}
 	
-	@Override
 	public Collection<Serializable> values() {
 		return properties.values();
 	}
@@ -126,14 +127,12 @@ public class MemoryState extends AbstractState {
 	/**
 	 * init is executed once before the agent method is invoked
 	 */
-	@Override
 	public void init() {
 	}
 	
 	/**
 	 * destroy is executed once after the agent method is invoked
 	 */
-	@Override
 	public void destroy() {
 	}
 	

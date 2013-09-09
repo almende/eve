@@ -43,7 +43,7 @@ public class XmppService implements TransportService {
 	private String							service				= null;
 	
 	// xmpp url as key "xmpp:username@host"
-	private Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>(); 
+	private Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>();
 	private static List<String>				protocols			= Arrays.asList("xmpp");
 	
 	private static final Logger				LOG					= Logger.getLogger(XmppService.class
@@ -100,8 +100,7 @@ public class XmppService implements TransportService {
 		
 		ArrayNode conns = null;
 		if (state.containsKey(CONNKEY)) {
-			conns = (ArrayNode) JOM.getInstance().readTree(
-					(String) state.get(CONNKEY));
+			conns = (ArrayNode) JOM.getInstance().readTree(state.get(CONNKEY,String.class));
 		}
 		return conns;
 	}
@@ -244,8 +243,9 @@ public class XmppService implements TransportService {
 			connection = new AgentConnection(agentHost);
 		}
 		
-		if (username.indexOf('@') > 0){
-			LOG.warning("Warning: Username should not contain a domain! "+username);
+		if (username.indexOf('@') > 0) {
+			LOG.warning("Warning: Username should not contain a domain! "
+					+ username);
 		}
 		
 		connection.connect(agentId, host, port, service, username, password,
@@ -264,7 +264,7 @@ public class XmppService implements TransportService {
 		
 		State state = agentHost.getStateFactory().get(agentId);
 		
-		String conns = (String) state.get(CONNKEY);
+		String conns = state.get(CONNKEY,String.class);
 		ArrayNode newConns;
 		if (conns != null) {
 			newConns = (ArrayNode) JOM.getInstance().readTree(conns);
@@ -382,7 +382,7 @@ public class XmppService implements TransportService {
 				throw new JSONRPCException("Receiver url must start with '"
 						+ protocol + "' (receiver='" + receiver + "')");
 			}
-			 // username@domain
+			// username@domain
 			String fullUsername = receiver.substring(protocol.length());
 			connection.send(fullUsername, request, callback);
 		} else {
@@ -456,9 +456,9 @@ public class XmppService implements TransportService {
 			}
 		}
 	}
-
+	
 	@Override
 	public String getKey() {
-		return "xmpp://"+host+":"+port+"/"+service;
+		return "xmpp://" + host + ":" + port + "/" + service;
 	}
 }

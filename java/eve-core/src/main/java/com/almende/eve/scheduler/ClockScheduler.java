@@ -20,6 +20,7 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
 import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private static final Logger		LOG			= Logger.getLogger("ClockScheduler");
@@ -36,7 +37,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public TaskEntry getFirstTask() {
-		TreeSet<TaskEntry> timeline =  injector.inject(myAgent.getState().get(TASKLIST));
+		TreeSet<TaskEntry> timeline =  injector.inject(myAgent.getBareState().get(TASKLIST));
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
 			int count = 0;
@@ -56,12 +57,11 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		putTask(task, false);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void putTask(TaskEntry task, boolean onlyIfExists) {
 
-		Set<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get(TASKLIST);
-		Set<TaskEntry> timeline = null;
+		TreeSet<TaskEntry> oldTimeline = injector.inject(myAgent.getBareState()
+				.get(TASKLIST));
+		TreeSet<TaskEntry> timeline = null;
 		boolean found = false;
 		if (oldTimeline != null) {
 			timeline = new TreeSet<TaskEntry>();
@@ -82,7 +82,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			timeline.add(task);
 		}
 		if (!myAgent.getState().putIfUnchanged(TASKLIST,
-				(Serializable) timeline, (Serializable) oldTimeline)) {
+				timeline, oldTimeline)) {
 			LOG.severe("need to retry putTask...");
 			// recursive retry....
 			putTask(task, onlyIfExists);
@@ -90,11 +90,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void cancelTask(String id) {
-		TreeSet<TaskEntry> oldTimeline = (TreeSet<TaskEntry>) myAgent
-				.getState().get(TASKLIST);
+		TreeSet<TaskEntry> oldTimeline = injector.inject(myAgent
+				.getBareState().get(TASKLIST));
 		TreeSet<TaskEntry> timeline = null;
 		if (oldTimeline != null) {
 			timeline = new TreeSet<TaskEntry>();
@@ -180,9 +179,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@Override
 	public Set<String> getTasks() {
 		Set<String> result = new HashSet<String>();
-		@SuppressWarnings("unchecked")
-		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get(TASKLIST);
+		TreeSet<TaskEntry> timeline = injector.inject(myAgent.getBareState()
+				.get(TASKLIST));
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -195,9 +193,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@Override
 	public Set<String> getDetailedTasks() {
 		Set<String> result = new HashSet<String>();
-		@SuppressWarnings("unchecked")
-		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get(TASKLIST);
+		TreeSet<TaskEntry> timeline = injector.inject(myAgent.getBareState()
+				.get(TASKLIST));
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -222,9 +219,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public String toString() {
-		@SuppressWarnings("unchecked")
-		TreeSet<TaskEntry> timeline = (TreeSet<TaskEntry>) myAgent.getState()
-				.get(TASKLIST);
+		TreeSet<TaskEntry> timeline = injector.inject(myAgent.getBareState()
+				.get(TASKLIST));
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
@@ -291,6 +287,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		return due.toString();
 	}
 	
+	@JsonIgnore
 	public DateTime getDue() {
 		return due;
 	}
@@ -305,6 +302,10 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	
 	public void setRequest(JSONRequest request) {
 		this.request = request;
+	}
+	
+	public void setDueAsString(String due){
+		this.due = new DateTime(due);
 	}
 	
 	public void setDue(DateTime due) {

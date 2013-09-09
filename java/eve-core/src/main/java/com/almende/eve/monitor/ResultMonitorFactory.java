@@ -325,9 +325,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	public String store(ResultMonitor monitor) {
 		try {
-			@SuppressWarnings("unchecked")
-			HashMap<String, ResultMonitor> monitors = (HashMap<String, ResultMonitor>) myAgent
-					.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
+			monitors = myAgent.getState().get(monitors,MONITORS);
 			HashMap<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
@@ -348,9 +347,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public void delete(String monitorId) {
 		
 		try {
-			@SuppressWarnings("unchecked")
-			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
-					.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
+			monitors = myAgent.getState().get(monitors,MONITORS);
 			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
@@ -370,9 +368,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	public ResultMonitor getMonitorById(String monitorId) {
 		try {
-			@SuppressWarnings("unchecked")
-			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
-					.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
+			monitors = myAgent.getState().get(monitors,MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
@@ -398,9 +395,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public Map<String, ResultMonitor> getMonitors() {
 		
 		try {
-			@SuppressWarnings("unchecked")
-			Map<String, ResultMonitor> monitors = (Map<String, ResultMonitor>) myAgent
-					.getState().get(MONITORS);
+			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
+			monitors = myAgent.getState().get(monitors,MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}

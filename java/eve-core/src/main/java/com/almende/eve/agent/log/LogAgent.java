@@ -13,13 +13,12 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 @Access(AccessType.PUBLIC)
 public class LogAgent extends Agent {
 	private static final long	TIMETOLIVE	= 20 * 60 * 1000;	// milliseconds
-	
-															
+																
 	public void log(Log log) {
-		@SuppressWarnings("unchecked")
 		// TODO: use a database instead of the state - when you register
 		// more and more logs this will be very unreliable.
-		ArrayList<Log> logs = (ArrayList<Log>) getState().get("logs");
+		ArrayList<Log> logs = new ArrayList<Log>();
+		logs = getState().get(logs, "logs");
 		if (logs == null) {
 			logs = new ArrayList<Log>();
 		}
@@ -31,8 +30,8 @@ public class LogAgent extends Agent {
 	}
 	
 	public List<Log> getLogs(Long since) {
-		@SuppressWarnings("unchecked")
-		List<Log> logs = (List<Log>) getState().get("logs");
+		ArrayList<Log> logs = new ArrayList<Log>();
+		logs = getState().get(logs, "logs");
 		
 		// TODO: use a database for the logs. It is very inefficient to
 		// retrieve them all and then filter them.
@@ -56,7 +55,7 @@ public class LogAgent extends Agent {
 	 * Remove existing time to live
 	 */
 	public void cancelTimeToLive() {
-		String timeoutId = (String) getState().get("timeoutId");
+		String timeoutId = getState().get("timeoutId",String.class);
 		if (timeoutId != null) {
 			getScheduler().cancelTask(timeoutId);
 		}
@@ -109,6 +108,5 @@ public class LogAgent extends Agent {
 	public String getVersion() {
 		return "0.1";
 	}
-	
 	
 }

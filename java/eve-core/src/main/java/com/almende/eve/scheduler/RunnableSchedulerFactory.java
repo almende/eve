@@ -37,18 +37,18 @@ import com.almende.eve.state.State;
  * http://www.javapractices.com/topic/TopicAction.do?Id=54
  */
 public class RunnableSchedulerFactory implements SchedulerFactory {
-	private State									state			= null;
-	private String									stateId			= null;
-	private AgentHost								host	= null;
-	private long									count			= 0;
-	private ScheduledExecutorService				scheduler		= Executors
-																			.newScheduledThreadPool(10);
+	private State									state		= null;
+	private String									stateId		= null;
+	private AgentHost								host		= null;
+	private long									count		= 0;
+	private ScheduledExecutorService				scheduler	= Executors
+																		.newScheduledThreadPool(10);
 	
 	// {agentId: {taskId: task}}
-	private final Map<String, Map<String, Task>>	allTasks		= new ConcurrentHashMap<String, Map<String, Task>>();
+	private final Map<String, Map<String, Task>>	allTasks	= new ConcurrentHashMap<String, Map<String, Task>>();
 	
-	private static final Logger						LOG				= Logger.getLogger(RunnableSchedulerFactory.class
-																			.getSimpleName());
+	private static final Logger						LOG			= Logger.getLogger(RunnableSchedulerFactory.class
+																		.getSimpleName());
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
@@ -152,7 +152,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 */
 		Task(final String agentId, final JSONRequest request, long delay,
 				boolean interval, boolean sequential) {
-			// TODO: throw exceptions when agentId, request are null or 
+			// TODO: throw exceptions when agentId, request are null or
 			// delay < 0
 			this.agentId = agentId;
 			this.request = request;
@@ -161,7 +161,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				this.sequential = sequential;
 			}
 			
-			if (interval){
+			if (interval) {
 				start(-1);
 			} else {
 				start(delay);
@@ -180,7 +180,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @throws JsonParseException
 		 */
 		Task(Map<String, String> params) throws JSONRPCException, IOException {
-			// TODO: throw exceptions when agentId, request are null or 
+			// TODO: throw exceptions when agentId, request are null or
 			// delay < 0
 			
 			agentId = params.get("agentId");
@@ -195,7 +195,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						.toDurationMillis();
 			}
 			
-			if (interval > 0){
+			if (interval > 0) {
 				start(0);
 			} else {
 				start(delay);
@@ -227,11 +227,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						
 						RequestParams params = new RequestParams();
 						String senderUrl = "local://" + agentId;
-						params.put(Sender.class, senderUrl); 
+						params.put(Sender.class, senderUrl);
 						// TODO: provide itself
 						
-						JSONResponse resp = host.receive(agentId,
-								request, params);
+						JSONResponse resp = host.receive(agentId, request,
+								params);
 						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
@@ -445,7 +445,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			Map<String, Task> tasks = allTasks.get(agentId);
 			HashSet<String> result = new HashSet<String>();
 			if (tasks != null) {
-				for (Task task: tasks.values()){
+				for (Task task : tasks.values()) {
 					result.add(task.toString());
 				}
 			}
@@ -458,10 +458,10 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		private String	agentId	= null;
-
+		
 		@Override
 		public void cancelAllTasks() {
-			for (String id: getTasks()){
+			for (String id : getTasks()) {
 				cancelTask(id);
 			}
 		}
@@ -475,9 +475,10 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		int failedTaskCount = 0;
 		
 		try {
+			List<Map<String, String>> list = new ArrayList<Map<String,String>>();
+			
 			@SuppressWarnings("unchecked")
-			List<Map<String, String>> serializedTasks = (List<Map<String, String>>) state
-					.get("tasks");
+			List<Map<String, String>> serializedTasks = state.get("tasks",list.getClass());
 			
 			if (serializedTasks != null) {
 				for (Map<String, String> taskParams : serializedTasks) {

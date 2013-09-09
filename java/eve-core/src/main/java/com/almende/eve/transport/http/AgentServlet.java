@@ -268,8 +268,14 @@ public class AgentServlet extends HttpServlet {
 						"No agentId found in url.");
 				return;
 			}
+			Agent agent = agentHost.getAgent(agentId); 
+			if (agent == null){
+				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+						"Agent not found at this host.");
+				return;
+			}
 			
-			if (JSONRPC.hasPrivate(agentHost.getAgent(agentId).getClass())
+			if (JSONRPC.hasPrivate(agent.getClass())
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);

@@ -15,11 +15,11 @@ import sun.net.www.protocol.file.FileURLConnection;
 @SuppressWarnings("restriction")
 public class FileStateFactory implements StateFactory {
 	
-	private String					path	= null;
-	private Boolean					json	= false;
-	private Logger					logger	= Logger.getLogger(this.getClass()
-													.getSimpleName());
-	private Map<String, FileState>	states	= new HashMap<String, FileState>();
+	private String				path	= null;
+	private Boolean				json	= false;
+	private Logger				logger	= Logger.getLogger(this.getClass()
+												.getSimpleName());
+	private Map<String, ExtendedState>	states	= new HashMap<String, ExtendedState>();
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
@@ -67,7 +67,7 @@ public class FileStateFactory implements StateFactory {
 		
 		// make the directory
 		File file = new File(path);
-		if (!file.exists() && !file.mkdir()){
+		if (!file.exists() && !file.mkdir()) {
 			logger.severe("Could not create State folder!");
 			throw new IllegalStateException();
 		}
@@ -91,19 +91,28 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	@Override
-	public FileState get(String agentId) {
-		FileState state = null;
+	public ExtendedState get(String agentId, boolean json) {
+		ExtendedState state = null;
 		if (exists(agentId)) {
 			if (states.containsKey(agentId)) {
 				state = states.get(agentId);
 			} else {
-				state = new ConcurrentFileState(agentId, getFilename(agentId),
-						this.json);
+				if (json) {
+					state = new ConcurrentJsonFileState(agentId,
+							getFilename(agentId));
+				} else {
+					state = new ConcurrentSerializableFileState(agentId,
+							getFilename(agentId));
+				}
 				states.put(agentId, state);
 			}
 		}
 		return state;
+	}
+	
+	@Override
+	public ExtendedState get(String agentId) {
+		return get(agentId, this.json);
 	}
 	
 	/**
@@ -113,8 +122,8 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	@Override
-	public synchronized FileState create(String agentId) throws IOException {
+	public synchronized ExtendedState create(String agentId, boolean json)
+			throws IOException {
 		if (exists(agentId)) {
 			throw new IllegalStateException("Cannot create state, "
 					+ "state with id '" + agentId + "' already exists.");
@@ -127,10 +136,20 @@ public class FileStateFactory implements StateFactory {
 		File file = new File(filename);
 		file.createNewFile();
 		
+		ExtendedState state = null;
 		// instantiate the state
-		FileState state = new ConcurrentFileState(agentId, filename, this.json);
+		if (json) {
+			state = new ConcurrentJsonFileState(agentId, filename);
+		} else {
+			state = new ConcurrentSerializableFileState(agentId, filename);
+		}
 		states.put(agentId, state);
 		return state;
+	}
+	
+	@Override
+	public synchronized ExtendedState create(String agentId) throws IOException {
+		return create(agentId, this.json);
 	}
 	
 	/**
@@ -180,8 +199,8 @@ public class FileStateFactory implements StateFactory {
 	public Iterator<String> getAllAgentIds() {
 		File folder = new File(path);
 		File[] files = folder.listFiles();
-		if (files == null){
-			files=new File[0];
+		if (files == null) {
+			files = new File[0];
 		}
 		final List<File> list = new ArrayList<File>(files.length);
 		
@@ -205,9 +224,10 @@ public class FileStateFactory implements StateFactory {
 					} catch (Exception e) {
 						logger.warning("Couldn't check contentType of potential state file:"
 								+ file.getName());
-					} catch (java.lang.NoClassDefFoundError e){
+					} catch (java.lang.NoClassDefFoundError e) {
 						logger.warning("Couldn't check contentType of state file:"
-								+ file.getName() + " (On Android this is expected)");
+								+ file.getName()
+								+ " (On Android this is expected)");
 						list.add(file);
 					}
 				}
