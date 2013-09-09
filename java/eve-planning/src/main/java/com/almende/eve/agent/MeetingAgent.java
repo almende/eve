@@ -98,6 +98,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
+import com.almende.eve.transport.TransportService;
 import com.almende.util.IntervalsUtil;
 import com.almende.util.WeightsUtil;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -200,8 +201,8 @@ public class MeetingAgent extends Agent {
 		activity = Activity.sync(activity, updatedActivity);
 
 		// ensure the url of the meeting agent is filled in
-		URI myUrl = getFirstUrl();
-		activity.setAgent(myUrl);
+		String myUrl = getFirstUrl("http");
+		activity.setAgent(new URI(myUrl));
 
 		// create duration when missing
 		Long duration = activity.withConstraints().withTime().getDuration();
@@ -1494,6 +1495,30 @@ public class MeetingAgent extends Agent {
 		return array;
 	}
 
+	/**
+	 * Get The first url of an agent filtered by a protocol
+	 * @param protocol   A protocol like "http", "xmpp", "local"
+	 * @return
+	 */
+	private String getFirstUrl(@Name("protocol") String protocol) {
+		AgentHost agentHost = getAgentHost();
+		if (agentHost != null) {
+			String agentId = getId();
+			for (TransportService service : agentHost.getTransportServices(protocol)) {
+				String url = service.getAgentUrl(agentId);
+				if (url != null) {
+					return url;
+				}
+			}
+			
+			if ("local".equals(protocol)) {
+				return "local://" + agentId;
+			}
+		}
+		
+		return null;
+	}
+	
 	
 	@Override
 	public String getDescription() {
