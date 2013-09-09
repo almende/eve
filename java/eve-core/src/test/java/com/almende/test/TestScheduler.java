@@ -116,9 +116,7 @@ public class TestScheduler extends TestCase {
 					+ " tasks.");
 			log.info("Tasks left:" + scheduler.getTasks());
 			
-			for (String taskId : scheduler.getTasks()) {
-				scheduler.cancelTask(taskId);
-			}
+			scheduler.cancelAllTasks();
 			agent.resetCount();
 		}
 		Thread.sleep(1000);
