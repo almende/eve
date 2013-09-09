@@ -37,5 +37,5 @@ public interface JSONAuthorizor {
 	 * @param senderUrl
 	 * @return
 	 */
-	boolean ifSelf(String senderUrl);
+	boolean isSelf(String senderUrl);
 }

@@ -110,7 +110,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public boolean ifSelf(String senderUrl) {
+	public boolean isSelf(String senderUrl) {
 		if (senderUrl.startsWith("web://")) {
 			return true;
 		}
