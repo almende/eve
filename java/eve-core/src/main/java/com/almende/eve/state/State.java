@@ -41,5 +41,6 @@ public interface State {
 	<T> T get(String key, Type type);
 	<T> T get(String key, JavaType type);
 	<T> T get(String key, TypeUtil<T> type);
+	<T> T get(TypedKey<T> key);
 	<T> T get(T ret, String key);
 }

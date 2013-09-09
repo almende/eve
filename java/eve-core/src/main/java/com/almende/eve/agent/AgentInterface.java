@@ -14,7 +14,6 @@ import com.almende.eve.rpc.jsonrpc.JSONAuthorizor;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
-import com.almende.eve.state.ExtendedState;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.util.TypeUtil;
@@ -66,16 +65,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	State getState();
 
-	/**
-	 * Get the Extended state of this agent. The state contains
-	 * methods get, put, etc. to write properties into a persistent state.
-	 * 
-	 * Warning, this version is only meant for TypeUtil.inject(getExtendedState().get("someKey")). 
-	 * Use getState() for other usages.
-	 * 
-	 */
-	ExtendedState getBareState();
-	
 	/**
 	 * Get the associated AgentHost of this agent
 	 * 

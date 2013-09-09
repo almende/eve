@@ -56,7 +56,6 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		return properties.containsKey(key);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public Serializable get(String key) {
 		try {
 			return ClassUtil.cloneThroughSerialize(properties.get(key));

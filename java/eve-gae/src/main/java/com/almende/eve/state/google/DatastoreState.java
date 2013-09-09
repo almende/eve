@@ -285,7 +285,6 @@ public class DatastoreState extends AbstractState<Serializable> {
 		isChanged = false;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Serializable get(String key) {
 		load();

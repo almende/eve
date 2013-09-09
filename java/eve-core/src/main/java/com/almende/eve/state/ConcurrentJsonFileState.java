@@ -283,7 +283,6 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public synchronized JsonNode get(String key) {
 		JsonNode result = null;
 		try {

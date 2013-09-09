@@ -550,7 +550,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	public List<Object> testAgentProxy3() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		Test2AgentInterface other = createAgentProxy(URI.create(url), Test2AgentInterface.class);
-		
+
 		List<Object> value = other.getMethods();
 		return value;
 	}

@@ -19,7 +19,7 @@ public class FileStateFactory implements StateFactory {
 	private Boolean				json	= false;
 	private Logger				logger	= Logger.getLogger(this.getClass()
 												.getSimpleName());
-	private Map<String, ExtendedState>	states	= new HashMap<String, ExtendedState>();
+	private Map<String, State>	states	= new HashMap<String, State>();
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
@@ -91,8 +91,8 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	public ExtendedState get(String agentId, boolean json) {
-		ExtendedState state = null;
+	public State get(String agentId, boolean json) {
+		State state = null;
 		if (exists(agentId)) {
 			if (states.containsKey(agentId)) {
 				state = states.get(agentId);
@@ -111,7 +111,7 @@ public class FileStateFactory implements StateFactory {
 	}
 	
 	@Override
-	public ExtendedState get(String agentId) {
+	public State get(String agentId) {
 		return get(agentId, this.json);
 	}
 	
@@ -122,7 +122,7 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	public synchronized ExtendedState create(String agentId, boolean json)
+	public synchronized State create(String agentId, boolean json)
 			throws IOException {
 		if (exists(agentId)) {
 			throw new IllegalStateException("Cannot create state, "
@@ -136,7 +136,7 @@ public class FileStateFactory implements StateFactory {
 		File file = new File(filename);
 		file.createNewFile();
 		
-		ExtendedState state = null;
+		State state = null;
 		// instantiate the state
 		if (json) {
 			state = new ConcurrentJsonFileState(agentId, filename);
@@ -148,7 +148,7 @@ public class FileStateFactory implements StateFactory {
 	}
 	
 	@Override
-	public synchronized ExtendedState create(String agentId) throws IOException {
+	public synchronized State create(String agentId) throws IOException {
 		return create(agentId, this.json);
 	}
 	

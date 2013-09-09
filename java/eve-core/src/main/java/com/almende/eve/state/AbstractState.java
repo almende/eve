@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @SuppressWarnings("unchecked")
-public abstract class AbstractState<V> implements ExtendedState {
+public abstract class AbstractState<V> implements State {
 	private static final Logger	LOG		= Logger.getLogger(AbstractState.class
 												.getCanonicalName());
 	private String				agentId	= null;
@@ -113,6 +113,10 @@ public abstract class AbstractState<V> implements ExtendedState {
 	
 	public <T> T get(String key, TypeUtil<T> type) {
 		return type.inject(get(key));
+	}
+	
+	public <T> T get(TypedKey<T> typedKey){
+		return get(typedKey.getKey(),typedKey.getType());
 	}
 	
 	public <T> T get(T ret, String key) {

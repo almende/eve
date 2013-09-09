@@ -236,7 +236,6 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public synchronized Serializable get(String key) {
 		Serializable result = null;
 		try {

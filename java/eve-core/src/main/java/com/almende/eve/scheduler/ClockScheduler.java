@@ -19,16 +19,16 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
-import com.almende.util.TypeUtil;
+import com.almende.eve.state.TypedKey;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private static final Logger		LOG			= Logger.getLogger("ClockScheduler");
-	private static final TypeUtil<TreeSet<TaskEntry>> injector = new TypeUtil<TreeSet<TaskEntry>>(){};
 	private final Agent				myAgent;
 	private final Clock				myClock;
 	private final ClockScheduler	_this		= this;
 	private static final String		TASKLIST	= "_taskList";
+	private static final TypedKey<TreeSet<TaskEntry>> TYPEDKEY = new TypedKey<TreeSet<TaskEntry>>(TASKLIST);
 	private static final int 		MAXCOUNT    = 1000;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
@@ -37,7 +37,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public TaskEntry getFirstTask() {
-		TreeSet<TaskEntry> timeline =  injector.inject(myAgent.getBareState().get(TASKLIST));
+		TreeSet<TaskEntry> timeline =  myAgent.getState().get(TYPEDKEY);
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
 			int count = 0;
@@ -59,8 +59,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	public void putTask(TaskEntry task, boolean onlyIfExists) {
 
-		TreeSet<TaskEntry> oldTimeline = injector.inject(myAgent.getBareState()
-				.get(TASKLIST));
+		TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
 		TreeSet<TaskEntry> timeline = null;
 		boolean found = false;
 		if (oldTimeline != null) {
@@ -92,8 +91,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public void cancelTask(String id) {
-		TreeSet<TaskEntry> oldTimeline = injector.inject(myAgent
-				.getBareState().get(TASKLIST));
+		TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
 		TreeSet<TaskEntry> timeline = null;
 		if (oldTimeline != null) {
 			timeline = new TreeSet<TaskEntry>();
@@ -179,8 +177,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@Override
 	public Set<String> getTasks() {
 		Set<String> result = new HashSet<String>();
-		TreeSet<TaskEntry> timeline = injector.inject(myAgent.getBareState()
-				.get(TASKLIST));
+		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -193,8 +190,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	@Override
 	public Set<String> getDetailedTasks() {
 		Set<String> result = new HashSet<String>();
-		TreeSet<TaskEntry> timeline = injector.inject(myAgent.getBareState()
-				.get(TASKLIST));
+		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -219,8 +215,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public String toString() {
-		TreeSet<TaskEntry> timeline = injector.inject(myAgent.getBareState()
-				.get(TASKLIST));
+		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
