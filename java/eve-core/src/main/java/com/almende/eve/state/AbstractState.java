@@ -127,27 +127,20 @@ public abstract class AbstractState<V> implements State {
 		return get(typedKey.getKey(),typedKey.getType());
 	}
 	
-	@Override
 	public JsonNode _put(String key, JsonNode value) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
 		_put(key, value.toString());
 		return value;
 	}
-	
-	@Override
 	public boolean _putIfUnchanged(String key, JsonNode newVal, JsonNode oldVal) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
 		return _putIfUnchanged(key, newVal.toString(), oldVal.toString());
 	}
-	
-	@Override
 	public synchronized Serializable _put(String key, Serializable value) {
 		ObjectMapper om = JOM.getInstance();
 		_put(key, om.valueToTree(value));
 		return value;
 	}
-	
-	@Override
 	public boolean _putIfUnchanged(String key, Serializable newVal,
 			Serializable oldVal) {
 		ObjectMapper om = JOM.getInstance();

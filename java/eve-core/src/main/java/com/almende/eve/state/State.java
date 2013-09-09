@@ -1,12 +1,10 @@
 package com.almende.eve.state;
 
-import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.Set;
 
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
 
 public interface State {
 	// key name for agent type
@@ -20,16 +18,9 @@ public interface State {
 	void setAgentType(Class<?> agentType);
 	Class<?> getAgentType() throws ClassNotFoundException;
 	
-	Serializable _put(String key, Serializable value);
-	JsonNode _put(String key, JsonNode value);
 	Object put(String key, Object value);
-	
 	Object remove(String key);
-	
 	boolean putIfUnchanged(String key, Object newVal, Object oldVal);
-	boolean _putIfUnchanged(String key, Serializable newVal, Serializable oldVal);
-	boolean _putIfUnchanged(String key, JsonNode newVal, JsonNode oldVal);
-	
 	boolean containsKey(String key);
 	
 	Set<String> keySet();
