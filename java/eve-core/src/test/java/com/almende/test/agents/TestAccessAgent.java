@@ -29,7 +29,7 @@ public class TestAccessAgent extends Agent {
 	public boolean onAccess(String sender, String functionTag){
 		if (sender == null) return false;
 		
-		String senderLabel = (String) this.getState().get("senderLabel");
+		String senderLabel = this.getState().get("senderLabel",String.class);
 		if (functionTag != null && !functionTag.equals("")){
 			return "trust".equals(functionTag) && sender.contains(senderLabel);
 		}
@@ -66,7 +66,7 @@ public class TestAccessAgent extends Agent {
 		return true;
 	}
 	public boolean param(@Sender String sender){
-		String senderLabel = (String) this.getState().get("senderLabel");
+		String senderLabel = this.getState().get("senderLabel",String.class);
 		if (sender == null || !sender.contains(senderLabel)){ //will always fail in this case.
 			return true;
 		}

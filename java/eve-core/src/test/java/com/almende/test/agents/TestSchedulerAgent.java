@@ -1,6 +1,5 @@
 package com.almende.test.agents;
 
-import java.io.Serializable;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
@@ -43,20 +42,20 @@ public class TestSchedulerAgent extends Agent {
 			log.info("Delay after expected runtime:"
 				+ (new Duration(expected,DateTime.now()).getMillis()));
 		}
-		Serializable oldCnt = getState().get("runCount");
+		Integer oldCnt = getState().get("runCount", Integer.class);
 		Integer newCnt = 1;
 		if (oldCnt != null){
-			newCnt = ((Integer)oldCnt)+1;
+			newCnt = oldCnt+1;
 		}
 		while (!getState().putIfUnchanged("runCount", newCnt, oldCnt)){
-			oldCnt = (Integer) getState().get("runCount");
+			oldCnt = getState().get("runCount",Integer.class);
 			if (oldCnt != null){
-				newCnt = ((Integer)oldCnt)+1;
+				newCnt = oldCnt+1;
 			}
 		}
 	}
 	public int getCount(){
-		Integer count =(Integer) getState().get("runCount");
+		Integer count = getState().get("runCount",Integer.class);
 		if (count == null) count = 0;
 		return count;
 	}

@@ -5,23 +5,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.state.FileState;
+import com.almende.eve.state.ConcurrentSerializableFileState;
+import com.almende.eve.state.ExtendedState;
 import com.almende.eve.state.FileStateFactory;
-import com.almende.eve.state.OriginalFileState;
 import com.almende.eve.state.State;
 import com.almende.util.TypeUtil;
 
 public class TestStateLocking extends TestCase {
 	//TODO: prove that a collision occurs, possibly by measuring the starttime and runtime of each run.
 	//TODO: alternatively: implement a non-locking, non-thread-safe version of the state and see it break:)
+	public static final Logger LOG = Logger.getLogger(TestStateLocking.class.getName());
 	
-	
-	private void testRun(final State state){
+	private void testRun(final ExtendedState bareState){
+		
+		final State state = (State)bareState;
 		//state.clear();
 		state.put("test", "test");
 		state.put("test2", "test2");
@@ -33,9 +36,9 @@ public class TestStateLocking extends TestCase {
 				state.put("test","test1");
 				state.put("test1","test");
 				state.put("test","test1");
-				state.get("test");
+				state.get("test",String.class);
 				state.put("test1","test");
-				state.get("test1");
+				state.get("test1",String.class);
 			}
 			
 		}, 0, 100, TimeUnit.MILLISECONDS);
@@ -44,11 +47,11 @@ public class TestStateLocking extends TestCase {
 			public void run() {
 				state.put("test","test2");
 				state.put("test","test2");
-				state.get("test");
+				state.get("test",String.class);
 				state.put("test","test2");
 				state.put("test1","test");
 				state.put("test1","test");
-				state.get("test1");
+				state.get("test1",String.class);
 			}
 			
 		}, 110, 95, TimeUnit.MILLISECONDS);
@@ -57,11 +60,11 @@ public class TestStateLocking extends TestCase {
 			public void run() {
 				state.put("test","test3");
 				state.put("test","test3");
-				state.get("test");
+				state.get("test",String.class);
 				state.put("test1","test");
 				state.put("test","test3");
 				state.put("test1","test");
-				state.get("test1");
+				state.get("test1",String.class);
 			}
 			
 		}, 105, 97, TimeUnit.MILLISECONDS);
@@ -80,9 +83,11 @@ public class TestStateLocking extends TestCase {
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted after:"+(System.currentTimeMillis()-start)+" ms.");
 		}
-		assertEquals("test",TypeUtil.inject(String.class, state.get("test1")));
-		assertEquals("test2",(String)state.get("test2"));
-		assertTrue(((String)state.get("test")).startsWith("test"));
+		assertEquals("test",TypeUtil.inject(String.class, bareState.get("test1")));
+		assertEquals("test2",state.get("test2",String.class));
+		assertTrue(state.get("test",String.class).startsWith("test"));
+		
+		LOG.info("Done test!");
 		
 	}
 	
@@ -90,7 +95,7 @@ public class TestStateLocking extends TestCase {
 	public void testFileState() throws Exception{
 		File dir = new File(".testStates");
 		if ((!dir.exists() && !dir.mkdir()) || !dir.isDirectory()) fail("Couldn't create .testStates folder");
-		FileState fc = new OriginalFileState("test",".testStates/FileStateRun");
+		ExtendedState fc = new ConcurrentSerializableFileState("test",".testStates/FileStateRun");
 		testRun(fc);
 	}
 	@Test
@@ -101,7 +106,19 @@ public class TestStateLocking extends TestCase {
 		
 		String agentId = "ConcurrentFileStateRun";
 		if (sf.exists(agentId)) sf.delete(agentId);
-		FileState fc = sf.create(agentId);
+		ExtendedState fc = sf.create(agentId);
 		testRun(fc);
 	}
+	@Test
+	public void testConcurrentJsonFileState() throws Exception{
+		File dir = new File(".testStates");
+		if ((!dir.exists() && !dir.mkdir()) || !dir.isDirectory()) fail("Couldn't create .testStates folder");
+		FileStateFactory sf = new FileStateFactory(".testStates",true); //Defaults to ConcurrentFileState
+		
+		String agentId = "ConcurrentJsonFileStateRun";
+		if (sf.exists(agentId)) sf.delete(agentId);
+		ExtendedState fc = sf.create(agentId);
+		testRun(fc);
+	}
+
 }

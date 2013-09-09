@@ -70,16 +70,16 @@ public class TestResultMonitorAgent extends Agent {
 			List<Integer> result = new ArrayList<Integer>();
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
-			String monitorID = (String) getState().get("PushKey");
+			String monitorID = getState().get("PushKey",String.class);
 			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
-			monitorID = (String) getState().get("PollKey");
+			monitorID = getState().get("PollKey",String.class);
 			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
-			monitorID = (String) getState().get("LazyPushKey");
+			monitorID = getState().get("LazyPushKey",String.class);
 			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
-			monitorID = (String) getState().get("LazyPollKey");
+			monitorID = getState().get("LazyPollKey",String.class);
 			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
 			
 			return result;
@@ -90,7 +90,7 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void tear_down() {
-		getResultMonitorFactory().cancel((String) getState().get("PushKey"));
+		getResultMonitorFactory().cancel(getState().get("PushKey",String.class));
 	}
 	
 	@Override

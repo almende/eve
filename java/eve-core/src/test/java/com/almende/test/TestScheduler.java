@@ -43,7 +43,8 @@ public class TestScheduler extends TestCase {
 		log.severe("More Sleep");
 		
 		
-		Thread.sleep(20000);
+		Thread.sleep(10000);
+		af.deleteAgent("SingleShot");
 	}
 	
 	@Test
@@ -128,6 +129,7 @@ public class TestScheduler extends TestCase {
 			log.info("Agent " + agentId + " ran still: " + agent.getCount()
 					+ " tasks after cancel.");
 			log.info("Tasks left:" + scheduler.getTasks());
+			af.deleteAgent(agentId);
 		}
 	}
 }
