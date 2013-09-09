@@ -2,7 +2,6 @@ package com.almende.eve.state;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -105,17 +104,17 @@ public abstract class AbstractState<V> implements State {
 	
 	@Override
 	public <T> T get(String key, Class<T> type) {
-		return TypeUtil.inject(type, get(key));
+		return TypeUtil.inject(get(key), type);
 	}
 	
 	@Override
 	public <T> T get(String key, Type type) {
-		return TypeUtil.inject(type, get(key));
+		return TypeUtil.inject(get(key), type);
 	}
 	
 	@Override
 	public <T> T get(String key, JavaType type) {
-		return TypeUtil.inject(type, get(key));
+		return TypeUtil.inject(get(key), type);
 	}
 	
 	@Override
@@ -127,17 +126,6 @@ public abstract class AbstractState<V> implements State {
 	public <T> T get(TypedKey<T> typedKey){
 		return get(typedKey.getKey(),typedKey.getType());
 	}
-	
-	@Override
-	public <T> T get(T ret, String key) {
-		try {
-			ret = TypeUtil.inject(ret, get(key));
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		return ret;
-	}
-	
 	
 	@Override
 	public JsonNode _put(String key, JsonNode value) {

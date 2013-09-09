@@ -21,6 +21,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.TypedKey;
 import com.almende.util.AnnotationUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
@@ -37,7 +38,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 													.getCanonicalName());
 	private Agent				myAgent		= null;
 	
-	private static final String	MONITORS	= "_monitors";
+	private static final TypedKey<HashMap<String, ResultMonitor>>	MONITORS	= new TypedKey<HashMap<String, ResultMonitor>>("_monitors"){};
 	
 	public ResultMonitorFactory(Agent agent) {
 		this.myAgent = agent;
@@ -325,14 +326,13 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	public String store(ResultMonitor monitor) {
 		try {
-			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
-			monitors = myAgent.getState().get(monitors,MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
 			HashMap<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
 			}
 			newmonitors.put(monitor.getId(), monitor);
-			if (!myAgent.getState().putIfUnchanged(MONITORS, newmonitors,
+			if (!myAgent.getState().putIfUnchanged(MONITORS.getKey(), newmonitors,
 					monitors)) {
 				// recursive retry.
 				store(monitor);
@@ -347,15 +347,14 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public void delete(String monitorId) {
 		
 		try {
-			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
-			monitors = myAgent.getState().get(monitors,MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
 			Map<String, ResultMonitor> newmonitors = new HashMap<String, ResultMonitor>();
 			if (monitors != null) {
 				newmonitors.putAll(monitors);
 			}
 			newmonitors.remove(monitorId);
 			
-			if (!myAgent.getState().putIfUnchanged(MONITORS,
+			if (!myAgent.getState().putIfUnchanged(MONITORS.getKey(),
 					(Serializable) newmonitors, (Serializable) monitors)) {
 				// recursive retry.
 				delete(monitorId);
@@ -368,8 +367,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	public ResultMonitor getMonitorById(String monitorId) {
 		try {
-			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
-			monitors = myAgent.getState().get(monitors,MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
@@ -395,8 +393,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	public Map<String, ResultMonitor> getMonitors() {
 		
 		try {
-			Map<String, ResultMonitor> monitors = new HashMap<String, ResultMonitor>();
-			monitors = myAgent.getState().get(monitors,MONITORS);
+			Map<String, ResultMonitor> monitors = myAgent.getState().get(MONITORS);
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}

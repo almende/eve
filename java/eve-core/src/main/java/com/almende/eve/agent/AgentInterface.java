@@ -181,33 +181,6 @@ public interface AgentInterface extends JSONAuthorizor {
 	/**
 	 * Do a RPC call to another agent.
 	 * 
-	 * @param ret
-	 *            Object to put result in, will also be returned
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @return
-	 * @throws Exception
-	 */
-	<T> T send(T ret, URI url, String method, Object params)
-			throws IOException, JSONRPCException;
-	
-	/**
-	 * Do a RPC call to another agent.
-	 * 
-	 * @param ret
-	 *            Object to put result in, will also be returned
-	 * @param url
-	 * @param method
-	 * @return ret
-	 * @throws Exception
-	 */
-	<T> T send(T ret, URI url, String method) throws IOException,
-			JSONRPCException;
-	
-	/**
-	 * Do a RPC call to another agent.
-	 * 
 	 * @param url
 	 * @param method
 	 * @param type

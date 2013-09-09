@@ -75,6 +75,7 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)
@@ -160,8 +161,7 @@ public class ChatAgent extends Agent {
 
 		// get my own connections from the state
 		String urlSelf = getMyUrl();
-		ArrayList<String> connections = new ArrayList<String>();
-		connections = getState().get(connections, "connections");
+		ArrayList<String> connections = getState().get("connections",new TypeUtil<ArrayList<String>>(){});
 		if (connections == null) {	
 			connections = new ArrayList<String>();
 		}
@@ -223,8 +223,7 @@ public class ChatAgent extends Agent {
 	 * @throws IOException 
 	 */
 	public void disconnect() throws JSONRPCException, IOException {
-		ArrayList<String> connections = new ArrayList<String>();
-		connections = getState().get(connections, "connections");
+		ArrayList<String> connections = getState().get("connections", new TypeUtil<ArrayList<String>>(){});
 		if (connections != null) {
 			getState().remove("connections");			
 
@@ -252,8 +251,7 @@ public class ChatAgent extends Agent {
 	 * @throws IOException 
 	 */
 	public void removeConnection(@Name("url") String url) throws IOException {
-		ArrayList<String> connections = new ArrayList<String>();
-		connections = getState().get(connections, "connections");
+		ArrayList<String> connections = getState().get("connections", new TypeUtil<ArrayList<String>>(){});
 		if (connections != null) {
 			connections.remove(url);
 			getState().put("connections", connections);	
@@ -271,8 +269,7 @@ public class ChatAgent extends Agent {
 	 * @return
 	 */
 	public List<String> getConnections() {
-		ArrayList<String> connections = new ArrayList<String>();
-		connections = getState().get(connections, "connections");
+		ArrayList<String> connections = getState().get("connections", new TypeUtil<ArrayList<String>>(){});
 		if (connections != null) {
 			return connections;
 		}

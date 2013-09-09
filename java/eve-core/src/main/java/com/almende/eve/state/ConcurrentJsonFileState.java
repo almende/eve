@@ -140,7 +140,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		synchronized (locked) {
 			System.err.println("lock sync:" + System.currentTimeMillis());
 			
-			if (lock.isValid()) {
+			if (lock != null && lock.isValid()) {
 				try {
 					
 					lock.release();
@@ -151,12 +151,18 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			System.err.println("lock released:" + System.currentTimeMillis());
 			
 			try {
-				fos.close();
-				fis.close();
+				if (fos != null){
+					fos.close();
+				}
+				if (fis != null){
+					fis.close();
+				}
 				System.err.println("Streams closed:"
 						+ System.currentTimeMillis());
 				
-				channel.close();
+				if (channel != null){
+					channel.close();
+				}
 				System.err.println("Channel closed:"
 						+ System.currentTimeMillis());
 				
