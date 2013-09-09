@@ -252,6 +252,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	public void destroy() {
 	}
 	
+	@Override
 	public synchronized void clear() {
 		try {
 			openFile();
@@ -263,6 +264,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		closeFile();
 	}
 	
+	@Override
 	public synchronized Set<String> keySet() {
 		Set<String> result = null;
 		try {
@@ -276,6 +278,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	@Override
 	public synchronized boolean containsKey(String key) {
 		boolean result = false;
 		try {
@@ -289,6 +292,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	@Override
 	public synchronized JsonNode get(String key) {
 		JsonNode result = null;
 		try {
@@ -302,21 +306,8 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
-	public synchronized boolean isEmpty() {
-		boolean result = false;
-		try {
-			openFile();
-			read();
-			result = properties.isEmpty();
-			
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		closeFile();
-		return result;
-	}
-	
-	public synchronized JsonNode _put(String key, JsonNode value) {
+	@Override
+	public synchronized JsonNode locPut(String key, JsonNode value) {
 		JsonNode result = null;
 		try {
 			openFile();
@@ -330,7 +321,8 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
-	public synchronized boolean _putIfUnchanged(String key, JsonNode newVal,
+	@Override
+	public synchronized boolean locPutIfUnchanged(String key, JsonNode newVal,
 			JsonNode oldVal) {
 		boolean result = false;
 		try {
@@ -354,6 +346,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 
+	@Override
 	public synchronized Object remove(String key) {
 		Object result = null;
 		try {
@@ -369,6 +362,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	@Override
 	public synchronized int size() {
 		int result = -1;
 		try {

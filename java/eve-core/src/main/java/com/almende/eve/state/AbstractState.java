@@ -55,9 +55,9 @@ public abstract class AbstractState<V> implements State {
 	@Override
 	public synchronized Object put(String key, Object value){
 		if (value == null || Serializable.class.isAssignableFrom(value.getClass())){
-			return _put(key,(Serializable) value);	
+			return locPut(key,(Serializable) value);	
 		} else if (JsonNode.class.isAssignableFrom(value.getClass())){
-			return _put(key,(JsonNode) value);
+			return locPut(key,(JsonNode) value);
 		} else {
 			LOG.severe("Can't handle input that is not Serializable nor JsonNode.");
 			throw new IllegalArgumentException();
@@ -68,9 +68,9 @@ public abstract class AbstractState<V> implements State {
 	public synchronized boolean putIfUnchanged(String key, Object newVal,
 			Object oldVal){
 		if (newVal == null || Serializable.class.isAssignableFrom(newVal.getClass())){
-			return _putIfUnchanged(key,(Serializable) newVal, (Serializable) oldVal);
+			return locPutIfUnchanged(key,(Serializable) newVal, (Serializable) oldVal);
 		} else if (JsonNode.class.isAssignableFrom(newVal.getClass())){
-			return _putIfUnchanged(key,(JsonNode) newVal, (JsonNode) oldVal);
+			return locPutIfUnchanged(key,(JsonNode) newVal, (JsonNode) oldVal);
 		} else {
 			LOG.severe("Can't handle input that is not Serializable nor JsonNode.");
 			throw new IllegalArgumentException();
@@ -127,23 +127,23 @@ public abstract class AbstractState<V> implements State {
 		return get(typedKey.getKey(),typedKey.getType());
 	}
 	
-	public JsonNode _put(String key, JsonNode value) {
+	public JsonNode locPut(String key, JsonNode value) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
-		_put(key, value.toString());
+		locPut(key, value.toString());
 		return value;
 	}
-	public boolean _putIfUnchanged(String key, JsonNode newVal, JsonNode oldVal) {
+	public boolean locPutIfUnchanged(String key, JsonNode newVal, JsonNode oldVal) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
-		return _putIfUnchanged(key, newVal.toString(), oldVal.toString());
+		return locPutIfUnchanged(key, newVal.toString(), oldVal.toString());
 	}
-	public synchronized Serializable _put(String key, Serializable value) {
+	public synchronized Serializable locPut(String key, Serializable value) {
 		ObjectMapper om = JOM.getInstance();
-		_put(key, om.valueToTree(value));
+		locPut(key, om.valueToTree(value));
 		return value;
 	}
-	public boolean _putIfUnchanged(String key, Serializable newVal,
+	public boolean locPutIfUnchanged(String key, Serializable newVal,
 			Serializable oldVal) {
 		ObjectMapper om = JOM.getInstance();
-		return _putIfUnchanged(key, om.valueToTree(newVal), om.valueToTree(oldVal));
+		return locPutIfUnchanged(key, om.valueToTree(newVal), om.valueToTree(oldVal));
 	}
 }

@@ -202,6 +202,7 @@ public class ConcurrentSerializableFileState extends
 	public void destroy() {
 	}
 	
+	@Override
 	public synchronized void clear() {
 		try {
 			openFile();
@@ -213,6 +214,7 @@ public class ConcurrentSerializableFileState extends
 		closeFile();
 	}
 	
+	@Override
 	public synchronized Set<String> keySet() {
 		Set<String> result = null;
 		try {
@@ -227,6 +229,7 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	@Override
 	public synchronized boolean containsKey(String key) {
 		boolean result = false;
 		try {
@@ -241,6 +244,7 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	@Override
 	public synchronized Serializable get(String key) {
 		Serializable result = null;
 		try {
@@ -254,20 +258,8 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
-	public synchronized boolean isEmpty() {
-		boolean result = false;
-		try {
-			openFile();
-			read();
-			result = properties.isEmpty();
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		closeFile();
-		return result;
-	}
-	
-	public synchronized Serializable _put(String key, Serializable value) {
+	@Override
+	public synchronized Serializable locPut(String key, Serializable value) {
 		Serializable result = null;
 		try {
 			openFile();
@@ -281,7 +273,8 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
-	public synchronized boolean _putIfUnchanged(String key,
+	@Override
+	public synchronized boolean locPutIfUnchanged(String key,
 			Serializable newVal, Serializable oldVal) {
 		boolean result = false;
 		try {
@@ -305,6 +298,7 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	@Override
 	public synchronized Object remove(String key) {
 		Object result = null;
 		try {
@@ -319,6 +313,7 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	@Override
 	public synchronized int size() {
 		int result = -1;
 		try {

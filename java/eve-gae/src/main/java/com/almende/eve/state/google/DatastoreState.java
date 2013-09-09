@@ -292,7 +292,7 @@ public class DatastoreState extends AbstractState<Serializable> {
 	}
 
 	@Override
-	public Serializable _put(String key, Serializable value) {
+	public Serializable locPut(String key, Serializable value) {
 		load();
 		Serializable ret = properties.put(key, value);
 		boolean success = save();
@@ -335,7 +335,7 @@ public class DatastoreState extends AbstractState<Serializable> {
 	}
 
 	@Override
-	public boolean _putIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
+	public boolean locPutIfUnchanged(String key, Serializable newVal, Serializable oldVal) {
 		boolean result=false;
 		load();
 		if ((oldVal == null && properties.containsKey(key)) || properties.get(key).equals(oldVal)){

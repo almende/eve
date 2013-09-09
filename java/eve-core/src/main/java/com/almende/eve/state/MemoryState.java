@@ -1,14 +1,12 @@
 package com.almende.eve.state;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import com.almende.util.ClassUtil;
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @class MemoryState
@@ -44,18 +42,22 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		super(agentId);
 	}
 	
+	@Override
 	public void clear() {
 		properties.clear();
 	}
 	
+	@Override
 	public Set<String> keySet() {
 		return properties.keySet();
 	}
 	
+	@Override
 	public boolean containsKey(String key) {
 		return properties.containsKey(key);
 	}
 	
+	@Override
 	public Serializable get(String key) {
 		try {
 			return ClassUtil.cloneThroughSerialize(properties.get(key));
@@ -71,20 +73,13 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		return properties.isEmpty();
 	}
 	
-	public Serializable _put(String key, Serializable value) {
+	@Override
+	public Serializable locPut(String key, Serializable value) {
 		return properties.put(key, value);
 	}
 	
-	public JsonNode _put(String key, JsonNode value) {
-		properties.put(key, value.toString());
-		return value;
-	}
-	
-	public void putAll(Map<? extends String, ? extends Serializable> map) {
-		properties.putAll(map);
-	}
-	
-	public boolean _putIfUnchanged(String key, Serializable newVal,
+	@Override
+	public boolean locPutIfUnchanged(String key, Serializable newVal,
 			Serializable oldVal) {
 		boolean result = false;
 		if (!(oldVal == null && properties.containsKey(key) && properties
@@ -96,42 +91,28 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		}
 		return result;
 	}
-
-	public boolean _putIfUnchanged(String key, JsonNode newVal,
-			JsonNode oldVal) {
-		boolean result = false;
-		if (!(oldVal == null && properties.containsKey(key) && properties
-				.get(key) != null)
-				|| (properties.get(key) != null && properties.get(key).equals(
-						oldVal))) {
-			properties.put(key, newVal.toString());
-			result = true;
-		}
-		return result;
-	}
-
 	
+	@Override
 	public Serializable remove(String key) {
 		return properties.remove(key);
 	}
 	
+	@Override
 	public int size() {
 		return properties.size();
-	}
-	
-	public Collection<Serializable> values() {
-		return properties.values();
 	}
 	
 	/**
 	 * init is executed once before the agent method is invoked
 	 */
+	@Override
 	public void init() {
 	}
 	
 	/**
 	 * destroy is executed once after the agent method is invoked
 	 */
+	@Override
 	public void destroy() {
 	}
 	
