@@ -8,6 +8,8 @@ import java.util.Set;
 import org.joda.time.DateTime;
 
 import com.almende.eve.entity.Message;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -84,6 +86,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
  * @author jos
  * @date 2013-02-15
  */
+@Access(AccessType.PUBLIC)
 public class MessageAgent extends Agent {
 	@Override
 	public void init() {

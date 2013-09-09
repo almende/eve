@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.almende.eve.entity.Registration;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Required;
 import com.almende.util.TwigUtil;
@@ -14,6 +16,7 @@ import com.google.code.twig.FindCommand.RootFindCommand;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 
+@Access(AccessType.PUBLIC)
 public class DirectoryAgent extends Agent {
 	@Override
 	public void init() {
