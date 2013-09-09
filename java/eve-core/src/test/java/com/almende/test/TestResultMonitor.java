@@ -18,7 +18,7 @@ public class TestResultMonitor extends TestCase {
 	@Test
 	public void test() throws Exception {
 		AgentHost factory = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents_resultmonitor");
+		FileStateFactory stateFactory = new FileStateFactory(".eveagents_resultmonitor", true);
 		factory.setStateFactory(stateFactory);
 		factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
 		

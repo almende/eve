@@ -1,10 +1,14 @@
 package com.almende.util;
 
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jodah.typetools.TypeResolver;
+
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.StateEntry;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,9 +29,11 @@ public abstract class TypeUtil<T> {
 	 * TypeUtil...
 	 */
 	public TypeUtil() {
-		this.valueType = JOM.getTypeFactory().constructType(
-				ClassUtil.getTypeArguments(TypeUtil.class, getClass()).get(0)
-						.getGenericSuperclass());
+		this.valueType = JOM.getTypeFactory()
+				.constructType(
+						((ParameterizedType) TypeResolver.resolveGenericType(
+								TypeUtil.class, getClass()))
+								.getActualTypeArguments()[0]);
 	}
 	
 	/** @return the {@link StateEntry} value's type */
@@ -63,10 +69,11 @@ public abstract class TypeUtil<T> {
 			try {
 				return mapper.convertValue(value, fullType);
 			} catch (Exception e) {
-				LOG.log(Level.SEVERE, "Failed to convert value:" + value + " -----> "+fullType, e);
+				LOG.log(Level.SEVERE, "Failed to convert value:" + value
+						+ " -----> " + fullType, e);
 			}
 		}
 		return (T) value;
 	}
-
+	
 }

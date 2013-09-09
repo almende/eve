@@ -155,7 +155,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
 			Object result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
-					monitor.getParams(), TypeFactory.unknownType());
+					JOM.getInstance().readTree(monitor.getParams()), TypeFactory.unknownType());
 			if (monitor.getCallbackMethod() != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",

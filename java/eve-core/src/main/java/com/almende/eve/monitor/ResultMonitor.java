@@ -1,6 +1,5 @@
 package com.almende.eve.monitor;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
@@ -13,8 +12,8 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ResultMonitor implements Serializable {
@@ -34,6 +33,8 @@ public class ResultMonitor implements Serializable {
 	
 	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
 	private transient Agent						myAgent				= null;
+	
+	public ResultMonitor(){};
 	
 	public ResultMonitor(String id, String agentId, URI url, String method,
 			ObjectNode params, String callbackMethod) {
@@ -104,6 +105,7 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	@JsonIgnore
 	public Cache getCache() {
 		synchronized (caches) {
 			return caches.get(id);
@@ -183,8 +185,8 @@ public class ResultMonitor implements Serializable {
 		this.method = method;
 	}
 	
-	public JsonNode getParams() throws IOException {
-		return JOM.getInstance().readTree(params);
+	public String getParams() {
+		return params;
 	}
 	
 	public void setParams(String params) {

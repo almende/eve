@@ -232,6 +232,8 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	private boolean				sequential			= true;
 	private boolean				active				= false;
 	
+	public TaskEntry(){};
+	
 	public TaskEntry(DateTime due, JSONRequest request, long interval,
 			boolean sequential) {
 		taskId = UUID.randomUUID().toString();
