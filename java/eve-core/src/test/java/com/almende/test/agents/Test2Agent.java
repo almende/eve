@@ -45,6 +45,7 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.xmpp.XmppService;
 import com.almende.test.agents.entity.Person;
+import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -253,9 +254,8 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 
 	public Double testComplexResult(@Name("url") String url) throws Exception{
-		Map<String, List<Double>> res = new HashMap<String,List<Double>>();
 		
-		send(res, URI.create(url), "complexResult");
+		Map<String, List<Double>> res = send(URI.create(url), "complexResult", new TypeUtil<Map<String, List<Double>>>(){});
 		return res.get("result").get(0);
 	}
 
@@ -271,7 +271,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public Double testDoubleRet() throws Exception{
-		return send(new Double(1.1),getFirstUrl(),"increment");
+		return send(getFirstUrl(),"increment", Double.class);
 	}
 	
 	public String get(@Name("key") String key) {

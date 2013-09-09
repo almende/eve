@@ -1,5 +1,6 @@
 package com.almende.test.agents;
 
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
@@ -24,6 +25,8 @@ public class TestSchedulerAgent extends Agent {
 		params.put("expected", DateTime.now().plus(delay).toString());
 		params.put("interval", interval);
 		params.put("sequential", sequential);
+		params.put("someId", UUID.randomUUID().toString());
+		params.put("delay", delay);
 		JSONRequest request = new JSONRequest("doTest", params);
 		getScheduler().createTask(request, delay, interval, sequential);
 	}
@@ -31,16 +34,18 @@ public class TestSchedulerAgent extends Agent {
 	public void doTest(@Name("time") String startStr,
 			@Name("expected") String expectedStr,
 			@Name("interval") Boolean interval,
-			@Name("sequential") Boolean sequential) {
+			@Name("sequential") Boolean sequential,
+			@Name("someId") String id,
+			@Name("delay") int delay) {
 		DateTime startTime = new DateTime(startStr);
 		DateTime expected = new DateTime(expectedStr);
 
 		if (interval){
-			log.info("Duration since schedule:"
-					+ (new Duration(startTime, DateTime.now()).getMillis()) + " sequential:"+sequential);
+			log.info(id+": Duration since schedule:"
+					+ (new Duration(startTime, DateTime.now()).getMillis()) + " sequential:"+sequential+ " delay:"+delay+"ms.");
 		} else {
-			log.info("Delay after expected runtime:"
-				+ (new Duration(expected,DateTime.now()).getMillis()));
+			log.info(id+": Delay after expected runtime:"
+				+ (new Duration(expected,DateTime.now()).getMillis()+ "ms of planned delay:"+delay+"ms "));
 		}
 		Integer oldCnt = getState().get("runCount", Integer.class);
 		Integer newCnt = 1;

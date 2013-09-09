@@ -143,7 +143,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		
 		// Check if agent is instantiated already, returning if it is:
-		Agent agent = ObjectCache.get(agentId,Agent.class);
+		Agent agent = ObjectCache.get(agentId, Agent.class);
 		if (agent != null) {
 			return agent;
 		}
@@ -196,8 +196,10 @@ public final class AgentHost implements AgentHostInterface {
 			throw new IllegalArgumentException("agentInterface must extend "
 					+ AgentInterface.class.getName());
 		}
-		T proxy = ObjectCache.get("proxy_"+(sender != null ? sender.getId()+"_":"")+agentInterface, agentInterface);
-		if (proxy != null){
+		T proxy = ObjectCache.get(
+				"proxy_" + (sender != null ? sender.getId() + "_" : "")
+						+ agentInterface, agentInterface);
+		if (proxy != null) {
 			return proxy;
 		}
 		
@@ -221,16 +223,16 @@ public final class AgentHost implements AgentHostInterface {
 							throw err;
 						} else if (response.getResult() != null
 								&& !method.getReturnType().equals(Void.TYPE)) {
-							return TypeUtil.inject(
-									method.getGenericReturnType(),
-									response.getResult());
+							return TypeUtil.inject(response.getResult(),
+									method.getGenericReturnType());
 						} else {
 							return null;
 						}
 					}
 				});
 		
-		ObjectCache.put("proxy_"+(sender != null ? sender.getId()+"_":"")+agentInterface.getCanonicalName(), proxy);
+		ObjectCache.put("proxy_" + (sender != null ? sender.getId() + "_" : "")
+				+ agentInterface.getCanonicalName(), proxy);
 		
 		return proxy;
 	}

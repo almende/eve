@@ -293,14 +293,14 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Class<T> type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(type, _send(url, method, params).getResult());
+		return TypeUtil.inject(_send(url, method, params).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Type type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(type, _send(url, method, params).getResult());
+		return TypeUtil.inject( _send(url, method, params).getResult(),type);
 	}
 	
 	@Override
@@ -312,37 +312,23 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(T ret, URI url, String method, Object params)
-			throws IOException, JSONRPCException {
-		return TypeUtil.inject(ret, _send(url, method, params).getResult());
-	}
-	
-	@Override
-	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, JavaType type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(type, _send(url, method, params).getResult());
-	}
-	
-	@Override
-	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(T ret, URI url, String method) throws IOException,
-			JSONRPCException {
-		return TypeUtil.inject(ret, _send(url, method, null).getResult());
+		return TypeUtil.inject(_send(url, method, params).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Type type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(type, _send(url, method, null).getResult());
+		return TypeUtil.inject(_send(url, method, null).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, JavaType type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(type, _send(url, method, null).getResult());
+		return TypeUtil.inject(_send(url, method, null).getResult(),type);
 	}
 	
 	@Override
@@ -350,7 +336,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> T send(URI url, String method, Class<T> type)
 			throws ProtocolException, JSONRPCException {
 		
-		return TypeUtil.inject(type, _send(url, method, null).getResult());
+		return TypeUtil.inject(_send(url, method, null).getResult(),type);
 	}
 	
 	@Override
@@ -462,8 +448,7 @@ public abstract class Agent implements AgentInterface {
 						callback.onFailure(err);
 					}
 					if (type != null && !type.hasRawClass(Void.class)) {
-						callback.onSuccess((T) TypeUtil.inject(type,
-								response.getResult()));
+						callback.onSuccess((T) TypeUtil.inject(response.getResult(),type));
 					} else {
 						callback.onSuccess(null);
 					}

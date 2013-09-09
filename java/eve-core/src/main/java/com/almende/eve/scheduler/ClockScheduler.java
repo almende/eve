@@ -27,8 +27,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private final Agent				myAgent;
 	private final Clock				myClock;
 	private final ClockScheduler	_this		= this;
-	private static final String		TASKLIST	= "_taskList";
-	private static final TypedKey<TreeSet<TaskEntry>> TYPEDKEY = new TypedKey<TreeSet<TaskEntry>>(TASKLIST){};
+	private static final TypedKey<TreeSet<TaskEntry>> TYPEDKEY = new TypedKey<TreeSet<TaskEntry>>("_taskList"){};
 	private static final int 		MAXCOUNT    = 1000;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
@@ -80,7 +79,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			}
 			timeline.add(task);
 		}
-		if (!myAgent.getState().putIfUnchanged(TASKLIST,
+		if (!myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(),
 				timeline, oldTimeline)) {
 			LOG.severe("need to retry putTask...");
 			// recursive retry....
@@ -103,7 +102,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			}
 		}
 		if (timeline != null
-				&& !myAgent.getState().putIfUnchanged(TASKLIST, timeline,
+				&& !myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(), timeline,
 						oldTimeline)) {
 			LOG.severe("need to retry cancelTask...");
 			// recursive retry....
@@ -125,10 +124,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 					} else {
 						if (!task.isSequential()) {
 							task.setDue(DateTime.now().plus(task.getInterval()));
+							task.setActive(false);
+							_this.putTask(task, true);
+							_this.run();
 						}
-						task.setActive(false);
-						_this.putTask(task, true);
-						_this.run();
 					}
 					RequestParams params = new RequestParams();
 					String senderUrl = "local://" + myAgent.getId();

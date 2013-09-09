@@ -18,6 +18,7 @@ import com.almende.eve.rpc.annotation.Required;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.state.TypedKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class EventsFactory implements EventsInterface {
 	private Agent				myAgent			= null;
-	private static final String	SUBSCRIPTIONS	= "subscriptions";
+	private static final TypedKey<HashMap<String, List<Callback>>>	SUBSCRIPTIONS	= new TypedKey<HashMap<String, List<Callback>>>("subscriptions"){};
 	private static final String	EVENT			= "event";
 	
 	public EventsFactory(Agent agent) {
@@ -40,9 +41,7 @@ public class EventsFactory implements EventsInterface {
 	 * @return
 	 */
 	public List<Callback> getSubscriptions(String event) {
-		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
-		allSubscriptions = myAgent.getState().get(allSubscriptions,
-				SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = myAgent.getState().get(SUBSCRIPTIONS);
 		if (allSubscriptions != null) {
 			List<Callback> eventSubscriptions = allSubscriptions.get(event);
 			if (eventSubscriptions != null) {
@@ -61,16 +60,14 @@ public class EventsFactory implements EventsInterface {
 	 */
 	private void putSubscriptions(String event, List<Callback> subscriptions) {
 		
-		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
-		allSubscriptions = myAgent.getState().get(allSubscriptions,
-				SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = myAgent.getState().get(SUBSCRIPTIONS);
 		
 		HashMap<String, List<Callback>> newSubscriptions = new HashMap<String, List<Callback>>();
 		if (allSubscriptions != null) {
 			newSubscriptions.putAll(allSubscriptions);
 		}
 		newSubscriptions.put(event, subscriptions);
-		if (!myAgent.getState().putIfUnchanged(SUBSCRIPTIONS, newSubscriptions,
+		if (!myAgent.getState().putIfUnchanged(SUBSCRIPTIONS.getKey(), newSubscriptions,
 				allSubscriptions)) {
 			// Recursive retry.
 			putSubscriptions(event, subscriptions);
@@ -289,9 +286,7 @@ public class EventsFactory implements EventsInterface {
 			@Required(false) @Name(EVENT) String event,
 			@Required(false) @Name("callbackUrl") String callbackUrl,
 			@Required(false) @Name("callbackMethod") String callbackMethod) {
-		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
-		allSubscriptions = myAgent.getState().get(allSubscriptions,
-				SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = myAgent.getState().get(SUBSCRIPTIONS);
 		if (allSubscriptions == null) {
 			return;
 		}
@@ -330,7 +325,7 @@ public class EventsFactory implements EventsInterface {
 		
 		// store state again
 		// TODO: Race condition on state
-		myAgent.getState().put(SUBSCRIPTIONS, allSubscriptions);
+		myAgent.getState().put(SUBSCRIPTIONS.getKey(), allSubscriptions);
 	}
 	
 	/**
@@ -354,9 +349,7 @@ public class EventsFactory implements EventsInterface {
 	@Access(AccessType.SELF)
 	public ObjectNode getSubscriptionStats() {
 		ObjectNode result = JOM.createObjectNode();
-		Map<String, List<Callback>> allSubscriptions = new HashMap<String, List<Callback>>();
-		allSubscriptions = myAgent.getState().get(allSubscriptions,
-				SUBSCRIPTIONS);
+		Map<String, List<Callback>> allSubscriptions = myAgent.getState().get(SUBSCRIPTIONS);
 		if (allSubscriptions != null) {
 			result.put("nofSubscriptions", allSubscriptions.values().size());
 			result.put("nofEvents", allSubscriptions.keySet().size());

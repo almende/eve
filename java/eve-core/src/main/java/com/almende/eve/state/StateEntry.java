@@ -106,7 +106,7 @@ public abstract class StateEntry<T extends Serializable>
 	{
 		try
 		{
-			return TypeUtil.inject(valueType, state.put(getKey(), value));
+			return TypeUtil.inject(state.put(getKey(), value), valueType);
 		} catch (final ClassCastException e)
 		{
 			LOG.log(Level.WARNING,"Problem casting agent's previous state value, key: "

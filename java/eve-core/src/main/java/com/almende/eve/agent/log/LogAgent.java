@@ -9,6 +9,7 @@ import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.util.TypeUtil;
 
 @Access(AccessType.PUBLIC)
 public class LogAgent extends Agent {
@@ -17,8 +18,7 @@ public class LogAgent extends Agent {
 	public void log(Log log) {
 		// TODO: use a database instead of the state - when you register
 		// more and more logs this will be very unreliable.
-		ArrayList<Log> logs = new ArrayList<Log>();
-		logs = getState().get(logs, "logs");
+		ArrayList<Log> logs = getState().get("logs",new TypeUtil<ArrayList<Log>>(){});
 		if (logs == null) {
 			logs = new ArrayList<Log>();
 		}
@@ -30,8 +30,7 @@ public class LogAgent extends Agent {
 	}
 	
 	public List<Log> getLogs(Long since) {
-		ArrayList<Log> logs = new ArrayList<Log>();
-		logs = getState().get(logs, "logs");
+		ArrayList<Log> logs = getState().get("logs",new TypeUtil<ArrayList<Log>>(){});
 		
 		// TODO: use a database for the logs. It is very inefficient to
 		// retrieve them all and then filter them.

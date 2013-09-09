@@ -117,7 +117,7 @@ public class ConcurrentSerializableFileState extends
 		
 		synchronized (locked) {
 			
-			if (lock.isValid()) {
+			if (lock != null && lock.isValid()) {
 				try {
 					
 					lock.release();
@@ -127,10 +127,15 @@ public class ConcurrentSerializableFileState extends
 			}
 			
 			try {
-				fos.close();
-				fis.close();
-				channel.close();
-				
+				if (fos != null) {
+					fos.close();
+				}
+				if (fis != null) {
+					fis.close();
+				}
+				if (channel != null) {
+					channel.close();
+				}
 			} catch (IOException e) {
 				LOG.log(Level.WARNING, "", e);
 			}
