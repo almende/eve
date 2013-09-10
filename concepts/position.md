@@ -5,4 +5,7 @@ title: Position
 
 # Position
 
-some work to do here...
+This section will contain:
+- Eve's position on FIPA compliancy
+- A comparison of Eve compared to other agent platforms
+
