@@ -5,6 +5,7 @@ title: Getting Started
 
 # Getting Started with Eve, Jetty, and Maven
 
+*Note: this tutorial is written for Eve 2.0, which is planned to be released Friday 13th of September.*
 
 Eve provides a Java library which can be integrated in new or existing Java projects. Eve can be used on different environments. Eve agents can for example run in a regular Java application, a Java web application, an Android application, on Google App Engine, etc.
 
