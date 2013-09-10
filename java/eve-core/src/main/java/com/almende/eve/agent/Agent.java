@@ -264,6 +264,7 @@ public abstract class Agent implements AgentInterface {
 		return getAgentHost().getMethods(this);
 	}
 	
+	//TODO: only allow ObjectNode as params?
 	private JSONResponse _send(URI url, String method, Object params)
 			throws ProtocolException, JSONRPCException {
 		// TODO: implement support for adding custom http headers (for
@@ -273,8 +274,7 @@ public abstract class Agent implements AgentInterface {
 		if (params instanceof ObjectNode) {
 			jsonParams = (ObjectNode) params;
 		} else {
-			jsonParams = JOM.getInstance().convertValue(params,
-					ObjectNode.class);
+			jsonParams = JOM.getInstance().valueToTree(params);
 		}
 		
 		// invoke the other agent via the AgentHost, allowing the factory

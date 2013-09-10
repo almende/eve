@@ -2,7 +2,6 @@ package com.almende.eve.monitor;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -121,7 +120,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			}
 			if (result == null) {
 				result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
-						monitor.getParams(), returnType);
+						JOM.getInstance().readTree(monitor.getParams()), returnType);
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);
 				}
@@ -174,9 +173,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	@Access(AccessType.SELF)
 	public final void doPush(@Name("pushParams") ObjectNode pushParams,
 			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
-			throws ProtocolException, JSONRPCException {
+			throws JSONRPCException, IOException {
 		String method = pushParams.get("method").textValue();
-		ObjectNode params = (ObjectNode) pushParams.get("params");
+		ObjectNode params = (ObjectNode) JOM.getInstance().readTree(pushParams.get("params").textValue());
 		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
 				params), myAgent);
 		

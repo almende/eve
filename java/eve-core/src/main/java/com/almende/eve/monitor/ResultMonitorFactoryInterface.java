@@ -35,11 +35,13 @@ public interface ResultMonitorFactoryInterface {
 	 * @param pushParams
 	 * @throws JSONRPCException
 	 * @throws ProtocolException
+	 * @throws IOException 
+	 * @throws  
 	 * @throws Exception
 	 */
 	void doPush(@Name("pushParams") ObjectNode pushParams,
 			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
-			throws ProtocolException, JSONRPCException;
+			throws ProtocolException, JSONRPCException, IOException;
 	
 	/**
 	 * Callback method for the monitoring framework, doing the work for

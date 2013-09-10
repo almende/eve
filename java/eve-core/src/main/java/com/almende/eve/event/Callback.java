@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class Callback implements Serializable {
 	private static final transient Logger LOG = Logger.getLogger(Callback.class.getCanonicalName());
 	
+	public Callback(){};
+	
 	public Callback(String id, String url, String method, ObjectNode params) {
 		this.id = id;
 		this.url = url;
