@@ -27,7 +27,7 @@ home automation devices, and others. The agents communicate with each other usin
 Discover more in the [concepts section](concepts/introduction.html).
 
 <div style="text-align: center;">
-    <a href="img/eve_overview.png" target="_blank">
+    <a href="img/eve_overview.png" data-lightbox="eve_overview" target="_blank">
         <img src="img/eve_overview_small.png" alt="schematic overview" title="Click for a larger view"
             style="border: 1px solid lightgray;">
         <br>
