@@ -83,9 +83,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	
 	@SuppressWarnings("resource")
 	protected void openFile() throws IOException {
-		System.err.println("OpenFile:" + System.currentTimeMillis());
 		synchronized (locked) {
-			System.err.println("locked sync:" + System.currentTimeMillis());
 			while (locked.containsKey(filename) && locked.get(filename)) {
 				try {
 					locked.wait();
@@ -93,7 +91,6 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 				}
 			}
 			locked.put(filename, true);
-			System.err.println("locked obtained:" + System.currentTimeMillis());
 			
 			File file = new File(this.filename);
 			if (!file.exists()) {
@@ -103,19 +100,12 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 						"Warning: File doesn't exist (anymore):'"
 								+ this.filename + "'");
 			}
-			System.err.println("File exists:" + System.currentTimeMillis());
 			
 			channel = new RandomAccessFile(file, "rw").getChannel();
-			System.err
-					.println("Channel obtained:" + System.currentTimeMillis());
-			
 			try {
 				// TODO: add support for shared locks, allowing parallel reading
 				// operations.
 				lock = channel.lock();
-				
-				System.err
-						.println("Channel lock:" + System.currentTimeMillis());
 				
 			} catch (Exception e) {
 				channel.close();
@@ -128,17 +118,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			}
 			fis = new BufferedInputStream(Channels.newInputStream(channel));
 			fos = new BufferedOutputStream(Channels.newOutputStream(channel));
-			System.err.println("Streams initted:" + System.currentTimeMillis());
-			
 		}
 	}
 	
 	protected void closeFile() {
-		System.err.println("Closing file:" + System.currentTimeMillis());
-		
 		synchronized (locked) {
-			System.err.println("lock sync:" + System.currentTimeMillis());
-			
 			if (lock != null && lock.isValid()) {
 				try {
 					
@@ -147,8 +131,6 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 					LOG.log(Level.WARNING, "", e);
 				}
 			}
-			System.err.println("lock released:" + System.currentTimeMillis());
-			
 			try {
 				if (fos != null){
 					fos.close();
@@ -156,14 +138,10 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 				if (fis != null){
 					fis.close();
 				}
-				System.err.println("Streams closed:"
-						+ System.currentTimeMillis());
 				
 				if (channel != null){
 					channel.close();
 				}
-				System.err.println("Channel closed:"
-						+ System.currentTimeMillis());
 				
 			} catch (IOException e) {
 				LOG.log(Level.WARNING, "", e);
@@ -174,8 +152,6 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			lock = null;
 			locked.put(filename, false);
 			locked.notifyAll();
-			System.err.println("Done:" + System.currentTimeMillis());
-			
 		}
 	}
 	
@@ -186,20 +162,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	 * @throws IOException
 	 */
 	private void write() throws IOException {
-		System.err.println("Write start:" + System.currentTimeMillis());
-		
 		if (channel != null) {
 			channel.position(0);
 		}
-		
-		System.err.println("pos0:" + System.currentTimeMillis());
 		om.writeValue(fos, properties);
-		
-		System.err.println("written:" + System.currentTimeMillis());
-		
 		fos.flush();
-		System.err.println("write flushed:" + System.currentTimeMillis());
-		
 	}
 	
 	/**
@@ -211,24 +178,17 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	 */
 	private void read() throws IOException, ClassNotFoundException {
 		try {
-			System.err.println("Read start:" + System.currentTimeMillis());
-			
 			if (channel != null) {
 				channel.position(0);
 			}
-			System.err.println("pos0:" + System.currentTimeMillis());
-			
 			properties.clear();
 			JsonNode data = om.readTree(fis);
-			System.err.println("Read:" + System.currentTimeMillis());
 			Iterator<Entry<String, JsonNode>> fieldIter = data.fields();
 			
 			while (fieldIter.hasNext()) {
 				Entry<String, JsonNode> item = fieldIter.next();
 				properties.put(item.getKey(), item.getValue());
 			}
-			System.err.println("Read:" + System.currentTimeMillis());
-			
 		} catch (EOFException eof) {
 			// empty file, new agent?
 		} catch (JsonMappingException jme){

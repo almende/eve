@@ -28,7 +28,7 @@ public class Poll implements ResultMonitorConfigType {
 	}
 	
 	public void cancel(ResultMonitor monitor, Agent agent) {
-		if (taskId != null) {
+		if (taskId != null && agent.getScheduler() != null) {
 			agent.getScheduler().cancelTask(taskId);
 		}
 	}

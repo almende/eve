@@ -1,7 +1,6 @@
 package com.almende.eve.monitor;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.Map;
 
@@ -34,14 +33,13 @@ public interface ResultMonitorFactoryInterface {
 	 * 
 	 * @param pushParams
 	 * @throws JSONRPCException
-	 * @throws ProtocolException
 	 * @throws IOException 
 	 * @throws  
 	 * @throws Exception
 	 */
 	void doPush(@Name("pushParams") ObjectNode pushParams,
 			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
-			throws ProtocolException, JSONRPCException, IOException;
+			throws JSONRPCException, IOException;
 	
 	/**
 	 * Callback method for the monitoring framework, doing the work for

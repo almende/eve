@@ -265,7 +265,7 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	//TODO: only allow ObjectNode as params?
-	private JSONResponse _send(URI url, String method, Object params)
+	private JSONResponse locSend(URI url, String method, Object params)
 			throws ProtocolException, JSONRPCException {
 		// TODO: implement support for adding custom http headers (for
 		// authorization for example)
@@ -293,42 +293,42 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Class<T> type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(_send(url, method, params).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, params).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Type type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject( _send(url, method, params).getResult(),type);
+		return TypeUtil.inject( locSend(url, method, params).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params,
 			TypeUtil<T> type) throws ProtocolException, JSONRPCException {
-		return type.inject(_send(url, method, params).getResult());
+		return type.inject(locSend(url, method, params).getResult());
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, JavaType type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(_send(url, method, params).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, params).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Type type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(_send(url, method, null).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, null).getResult(),type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, JavaType type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(_send(url, method, null).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, null).getResult(),type);
 	}
 	
 	@Override
@@ -336,7 +336,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> T send(URI url, String method, Class<T> type)
 			throws ProtocolException, JSONRPCException {
 		
-		return TypeUtil.inject(_send(url, method, null).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, null).getResult(),type);
 	}
 	
 	@Override
@@ -344,21 +344,21 @@ public abstract class Agent implements AgentInterface {
 	public final <T> T send(URI url, String method, TypeUtil<T> type)
 			throws ProtocolException, JSONRPCException {
 		
-		return type.inject(_send(url, method, null).getResult());
+		return type.inject(locSend(url, method, null).getResult());
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void send(URI url, String method, Object params)
 			throws ProtocolException, JSONRPCException {
-		_send(url, method, params);
+		locSend(url, method, params);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void send(URI url, String method) throws ProtocolException,
 			JSONRPCException {
-		_send(url, method, null);
+		locSend(url, method, null);
 	}
 	
 	@Override

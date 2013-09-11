@@ -311,7 +311,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		if (config == null) {
 			return;
 		}
-		if (config.has("taskId")) {
+		if (config.has("taskId") && myAgent.getScheduler() != null) {
 			String taskId = config.get("taskId").textValue();
 			myAgent.getScheduler().cancelTask(taskId);
 		}
