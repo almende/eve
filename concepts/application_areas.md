@@ -5,11 +5,9 @@ title: Application Areas
 
 # Application Areas
 
-The Eve agent platform can be used for all kind of applications. 
-New types of agents can be built to act on any type of domain.
-Eve offers the base to built your own agent platform. 
+The Eve agent platform is meant for general purpose computing. It allows any software project to leverage the added power of an agent based design. These benefits range from better robustness, scalability, interoperability and ease of software maintenance. 
 
-A number of possible application scenarios for Eve:
+A example of the possible application scenarios in which Eve can offer distinct benefits is given below:
 
 
 - **Easily set up an agent platform**
@@ -33,7 +31,7 @@ A number of possible application scenarios for Eve:
   of software agents by creating "wrapper agents" for the systems.
   This way it is possible to link completely separated software systems together
   via agents, even when the software systems are developed in different 
-  development environments or are deployed on different locations. 
+  development environments or are deployed on different locations.
 
 - **Abstraction layer**
   Eve can be used as an abstraction to link different services acting on the
@@ -41,4 +39,4 @@ A number of possible application scenarios for Eve:
   systems by creating agents having the same interface but linked to a different
   calendaring system (Gmail, Exchange, iCal, ...).
   
-- And possibly more...
+
