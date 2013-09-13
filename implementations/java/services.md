@@ -27,7 +27,7 @@ its id in the servlet url.
 
 To use the AgentServlet, the servlet must be configured in the web.xml file
 of the Java project, and a context listener must be configured to start an
-Eve AgentFactory.
+Eve AgentHost.
 
 ### Configuration
 
@@ -38,15 +38,15 @@ things needs to be configured:
 
 - **AgentListener**
   A servlet context listener needs to be set up to load a singleton
-  AgentFactory on startup of the web application.
-  This AgentFactory manages all agents.
+  AgentHost on startup of the web application.
+  This AgentHost manages all agents.
 - **AgentServlet**
   At least one servlet needs to be set up to route incoming requests for agents.
   One can use the provided `AgentServlet` for this, or build something customized.
   An AgentServlet will automatically create an HttpService with its configured
-  servlet url, and register this transport service to the AgentFactory.
+  servlet url, and register this transport service to the AgentHost.
   It is possible to configure multiple Agent servlets, and they will all share
-  the same AgentFactory.
+  the same AgentHost.
 
 To configure the servlet and context listener,
 add the following lines to the **web.xml** file of the Java project,
@@ -99,9 +99,9 @@ The AgentListener supports the following context parameters:
         <td>eve_config</td>
         <td>
             The context-param <code>eve_config</code> points to an eve configuration file
-            (for example eve.yaml). The configuration file is used by the AgentFactory
+            (for example eve.yaml). The configuration file is used by the AgentHost
             and contains configuration for the state, scheduler, and services.
-            The configuration of the AgentFactory is described on the page
+            The configuration of the AgentHost is described on the page
             <a href="configuration.html">Configuration</a>.
         </td>
     </tr>
@@ -238,15 +238,15 @@ file name **eve.yaml**.
 
 An agent can be connected to an XMPP service programmatically via the configured
 XmppService. The following code example shows how an agent can retrieve the
-xmpp service via its AgentFactory,
+xmpp service via its AgentHost,
 and connect itself to the service with a username and password.
 
     @Access(AccessType.PUBLIC)
     public void xmppConnect(@Name("username") String username,
             @Name("password") String password) throws Exception {
-        AgentFactory factory = getAgentFactory();
+        AgentHost host = getAgentHost();
 
-        XmppService service = (XmppService) factory.getService("xmpp");
+        XmppService service = (XmppService) host.getService("xmpp");
         if (service != null) {
             service.connect(getId(), username, password);
         }
@@ -257,8 +257,8 @@ and connect itself to the service with a username and password.
 
     @Access(AccessType.PUBLIC)
     public void xmppDisconnect() throws Exception {
-        AgentFactory factory = getAgentFactory();
-        XmppService service = (XmppService) factory.getService("xmpp");
+        AgentHost host = getAgentHost();
+        XmppService service = (XmppService) host.getService("xmpp");
         if (service != null) {
             service.disconnect(getId());
         }

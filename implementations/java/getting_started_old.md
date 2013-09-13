@@ -205,7 +205,7 @@ web servlet.
   Note that we have added a number of init parameters.
   The context-param `config` points to an eve configuration file eve.yaml,
   which we will create next. This configuration file is used to load an agent
-  factory which manages all agents.
+  host which manages all agents.
   The context-param `eve_authentication` determines whether we want to use
   a secured SSL connection to let agents communicate with each other.
   Furthermore, the servlet needs a parameter `servlet_url`. This url is needed
@@ -255,7 +255,7 @@ web servlet.
     `environment.Production.[param]`.
 
   Each agent has access has access to this configuration file via its 
-  AgentFactory.
+  AgentHost.
   If your agent needs specific settings (for example for database access), 
   you can add these settings to the configuration file.
 

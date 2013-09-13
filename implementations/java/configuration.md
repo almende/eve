@@ -80,7 +80,7 @@ Description of the available properties:
             There are two environments available <code>Development</code> and
             <code>Production</code>.
             The environment is determined at runtime
-            and can be retrieved from the AgentFactory and StateFactory using the
+            and can be retrieved from the AgentHost and StateFactory using the
             method <code>getEnvironment()</code>.<br>
             <br>
             All Eve settings can be placed both in the root of the configuration
@@ -291,7 +291,7 @@ Description:
 ## Accessing configuration properties {#accessing_configuration_properties}
 
 All configuration properties can be accessed by the agents via their
-agent factory. If an agent needs specific properties,
+agent host. If an agent needs specific properties,
 for example some database configuration, these properties can be stored in the
 configuration file of Eve.
 
@@ -308,11 +308,11 @@ These properties can be stored in the configuration file:
       client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
       client_secret: xxxxxxxxxxxxxxxx
 
-The properties can be retrieved by an agent via its agent factory:
+The properties can be retrieved by an agent via its agent host:
 
     void authorizeGoogleApis () {
         // retrieve properties
-        Config config = getAgentFactory().getConfig();
+        Config config = getAgentHost().getConfig();
         String client_id = config.get('google', 'client_id');
         String client_secret = config.get('google', 'client_secret');
 

@@ -173,7 +173,7 @@ The configuration is a [YAML](http://en.wikipedia.org/wiki/YAML) file. It contai
 
 - Optionally, all Eve parameters can be defined for a specific environment: Development or Production. In that case, the concerning parameters can be defined under `environment.Development.[param]` and/or `environment.Production.[param]`.
 
-Each agent has access has access to this configuration file via its AgentFactory. If your agent needs specific settings (for example for database access), you can add these settings to the configuration file. More detailed information on the Eve configuration can be found on the page [Configuration](configuration.html).
+Each agent has access has access to this configuration file via its AgentHost. If your agent needs specific settings (for example for database access), you can add these settings to the configuration file. More detailed information on the Eve configuration can be found on the page [Configuration](configuration.html).
 
 The AgentHost is now fully configured so we can run agents on it. However, we don't yet have a way to interact with these agents externally. In the next step we will create a Transport Service to communicate with our agents.
 

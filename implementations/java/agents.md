@@ -101,11 +101,11 @@ create, init, invoke, destroy, and delete.
 
 ### Create and Delete
 
-Once in its lifetime, an agent is created via the AgentFactory.
+Once in its lifetime, an agent is created via the AgentHost.
 On creation of the agent, the method `create()` is called once.
 This method can be overridden to perform setup tasks for the agent.
 
-At the end of its life an agent is deleted via the AgentFactory.
+At the end of its life an agent is deleted via the AgentHost.
 Before deletion, the method `delete()` is called once, which can be overridden
 to cleanup the agent.
 
@@ -117,7 +117,7 @@ Similarly, when an agents instance is destroyed, the method `destroy()` is
 called, which can be overridden too.
 
 Initialization and destruction of an agents instances is managed by the
-AgentFactory. Depending on cache settings, agents may be kept in memory,
+AgentHost. Depending on cache settings, agents may be kept in memory,
 or may be destroyed at any time. An agent can also be instantiated multiple
 times.
 It is possible that for every incoming request a new instance of the agent
@@ -190,7 +190,7 @@ The interface must extend the interface `AgentInterface`. For example:
 To create a proxy to an agent using this interface:
 
     String url = "http://myserver.com/agents/mycalcagent/";
-    CalcAgent calcAgent = getAgentFactory().createAgentProxy(url, CalcAgent.class);
+    CalcAgent calcAgent = getAgentHost().createAgentProxy(url, CalcAgent.class);
 
     String result = calcAgent.eval("Sin(0.25 * pi) ^ 2");
     System.out.println("result=" + result);
@@ -338,25 +338,25 @@ The following example shows how to schedule a task:
     }
 
 
-## AgentFactory {#agentfactory}
+## AgentHost {#agenthost}
 
-Eve agents are managed by an AgentFactory. Via the AgentFactory, an agent
-can be created, deleted, and invoked. The AgentFactory manages the communication
-services, and all incoming and outgoing request go via the AgentFactory.
+Eve agents are managed by an AgentHost. Via the AgentHost, an agent
+can be created, deleted, and invoked. The AgentHost manages the communication
+services, and all incoming and outgoing request go via the AgentHost.
 
-Each agent has access to the AgentFactory via the method `getAgentFactory()`.
-From the AgentFactory, it is possible to
+Each agent has access to the AgentHost via the method `getAgentHost()`.
+From the AgentHost, it is possible to
 
 - Create an agent: `createAgent(id, class)`,
 - Delete an agent: `deleteAgent(id)`,
 - Test existance of an agent: `hasAgent(id)`,
 
-The AgentFactory also gives access to the configuration file, which enables
+The AgentHost also gives access to the configuration file, which enables
 reading any configuration settings. If an agent requires some specific
 configuration properties, these properties can be stored in the configuration
 file (typically eve.yaml), and read by the agent:
 
-    Config config = getAgentFactory().getConfig();
+    Config config = getAgentHost().getConfig();
     String database_url = config.get('database_url');
 
 See also the page

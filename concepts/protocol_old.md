@@ -19,7 +19,7 @@ This page describes:
 
 - [Protocol](#Protocol) describes the communication protocol for the agents.
 - [Agent API](#Agent_API) describes the standard methods of an agent.
-- [AgentFactory API](#AgentFactory_API) describes an AgentFactory's REST API.
+- [AgentHost API](#AgentHost_API) describes an AgentHost's REST API.
 - [Resources](#Resources) describes standardized resources such as calendar
   events and geolocations.
 - [Documentation](#Documentation) links to resources related to the communication
@@ -245,11 +245,11 @@ For example a method `add(a,b)` can be described as:
         ]
     }
 
-## AgentFactory API {#AgentFactory_API}
+## AgentHost API {#AgentHost_API}
 
-Eve applications can use an AgentFactory to manage (create, delete, invoke)
-Eve agents. An AgentFactory can be exposed as a REST service.
-An AgentFactory's REST interface has the following API:
+Eve applications can use an AgentHost to manage (create, delete, invoke)
+Eve agents. An AgentHost can be exposed as a REST service.
+An AgentHost's REST interface has the following API:
 
 - `GET /agents/`
 
