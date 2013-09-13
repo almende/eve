@@ -48,8 +48,8 @@ Requirements:
 9: git commit -a
 10: git push --all
 
-11: Login to: https://oss.sonatype.org
-12: Goto: "Staging repositories"
+11: Login to: https://oss.sonatype.org  (Really login, not just opening the page! )
+12: Goto: "Staging repositories"        (if you can't find it, you didn't login:) )
 13: select comalmende repos
 14: click on "close"
 
@@ -58,4 +58,6 @@ Requirements:
 <download and test>
 
 15: click on "release"
+16: Tell the world!
+
 
