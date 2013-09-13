@@ -15,46 +15,35 @@ An agent can be accessed via a servlet or via an xmpp server
 The Java code of a basic Eve agent looks as follows:
 
     import com.almende.eve.agent.Agent;
-    import com.almende.eve.agent.annotation.Name;
+    import com.almende.eve.rpc.annotation.Access;
+    import com.almende.eve.rpc.annotation.AccessType;
+    import com.almende.eve.rpc.annotation.Name;
 
     public class HelloWorldAgent extends Agent {
+        @Access(AccessType.PUBLIC)
         public String welcome(@Name("name") String name) {
             return "Hello " + name + "!";
         }
-        
-        @Override
-        public String getVersion() {
-            return "0.1";
-        }
-        
-        @Override
-        public String getDescription() {
-            return "This agent can do this and that for you.";
-        }    
     }
 
 Remarks on this example:
 
--  An Eve agent extends from the base class Agent.
--  Two methods are required to implement: getVersion and getDescription.
-   Other methods, such as getMethods, getId, getUrl, are inherited from the 
-   class Agent.
--  The Example agent implements a method welcome, which takes one String 
-   "name" as parameter. Each method can have multiple parameters of any type,
-   and the parameters must be named using the annotation @Name. 
-   This is needed because the JSON-RPC 2.0 protocol uses named parameters, 
-   and unfortunately it is not possible in Java to retrieve the parameter names 
-   automatically via reflection.
+- An Eve agent extends from the base class Agent.
+- The Example agent implements a method welcome, which takes one String
+  "name" as parameter. Each method can have multiple parameters of any type,
+  and the parameters must be named using the annotation `@Name`.
+  This is needed because the JSON-RPC 2.0 protocol uses named parameters,
+  and unfortunately it is not possible in Java to retrieve the parameter names
+  automatically via reflection.
+- By default, none of the agents methods are available externally. To make them
+  accessible via JSON-RPC, they must be marked public using the annotation
+  `@Access(AccessType.PUBLIC)`.
 
 
 ## Methods {#methods}
 
 Eve agents communicate with each other via JSON-RPC 2.0. 
 All public methods of an Eve agent are automatically exposed via JSON-RPC.
-An agent must implement the following methods:
-
-- `getDescription` returning a textual description of the agent. 
-- `getVersion` returning the version number of the agent.
 
 All agents automatically inherit the following methods from the base class Agent:
 
@@ -65,13 +54,19 @@ All agents automatically inherit the following methods from the base class Agent
 - `onSubscribe` to recevie a subscription to an event
 - `onUnsubscribe` to receive an unsubscription from an event
 
+An agent can optionally override the following utility methods:
+
+- `getDescription` returning a textual description of the agent.
+- `getVersion` returning the version number of the agent.
+
 The parameters of a method must be named using the `@Name` annotation.
 Parameters can be marked as optional using the annotation `@Required`. 
 Non-required parameters are initialized with value `null` when not provided.
 Parameters can be of any type, both primitive types like Double or String, 
 and Java objects such as a Contact or Person class.
 
-    public void storePerson (@Name("person") Person person, 
+    @Access(AccessType.PUBLIC)
+    public void storePerson (@Name("person") Person person,
             @Name("confirm") @Required(false) Boolean confirm ) {
         // ...
     }
@@ -81,6 +76,7 @@ This url can for example be used for authorization purposes.
 The sender url is currently only provided when communication via XMPP,
 not via HTTP. In the case of HTTP, the @Sender parameter will be null.
 
+    @Access(AccessType.PUBLIC)
     public String echo (@Name("message") String message, @Sender String senderUrl) {
         if (sender != null) {
             return "Hello " + senderUrl + ", you said: " + message;
@@ -187,6 +183,7 @@ The interface must extend the interface `AgentInterface`. For example:
     import com.almende.eve.agent.annotation.Name;
 
     public interface CalcAgent extends AgentInterface {
+        @Access(AccessType.PUBLIC)
     	public Double eval(@Name("expr") String expr);
     }
 
@@ -216,10 +213,12 @@ on Amazon Elastic Cloud, Amazons SimpleDB or DynamoDB can be used.
 
 An example of using the state is shown in the following example:
 
+    @Access(AccessType.PUBLIC)
     public void setUsername(@Name("username") String username) {
         getState().put("username", username);
     }
     
+    @Access(AccessType.PUBLIC)
     public String getUsername() {
         return getState().get("username");
     }
@@ -245,6 +244,7 @@ to receive a callback on its method `onEvent` when the event happens.
 The callback method `onEvent` can have any name, and must have three parameters:
 `agent`, `event`, and `params`.
 
+    @Access(AccessType.PUBLIC)
     public void subscribeToAgentY() throws Exception {
         String url = "http://server/agents/agenty/";
         String event = "dataChanged";
@@ -253,6 +253,7 @@ The callback method `onEvent` can have any name, and must have three parameters:
         subscribe(url, event, callback);
     }
 
+    @Access(AccessType.PUBLIC)
     public void unsubscribeFromAgentY() throws Exception {
         String url = "http://server/agents/agenty/";
         String event = "dataChanged";
@@ -261,6 +262,7 @@ The callback method `onEvent` can have any name, and must have three parameters:
         unsubscribe(url, event, callback);
     }
 
+    @Access(AccessType.PUBLIC)
     public void onEvent(
             @Name("agent") String agent,
             @Name("event") String event, 
@@ -275,6 +277,7 @@ To let AgentY trigger the event "dataChanged", the method `trigger` can be used.
 Behind the scenes, a JSON-RPC call will be sent to all agents that have
 subscribed to that particular event.
 
+    @Access(AccessType.PUBLIC)
     public void triggerDataChangedEvent () throws Exception {
         String event = "dataChanged";
 
@@ -313,6 +316,7 @@ A task is a delayed JSON-RPC call to the agent itself.
 Tasks can be created and canceled.
 The following example shows how to schedule a task:
 
+    @Access(AccessType.PUBLIC)
     public String createTask() throws Exception {
         ObjectNode params = JOM.createObjectNode();
         params.put("message", "hello world");
@@ -323,10 +327,12 @@ The following example shows how to schedule a task:
         return id;
     }
 
+    @Access(AccessType.PUBLIC)
     public void cancelTask(@Name("id") String id) {
         getScheduler().cancelTask(id);
     }
 
+    @Access(AccessType.PUBLIC)
     public void myTask(@Name("message") String message) {
         System.out.println("myTask is executed. Message: " + message);
     }

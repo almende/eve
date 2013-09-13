@@ -241,6 +241,7 @@ XmppService. The following code example shows how an agent can retrieve the
 xmpp service via its AgentFactory,
 and connect itself to the service with a username and password.
 
+    @Access(AccessType.PUBLIC)
     public void xmppConnect(@Name("username") String username,
             @Name("password") String password) throws Exception {
         AgentFactory factory = getAgentFactory();
@@ -254,6 +255,7 @@ and connect itself to the service with a username and password.
         }
     }
 
+    @Access(AccessType.PUBLIC)
     public void xmppDisconnect() throws Exception {
         AgentFactory factory = getAgentFactory();
         XmppService service = (XmppService) factory.getService("xmpp");
