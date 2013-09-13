@@ -128,11 +128,11 @@ Configure an Eve AgentHost, which manages Eve agents. Open the servlet configura
     ...
         <context-param>
             <description>eve configuration (yaml file)</description>
-            <param-name>config</param-name>
+            <param-name>eve_config</param-name>
             <param-value>eve.yaml</param-value>
         </context-param>
         <context-param>
-            <param-name>authentication</param-name>
+            <param-name>eve_authentication</param-name>
             <param-value>false</param-value>
         </context-param>
         <listener>
@@ -142,8 +142,8 @@ Configure an Eve AgentHost, which manages Eve agents. Open the servlet configura
 
 Note that we have specified a number of context parameters.
 
-- The context-param `config` points to an eve configuration file `eve.yaml`, which we will create next. This configuration file is used is used to set up the AgentHost managing all Eve agents.
-- The context-param `authentication` determines whether we want to use a secured SSL connection to let agents communicate with each other.
+- The context-param `eve_config` points to an eve configuration file `eve.yaml`, which we will create next. This configuration file is used is used to set up the AgentHost managing all Eve agents.
+- The context-param `eve_authentication` determines whether we want to use a secured SSL connection to let agents communicate with each other.
 
 Create an Eve configuration file named `eve.yaml` in the folder `war/WEB-INF` (where `web.xml` is located too). Insert the following text in this file:
 

@@ -54,11 +54,11 @@ inside the &lt;web-app&gt; tag:
 
 	<context-param>
 		<description>eve configuration (yaml file)</description>
-		<param-name>config</param-name>
+		<param-name>eve_config</param-name>
 		<param-value>eve.yaml</param-value>
 	</context-param>
 	<context-param>
-		<param-name>authentication</param-name>
+		<param-name>eve_authentication</param-name>
 		<param-value>false</param-value>
 	</context-param>
 	<listener>
@@ -96,9 +96,9 @@ The AgentListener supports the following context parameters:
         <th>Description</th>
     </tr>
     <tr>
-        <td>config</td>
+        <td>eve_config</td>
         <td>
-            The context-param <code>config</code> points to an eve configuration file
+            The context-param <code>eve_config</code> points to an eve configuration file
             (for example eve.yaml). The configuration file is used by the AgentFactory
             and contains configuration for the state, scheduler, and services.
             The configuration of the AgentFactory is described on the page
@@ -106,9 +106,9 @@ The AgentListener supports the following context parameters:
         </td>
     </tr>
     <tr>
-        <td>authentication</td>
+        <td>eve_authentication</td>
         <td>
-            The parameter <code>authentication</code> is a boolean and is
+            The parameter <code>eve_authentication</code> is a boolean and is
             <code>true</code> by default. When authentication is enabled,
             Eve uses SSL authentication to communicate between agents.
         </td>

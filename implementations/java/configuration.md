@@ -23,11 +23,11 @@ file: **war/WEB-INF/eve.yaml**
     # environment specific settings
     environment:
       Development:
-        auth_google_servlet_url: http://localhost:8888/auth/google
+        # ... development properties
       Production:
-        auth_google_servlet_url: http://my_server.com/auth/google
+        # ... production properties
 
-    # environment independent transport services
+    # transport services (for communication)
     services:
     - class: XmppService
       host: my_xmpp_server.com
@@ -216,6 +216,41 @@ Description of the available properties:
             </ul>
         </td>
     </tr>
+</table>
+
+
+### Eve Planning configuration
+
+The library Eve Planning (eve-planning) comes with some extra configuration properties.
+
+
+file: **war/WEB-INF/eve.yaml**
+
+    # Eve configuration
+
+    # environment specific settings
+    environment:
+      Development:
+        auth_google_servlet_url: http://localhost:8888/auth/google
+      Production:
+        auth_google_servlet_url: http://my_server.com/auth/google
+
+    # ...
+
+    # Google API access
+    google:
+      client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
+      client_secret: xxxxxxxxxxxxxxxx
+
+
+Description:
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+    </tr>
+
     <tr>
         <td>auth_google_servlet_url</td>
         <td>The url where the authentication servlet GoogleAuth is hosted.
@@ -325,11 +360,11 @@ Example file: **war/WEB-INF/web.inf**
 
         <context-param>
             <description>eve configuration (yaml file)</description>
-            <param-name>config</param-name>
+            <param-name>eve_config</param-name>
             <param-value>eve.yaml</param-value>
         </context-param>
         <context-param>
-            <param-name>authentication</param-name>
+            <param-name>eve_authentication</param-name>
             <param-value>false</param-value>
         </context-param>
         <listener>
@@ -396,11 +431,11 @@ Example file: **war/WEB-INF/web.inf**
 
         <context-param>
             <description>eve configuration (yaml file)</description>
-            <param-name>config</param-name>
+            <param-name>eve_config</param-name>
             <param-value>eve.yaml</param-value>
         </context-param>
         <context-param>
-            <param-name>authentication</param-name>
+            <param-name>eve_authentication</param-name>
             <param-value>false</param-value>
         </context-param>
         <listener>
@@ -472,11 +507,11 @@ Example file: **war/WEB-INF/web.inf**
 
         <context-param>
             <description>eve configuration (yaml file)</description>
-            <param-name>config</param-name>
+            <param-name>eve_config</param-name>
             <param-value>eve.yaml</param-value>
         </context-param>
         <context-param>
-            <param-name>authentication</param-name>
+            <param-name>eve_authentication</param-name>
             <param-value>false</param-value>
         </context-param>
         <listener>
@@ -504,7 +539,7 @@ Example file: **war/WEB-INF/web.inf**
             <servlet-name>GoogleAuth</servlet-name>
             <servlet-class>com.almende.eve.servlet.google.GoogleAuth</servlet-class>
             <init-param>
-            <param-name>config</param-name>
+            <param-name>eve_config</param-name>
             <param-value>eve.yaml</param-value>
             </init-param>
         </servlet>

@@ -178,7 +178,7 @@ web servlet.
           <param-value>eve.yaml</param-value>
       </context-param>
       <context-param>
-          <param-name>authentication</param-name>
+          <param-name>eve_authentication</param-name>
           <param-value>false</param-value>
       </context-param>
       <listener>
@@ -206,7 +206,7 @@ web servlet.
   The context-param `config` points to an eve configuration file eve.yaml,
   which we will create next. This configuration file is used to load an agent
   factory which manages all agents.
-  The context-param `authentication` determines whether we want to use
+  The context-param `eve_authentication` determines whether we want to use
   a secured SSL connection to let agents communicate with each other.
   Furthermore, the servlet needs a parameter `servlet_url`. This url is needed
   in order to be able to built an agents full url.
