@@ -10,6 +10,7 @@ http://almende.github.com/eve/
 - Implemented an option `eve_authentication` to turn HTTP authentication on or off.
 - Renamed context parameters for the AgentListener from `config` to `eve_config` and
   `authentication` to `eve_authentication`. 
+- Removed the SingleAgentServlet.
 
 
 2013-05-02, version 1.1.0

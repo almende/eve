@@ -11,42 +11,16 @@
 
 	<context-param>
 		<description>eve configuration (yaml file)</description>
-		<param-name>config</param-name>
+		<param-name>eve_config</param-name>
 		<param-value>eve.yaml</param-value>
 	</context-param>
 	<context-param>
-		<param-name>authentication</param-name>
+		<param-name>eve_authentication</param-name>
 		<param-value>false</param-value>
 	</context-param>
 	<listener>
 		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
 	</listener>
-
-	<servlet>
-		<servlet-name>SingleAgentServlet</servlet-name>
-		<servlet-class>com.almende.eve.transport.http.SingleAgentServlet</servlet-class>
-		<init-param>
-			<description>servlet configuration (yaml file)</description>
-			<param-name>config</param-name>
-			<param-value>eve_singleagent.yaml</param-value>
-		</init-param>
-		<init-param>
-			<param-name>servlet_url</param-name>
-			<param-value>http://localhost:8080/testagent/</param-value>
-		</init-param>
-		<init-param>
-			<param-name>agentId</param-name>
-			<param-value>2</param-value>
-		</init-param>
-		<init-param>
-			<param-name>agentClass</param-name>
-			<param-value>com.almende.eve.agent.example.TestAgent</param-value>
-		</init-param>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>SingleAgentServlet</servlet-name>
-		<url-pattern>/testagent/*</url-pattern>
-	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>AgentServlet</servlet-name>
