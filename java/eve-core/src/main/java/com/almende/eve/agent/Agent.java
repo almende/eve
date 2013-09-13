@@ -86,11 +86,11 @@ public abstract class Agent implements AgentInterface {
 	public Agent() {
 	}
 	
-	public void constr(AgentHost factory, State state) {
+	public void constr(AgentHost agentHost, State state) {
 		if (this.state == null) {
-			this.agentHost = factory;
+			this.agentHost = agentHost;
 			this.state = state;
-			this.scheduler = factory.getScheduler(this);
+			this.scheduler = agentHost.getScheduler(this);
 			this.monitorFactory = new ResultMonitorFactory(this);
 			this.eventsFactory = new EventsFactory(this);
 		}
@@ -130,7 +130,7 @@ public abstract class Agent implements AgentInterface {
 			delete();
 		} else if ("setSchedulerFactory".equals(event.getEvent())) {
 			// init scheduler tasks
-			getScheduler();
+			agentHost.getScheduler(this);
 		} else if ("addTransportService".equals(event.getEvent())) {
 			TransportService service = (TransportService) event.getService();
 			service.reconnect(getId());
@@ -180,7 +180,7 @@ public abstract class Agent implements AgentInterface {
 		
 		// cancel all scheduled tasks.
 		if (scheduler == null) {
-			scheduler = getScheduler();
+			scheduler = agentHost.getScheduler(this);
 		}
 		if (scheduler != null) {
 			for (String taskId : scheduler.getTasks()) {

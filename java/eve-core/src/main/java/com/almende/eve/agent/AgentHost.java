@@ -833,8 +833,6 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public Scheduler getScheduler(Agent agent) {
 		if (schedulerFactory == null) {
-			LOG.warning("SchedulerFactory is null, while agent "
-					+ agent.getId() + " calls for getScheduler");
 			return null;
 		}
 		return schedulerFactory.getScheduler(agent);
