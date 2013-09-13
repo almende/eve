@@ -3,9 +3,9 @@ layout: default
 title: Getting Started
 ---
 
-# Getting Started with Eve, Jetty, and Maven
+{% assign version = '2.0.0' %}
 
-*Note: this tutorial is written for Eve 2.0, which is planned to be released Friday 13th of September.*
+# Getting Started with Eve, Jetty, and Maven
 
 Eve provides a Java library which can be integrated in new or existing Java projects. Eve can be used on different environments. Eve agents can for example run in a regular Java application, a Java web application, an Android application, on Google App Engine, etc.
 
@@ -112,7 +112,7 @@ Add the maven dependencies for Eve in pom.xml:
         <dependency>
             <groupId>com.almende.eve</groupId>
             <artifactId>eve-core</artifactId>
-            <version>2.0.0</version>
+            <version>{{version}}</version>
         </dependency>
     </dependencies>
     ...
