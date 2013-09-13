@@ -27,9 +27,9 @@ The Java libraries are spread over three different layers:
   and scheduling. The platform libraries offer an interface to the agents for 
   reading/writing data, and for scheduling tasks. 
   There are platform libraries for a regular java web application, for running
-  an application on Google App Engine. In the future, libraries for 
+  an application on Google App Engine or on Android. In the future, libraries for
   Windows Azure and Amazon will be added.
-  To deploy an application on a another platform, all is needed is to swap 
+  To deploy an application on a another platform, all is needed is to switch
   the used platform library.
 
 - **Application Layer**  
@@ -58,9 +58,12 @@ They can be downloaded at the
 
 - **eve-gae.jar**
   Library needed for hosting Eve agents on Google App Engine.
-  This libary contains platform dependent functionality:
+  This library contains platform dependent functionality:
    a persistent state for the agents (DatastoreStateFactory),
   and a scheduler (AppEngineSchedulerFactory).
+
+- **eve-android.jar**
+  Library making Eve available on Android.
 
 - **eve-planning.jar**  
   Contains agents acting on the domain of calendaring and planning.

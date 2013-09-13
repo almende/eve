@@ -207,6 +207,11 @@ Description of the available properties:
 
             <ul>
                 <li><code>RunnableSchedulerFactory</code>.
+                    Stores task information in a central place.
+                    Located in eve-core.jar.
+                    Not applicable when deployed on Google App Engine.</li>
+                <li><code>ClockSchedulerFactory</code>.
+                    Stores an agent's tasks in a decentral way, in the agent's state.
                     Located in eve-core.jar.
                     Not applicable when deployed on Google App Engine.</li>
                 <li><code>AppEngineSchedulerFactory</code>.
