@@ -120,7 +120,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			}
 			if (result == null) {
 				result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
-						JOM.getInstance().readTree(monitor.getParams()), returnType);
+						JOM.getInstance().readTree(monitor.getParams()),
+						returnType);
 				if (monitor.hasCache()) {
 					monitor.getCache().store(result);
 				}
@@ -154,7 +155,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
 			Object result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
-					JOM.getInstance().readTree(monitor.getParams()), TypeFactory.unknownType());
+					JOM.getInstance().readTree(monitor.getParams()),
+					TypeFactory.unknownType());
 			if (monitor.getCallbackMethod() != null) {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",
@@ -171,40 +173,65 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	private JsonNode	lastRes	= null;
 	
 	@Access(AccessType.SELF)
-	public final void doPush(@Name("pushParams") ObjectNode pushParams,
+	public final void doPush(@Name("pushKey") String pushKey,
 			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
 			throws JSONRPCException, IOException {
-		String method = pushParams.get("method").textValue();
-		ObjectNode params = (ObjectNode) JOM.getInstance().readTree(pushParams.get("params").textValue());
-		JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
-				params), myAgent);
 		
-		JsonNode result = res.getResult();
-		if (pushParams.has("onChange")
-				&& pushParams.get("onChange").asBoolean()) {
-			if (lastRes != null && lastRes.equals(result)) {
-				return;
+		if (myAgent.getState().containsKey(pushKey)) {
+			ObjectNode pushParams = (ObjectNode) JOM.getInstance()
+					.readTree(myAgent.getState().get(pushKey, String.class))
+					.get("config");
+			if (!(pushParams.has("method") && pushParams.has("params"))) {
+				throw new JSONRPCException("Missing push configuration fields:"
+						+ pushParams);
 			}
-			lastRes = result;
+			String method = pushParams.get("method").textValue();
+			ObjectNode params = (ObjectNode) JOM.getInstance().readTree(
+					pushParams.get("params").textValue());
+			JSONResponse res = JSONRPC.invoke(myAgent, new JSONRequest(method,
+					params), myAgent);
+			
+			JsonNode result = res.getResult();
+			if (pushParams.has("onChange")
+					&& pushParams.get("onChange").asBoolean()) {
+				if (lastRes != null && lastRes.equals(result)) {
+					return;
+				}
+				lastRes = result;
+			}
+			
+			ObjectNode parms = JOM.createObjectNode();
+			parms.put("result", result);
+			parms.put("pushId", pushParams.get("pushId").textValue());
+			
+			parms.put("callbackParams", triggerParams == null ? pushParams
+					: pushParams.putAll(triggerParams));
+			
+			String callbackMethod = "monitor.callbackPush";
+			if (pushParams.has("callback")) {
+				callbackMethod = pushParams.get("callback").textValue();
+			}
+			myAgent.sendAsync(URI.create(pushParams.get("url").textValue()),
+					callbackMethod, parms, null, Void.class);
+			// TODO: If callback reports "old", unregisterPush();
 		}
-		
-		ObjectNode parms = JOM.createObjectNode();
-		parms.put("result", result);
-		parms.put("monitorId", pushParams.get("monitorId").textValue());
-		
-		parms.put("callbackParams", triggerParams == null ? pushParams
-				: pushParams.putAll(triggerParams));
-		
-		myAgent.sendAsync(URI.create(pushParams.get("url").textValue()),
-				"monitor.callbackPush", parms, null, Void.class);
-		// TODO: If callback reports "old", unregisterPush();
 	}
 	
 	@Access(AccessType.PUBLIC)
 	public final void callbackPush(@Name("result") Object result,
-			@Name("monitorId") String monitorId,
-			@Name("callbackParams") ObjectNode callbackParams) {
+			@Name("pushId") String pushId,
+			@Name("callbackParams") ObjectNode callbackParams)
+			throws JSONRPCException {
+		
+		String[] ids = pushId.split("_");
+		
+		if (ids.length != 2) {
+			throw new JSONRPCException("PushId is invalid!");
+		}
+		String monitorId = ids[0];
+		
 		try {
+			
 			ResultMonitor monitor = getMonitorById(monitorId);
 			if (monitor != null) {
 				if (monitor.getCallbackMethod() != null) {
@@ -233,80 +260,87 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	@Access(AccessType.PUBLIC)
 	public final void registerPush(@Name("pushId") String id,
-			@Name("pushParams") ObjectNode pushParams, @Sender String senderUrl) {
+			@Name("config") ObjectNode pushParams, @Sender String senderUrl) {
+		String pushKey = "_push_" + senderUrl + "_" + id;
+		pushParams.put("url", senderUrl);
+		pushParams.put("pushId", id);
 		
-		if (myAgent.getState().containsKey("_push_" + id)) {
+		if (myAgent.getState().containsKey(pushKey)) {
 			LOG.warning("reregistration of existing push, canceling old version.");
 			try {
-				unregisterPush(id);
+				unregisterPush(id, senderUrl);
 			} catch (Exception e) {
 				LOG.warning("Failed to unregister push:" + e);
 			}
 		}
 		ObjectNode result = JOM.createObjectNode();
+		result.put("config", pushParams);
 		
-		pushParams.put("url", senderUrl);
-		ObjectNode wrapper = JOM.createObjectNode();
-		wrapper.put("pushParams", pushParams);
+		ObjectNode params = JOM.createObjectNode();
+		params.put("pushKey", pushKey);
 		
-		LOG.info("Register Push:" + senderUrl + " id:" + id);
+		LOG.info("Register Push:" + pushKey);
 		if (pushParams.has("interval")) {
 			int interval = pushParams.get("interval").intValue();
-			JSONRequest request = new JSONRequest("monitor.doPush", wrapper);
+			JSONRequest request = new JSONRequest("monitor.doPush", params);
 			result.put(
 					"taskId",
 					myAgent.getScheduler().createTask(request, interval, true,
 							false));
 		}
-		if (pushParams.has("onEvent") && pushParams.get("onEvent").asBoolean()) {
-			// default
-			String event = "change";
-			if (pushParams.has("event")) {
-				// Event param overrules
-				event = pushParams.get("event").textValue();
-			} else {
-				AnnotatedClass ac = null;
-				try {
-					CallTuple res = NamespaceUtil.get(myAgent,
-							pushParams.get("method").textValue());
-					
-					ac = AnnotationUtil.get(res.getDestination().getClass());
-					for (AnnotatedMethod method : ac.getMethods(res
-							.getMethodName())) {
-						EventTriggered annotation = method
-								.getAnnotation(EventTriggered.class);
-						if (annotation != null) {
-							// If no Event param, get it from annotation, else
-							// use default.
-							event = annotation.value();
-						}
+		String event = "";
+		if (pushParams.has("event")) {
+			// Event param overrules
+			event = pushParams.get("event").textValue();
+		}
+		if (pushParams.has("onChange")
+				&& pushParams.get("onChange").booleanValue()) {
+			AnnotatedClass ac = null;
+			event = "change";
+			try {
+				CallTuple res = NamespaceUtil.get(myAgent,
+						pushParams.get("method").textValue());
+				
+				ac = AnnotationUtil.get(res.getDestination().getClass());
+				for (AnnotatedMethod method : ac
+						.getMethods(res.getMethodName())) {
+					EventTriggered annotation = method
+							.getAnnotation(EventTriggered.class);
+					if (annotation != null) {
+						// If no Event param, get it from annotation, else
+						// use default.
+						event = annotation.value();
 					}
-				} catch (Exception e) {
-					LOG.log(Level.WARNING, "", e);
 				}
+			} catch (Exception e) {
+				LOG.log(Level.WARNING, "", e);
 			}
-			
+		}
+		if (!event.isEmpty()) {
 			try {
 				result.put(
 						"subscriptionId",
 						myAgent.getEventsFactory().subscribe(
 								myAgent.getFirstUrl(), event, "monitor.doPush",
-								wrapper));
+								params));
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "Failed to register push Event", e);
 			}
 		}
-		myAgent.getState().put("_push_" + id, result.toString());
+		
+		myAgent.getState().put(pushKey, result.toString());
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public final void unregisterPush(@Name("pushId") String id)
-			throws IOException {
+	public final void unregisterPush(@Name("pushId") String id,
+			@Sender String senderUrl) throws IOException {
 		ObjectNode config = null;
 		if (myAgent.getState() != null
-				&& myAgent.getState().containsKey("_push_" + id)) {
+				&& myAgent.getState().containsKey(
+						"_push_" + senderUrl + "_" + id)) {
 			config = (ObjectNode) JOM.getInstance().readTree(
-					myAgent.getState().get("_push_" + id, String.class));
+					myAgent.getState().get("_push_" + senderUrl + "_" + id,
+							String.class));
 		}
 		if (config == null) {
 			return;

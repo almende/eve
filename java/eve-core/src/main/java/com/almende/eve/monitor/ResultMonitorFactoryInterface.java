@@ -22,10 +22,11 @@ public interface ResultMonitorFactoryInterface {
 	 * 
 	 * @param monitorId
 	 * @throws JSONRPCException
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws Exception
 	 */
-	void doPoll(@Name("monitorId") String monitorId) throws JSONRPCException, IOException;
+	void doPoll(@Name("monitorId") String monitorId) throws JSONRPCException,
+			IOException;
 	
 	/**
 	 * Callback method for monitoring framework, doing the work for pushing data
@@ -33,11 +34,11 @@ public interface ResultMonitorFactoryInterface {
 	 * 
 	 * @param pushParams
 	 * @throws JSONRPCException
-	 * @throws IOException 
-	 * @throws  
+	 * @throws IOException
+	 * @throws
 	 * @throws Exception
 	 */
-	void doPush(@Name("pushParams") ObjectNode pushParams,
+	void doPush(@Name("pushKey") String pushKey,
 			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
 			throws JSONRPCException, IOException;
 	
@@ -47,10 +48,11 @@ public interface ResultMonitorFactoryInterface {
 	 * 
 	 * @param result
 	 * @param monitorId
+	 * @throws JSONRPCException 
 	 */
 	void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId,
-			@Name("callbackParams") ObjectNode callbackParams);
+			@Name("callbackParams") ObjectNode callbackParams) throws JSONRPCException;
 	
 	/**
 	 * Register a Push request as part of the monitoring framework. The sender
@@ -61,22 +63,24 @@ public interface ResultMonitorFactoryInterface {
 	 * @param senderUrl
 	 * @return
 	 */
-	void registerPush(@Name("pushId") String id, @Name("params") ObjectNode pushParams,
-			@Sender String senderUrl);
+	void registerPush(@Name("pushId") String id,
+			@Name("params") ObjectNode pushParams, @Sender String senderUrl);
 	
 	/**
 	 * Unregister a Push request, part of the monitoring framework.
 	 * 
 	 * @param id
-	 * @throws IOException 
-	 * @throws JsonProcessingException 
+	 * @throws IOException
+	 * @throws JsonProcessingException
 	 */
-	void unregisterPush(@Name("pushId") String id) throws IOException;
+	void unregisterPush(@Name("pushId") String id, @Sender String senderUrl)
+			throws IOException;
 	
 	/**
 	 * Sets up a monitored RPC call subscription. Conveniency method, which can
 	 * also be expressed as:
-	 * new ResultMonitor(monitorId, getId(), url,method,params).add(ResultMonitorConfigType
+	 * new ResultMonitor(monitorId, getId(),
+	 * url,method,params).add(ResultMonitorConfigType
 	 * config).add(ResultMonitorConfigType config).store();
 	 * 
 	 * @param monitorId
@@ -135,7 +139,6 @@ public interface ResultMonitorFactoryInterface {
 	<T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException;
 	
-	
 	@Access(AccessType.UNAVAILABLE)
 	String store(ResultMonitor monitor);
 	
@@ -144,7 +147,7 @@ public interface ResultMonitorFactoryInterface {
 	
 	@Access(AccessType.UNAVAILABLE)
 	void cancelAll();
-
+	
 	@Access(AccessType.UNAVAILABLE)
 	ResultMonitor getMonitorById(String monitorId);
 	

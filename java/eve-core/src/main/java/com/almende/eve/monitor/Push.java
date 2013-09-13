@@ -53,24 +53,24 @@ public class Push implements ResultMonitorConfigType {
 	public void init(ResultMonitor monitor, Agent agent) throws IOException, JSONRPCException
 			 {
 		ObjectNode wrapper = JOM.createObjectNode();
-		ObjectNode pushParams = JOM.createObjectNode();
+		ObjectNode config = JOM.createObjectNode();
 		
-		pushParams.put("monitorId", monitor.getId());
+		config.put("monitorId", monitor.getId());
 		if (interval > 0) {
-			pushParams.put("interval", interval);
+			config.put("interval", interval);
 		}
-		pushParams.put("onEvent", onEvent);
+		config.put("onEvent", onEvent);
 		if (!event.equals("")) {
-			pushParams.put("event", event);
+			config.put("event", event);
 		}
-		pushParams.put("onChange", onChange);
-		pushParams.put("method", monitor.getMethod());
-		pushParams.put("params", monitor.getParams());
+		config.put("onChange", onChange);
+		config.put("method", monitor.getMethod());
+		config.put("params", monitor.getParams());
 		
-		wrapper.put("pushParams", pushParams);
+		wrapper.put("config", config);
 
 		LOG.info("Registering push:"+monitor.getUrl());
-		wrapper.put("pushId", pushId);
+		wrapper.put("pushId", monitor.getId() + "_" + pushId);
 
 		monitor.getPushes().add(this);
 		agent.sendAsync(monitor.getUrl(), "monitor.registerPush", wrapper,null,Void.class);
