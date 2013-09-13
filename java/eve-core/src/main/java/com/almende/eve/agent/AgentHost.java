@@ -822,7 +822,7 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
-		if (schedulerFactory != null) {
+		if (this.schedulerFactory != null) {
 			LOG.warning("Replacing earlier schedulerFactory.");
 		}
 		this.schedulerFactory = schedulerFactory;

@@ -30,7 +30,7 @@ scheduler:
 bootstrap:
   agents:
     calc: com.almende.eve.agent.example.CalcAgent
-    test: com.almende.test.agents.Test2Agent
+    echo: com.almende.eve.agent.example.EchoAgent
     aspect: com.almende.eve.agent.example.ExampleAspect
 
 
