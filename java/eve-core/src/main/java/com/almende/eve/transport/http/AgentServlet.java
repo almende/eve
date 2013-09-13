@@ -129,8 +129,21 @@ public class AgentServlet extends HttpServlet {
 			if (hs.equals(Handshake.INVALID)) {
 				return false;
 			}
-			Boolean doAuthentication = Boolean.parseBoolean(AgentListener
-					.getParam("authentication", "true"));
+			
+			String doAuthenticationStr = AgentListener.getParam("eve_authentication");
+			if (doAuthenticationStr == null) {
+				// TODO: authentication param is deprecated since v2.0. Cleanup some day
+				doAuthenticationStr = AgentListener.getParam("authentication");
+				if (doAuthenticationStr == null) {
+					doAuthenticationStr = "true";
+					LOG.warning("context-param \"eve_uthentication\" not found. Using default value " + doAuthenticationStr);
+				}
+				else {
+					LOG.warning("context-param \"authentication\" is deprecated. Use \"eve_authentication\" instead.");
+				}
+			}
+			Boolean doAuthentication = Boolean.parseBoolean(doAuthenticationStr);
+
 			if (hs.equals(Handshake.NAK) && doAuthentication) {
 				if (!req.isSecure()) {
 					res.sendError(HttpServletResponse.SC_BAD_REQUEST,
