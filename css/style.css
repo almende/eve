@@ -47,6 +47,10 @@ h2 {
     color: #F0209B;
 }
 
+a > img{
+    border: 0;
+}
+
 a {
     color: #F0209B;
     text-decoration: none;
