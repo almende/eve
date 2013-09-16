@@ -279,9 +279,9 @@ Create a source folder `src/main/java` in the project. In there, create a new cl
 
 By default, an agents methods cannot be accessed by other agents. The availability of methods can be specified using the `@Access` annotation, as done in the example above where both methods `echo` and `add` are declared public. Eve agents communicate with each other via JSON-RPC 2.0, which uses named parameters. As Java doesn't support named parameters, the parameter names need to be specified using the `@Name` annotation. Furthermore, parameters can be declared optional using the `@Required` annotation.
 
-Create an instance of your new agent. Send an HTTP PUT request to the servlet. We will create an agent with id `myfirstagent1` and class `com.mycompany.myproject.MyFirstAgent`.
+Create an instance of your new agent. Send an HTTP PUT request to the servlet. We will create an agent with id `myfirstagent1` and class `com.mycompany.myeveproject.MyFirstAgent`.
 
-    http://localhost:8080/myeveproject/agents/myfirstagent1/?type=com.mycompany.myproject.MyFirstAgent
+    http://localhost:8080/myeveproject/agents/myfirstagent1/?type=com.mycompany.myeveproject.MyFirstAgent
 
 If the agent is successfully created, its urls will be returned:
 
