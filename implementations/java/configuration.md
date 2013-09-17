@@ -49,11 +49,6 @@ file: **war/WEB-INF/eve.yaml**
         calc1: com.almende.eve.agent.example.CalcAgent
         echo1: com.almende.eve.agent.example.EchoAgent
 
-    # Google API access
-    google:
-      client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
-      client_secret: xxxxxxxxxxxxxxxx
-
 
 Description of the available properties:
 
