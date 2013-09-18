@@ -40,16 +40,19 @@ public final class ObjectCache {
 	 * Get value instance from cache, if exiting. Returns null if no va;ue is
 	 * stored in cache.
 	 * 
-	 * @param agentId
+	 * @param key
 	 * @return
 	 */
-	public static <T> T get(String agentId, Class<T> type) {
-		MetaInfo<?> result = cache.get(agentId);
-		if (result != null && result.getClass().isAssignableFrom(type)) {
-			result.use();
-			return type.cast(result.getValue());
+	public static <T> T get(String key, Class<T> type) {
+		synchronized (cache) {
+			MetaInfo<?> result = cache.get(key);
+			if (result != null
+					&& type.isAssignableFrom(result.getValue().getClass())) {
+				result.use();
+				return type.cast(result.getValue());
+			}
+			return null;
 		}
-		return null;
 	}
 	
 	/**
@@ -121,8 +124,8 @@ class MetaInfo<T> implements Comparable<MetaInfo<?>> {
 	}
 	
 	public double score() {
-		if (getAge() == 0){
-			return count/0.001;
+		if (getAge() == 0) {
+			return count / 0.001;
 		}
 		return count / getAge();
 	}
