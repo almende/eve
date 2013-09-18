@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.eaio.uuid.UUID;
+import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
@@ -26,7 +26,6 @@ public class Push implements ResultMonitorConfigType {
 	}
 	
 	public Push() {
-		this.pushId = new UUID().toString();
 	}
 	
 	public Push onInterval(int interval) {

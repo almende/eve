@@ -8,7 +8,7 @@ import org.joda.time.DateTime;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
-import com.eaio.uuid.UUID;
+import com.almende.util.uuid.UUID;
 
 /**
  * Simple token system: Each outbound call gets a token, which is newly
