@@ -4,12 +4,21 @@ http://almende.github.com/eve/
 
 2013-09-13, version 2.0.0
 
-- Implemented Result Monitor
-- Implemented JSON State
-- Implemented more strict getters and setters for state.
-- Implemented an option `eve_authentication` to turn HTTP authentication on or off.
-- Renamed context parameters for the AgentListener from `config` to `eve_config` and
-  `authentication` to `eve_authentication`. 
+- The API has been categorised using namespaces (e.g. scheduler.getTasks(), 
+  event.trigger())
+- Existing classes can now be added to an agent as "Aspect", it is no longer 
+  necessary to extend Agent.
+- Support on Android has been enhanced significantly, specifically through the 
+  introduction of Json state storage. State operations on Android are more than 
+  50x faster now.
+- Deserialization of JSON and State value is now more consistent with regard 
+  to Type casting.
+- Error messages are now more informative and are forwarded through JSON-RPC 
+  for much easier development.
+- A new inter-agent synchronization pattern, called ResultMonitor has been 
+  introduced, allowing robust agent data exchange.
+- Implemented an option `eve_authentication` to turn SSL authentication on or off.
+- Renamed context parameters for the AgentListener from `config` to `eve_config`.
 - Removed the SingleAgentServlet.
 
 
