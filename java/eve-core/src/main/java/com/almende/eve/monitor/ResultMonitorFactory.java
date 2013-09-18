@@ -161,7 +161,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 				ObjectNode params = JOM.createObjectNode();
 				params.put("result",
 						JOM.getInstance().writeValueAsString(result));
-				myAgent.send(URI.create("local://" + myAgent.getId()),
+				myAgent.send(URI.create("local:" + myAgent.getId()),
 						monitor.getCallbackMethod(), params);
 			}
 			if (monitor.hasCache()) {
@@ -242,7 +242,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 					}
 					params.put("result",
 							JOM.getInstance().writeValueAsString(result));
-					myAgent.send(URI.create("local://" + myAgent.getId()),
+					myAgent.send(URI.create("local:" + myAgent.getId()),
 							monitor.getCallbackMethod(), params);
 				}
 				if (monitor.hasCache()) {

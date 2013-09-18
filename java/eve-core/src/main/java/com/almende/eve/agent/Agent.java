@@ -255,7 +255,7 @@ public abstract class Agent implements AgentInterface {
 		if (urls.size() > 0) {
 			return URI.create(urls.get(0));
 		}
-		return URI.create("local://" + getId());
+		return URI.create("local:" + getId());
 	}
 	
 	@Override
@@ -481,7 +481,7 @@ public abstract class Agent implements AgentInterface {
 					urls.add(url);
 				}
 			}
-			urls.add("local://" + agentId);
+			urls.add("local:" + agentId);
 		} else {
 			LOG.severe("AgentHost not initialized?!?");
 		}

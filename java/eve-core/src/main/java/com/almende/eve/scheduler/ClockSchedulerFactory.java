@@ -30,25 +30,24 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	
 	@Override
 	public Scheduler getScheduler(Agent agent) {
+		ClockScheduler scheduler = null;
 		synchronized (schedulers) {
-			ClockScheduler scheduler;
 			if (schedulers.containsKey(agent.getId())) {
 				scheduler = (ClockScheduler) schedulers.get(agent.getId());
-				if (scheduler != null){
-					scheduler.run();
-					return scheduler;
+			} else {
+				try {
+					scheduler = new ClockScheduler(agent, agentHost);
+					schedulers.put(agent.getId(), scheduler);
+				} catch (Exception e) {
+					LOG.log(Level.SEVERE, "Couldn't init new scheduler", e);
 				}
 			}
-			try {
-				scheduler = new ClockScheduler(agent, agentHost);
-				scheduler.run();
-				schedulers.put(agent.getId(), scheduler);
-				return scheduler;
-			} catch (Exception e) {
-				LOG.log(Level.SEVERE, "Couldn't init new scheduler", e);
-			}
-			return null;
 		}
+		if (scheduler != null) {
+			scheduler.run();
+			return scheduler;
+		}
+		return null;
 	}
 	
 	@Override
@@ -58,4 +57,3 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 		}
 	}
 }
-

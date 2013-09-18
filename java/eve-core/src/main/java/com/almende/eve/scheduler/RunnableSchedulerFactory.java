@@ -226,7 +226,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						}
 						
 						RequestParams params = new RequestParams();
-						String senderUrl = "local://" + agentId;
+						String senderUrl = "local:" + agentId;
 						params.put(Sender.class, senderUrl);
 						// TODO: provide itself
 						

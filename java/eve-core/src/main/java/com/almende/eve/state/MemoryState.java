@@ -7,8 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.almende.util.ClassUtil;
-
 /**
  * @class MemoryState
  * 
@@ -61,7 +59,8 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 	@Override
 	public Serializable get(String key) {
 		try {
-			return ClassUtil.cloneThroughSerialize(properties.get(key));
+			return properties.get(key);
+			//return ClassUtil.cloneThroughSerialize(properties.get(key));
 		} catch (Exception e) {
 			LOG.log(Level.WARNING,"Couldn't clone object: " + key
 					+ ", returning pointer to original object.",e);
@@ -84,8 +83,8 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		boolean result = false;
 		if (!(oldVal == null && properties.containsKey(key) && properties
 				.get(key) != null)
-				|| (properties.get(key) != null && properties.get(key).equals(
-						oldVal))) {
+				|| (properties.get(key) != null && properties.get(key)
+						.equals(oldVal))) {
 			properties.put(key, (Serializable) newVal);
 			result = true;
 		}

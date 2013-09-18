@@ -42,7 +42,7 @@ public class TestProxy extends TestCase {
 		assertEquals("Ludo", result.get("result").get(0).getName());
 		
 		//Generate asyncproxy from TestInterface
-		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,URI.create("local://TestAgent"), TestInterface.class);
+		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,URI.create("local:TestAgent"), TestInterface.class);
 		Future<?> res = aProxy.call("helloWorld","hi");
 		assertEquals("Hello world, you said: hi",res.get());
 		Future<?> voidRes = aProxy.call("testVoid");

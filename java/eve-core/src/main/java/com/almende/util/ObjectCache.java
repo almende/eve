@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.almende.eve.config.Config;
 
 public final class ObjectCache {
-	private static int						maxSize	= 100;
+	private static int						maxSize	= 1000;
 	private static Map<String, MetaInfo<?>>	cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
 															maxSize);
 	private static List<MetaInfo<?>>		scores	= new ArrayList<MetaInfo<?>>(
@@ -79,8 +79,7 @@ public final class ObjectCache {
 				MetaInfo<?> entry = scores.get(i);
 				toEvict.add(entry);
 			}
-			scores = (ArrayList<MetaInfo<?>>) scores.subList(amount,
-					scores.size());
+			scores = scores.subList(amount, scores.size());
 			for (MetaInfo<?> entry : toEvict) {
 				cache.remove(entry.getKey());
 			}
@@ -122,6 +121,9 @@ class MetaInfo<T> implements Comparable<MetaInfo<?>> {
 	}
 	
 	public double score() {
+		if (getAge() == 0){
+			return count/0.001;
+		}
 		return count / getAge();
 	}
 	

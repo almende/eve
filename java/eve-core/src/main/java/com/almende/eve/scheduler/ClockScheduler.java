@@ -23,12 +23,14 @@ import com.almende.eve.state.TypedKey;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
-	private static final Logger		LOG			= Logger.getLogger("ClockScheduler");
-	private final Agent				myAgent;
-	private final Clock				myClock;
-	private final ClockScheduler	_this		= this;
-	private static final TypedKey<TreeSet<TaskEntry>> TYPEDKEY = new TypedKey<TreeSet<TaskEntry>>("_taskList"){};
-	private static final int 		MAXCOUNT    = 1000;
+	private static final Logger							LOG			= Logger.getLogger("ClockScheduler");
+	private final Agent									myAgent;
+	private final Clock									myClock;
+	private final ClockScheduler						_this		= this;
+	private static final TypedKey<TreeSet<TaskEntry>>	TYPEDKEY	= new TypedKey<TreeSet<TaskEntry>>(
+																			"_taskList") {
+																	};
+	private static final int							MAXCOUNT	= 100;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
 		this.myAgent = myAgent;
@@ -36,7 +38,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public TaskEntry getFirstTask() {
-		TreeSet<TaskEntry> timeline =  myAgent.getState().get(TYPEDKEY);
+		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
 			int count = 0;
@@ -45,9 +47,15 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 				task = timeline.higher(task);
 			}
 			if (count >= MAXCOUNT) {
-				LOG.warning("Oops: more than 100 tasks active at the same time?!?");
+				LOG.warning("Oops: more than 100 tasks active at the same time:"
+						+ myAgent.getId()
+						+ " : "
+						+ timeline.size()
+						+ "/"
+						+ count);
+			} else {
+				return task;
 			}
-			return task;
 		}
 		return null;
 	}
@@ -56,9 +64,11 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		putTask(task, false);
 	}
 	
-	public void putTask(TaskEntry task, boolean onlyIfExists) {
-
-		TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
+	public  void putTask(TaskEntry task, boolean onlyIfExists) {
+		if (task == null) {
+			return;
+		}
+		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
 		TreeSet<TaskEntry> timeline = null;
 		boolean found = false;
 		if (oldTimeline != null) {
@@ -79,8 +89,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			}
 			timeline.add(task);
 		}
-		if (!myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(),
-				timeline, oldTimeline)) {
+		if (!myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(), timeline,
+				oldTimeline)) {
 			LOG.severe("need to retry putTask...");
 			// recursive retry....
 			putTask(task, onlyIfExists);
@@ -90,7 +100,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public void cancelTask(String id) {
-		TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
+		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
 		TreeSet<TaskEntry> timeline = null;
 		if (oldTimeline != null) {
 			timeline = new TreeSet<TaskEntry>();
@@ -101,9 +111,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 				}
 			}
 		}
+		
 		if (timeline != null
-				&& !myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(), timeline,
-						oldTimeline)) {
+				&& !myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(),
+						timeline, oldTimeline)) {
 			LOG.severe("need to retry cancelTask...");
 			// recursive retry....
 			cancelTask(id);
@@ -112,6 +123,9 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public void runTask(final TaskEntry task) {
+		if (task == null || task.isActive()) {
+			return;
+		}
 		task.setActive(true);
 		_this.putTask(task, true);
 		myClock.runInPool(new Runnable() {
@@ -130,10 +144,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 						}
 					}
 					RequestParams params = new RequestParams();
-					String senderUrl = "local://" + myAgent.getId();
+					String senderUrl = "local:" + myAgent.getId();
 					params.put(Sender.class, senderUrl);
 					
-					//Next call is potentially long duration:
+					// Next call is potentially long duration:
 					JSONResponse resp = myAgent.getAgentHost().receive(
 							myAgent.getId(), task.getRequest(), params);
 					
@@ -147,7 +161,9 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 						throw resp.getError();
 					}
 				} catch (Exception e) {
-					LOG.log(Level.SEVERE, myAgent.getId()+": Failed to run scheduled task:"+task.toString(), e);
+					LOG.log(Level.SEVERE,
+							myAgent.getId() + ": Failed to run scheduled task:"
+									+ task.toString(), e);
 				}
 			}
 			
@@ -185,7 +201,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 		return result;
 	}
-
+	
 	@Override
 	public Set<String> getDetailedTasks() {
 		Set<String> result = new HashSet<String>();
@@ -198,6 +214,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 		return result;
 	}
+	
 	@Override
 	public void run() {
 		TaskEntry task = getFirstTask();
@@ -225,18 +242,19 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	private static final long	serialVersionUID	= -2402975617148459433L;
 	// TODO, make JSONRequest.equals() state something about real equal tasks,
 	// use it as deduplication!
-	private String				taskId;
+	private String				taskId				= null;
 	private JSONRequest			request;
 	private DateTime			due;
 	private long				interval			= 0;
 	private boolean				sequential			= true;
 	private boolean				active				= false;
 	
-	public TaskEntry(){};
+	public TaskEntry() {
+	};
 	
 	public TaskEntry(DateTime due, JSONRequest request, long interval,
 			boolean sequential) {
-		taskId = UUID.randomUUID().toString();
+		this.taskId = UUID.randomUUID().toString();
 		this.request = request;
 		this.due = due;
 		this.interval = interval;
@@ -300,7 +318,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		this.request = request;
 	}
 	
-	public void setDueAsString(String due){
+	public void setDueAsString(String due) {
 		this.due = new DateTime(due);
 	}
 	

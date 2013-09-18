@@ -119,7 +119,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	void signalAgent(AgentSignal<?> event) throws JSONRPCException, IOException;
 	
 	/**
-	 * Get the first url of the agents urls. Returns local://<agentId> if the
+	 * Get the first url of the agents urls. Returns local:<agentId> if the
 	 * agent does not
 	 * have any urls.
 	 * 

@@ -62,6 +62,8 @@ public final class AgentHost implements AgentHostInterface {
 	static {
 		STATE_FACTORIES.put("FileStateFactory",
 				"com.almende.eve.state.FileStateFactory");
+		STATE_FACTORIES.put("JsonFileStateFactory",
+				"com.almende.eve.state.JsonFileStateFactory");
 		STATE_FACTORIES.put("MemoryStateFactory",
 				"com.almende.eve.state.MemoryStateFactory");
 		STATE_FACTORIES.put("DatastoreStateFactory",
@@ -477,7 +479,7 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public String getSenderUrl(String agentId, String receiverUrl) {
 		if (receiverUrl.startsWith("local:")) {
-			return "local://" + agentId;
+			return "local:" + agentId;
 		}
 		for (TransportService service : transportServices.values()) {
 			List<String> protocols = service.getProtocols();
