@@ -1,0 +1,6 @@
+target
+.settings
+.project
+.classpath
+/pom.xml.asc
+/pom.xml.versionsBackup
