@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
@@ -19,6 +18,8 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.TypedKey;
+import com.eaio.uuid.UUID;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -190,10 +191,10 @@ public class EventsFactory implements EventsInterface {
 			throw new IllegalArgumentException("Cannot trigger * event");
 		}
 		
-		// send a trigger to the agent factory
-		myAgent.getAgentHost().getEventLogger()
-				.log(myAgent.getId(), event, params);
-		
+//		// send a trigger to the agent factory
+//		myAgent.getAgentHost().getEventLogger()
+//				.log(myAgent.getId(), event, params);
+//		
 		// retrieve subscriptions from the event
 		List<Callback> valueEvent = getSubscriptions(event);
 		subscriptions.addAll(valueEvent);
@@ -270,7 +271,7 @@ public class EventsFactory implements EventsInterface {
 			return subscription.getId();
 		}
 		// create new callback
-		String subscriptionId = UUID.randomUUID().toString();
+		String subscriptionId = new UUID().toString();
 		Callback callback = new Callback(subscriptionId, callbackUrl,
 				callbackMethod, params);
 		

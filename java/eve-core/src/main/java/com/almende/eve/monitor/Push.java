@@ -1,12 +1,12 @@
 package com.almende.eve.monitor;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Push implements ResultMonitorConfigType {
@@ -20,13 +20,13 @@ public class Push implements ResultMonitorConfigType {
 	private String	event		= "";
 	
 	public Push(int interval, boolean onEvent) {
-		this.pushId = UUID.randomUUID().toString();
+		this.pushId = new UUID().toString();
 		this.interval = interval;
 		this.onEvent = onEvent;
 	}
 	
 	public Push() {
-		this.pushId = UUID.randomUUID().toString();
+		this.pushId = new UUID().toString();
 	}
 	
 	public Push onInterval(int interval) {

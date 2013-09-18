@@ -1,6 +1,5 @@
 package com.almende.eve.transport.http;
 
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,6 +8,7 @@ import org.joda.time.DateTime;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
+import com.eaio.uuid.UUID;
 
 /**
  * Simple token system: Each outbound call gets a token, which is newly
@@ -56,7 +56,7 @@ public final class TokenStore {
 					|| tokens.get(last.toString(), String.class) == null
 					|| last.plus(3600000).isBeforeNow()) {
 				DateTime now = DateTime.now();
-				String token = UUID.randomUUID().toString();
+				String token = new UUID().toString();
 				result = ME.new TokenRet(token, now);
 				tokens.put(now.toString(), token);
 				last = now;

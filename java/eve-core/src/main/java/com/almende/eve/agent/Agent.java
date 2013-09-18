@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.Namespace;
@@ -60,6 +59,7 @@ import com.almende.eve.state.State;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.TypeUtil;
+import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -90,7 +90,6 @@ public abstract class Agent implements AgentInterface {
 		if (this.state == null) {
 			this.agentHost = agentHost;
 			this.state = state;
-			this.scheduler = agentHost.getScheduler(this);
 			this.monitorFactory = new ResultMonitorFactory(this);
 			this.eventsFactory = new EventsFactory(this);
 		}
@@ -130,7 +129,7 @@ public abstract class Agent implements AgentInterface {
 			delete();
 		} else if ("setSchedulerFactory".equals(event.getEvent())) {
 			// init scheduler tasks
-			agentHost.getScheduler(this);
+			this.scheduler=agentHost.getScheduler(this);
 		} else if ("addTransportService".equals(event.getEvent())) {
 			TransportService service = (TransportService) event.getService();
 			service.reconnect(getId());
@@ -180,7 +179,7 @@ public abstract class Agent implements AgentInterface {
 		
 		// cancel all scheduled tasks.
 		if (scheduler == null) {
-			scheduler = agentHost.getScheduler(this);
+			this.scheduler = agentHost.getScheduler(this);
 		}
 		if (scheduler != null) {
 			for (String taskId : scheduler.getTasks()) {
@@ -218,6 +217,9 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Namespace("scheduler")
 	public final Scheduler getScheduler() {
+		if (scheduler == null) {
+			this.scheduler = agentHost.getScheduler(this);
+		}
 		return scheduler;
 	}
 	
@@ -279,7 +281,8 @@ public abstract class Agent implements AgentInterface {
 		
 		// invoke the other agent via the AgentHost, allowing the factory
 		// to route the request internally or externally
-		String id = UUID.randomUUID().toString();
+		String id = new UUID().toString();
+//		String id = "hi there!";
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
 		JSONResponse response = getAgentHost().send(this, url, request);
 		JSONRPCException err = response.getError();
@@ -379,7 +382,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, Class<T> type)
 			throws ProtocolException, JSONRPCException {
-		String id = UUID.randomUUID().toString();
+		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, JOM.getTypeFactory()
 				.uncheckedSimpleType(type));
@@ -390,7 +393,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, final Type type)
 			throws ProtocolException, JSONRPCException {
-		String id = UUID.randomUUID().toString();
+		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback,
 				JOM.getTypeFactory().constructType(type));
@@ -401,7 +404,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, final JavaType type)
 			throws ProtocolException, JSONRPCException {
-		String id = UUID.randomUUID().toString();
+		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, type);
 	}

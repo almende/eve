@@ -1,6 +1,6 @@
 package com.almende.test.agents;
 
-import java.util.UUID;
+
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
@@ -12,6 +12,7 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)
@@ -25,7 +26,7 @@ public class TestSchedulerAgent extends Agent {
 		params.put("expected", DateTime.now().plus(delay).toString());
 		params.put("interval", interval);
 		params.put("sequential", sequential);
-		params.put("someId", UUID.randomUUID().toString());
+		params.put("someId", new UUID().toString());
 		params.put("delay", delay);
 		JSONRequest request = new JSONRequest("doTest", params);
 		getScheduler().createTask(request, delay, interval, sequential);

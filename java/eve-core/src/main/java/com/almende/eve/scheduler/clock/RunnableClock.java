@@ -15,7 +15,7 @@ public class RunnableClock implements Runnable, Clock {
 	private static final Logger								LOG			= Logger.getLogger("RunnableClock");
 	private static final TreeMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
 	private static ScheduledExecutorService					pool		= Executors
-																				.newScheduledThreadPool(50);
+																				.newScheduledThreadPool(75);
 	private static ScheduledFuture<?>						future		= null;
 	
 	public void run() {

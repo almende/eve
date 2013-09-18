@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +19,7 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
 import com.almende.eve.state.TypedKey;
+import com.eaio.uuid.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
@@ -254,7 +254,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	
 	public TaskEntry(DateTime due, JSONRequest request, long interval,
 			boolean sequential) {
-		this.taskId = UUID.randomUUID().toString();
+		this.taskId = new UUID().toString();
 		this.request = request;
 		this.due = due;
 		this.interval = interval;
