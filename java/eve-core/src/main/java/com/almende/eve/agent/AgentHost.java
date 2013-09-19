@@ -9,7 +9,6 @@ import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -52,37 +51,8 @@ public final class AgentHost implements AgentHostInterface {
 																					this);
 	private boolean										doesShortcut		= true;
 	
-	/*
-	 * Several classname maps for configuration conveniency:
-	 */
-	private static final Map<String, String>			STATE_FACTORIES		= new HashMap<String, String>();
-	private static final Map<String, String>			SCHEDULERS			= new HashMap<String, String>();
-	private static final Map<String, String>			TRANSPORT_SERVICES	= new HashMap<String, String>();
+	
 	private static final RequestParams					EVEREQUESTPARAMS	= new RequestParams();
-	static {
-		STATE_FACTORIES.put("FileStateFactory",
-				"com.almende.eve.state.FileStateFactory");
-		STATE_FACTORIES.put("JsonFileStateFactory",
-				"com.almende.eve.state.JsonFileStateFactory");
-		STATE_FACTORIES.put("MemoryStateFactory",
-				"com.almende.eve.state.MemoryStateFactory");
-		STATE_FACTORIES.put("DatastoreStateFactory",
-				"com.almende.eve.state.google.DatastoreStateFactory");
-	}
-	static {
-		SCHEDULERS.put("RunnableSchedulerFactory",
-				"com.almende.eve.scheduler.RunnableSchedulerFactory");
-		SCHEDULERS.put("ClockSchedulerFactory",
-				"com.almende.eve.scheduler.ClockSchedulerFactory");
-		SCHEDULERS.put("GaeSchedulerFactory",
-				"com.almende.eve.scheduler.google.GaeSchedulerFactory");
-	}
-	static {
-		TRANSPORT_SERVICES.put("XmppService",
-				"com.almende.eve.transport.xmpp.XmppService");
-		TRANSPORT_SERVICES.put("HttpService",
-				"com.almende.eve.transport.http.HttpService");
-	}
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
@@ -538,29 +508,6 @@ public final class AgentHost implements AgentHostInterface {
 			}
 		}
 		
-		// TODO: deprecated since "2013-02-20"
-		if ("FileContextFactory".equals(className)) {
-			LOG.warning("Use of Classname FileContextFactory is deprecated, please use 'FileStateFactory' instead.");
-			className = "FileStateFactory";
-		}
-		if ("MemoryContextFactory".equals(className)) {
-			LOG.warning("Use of Classname MemoryContextFactory is deprecated, please use 'MemoryStateFactory' instead.");
-			className = "MemoryStateFactory";
-		}
-		if ("DatastoreContextFactory".equals(className)) {
-			LOG.warning("Use of Classname DatastoreContextFactory is deprecated, please use 'DatastoreStateFactory' instead.");
-			className = "DatastoreStateFactory";
-		}
-		
-		// Recognize known classes by their short name,
-		// and replace the short name for the full class path
-		for (String name : STATE_FACTORIES.keySet()) {
-			if (className.equalsIgnoreCase(name)) {
-				className = STATE_FACTORIES.get(name);
-				break;
-			}
-		}
-		
 		try {
 			// get the class
 			Class<?> stateClass = Class.forName(className);
@@ -635,29 +582,6 @@ public final class AgentHost implements AgentHostInterface {
 					"Config parameter 'scheduler.class' missing in Eve configuration.");
 		}
 		
-		// TODO: remove warning some day (added 2013-01-22)
-		if (className.equalsIgnoreCase("RunnableScheduler")) {
-			LOG.warning("Deprecated class RunnableScheduler configured. Use RunnableSchedulerFactory instead to configure a scheduler factory.");
-			className = "RunnableSchedulerFactory";
-		}
-		if (className.equalsIgnoreCase("AppEngineScheduler")) {
-			LOG.warning("Deprecated class AppEngineScheduler configured. Use GaeSchedulerFactory instead to configure a scheduler factory.");
-			className = "GaeSchedulerFactory";
-		}
-		if (className.equalsIgnoreCase("AppEngineSchedulerFactory")) {
-			LOG.warning("Deprecated class AppEngineSchedulerFactory configured. Use GaeSchedulerFactory instead to configure a scheduler factory.");
-			className = "GaeSchedulerFactory";
-		}
-		
-		// Recognize known classes by their short name,
-		// and replace the short name for the full class path
-		for (String name : SCHEDULERS.keySet()) {
-			if (className.equalsIgnoreCase(name)) {
-				className = SCHEDULERS.get(name);
-				break;
-			}
-		}
-		
 		// read all scheduler params (will be fed to the scheduler factory
 		// on construction)
 		Map<String, Object> params = config.get("scheduler");
@@ -710,27 +634,10 @@ public final class AgentHost implements AgentHostInterface {
 				String className = (String) transportParams.get("class");
 				try {
 					if (className != null) {
+						
 						// Recognize known classes by their short name,
 						// and replace the short name for the full class path
-						
-						// TODO: remove deprecation warning some day (added
-						// 2013-01-24)
-						if (className.equalsIgnoreCase("XmppTransportService")) {
-							LOG.warning("Deprecated class XmppTransportService, use XmppService instead.");
-							className = "XmppService";
-						}
-						if (className.equalsIgnoreCase("HttpTransportService")) {
-							LOG.warning("Deprecated class HttpTransportService, use HttpService instead.");
-							className = "HttpService";
-						}
-						
-						for (String name : TRANSPORT_SERVICES.keySet()) {
-							if (className.equalsIgnoreCase(name)) {
-								className = TRANSPORT_SERVICES.get(name);
-								break;
-							}
-						}
-						
+						className = Config.map(className);
 						// get class
 						Class<?> transportClass = Class.forName(className);
 						if (!ClassUtil.hasInterface(transportClass,
@@ -754,8 +661,7 @@ public final class AgentHost implements AgentHostInterface {
 								+ index + ": no class defined.");
 					}
 				} catch (Exception e) {
-					LOG.warning("Cannot load service at index " + index + ": "
-							+ e.getMessage());
+					LOG.log(Level.WARNING,"Cannot load service at index " + index, e);
 				}
 				index++;
 			}
