@@ -30,8 +30,9 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 
-import com.almende.eve.state.FileStateFactory;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.state.State;
+import com.almende.eve.state.StateFactory;
 
 public final class ApacheHttpClient {
 	private static final Logger			LOG			= Logger.getLogger(ApacheHttpClient.class
@@ -91,11 +92,13 @@ public final class ApacheHttpClient {
 		private State		myState		= null;
 		
 		MyCookieStore() throws IOException {
-			FileStateFactory factory = new FileStateFactory(".evecookies");
+			AgentHost host = AgentHost.getInstance();
+			StateFactory factory = host.getStateFactoryFromConfig(host.getConfig(), "cookies");
 			if (factory.exists(COOKIESTORE)) {
 				myState = factory.get(COOKIESTORE);
 			} else {
 				myState = factory.create(COOKIESTORE);
+				myState.setAgentType(CookieStore.class);
 			}
 		}
 		

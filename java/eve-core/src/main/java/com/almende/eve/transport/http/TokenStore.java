@@ -5,9 +5,10 @@ import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
+import com.almende.eve.state.StateFactory;
 import com.almende.util.uuid.UUID;
 
 /**
@@ -29,12 +30,15 @@ public final class TokenStore {
 	private static DateTime			last	= DateTime.now();
 	
 	private TokenStore() {
-		FileStateFactory factory = new FileStateFactory(".evecookies");
+		AgentHost host = AgentHost.getInstance();
+		
+		StateFactory factory = host.getStateFactoryFromConfig(host.getConfig(), "tokens");
 		if (factory.exists("_TokenStore")) {
 			tokens = factory.get("_TokenStore");
 		} else {
 			try {
 				tokens = factory.create("_TokenStore");
+				tokens.setAgentType(TokenStore.class);
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "", e);
 			}

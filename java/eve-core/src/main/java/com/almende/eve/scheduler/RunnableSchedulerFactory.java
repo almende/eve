@@ -96,6 +96,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			state = host.getStateFactory().get(stateId);
 			if (state == null) {
 				state = host.getStateFactory().create(stateId);
+				state.setAgentType(RunnableScheduler.class);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Can't init State", e);

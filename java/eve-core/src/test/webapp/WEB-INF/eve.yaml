@@ -21,6 +21,12 @@ transport_services:
 state:
   class: FileStateFactory
   path: .eveagents
+cookies:
+  class: FileStateFactory
+  path: .evecookies
+tokens:
+  class: FileStateFactory
+  path: .evecookies
 
 # scheduler settings
 scheduler:

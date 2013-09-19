@@ -51,7 +51,6 @@ public final class AgentHost implements AgentHostInterface {
 																					this);
 	private boolean										doesShortcut		= true;
 	
-	
 	private static final RequestParams					EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
@@ -98,7 +97,7 @@ public final class AgentHost implements AgentHostInterface {
 							agent.signalAgent(event);
 						}
 					} catch (Exception e) {
-						LOG.log(Level.WARNING, "Couldn't signal agent.",e);
+						LOG.log(Level.WARNING, "Couldn't signal agent.", e);
 					}
 				}
 			}
@@ -140,6 +139,11 @@ public final class AgentHost implements AgentHostInterface {
 			throw new JSONRPCException("Cannot instantiate agent. "
 					+ "Class information missing in the agents state "
 					+ "(agentId='" + agentId + "')");
+		}
+		
+		if (!Agent.class.isAssignableFrom(agentType)){
+			//Found state info not representing an Agent, like e.g. TokenStore or CookieStore.
+			return null;
 		}
 		
 		// instantiate the agent
@@ -486,26 +490,23 @@ public final class AgentHost implements AgentHostInterface {
 		this.doesShortcut = doesShortcut;
 	}
 	
-	@Override
-	public void setStateFactory(Config config) {
-		if (this.stateFactory != null) {
-			LOG.warning("Not loading statefactory from config, there is already a statefactory available.");
-			return;
-		}
-		
+	public StateFactory getStateFactoryFromConfig(Config config,
+			String configName) {
+		StateFactory result = null;
 		// get the class name from the config file
 		// first read from the environment specific configuration,
 		// if not found read from the global configuration
-		String className = config.get("state", "class");
-		String configName = "state";
+		
+		String className = config.get(configName, "class");
 		if (className == null) {
-			className = config.get("context", "class");
+			if (!configName.equals("state")) {
+				// Provide fallback to state if other type doesn't exist;
+				configName = "state";
+				className = config.get(configName, "class");
+			}
 			if (className == null) {
-				throw new IllegalArgumentException(
-						"Config parameter 'state.class' missing in Eve configuration.");
-			} else {
-				LOG.warning("Use of config parameter 'context' is deprecated, please use 'state' instead.");
-				configName = "context";
+				throw new IllegalArgumentException("Config parameter '"
+						+ config + ".class' missing in Eve configuration.");
 			}
 		}
 		
@@ -520,14 +521,24 @@ public final class AgentHost implements AgentHostInterface {
 			
 			// instantiate the state factory
 			Map<String, Object> params = config.get(configName);
-			StateFactory sf = (StateFactory) stateClass.getConstructor(
-					Map.class).newInstance(params);
+			result = (StateFactory) stateClass.getConstructor(Map.class)
+					.newInstance(params);
 			
-			setStateFactory(sf);
-			LOG.info("Initialized state factory: " + sf.toString());
+			LOG.info("Initialized state factory: " + result.toString());
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
+		return result;
+	}
+	
+	@Override
+	public void setStateFactory(Config config) {
+		if (this.stateFactory != null) {
+			LOG.warning("Not loading statefactory from config, there is already a statefactory available.");
+			return;
+		}
+		
+		setStateFactory(getStateFactoryFromConfig(config, "state"));
 	}
 	
 	@Override
@@ -559,8 +570,8 @@ public final class AgentHost implements AgentHostInterface {
 			return;
 		}
 		this.stateFactory = stateFactory;
-		HOST.signalAgents(new AgentSignal<StateFactory>(AgentSignal.SETSTATEFACTORY,
-				stateFactory));
+		HOST.signalAgents(new AgentSignal<StateFactory>(
+				AgentSignal.SETSTATEFACTORY, stateFactory));
 		
 	}
 	
@@ -662,7 +673,8 @@ public final class AgentHost implements AgentHostInterface {
 								+ index + ": no class defined.");
 					}
 				} catch (Exception e) {
-					LOG.log(Level.WARNING,"Cannot load service at index " + index, e);
+					LOG.log(Level.WARNING, "Cannot load service at index "
+							+ index, e);
 				}
 				index++;
 			}
