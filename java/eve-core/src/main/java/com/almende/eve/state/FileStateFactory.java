@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import sun.net.www.protocol.file.FileURLConnection;
-
-@SuppressWarnings("restriction")
 public class FileStateFactory implements StateFactory {
 	
 	private String				path	= null;
@@ -209,27 +206,7 @@ public class FileStateFactory implements StateFactory {
 			for (File file : totalList) {
 				if (file.isFile() && file.canRead() && !file.isHidden()
 						&& file.length() > 2) {
-					try {
-						FileURLConnection conn = (FileURLConnection) file
-								.toURI().toURL().openConnection();
-						if (!json
-								&& conn.getContentType().endsWith(
-										"java-serialized-object")) {
-							list.add(file);
-						}
-						if (json && conn.getContentType().contains("json")) {
-							list.add(file);
-						}
-						conn.close();
-					} catch (Exception e) {
-						logger.warning("Couldn't check contentType of potential state file:"
-								+ file.getName());
-					} catch (java.lang.NoClassDefFoundError e) {
-						logger.warning("Couldn't check contentType of state file:"
-								+ file.getName()
-								+ " (On Android this is expected)");
-						list.add(file);
-					}
+					list.add(file);
 				}
 			}
 		}
