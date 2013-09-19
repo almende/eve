@@ -1,6 +1,7 @@
 package com.almende.eve.state;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,7 +49,7 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 	
 	@Override
 	public Set<String> keySet() {
-		return properties.keySet();
+		return new HashSet<String>(properties.keySet());
 	}
 	
 	@Override

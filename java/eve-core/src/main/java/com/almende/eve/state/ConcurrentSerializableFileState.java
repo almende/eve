@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -219,7 +220,7 @@ public class ConcurrentSerializableFileState extends
 		try {
 			openFile();
 			read();
-			result = properties.keySet();
+			result = new HashSet<String>(properties.keySet());
 			
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);

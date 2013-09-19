@@ -3,6 +3,7 @@ package com.almende.eve.state.google;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -331,7 +332,7 @@ public class DatastoreState extends AbstractState<Serializable> {
 	@Override
 	public Set<String> keySet() {
 		load();
-		return properties.keySet();
+		return new HashSet<String>(properties.keySet());
 	}
 
 	@Override
