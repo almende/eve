@@ -1,0 +1,3 @@
+Had to include com.eaio.uuid.UUID sources, because of issues with the
+vanilla package's CORBA dependency on Android.
+Using the original maven package on Android results in a "Failed to link 'Lcom/eaio/uuid/UUID;'" message.
