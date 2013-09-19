@@ -559,7 +559,7 @@ public final class AgentHost implements AgentHostInterface {
 			return;
 		}
 		this.stateFactory = stateFactory;
-		HOST.signalAgents(new AgentSignal<StateFactory>("setStateFactory",
+		HOST.signalAgents(new AgentSignal<StateFactory>(AgentSignal.SETSTATEFACTORY,
 				stateFactory));
 		
 	}
@@ -677,7 +677,7 @@ public final class AgentHost implements AgentHostInterface {
 					+ transportService.toString());
 			if (HOST != null) {
 				HOST.signalAgents(new AgentSignal<TransportService>(
-						"addTransportService", transportService));
+						AgentSignal.ADDTRANSPORTSERVICE, transportService));
 			}
 		} else {
 			LOG.warning("Not adding transport service, as it already exists.");
@@ -690,7 +690,7 @@ public final class AgentHost implements AgentHostInterface {
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
 		HOST.signalAgents(new AgentSignal<TransportService>(
-				"removeTransportService", transportService));
+				AgentSignal.DELTRANSPORTSERVICE, transportService));
 		
 	}
 	
@@ -736,7 +736,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		this.schedulerFactory = schedulerFactory;
 		HOST.signalAgents(new AgentSignal<SchedulerFactory>(
-				"setSchedulerFactory", schedulerFactory));
+				AgentSignal.SETSCHEDULERFACTORY, schedulerFactory));
 	}
 	
 	@Override
