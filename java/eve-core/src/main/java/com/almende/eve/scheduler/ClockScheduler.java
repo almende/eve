@@ -33,11 +33,17 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private static final int							MAXCOUNT	= 100;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
+		if (myAgent == null){
+			throw new IllegalArgumentException("MyAgent should not be null!");
+		}
 		this.myAgent = myAgent;
 		myClock = new RunnableClock();
 	}
 	
 	public TaskEntry getFirstTask() {
+		if (myAgent.getState() == null){
+			return null;
+		}
 		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.first();
@@ -65,7 +71,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public  void putTask(TaskEntry task, boolean onlyIfExists) {
-		if (task == null) {
+		if (task == null || myAgent.getState() == null) {
 			return;
 		}
 		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
@@ -100,6 +106,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public void cancelTask(String id) {
+		if (myAgent.getState() == null){
+			return;
+		}
+
 		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
 		TreeSet<TaskEntry> timeline = null;
 		if (oldTimeline != null) {
@@ -191,6 +201,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public Set<String> getTasks() {
+		if (myAgent.getState() == null){
+			return null;
+		}
+
 		Set<String> result = new HashSet<String>();
 		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
@@ -204,6 +218,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public Set<String> getDetailedTasks() {
+		if (myAgent.getState() == null){
+			return null;
+		}
+
 		Set<String> result = new HashSet<String>();
 		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
@@ -231,6 +249,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public String toString() {
+		if (myAgent.getState() == null){
+			return null;
+		}
+
 		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
