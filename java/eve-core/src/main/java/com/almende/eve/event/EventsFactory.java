@@ -345,7 +345,6 @@ public class EventsFactory implements EventsInterface {
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws ProtocolException, JSONRPCException {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
-		//myAgent.sendAsync(URI.create(url), new JSONRequest(method, params),null,void.class);
 		myAgent.send(URI.create(url), method, params);
 	}
 	
