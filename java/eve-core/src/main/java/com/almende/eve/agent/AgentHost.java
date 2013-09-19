@@ -98,6 +98,7 @@ public final class AgentHost implements AgentHostInterface {
 							agent.signalAgent(event);
 						}
 					} catch (Exception e) {
+						LOG.log(Level.WARNING, "Couldn't signal agent.",e);
 					}
 				}
 			}
