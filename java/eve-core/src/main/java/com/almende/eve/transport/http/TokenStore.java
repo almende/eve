@@ -69,6 +69,9 @@ public final class TokenStore {
 					DateTime oldest = last;
 					for (String time : tokens.keySet()) {
 						try {
+							if (time.equals(State.KEY_AGENT_TYPE)){
+								continue;
+							}
 							if (DateTime.parse(time).isBefore(oldest)) {
 								oldest = DateTime.parse(time);
 							}

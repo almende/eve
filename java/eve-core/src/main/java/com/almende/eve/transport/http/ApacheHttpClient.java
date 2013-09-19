@@ -93,7 +93,8 @@ public final class ApacheHttpClient {
 		
 		MyCookieStore() throws IOException {
 			AgentHost host = AgentHost.getInstance();
-			StateFactory factory = host.getStateFactoryFromConfig(host.getConfig(), "cookies");
+			StateFactory factory = host.getStateFactoryFromConfig(
+					host.getConfig(), "cookies");
 			if (factory.exists(COOKIESTORE)) {
 				myState = factory.get(COOKIESTORE);
 			} else {
@@ -112,7 +113,9 @@ public final class ApacheHttpClient {
 		public List<Cookie> getCookies() {
 			List<Cookie> result = new ArrayList<Cookie>(myState.size());
 			for (String entryKey : myState.keySet()) {
-				result.add(myState.get(entryKey,Cookie.class));
+				if (!entryKey.equals(State.KEY_AGENT_TYPE)) {
+					result.add(myState.get(entryKey, Cookie.class));
+				}
 			}
 			return result;
 		}
@@ -122,10 +125,12 @@ public final class ApacheHttpClient {
 			boolean result = false;
 			
 			for (String entryKey : myState.keySet()) {
-				Cookie cookie = myState.get(entryKey,Cookie.class);
-				if (cookie.isExpired(date)){
-					myState.remove(entryKey);
-					result = true;
+				if (!entryKey.equals(State.KEY_AGENT_TYPE)) {
+					Cookie cookie = myState.get(entryKey, Cookie.class);
+					if (cookie.isExpired(date)) {
+						myState.remove(entryKey);
+						result = true;
+					}
 				}
 			}
 			return result;
@@ -135,11 +140,11 @@ public final class ApacheHttpClient {
 		public void clear() {
 			myState.clear();
 		}
-
+		
 		public State getMyState() {
 			return myState;
 		}
-
+		
 		public void setMyState(State myState) {
 			this.myState = myState;
 		}
