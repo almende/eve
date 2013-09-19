@@ -29,7 +29,11 @@ public class AgentConnection {
 	private AgentHost							agentHost	= null;
 	private String								agentId		= null;
 	private String								username	= null;
+	private String								host		= null;
 	private String								resource	= null;
+	private String								password	= null;
+	private String								serviceName	= null;
+	private Integer								port		= 5222;
 	private XMPPConnection						conn		= null;
 	private AsyncCallbackQueue<JSONResponse>	callbacks	= new AsyncCallbackQueue<JSONResponse>();
 	
@@ -64,6 +68,11 @@ public class AgentConnection {
 		return resource;
 	}
 	
+	public void connect() throws JSONRPCException {
+		connect(agentId, host, port, serviceName, username, password,
+				resource);
+	}
+	
 	/**
 	 * Login and connect the agent to the messaging service
 	 * 
@@ -88,6 +97,10 @@ public class AgentConnection {
 		this.agentId = agentId;
 		this.username = username;
 		this.resource = resource;
+		this.host=host;
+		this.port = port;
+		this.serviceName = serviceName;
+		this.password = password;
 		
 		try {
 			// configure and connect
@@ -154,26 +167,25 @@ public class AgentConnection {
 	 */
 	public void send(String username, JSONRequest request,
 			AsyncCallback<JSONResponse> callback) throws JSONRPCException {
-		try {
-			if (isConnected()) {
-				// create a unique id
-				final String id = (String) request.getId();
-				
-				
-				String description = username + " -> "+ request.getMethod();
-				// queue the response callback
-				callbacks.push(id, description, callback);
-				
-				// send the message
-				Message reply = new Message();
-				reply.setTo(username);
-				reply.setBody(request.toString());
-				conn.sendPacket(reply);
-			} else {
-				throw new Exception("Cannot send request, not connected");
-			}
-		} catch (Exception e) {
-			throw new JSONRPCException("Failed to send RPC through XMPP.", e);
+		if (!isConnected()) {
+			disconnect();
+			connect();
+		}
+		if (isConnected()) {
+			// create a unique id
+			final String id = (String) request.getId();
+			
+			String description = username + " -> " + request.getMethod();
+			// queue the response callback
+			callbacks.push(id, description, callback);
+			
+			// send the message
+			Message reply = new Message();
+			reply.setTo(username);
+			reply.setBody(request.toString());
+			conn.sendPacket(reply);
+		} else {
+			throw new JSONRPCException("Cannot send request, not connected");
 		}
 	}
 	
@@ -183,14 +195,15 @@ public class AgentConnection {
 	 * reply the result.
 	 */
 	private static class JSONRPCListener implements PacketListener {
-		private XMPPConnection						conn			= null;
-		private AgentHost							host			= null;
-		private String								agentId			= null;
-		private AsyncCallbackQueue<JSONResponse>	callbacks		= null;
-		private String								resource		= null;
+		private XMPPConnection						conn		= null;
+		private AgentHost							host		= null;
+		private String								agentId		= null;
+		private AsyncCallbackQueue<JSONResponse>	callbacks	= null;
+		private String								resource	= null;
 		
 		public JSONRPCListener(XMPPConnection conn, AgentHost agentHost,
-				String agentId, String resource, AsyncCallbackQueue<JSONResponse> callbacks) {
+				String agentId, String resource,
+				AsyncCallbackQueue<JSONResponse> callbacks) {
 			this.conn = conn;
 			this.host = agentHost;
 			this.agentId = agentId;
@@ -230,13 +243,14 @@ public class AgentConnection {
 		public void processPacket(Packet packet) {
 			Message message = (Message) packet;
 			
-			//Check if resource is given and matches local resource. If not equal, silently drop packet.
+			// Check if resource is given and matches local resource. If not
+			// equal, silently drop packet.
 			String to = message.getTo();
-			if (resource != null && to != null){
+			if (resource != null && to != null) {
 				int index = to.indexOf('/');
-				if (index > 0){
-					String resource = to.substring(index+1);
-					if (!this.resource.equals(resource)){
+				if (index > 0) {
+					String resource = to.substring(index + 1);
+					if (!this.resource.equals(resource)) {
 						LOG.warning("Received stanza meant for another agent, disregarding.");
 						return;
 					}
@@ -262,7 +276,7 @@ public class AgentConnection {
 						}
 					} else if (isRequest(json)) {
 						// this is a request
-						String senderUrl = "xmpp:"+message.getFrom();
+						String senderUrl = "xmpp:" + message.getFrom();
 						JSONRequest request = new JSONRequest(json);
 						invoke(senderUrl, request);
 					} else {
@@ -304,13 +318,12 @@ public class AgentConnection {
 						params.put(Sender.class, senderUrl);
 						
 						// invoke the agent
-						response = host.receive(agentId, request,
-								params);
+						response = host.receive(agentId, request, params);
 					} catch (Exception err) {
 						// generate JSON error response
 						JSONRPCException jsonError = new JSONRPCException(
-								JSONRPCException.CODE.INTERNAL_ERROR,
-								err.getMessage(), err);
+								JSONRPCException.CODE.INTERNAL_ERROR, err
+										.getMessage(), err);
 						response = new JSONResponse(jsonError);
 					}
 					
