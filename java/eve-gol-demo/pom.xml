@@ -1,21 +1,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.almende.eve</groupId>
-	<artifactId>GameOfLiveDemo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.almende.eve</groupId>
-			<artifactId>eve-core</artifactId>
-			<version>2.1.0-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+        <parent>
+                <groupId>com.almende.eve</groupId>
+                <artifactId>eve</artifactId>
+                <version>2.1.0-SNAPSHOT</version>
+                <relativePath>../eve/pom.xml</relativePath>
+        </parent>
+	<artifactId>GameOfLiveDemo</artifactId>
+
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
+        <dependencies>
+                <dependency>
+                        <groupId>com.almende.eve</groupId>
+                        <artifactId>eve-core</artifactId>
+                        <version>${project.parent.version}</version>
+                </dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
