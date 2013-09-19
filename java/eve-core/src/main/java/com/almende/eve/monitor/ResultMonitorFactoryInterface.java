@@ -39,7 +39,7 @@ public interface ResultMonitorFactoryInterface {
 	 * @throws Exception
 	 */
 	void doPush(@Name("pushKey") String pushKey,
-			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
+			@Required(false) @Name("params") ObjectNode triggerParams)
 			throws JSONRPCException, IOException;
 	
 	/**

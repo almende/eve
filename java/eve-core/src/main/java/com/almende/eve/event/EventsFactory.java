@@ -190,11 +190,7 @@ public class EventsFactory implements EventsInterface {
 		if (event.equals("*")) {
 			throw new IllegalArgumentException("Cannot trigger * event");
 		}
-		
-//		// send a trigger to the agent factory
-//		myAgent.getAgentHost().getEventLogger()
-//				.log(myAgent.getId(), event, params);
-//		
+
 		// retrieve subscriptions from the event
 		List<Callback> valueEvent = getSubscriptions(event);
 		subscriptions.addAll(valueEvent);
@@ -206,11 +202,11 @@ public class EventsFactory implements EventsInterface {
 		ObjectNode baseParams = JOM.createObjectNode();
 		if (params != null) {
 			if (params instanceof JsonNode) {
-				baseParams.put("triggerParams", (ObjectNode) params);
+				baseParams.put("params", (ObjectNode) params);
 			} else {
 				ObjectNode jsonParams = JOM.getInstance().convertValue(params,
 						ObjectNode.class);
-				baseParams.put("triggerParams", jsonParams);
+				baseParams.put("params", jsonParams);
 			}
 		}
 		baseParams.put("agent", url);

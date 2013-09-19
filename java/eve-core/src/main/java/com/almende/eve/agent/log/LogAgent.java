@@ -1,20 +1,34 @@
 package com.almende.eve.agent.log;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.ProtocolException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.PUBLIC)
 public class LogAgent extends Agent {
 	private static final long	TIMETOLIVE	= 20 * 60 * 1000;	// milliseconds
-																
+						
+	public void config(URI agentUrl) throws ProtocolException, JSONRPCException{
+		getEventsFactory().subscribe(agentUrl, "*", "eventLog");
+	}
+	
+	public void eventLog(@Name("event") String event, @Name("params") ObjectNode params) throws IOException{
+		String agentId = getId().replaceFirst("_logagent_", "");
+		log(new Log(agentId, event, params));
+	}
+	
 	public void log(Log log) {
 		// TODO: use a database instead of the state - when you register
 		// more and more logs this will be very unreliable.
@@ -96,6 +110,8 @@ public class LogAgent extends Agent {
 			InvocationTargetException, NoSuchMethodException {
 		getAgentHost().deleteAgent(getId());
 	}
+	
+	
 	
 	@Override
 	public String getDescription() {

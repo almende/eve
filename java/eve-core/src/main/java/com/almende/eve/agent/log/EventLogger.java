@@ -44,6 +44,7 @@ public class EventLogger {
 			// create the log agent if it does not yet exist
 			agent = (LogAgent) agentHost
 					.createAgent(LogAgent.class, logAgentId);
+			agent.config(agentHost.getAgent(agentId).getFirstUrl());
 		}
 		return agent.getLogs(since);
 	}

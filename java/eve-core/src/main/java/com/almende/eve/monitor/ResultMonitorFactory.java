@@ -174,7 +174,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	@Access(AccessType.SELF)
 	public final void doPush(@Name("pushKey") String pushKey,
-			@Required(false) @Name("triggerParams") ObjectNode triggerParams)
+			@Required(false) @Name("params") ObjectNode triggerParams)
 			throws JSONRPCException, IOException {
 		
 		if (myAgent.getState().containsKey(pushKey)) {
