@@ -63,7 +63,7 @@ public class CalcAgent extends Agent {
 		ObjectNode json = mapper.readValue(resp, ObjectNode.class);
 		
 		String error = json.get("error").asText();
-		if (error != null && !error.isEmpty()) {
+		if (error != null && !error.equals("")) {
 			throw new RemoteException(error);
 		}
 		

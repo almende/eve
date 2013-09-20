@@ -275,7 +275,7 @@ public class XmppService implements TransportService {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("username", EncryptionUtil.encrypt(username));
 		params.put("password", EncryptionUtil.encrypt(password));
-		if (resource != null && !resource.isEmpty()) {
+		if (resource != null && !resource.equals("")) {
 			params.put("resource", EncryptionUtil.encrypt(resource));
 		}
 		for (JsonNode item : newConns) {
@@ -405,7 +405,7 @@ public class XmppService implements TransportService {
 	private static String generateUrl(String username, String host,
 			String resource) {
 		String url = "xmpp:" + username + "@" + host;
-		if (resource != null && !resource.isEmpty()) {
+		if (resource != null && !resource.equals("")) {
 			url += "/" + resource;
 		}
 		return url;

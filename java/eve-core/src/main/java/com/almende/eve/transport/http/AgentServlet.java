@@ -176,7 +176,7 @@ public class AgentServlet extends HttpServlet {
 		String resource = httpTransport.getAgentResource(uri);
 		
 		// if no agentId is found, return generic information on servlet usage
-		if (agentId == null || agentId.isEmpty()) {
+		if (agentId == null || agentId.equals("")) {
 			resp.getWriter().write(getServletDocs());
 			resp.setContentType("text/plain");
 			return;
@@ -210,7 +210,7 @@ public class AgentServlet extends HttpServlet {
 			LOG.log(Level.WARNING, "", e1);
 		}
 		// get the resource name from the end of the url
-		if (resource == null || resource.isEmpty()) {
+		if (resource == null || resource.equals("")) {
 			if (!uri.endsWith("/") && !resp.isCommitted()) {
 				String redirect = uri + "/";
 				resp.sendRedirect(redirect);
@@ -276,7 +276,7 @@ public class AgentServlet extends HttpServlet {
 			
 			agentUrl = req.getRequestURI();
 			agentId = httpTransport.getAgentId(agentUrl);
-			if (agentId == null || agentId.isEmpty()) {
+			if (agentId == null || agentId.equals("")) {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
 						"No agentId found in url.");
 				return;
@@ -356,7 +356,7 @@ public class AgentServlet extends HttpServlet {
 					"No agentId found in url.");
 			return;
 		}
-		if (agentType == null || agentType.isEmpty()) {
+		if (agentType == null || agentType.equals("")) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"Query parameter 'type' missing in url.");
 			return;

@@ -50,7 +50,7 @@ public final class NamespaceUtil {
 		String reducedMethod = path.replaceAll(".*\\.", "");
 		
 		String fullPath = destination.getClass().getName();
-		if (!reducedPath.isEmpty()) {
+		if (!reducedPath.equals("")) {
 			fullPath += "." + reducedPath;
 		}
 		

@@ -316,7 +316,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 				LOG.log(Level.WARNING, "", e);
 			}
 		}
-		if (!event.isEmpty()) {
+		if (!event.equals("")) {
 			try {
 				result.put(
 						"subscriptionId",

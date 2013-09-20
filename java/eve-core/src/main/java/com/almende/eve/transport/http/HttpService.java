@@ -212,7 +212,7 @@ public class HttpService implements TransportService {
 		if (servletUrl != null) {
 			// add domain when missing
 			String domain = getDomain(agentUrl);
-			if (domain.isEmpty()) {
+			if (domain.equals("")) {
 				// provided url is only containing the path (not the domain)
 				agentUrl = getDomain(servletUrl) + agentUrl;
 			}
@@ -250,7 +250,7 @@ public class HttpService implements TransportService {
 		if (servletUrl != null) {
 			// add domain when missing
 			String domain = getDomain(agentUrl);
-			if (domain.isEmpty()) {
+			if (domain.equals("")) {
 				// provided url is only containing the path (not the domain)
 				agentUrl = getDomain(servletUrl) + agentUrl;
 			}
