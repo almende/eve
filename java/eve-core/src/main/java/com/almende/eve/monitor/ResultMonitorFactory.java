@@ -154,6 +154,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			throws JSONRPCException, IOException {
 		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
+			if (monitor.getUrl() == null || monitor.getMethod() == null){
+				LOG.warning("Monitor data invalid:"+monitor);
+			}
 			Object result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
 					JOM.getInstance().readTree(monitor.getParams()),
 					TypeFactory.unknownType());
