@@ -124,6 +124,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	
 	protected void closeFile() {
 		synchronized (locked) {
+
 			if (lock != null && lock.isValid()) {
 				try {
 					
@@ -168,6 +169,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		}
 		om.writeValue(fos, properties);
 		fos.flush();
+		
+		if (channel != null) {
+			channel.truncate(channel.position());
+		}
+
 	}
 	
 	/**

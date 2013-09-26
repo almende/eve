@@ -161,6 +161,10 @@ public class ConcurrentSerializableFileState extends
 		ObjectOutput out = new ObjectOutputStream(fos);
 		out.writeObject(properties);
 		out.flush();
+		
+		if (channel != null) {
+			channel.truncate(channel.position());
+		}
 	}
 	
 	/**
