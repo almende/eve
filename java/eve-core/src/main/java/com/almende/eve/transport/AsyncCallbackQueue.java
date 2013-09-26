@@ -11,8 +11,12 @@ import java.util.concurrent.TimeoutException;
  * The Queue handles timeouts on the callbacks.
  */
 public class AsyncCallbackQueue<T> {
+	private Map<String, CallbackHandler>	queue	= new ConcurrentHashMap<String, CallbackHandler>();
+	// deamon timer
+	private Timer							timer	= new Timer(true);
+	
 	// timeout in milliseconds
-	private static final int	TIMEOUT	= 30000;
+	private static final int				TIMEOUT	= 30000;
 	
 	// TODO: make the timeout customizable in eve.yaml
 	
@@ -30,7 +34,8 @@ public class AsyncCallbackQueue<T> {
 	 * @param callback
 	 * @throws Exception
 	 */
-	public synchronized void push(final String id, final String description, AsyncCallback<T> callback) {
+	public synchronized void push(final String id, final String description,
+			AsyncCallback<T> callback) {
 		if (queue.containsKey(id)) {
 			throw new IllegalStateException("Callback with id '" + id
 					+ "' already in queue");
@@ -45,11 +50,17 @@ public class AsyncCallbackQueue<T> {
 				AsyncCallback<T> callback = me.pull(id);
 				if (callback != null) {
 					callback.onFailure(new TimeoutException(
-							"Timeout occurred for request with id '" + id + "': "+description));
+							"Timeout occurred for request with id '" + id
+									+ "': " + description));
 				}
 			}
 		};
-		timer.schedule(handler.timeout, TIMEOUT);
+		try {
+			timer.schedule(handler.timeout, TIMEOUT);
+		} catch (IllegalStateException e) {
+			timer = new Timer(true);
+			timer.schedule(handler.timeout, TIMEOUT);
+		}
 		queue.put(id, handler);
 	}
 	
@@ -88,7 +99,4 @@ public class AsyncCallbackQueue<T> {
 		private TimerTask			timeout;
 	}
 	
-	private Map<String, CallbackHandler>	queue	= new ConcurrentHashMap<String, CallbackHandler>();
-	// deamon timer
-	private Timer							timer	= new Timer(true);
 }
