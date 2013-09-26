@@ -72,6 +72,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	public  void putTask(TaskEntry task, boolean onlyIfExists) {
 		if (task == null || myAgent.getState() == null) {
+			LOG.warning("Trying to save task to non-existing state or task is null");
 			return;
 		}
 		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
