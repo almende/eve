@@ -227,7 +227,9 @@ public final class JSONRPC {
 			RequestParams requestParams, String namespace) {
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
-			
+			if (c == null){
+				return methods;
+			}
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
 			for (AnnotatedMethod method : annotatedClass.getMethods()) {
 				if (isAvailable(method, null, requestParams, null)) {
