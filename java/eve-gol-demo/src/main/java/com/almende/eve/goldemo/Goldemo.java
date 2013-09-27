@@ -17,9 +17,10 @@ public class Goldemo {
 	
 	public static void main(String[] args) throws IOException, JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		AgentHost host = AgentHost.getInstance();
-		//host.setStateFactory(new FileStateFactory(".eveagents_test",true));
+		//host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
 		host.setStateFactory(new MemoryStateFactory());
 		host.setSchedulerFactory(new ClockSchedulerFactory(host, "_myRunnableScheduler"));
+//		host.setSchedulerFactory(new RunnableSchedulerFactory(host, "_myRunnableScheduler"));
 		
 		if (args.length != 3) {
 			throw new IllegalArgumentException(
