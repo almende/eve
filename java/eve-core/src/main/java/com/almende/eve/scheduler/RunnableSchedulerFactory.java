@@ -197,7 +197,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			}
 			
 			if (interval > 0) {
-				start(0);
+				start(-1);
 			} else {
 				start(delay);
 			}
