@@ -132,6 +132,8 @@ public abstract class AbstractState<V> implements State {
 		locPut(key, value.toString());
 		return value;
 	}
+	
+	//Default cross type input acceptance, specific States are expected to override their own typed version.
 	public boolean locPutIfUnchanged(String key, JsonNode newVal, JsonNode oldVal) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
 		return locPutIfUnchanged(key, newVal.toString(), oldVal.toString());

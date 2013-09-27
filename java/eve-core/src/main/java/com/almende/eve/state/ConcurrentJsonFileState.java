@@ -23,11 +23,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.eve.rpc.jsonrpc.jackson.JsonNullAwareDeserializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 /**
  * @class FileState
@@ -183,6 +186,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
+	@JsonDeserialize(using = JsonNullAwareDeserializer.class)
 	private void read() throws IOException, ClassNotFoundException {
 		try {
 			if (channel != null) {
@@ -260,7 +264,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	
 	@Override
 	public synchronized JsonNode get(String key) {
-		JsonNode result = null;
+		JsonNode result = NullNode.getInstance();
 		try {
 			openFile();
 			read();
@@ -278,6 +282,9 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		try {
 			openFile();
 			read();
+			if (value == null){
+				value=NullNode.getInstance();
+			}
 			result = properties.put(key, value);
 			write();
 		} catch (Exception e) {
@@ -294,10 +301,16 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		try {
 			openFile();
 			read();
-			if (!(oldVal == null && properties.containsKey(key) && properties
-					.get(key) != null)
-					|| (properties.get(key) != null && properties.get(key)
-							.equals(oldVal))) {
+			
+			JsonNode cur = NullNode.getInstance();
+			if (properties.containsKey(key)){
+				cur = properties.get(key);
+			}
+			if (oldVal == null){
+				oldVal = NullNode.getInstance();
+			}
+			//Poor mans equality as some Numbers are compared incorrectly: e.g. IntNode versus LongNode
+			if (oldVal.equals(cur) || oldVal.toString().equals(cur.toString())) {
 				properties.put(key, newVal);
 				write();
 				result = true;
