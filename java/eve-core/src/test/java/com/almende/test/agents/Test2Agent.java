@@ -105,7 +105,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	public String callMyself(@Name("method") String method, 
 			@Name("params") ObjectNode params) 
 			throws IOException, JSONRPCException, Exception {
-		String resp = send(getMyUrl(), method, params, JOM.getSimpleType(String.class));
+		String resp = send(getMyUrl(), method, params, String.class);
 		System.out.println("callMyself method=" + method  + ", params=" + params.toString() + ", resp=" +  resp);
 		return resp;
 	}
@@ -113,7 +113,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	public String callOtherAgent(@Name("url") String url, @Name("method") String method, 
 			@Name("params") ObjectNode params) 
 			throws IOException, JSONRPCException, Exception {
-		String resp = send(URI.create(url), method, params, JOM.getSimpleType(String.class));
+		String resp = send(URI.create(url), method, params, String.class);
 		System.out.println("callOtherAgent url="+ url+" method=" + method  + ", params=" + params.toString() + ", resp=" +  resp);
 		return resp;
 	}
@@ -146,7 +146,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		URI url = URI.create("http://eveagents.appspot.com/agents/test/");
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("status", STATUS.GOOD);
-		STATUS value = send(url, "testEnum", params, JOM.getSimpleType(STATUS.class));
+		STATUS value = send(url, "testEnum", params, STATUS.class);
 		
 		return value;
 	}
@@ -168,7 +168,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		// test sending a POJO as params
 		Person person = new Person();
 		person.setName("testname");
-		return send(getMyUrl(), "getPerson" , person, JOM.getSimpleType(Person.class));
+		return send(getMyUrl(), "getPerson" , person, Person.class);
 	}
 	
 	public Person getPerson(@Name("name") String name) {
@@ -249,7 +249,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	public Double testTFComplexResult(@Name("url") String url) throws Exception{
 		TypeFactory tf = JOM.getTypeFactory();
-		Map<String, List<Double>> res = send(URI.create(url), "complexResult",JOM.createObjectNode(),tf.constructMapType(HashMap.class, JOM.getSimpleType(String.class),(JavaType)tf.constructCollectionType(List.class, Double.class)));
+		Map<String, List<Double>> res = send(URI.create(url), "complexResult",JOM.createObjectNode(),tf.constructMapType(HashMap.class, JOM.getTypeFactory().constructType(String.class),(JavaType)tf.constructCollectionType(List.class, Double.class)));
 		return res.get("result").get(0);
 	}
 
@@ -333,7 +333,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		if (method == null) {
 			method = "getDescription";
 		}
-		Object res = send(URI.create(url), method, JOM.getSimpleType(Object.class));
+		Object res = send(URI.create(url), method, Object.class);
 		System.out.println(res);
 		return res;
 	}
@@ -433,7 +433,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			public void onFailure(Exception exception) {
 				exception.printStackTrace();
 			}
-		}, JOM.getSimpleType(Double.class));
+		}, Double.class);
 	}
 
 	public void testSyncXMPP (@Name("url") String url) throws Exception {
@@ -443,7 +443,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		params.put("a", new Double(3));
 		params.put("b", new Double(4.5));
 		System.out.println("testSyncXMPP, request=" + new JSONRequest(method, params));
-		Double result = send(URI.create(url), method, params, JOM.getSimpleType(Double.class));
+		Double result = send(URI.create(url), method, params, Double.class);
 		System.out.println("testSyncXMPP result=" + result);
 		try {
 			ObjectNode messageParams = JOM.createObjectNode();
@@ -479,7 +479,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			public void onFailure(Exception exception) {
 				exception.printStackTrace();
 			}
-		}, JOM.getSimpleType(ArrayNode.class));
+		}, ArrayNode.class);
 	}
 	
 	public void testAsyncHTTP () throws Exception {
@@ -499,7 +499,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			public void onFailure(Exception exception) {
 				exception.printStackTrace();
 			}
-		}, JOM.getSimpleType(String.class));
+		}, String.class);
 		
 		System.out.println("testAsyncHTTP end...");
 	}
@@ -586,7 +586,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			}
 		}, ArrayNode.class);
 		*/
-		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
+		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), ArrayNode.class);
 		System.out.println("gloria's urls=" + urls);
 		return urls;
 	}
@@ -603,26 +603,26 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 			public void onFailure(Exception exception) {
 				exception.printStackTrace();
 			}
-		}, JOM.getSimpleType(ArrayNode.class));
+		}, ArrayNode.class);
 	}
 
 	public ArrayNode getUrlsOfMerlin() throws Exception {
 		String url = "xmpp:merlin@openid.almende.org";
-		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
+		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), ArrayNode.class);
 		System.out.println("merlins urls=" + urls);
 		return urls;
 	}
 	
 	public ArrayNode getUrlsOfJos() throws Exception {
 		String url = "xmpp:jos@openid.almende.org";
-		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), JOM.getSimpleType(ArrayNode.class));
+		ArrayNode urls = send(URI.create(url), "getUrls", JOM.createObjectNode(), ArrayNode.class);
 		System.out.println("jos's urls=" + urls);
 		return urls;
 	}
 		
 	public ArrayNode getListOfMerlin() throws Exception {
 		String url = "xmpp:merlin@openid.almende.org";
-		ArrayNode list = send(URI.create(url), "list", JOM.createObjectNode(),JOM.getSimpleType(ArrayNode.class));
+		ArrayNode list = send(URI.create(url), "list", JOM.createObjectNode(),ArrayNode.class);
 		System.out.println("merlins list=" + list);
 		return list;
 	}

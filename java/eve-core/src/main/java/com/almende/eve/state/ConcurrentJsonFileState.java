@@ -1,7 +1,5 @@
 package com.almende.eve.state;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -24,8 +22,6 @@ import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.rpc.jsonrpc.jackson.JsonNullAwareDeserializer;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,9 +70,6 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		super(agentId);
 		this.filename = filename;
 		om = JOM.getInstance();
-		om.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
-		om.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-		
 	}
 	
 	@Override
@@ -120,8 +113,8 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 				throw new IllegalStateException(
 						"error, couldn't obtain file lock on:" + filename, e);
 			}
-			fis = new BufferedInputStream(Channels.newInputStream(channel));
-			fos = new BufferedOutputStream(Channels.newOutputStream(channel));
+			fis = Channels.newInputStream(channel);
+			fos = Channels.newOutputStream(channel);
 		}
 	}
 	
@@ -309,6 +302,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			if (oldVal == null){
 				oldVal = NullNode.getInstance();
 			}
+			
 			//Poor mans equality as some Numbers are compared incorrectly: e.g. IntNode versus LongNode
 			if (oldVal.equals(cur) || oldVal.toString().equals(cur.toString())) {
 				properties.put(key, newVal);

@@ -9,7 +9,6 @@ import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Sender;
-import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 
 @Access(AccessType.PRIVATE)  //defaults to UNAVAILABLE...
 public class TestAccessAgent extends Agent {
@@ -77,14 +76,14 @@ public class TestAccessAgent extends Agent {
 		URI url = URI.create(urls);
 		boolean[] result = new boolean[0];
 		result = Arrays.copyOf(result, 8);
-		try{ result[0] = (Boolean)send(url,"allowed",JOM.getSimpleType(Boolean.class)); } catch (Exception e){ e.printStackTrace(); };
-		try{ result[1] = (Boolean)send(url,"forbidden",JOM.getSimpleType(Boolean.class)); } catch (Exception e){};
-		try{ result[2] = (Boolean)send(url,"depends",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
-		try{ result[3] = (Boolean)send(url,"dependTag",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
-		try{ result[4] = (Boolean)send(url,"dependUnTag",JOM.getSimpleType(Boolean.class)); } catch (Exception e){};
-		try{ result[5] = (Boolean)send(url,"unmodified",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
-		try{ result[6] = (Boolean)send(url,"param",JOM.getSimpleType(Boolean.class)); } catch (Exception e){e.printStackTrace();};
-		try{ result[7] = (Boolean)send(url,"self",JOM.getSimpleType(Boolean.class)); } catch (Exception e){};
+		try{ result[0] = (Boolean)send(url,"allowed",Boolean.class); } catch (Exception e){ e.printStackTrace(); };
+		try{ result[1] = (Boolean)send(url,"forbidden",Boolean.class); } catch (Exception e){};
+		try{ result[2] = (Boolean)send(url,"depends",Boolean.class); } catch (Exception e){e.printStackTrace();};
+		try{ result[3] = (Boolean)send(url,"dependTag",Boolean.class); } catch (Exception e){e.printStackTrace();};
+		try{ result[4] = (Boolean)send(url,"dependUnTag",Boolean.class); } catch (Exception e){};
+		try{ result[5] = (Boolean)send(url,"unmodified",Boolean.class); } catch (Exception e){e.printStackTrace();};
+		try{ result[6] = (Boolean)send(url,"param",Boolean.class); } catch (Exception e){e.printStackTrace();};
+		try{ result[7] = (Boolean)send(url,"self",Boolean.class); } catch (Exception e){};
 		return result;
 	}
 
