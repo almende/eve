@@ -1,9 +1,8 @@
 package com.almende.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.almende.eve.config.Config;
@@ -12,8 +11,7 @@ public final class ObjectCache {
 	private static int						maxSize	= 1000;
 	private static Map<String, MetaInfo<?>>	cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
 															maxSize);
-	private static List<MetaInfo<?>>		scores	= new ArrayList<MetaInfo<?>>(
-															maxSize);
+	private static TreeSet<MetaInfo<?>>		scores	= new TreeSet<MetaInfo<?>>();
 	
 	private ObjectCache() {
 	};
@@ -32,7 +30,7 @@ public final class ObjectCache {
 			}
 			ObjectCache.cache = new ConcurrentHashMap<String, MetaInfo<?>>(
 					ObjectCache.maxSize + 1);
-			ObjectCache.scores = new ArrayList<MetaInfo<?>>(ObjectCache.maxSize);
+			ObjectCache.scores = new TreeSet<MetaInfo<?>>();
 		}
 	}
 	
@@ -76,13 +74,19 @@ public final class ObjectCache {
 	
 	protected static void evict(int amount) {
 		synchronized (cache) {
-			Collections.sort(scores);
 			ArrayList<MetaInfo<?>> toEvict = new ArrayList<MetaInfo<?>>(amount);
-			for (int i = 0; i < amount; i++) {
-				MetaInfo<?> entry = scores.get(i);
-				toEvict.add(entry);
+			if (scores.size()<= amount){
+				cache.clear();
+				scores.clear();
+				return;
 			}
-			scores = scores.subList(amount, scores.size());
+			for (int i = 0; i < amount; i++) {
+				if (scores.size()>0){
+					MetaInfo<?> entry = scores.first();
+					toEvict.add(entry);
+					scores.remove(entry);
+				}
+			}
 			for (MetaInfo<?> entry : toEvict) {
 				cache.remove(entry.getKey());
 			}
@@ -95,7 +99,7 @@ public final class ObjectCache {
 	 * @param key
 	 */
 	public static void delete(String key) {
-		cache.remove(key);
+		scores.remove(cache.remove(key));
 	}
 }
 
