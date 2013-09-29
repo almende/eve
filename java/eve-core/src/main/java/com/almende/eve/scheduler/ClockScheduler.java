@@ -3,7 +3,7 @@ package com.almende.eve.scheduler;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,17 +23,17 @@ import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
-	private static final Logger							LOG			= Logger.getLogger("ClockScheduler");
-	private final Agent									myAgent;
-	private final Clock									myClock;
-	private final ClockScheduler						_this		= this;
-	private static final TypedKey<TreeSet<TaskEntry>>	TYPEDKEY	= new TypedKey<TreeSet<TaskEntry>>(
-																			"_taskList") {
-																	};
-	private static final int							MAXCOUNT	= 100;
+	private static final Logger									LOG			= Logger.getLogger("ClockScheduler");
+	private final Agent											myAgent;
+	private final Clock											myClock;
+	private final ClockScheduler								_this		= this;
+	private static final TypedKey<TreeMap<String, TaskEntry>>	TYPEDKEY	= new TypedKey<TreeMap<String, TaskEntry>>(
+																					"_taskList") {
+																			};
+	private static final int									MAXCOUNT	= 100;
 	
 	public ClockScheduler(Agent myAgent, AgentHost factory) {
-		if (myAgent == null){
+		if (myAgent == null) {
 			throw new IllegalArgumentException("MyAgent should not be null!");
 		}
 		this.myAgent = myAgent;
@@ -41,16 +41,16 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	public TaskEntry getFirstTask() {
-		if (myAgent.getState() == null){
+		if (myAgent.getState() == null) {
 			return null;
 		}
-		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline != null && !timeline.isEmpty()) {
-			TaskEntry task = timeline.first();
+			TaskEntry task = timeline.firstEntry().getValue();
 			int count = 0;
 			while (task != null && task.isActive() && count < MAXCOUNT) {
 				count++;
-				task = timeline.higher(task);
+				task = timeline.ceilingEntry(task.getTaskId()).getValue();
 			}
 			if (count >= MAXCOUNT) {
 				LOG.warning("Oops: more than 100 tasks active at the same time:"
@@ -70,32 +70,29 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		putTask(task, false);
 	}
 	
-	public  void putTask(TaskEntry task, boolean onlyIfExists) {
+	public void putTask(TaskEntry task, boolean onlyIfExists) {
 		if (task == null || myAgent.getState() == null) {
 			LOG.warning("Trying to save task to non-existing state or task is null");
 			return;
 		}
-		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
-		TreeSet<TaskEntry> timeline = null;
-		boolean found = false;
+		final TreeMap<String, TaskEntry> oldTimeline = myAgent.getState().get(
+				TYPEDKEY);
+		TreeMap<String, TaskEntry> timeline = null;
+		
 		if (oldTimeline != null) {
-			timeline = new TreeSet<TaskEntry>();
-			TaskEntry[] arr = oldTimeline.toArray(new TaskEntry[0]);
-			for (TaskEntry entry : arr) {
-				if (!entry.getTaskId().equals(task.getTaskId())) {
-					timeline.add(entry);
-				} else {
-					found = true;
-					timeline.add(task);
-				}
-			}
+			timeline = new TreeMap<String, TaskEntry>(oldTimeline);
+		} else {
+			timeline = new TreeMap<String, TaskEntry>();
 		}
-		if (!found && !onlyIfExists) {
-			if (timeline == null) {
-				timeline = new TreeSet<TaskEntry>();
+		
+		if (onlyIfExists) {
+			if (timeline.containsKey(task.getTaskId())) {
+				timeline.put(task.getTaskId(), task);
 			}
-			timeline.add(task);
+		} else {
+			timeline.put(task.getTaskId(), task);
 		}
+		
 		if (!myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(), timeline,
 				oldTimeline)) {
 			LOG.severe("need to retry putTask...");
@@ -107,20 +104,17 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public void cancelTask(String id) {
-		if (myAgent.getState() == null){
+		if (myAgent.getState() == null) {
 			return;
 		}
-
-		final TreeSet<TaskEntry> oldTimeline = myAgent.getState().get(TYPEDKEY);
-		TreeSet<TaskEntry> timeline = null;
+		
+		final TreeMap<String, TaskEntry> oldTimeline = myAgent.getState().get(
+				TYPEDKEY);
+		TreeMap<String, TaskEntry> timeline = null;
+		
 		if (oldTimeline != null) {
-			timeline = new TreeSet<TaskEntry>();
-			TaskEntry[] arr = oldTimeline.toArray(new TaskEntry[0]);
-			for (TaskEntry entry : arr) {
-				if (!entry.getTaskId().equals(id)) {
-					timeline.add(entry);
-				}
-			}
+			timeline = new TreeMap<String, TaskEntry>(oldTimeline);
+			timeline.remove(id);
 		}
 		
 		if (timeline != null
@@ -202,33 +196,30 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public Set<String> getTasks() {
-		if (myAgent.getState() == null){
+		if (myAgent.getState() == null) {
 			return null;
 		}
-
+		
 		Set<String> result = new HashSet<String>();
-		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		TreeMap<String,TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
-		for (TaskEntry entry : timeline) {
-			result.add(entry.getTaskId());
-		}
-		return result;
+		return timeline.keySet();
 	}
 	
 	@Override
 	public Set<String> getDetailedTasks() {
-		if (myAgent.getState() == null){
+		if (myAgent.getState() == null) {
 			return null;
 		}
-
+		
 		Set<String> result = new HashSet<String>();
-		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		TreeMap<String,TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
-		for (TaskEntry entry : timeline) {
+		for (TaskEntry entry : timeline.values()) {
 			result.add(entry.toString());
 		}
 		return result;
@@ -250,11 +241,11 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public String toString() {
-		if (myAgent.getState() == null){
+		if (myAgent.getState() == null) {
 			return null;
 		}
-
-		TreeSet<TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		
+		TreeMap<String,TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
@@ -307,7 +298,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 			return 0;
 		}
 		if (due.equals(o.due)) {
-			return 0;
+			return taskId.compareTo(o.taskId);
 		}
 		return due.compareTo(o.due);
 	}
