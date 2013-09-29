@@ -2,6 +2,7 @@ package com.almende.eve.scheduler;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -50,7 +51,11 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			int count = 0;
 			while (task != null && task.isActive() && count < MAXCOUNT) {
 				count++;
-				task = timeline.ceilingEntry(task.getTaskId()).getValue();
+				Entry<String,TaskEntry> entry =timeline.higherEntry(task.getTaskId());
+				task=null;
+				if (entry != null){
+					task = entry.getValue();
+				}
 			}
 			if (count >= MAXCOUNT) {
 				LOG.warning("Oops: more than 100 tasks active at the same time:"
