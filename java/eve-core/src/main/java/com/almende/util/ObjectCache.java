@@ -99,7 +99,10 @@ public final class ObjectCache {
 	 * @param key
 	 */
 	public static void delete(String key) {
-		scores.remove(cache.remove(key));
+		MetaInfo<?> item =cache.remove(key); 
+		if (item != null){
+			scores.remove(item);
+		}
 	}
 }
 
