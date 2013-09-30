@@ -938,7 +938,7 @@ public class MeetingAgent extends Agent {
 			ObjectNode params = JOM.createObjectNode();
 			params.put("eventId", eventId);
 			try {
-				event = send(URI.create(agent), "getEvent", params, JOM.getSimpleType(ObjectNode.class));
+				event = send(URI.create(agent), "getEvent", params, ObjectNode.class);
 			} catch (JSONRPCException e) {
 				if (e.getCode() == 404) {
 					// event was deleted by the user.
@@ -1033,7 +1033,7 @@ public class MeetingAgent extends Agent {
 				// is not optional or is available at the planned time
 				String method = event.has("id") ? "updateEvent" : "createEvent";
 				ObjectNode updatedEvent = send(URI.create(agent), method, params,
-						JOM.getSimpleType(ObjectNode.class));
+						ObjectNode.class);
 
 				// update the agent data
 				agentData.eventId = updatedEvent.get("id").asText();
