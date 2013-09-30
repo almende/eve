@@ -15,20 +15,30 @@ import com.almende.eve.state.MemoryStateFactory;
 public class Goldemo {
 	final static String	PATH	= "local:";
 	
-	public static void main(String[] args) throws IOException, JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public static void main(String[] args) throws IOException,
+			JSONRPCException, ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException {
 		AgentHost host = AgentHost.getInstance();
-		//host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
+		// host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
 		host.setStateFactory(new MemoryStateFactory());
-		host.setSchedulerFactory(new ClockSchedulerFactory(host, "_myRunnableScheduler"));
-//		host.setSchedulerFactory(new RunnableSchedulerFactory(host, "_myRunnableScheduler"));
+		host.setSchedulerFactory(new ClockSchedulerFactory(host,
+				"_myRunnableScheduler"));
+		// host.setSchedulerFactory(new RunnableSchedulerFactory(host,
+		// "_myRunnableScheduler"));
 		
-		if (args.length != 3) {
+		if (args.length < 3) {
 			throw new IllegalArgumentException(
-					"Please use 3 arguments: X seconds & N rows & M columns");
+					"Please use at least 3 arguments: X seconds & N rows & M columns");
 		}
 		Integer X = Integer.valueOf(args[0]);
 		Integer N = Integer.valueOf(args[1]);
 		Integer M = Integer.valueOf(args[2]);
+		
+		Boolean annimate = false;
+		if (args.length > 3) {
+			annimate = Boolean.valueOf(args[3]);
+		}
 		
 		boolean[][] grid = new boolean[N][M];
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -43,75 +53,87 @@ public class Goldemo {
 					"Incorrect input line detected:" + input);
 			for (int cM = 0; cM < M; cM++) {
 				grid[cN][cM] = (trimmedInput.charAt(cM) == '+');
-				createAgent(host,N,M,cN,cM,(trimmedInput.charAt(cM) == '+'));
+				createAgent(host, N, M, cN, cM,
+						(trimmedInput.charAt(cM) == '+'));
 			}
 			cN++;
 		}
-		for (cN = 0; cN < N; cN++){
-			for (int cM = 0; cM < M; cM++){
-				Cell cell = (Cell)host.getAgent("agent_"+cN+"_"+cM);
+		for (cN = 0; cN < N; cN++) {
+			for (int cM = 0; cM < M; cM++) {
+				Cell cell = (Cell) host.getAgent("agent_" + cN + "_" + cM);
 				cell.register();
 			}
 		}
-		for (cN = 0; cN < N; cN++){
-			for (int cM = 0; cM < M; cM++){
-				Cell cell = (Cell)host.getAgent("agent_"+cN+"_"+cM);
+		for (cN = 0; cN < N; cN++) {
+			for (int cM = 0; cM < M; cM++) {
+				Cell cell = (Cell) host.getAgent("agent_" + cN + "_" + cM);
 				cell.start();
 			}
 		}
 		try {
-			Thread.sleep(X*1000);
+			Thread.sleep(X * 1000);
 		} catch (InterruptedException e) {
 			System.err.println("Early interrupt");
 		}
-		for (cN = 0; cN < N; cN++){
-			for (int cM = 0; cM < M; cM++){
-				Cell cell = (Cell)host.getAgent("agent_"+cN+"_"+cM);
+		for (cN = 0; cN < N; cN++) {
+			for (int cM = 0; cM < M; cM++) {
+				Cell cell = (Cell) host.getAgent("agent_" + cN + "_" + cM);
 				cell.stop();
 			}
 		}
-		HashMap<String,ArrayList<CycleState>> results = new HashMap<String,ArrayList<CycleState>>();
-		for (cN = 0; cN < N; cN++){
-			for (int cM = 0; cM < M; cM++){
-				Cell cell = (Cell)host.getAgent("agent_"+cN+"_"+cM);
-				results.put(cell.getId(), cell.getAllCycleStates());
+		HashMap<String, ArrayList<CycleState>> results = new HashMap<String, ArrayList<CycleState>>();
+		int max_full=0;
+		for (cN = 0; cN < N; cN++) {
+			for (int cM = 0; cM < M; cM++) {
+				Cell cell = (Cell) host.getAgent("agent_" + cN + "_" + cM);
+				ArrayList<CycleState> res = cell.getAllCycleStates();
+				max_full = (max_full==0||max_full>res.size()?res.size():max_full);
+				results.put(cell.getId(), res);
 			}
 		}
-		int cycle=0;
-		boolean full=true;
-		while (full){
-			System.out.println("Cycle:"+cycle);
+		int cycle = 0;
+		for (int j=0; j<max_full; j++) {
+			if (annimate) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+				}
+				final String ESC = "\033[";
+				System.out.print(ESC + "2J");
+			}
+			System.out.println("Cycle:" + cycle +"/"+(max_full-1));
 			System.out.print("/");
-			for (int i=0; i<M*2;i++){
+			for (int i = 0; i < M * 2; i++) {
 				System.out.print("-");
 			}
 			System.out.println("-\\");
-			for (cN = 0; cN < N; cN++){
+			for (cN = 0; cN < N; cN++) {
 				System.out.print("| ");
-				for (int cM = 0; cM < M; cM++){
-					String id=("agent_"+cN+"_"+cM);
+				for (int cM = 0; cM < M; cM++) {
+					String id = ("agent_" + cN + "_" + cM);
 					ArrayList<CycleState> states = results.get(id);
-					if (states.size() <= cycle){
-						full=false;
+					if (states.size() <= cycle) {
 						break;
 					}
-					System.out.print(states.get(cycle).isAlive()?"* ":"- ");
+					System.out.print(states.get(cycle).isAlive() ? "# " : "- ");
 				}
 				System.out.println("|");
 			}
 			System.out.print("\\");
-			for (int i=0; i<M*2;i++){
+			for (int i = 0; i < M * 2; i++) {
 				System.out.print("-");
 			}
 			System.out.println("-/");
 			cycle++;
 		}
-		//System.out.println(results);
+		// System.out.println(results);
 		System.exit(0);
 	}
 	
-	public static void createAgent(AgentHost host, int N, int M, int cN, int cM,
-			boolean state) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
+	public static void createAgent(AgentHost host, int N, int M, int cN,
+			int cM, boolean state) throws JSONRPCException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException {
 		
 		String agentId = "agent_" + cN + "_" + cM;
 		ArrayList<String> neighbors = new ArrayList<String>(8);
