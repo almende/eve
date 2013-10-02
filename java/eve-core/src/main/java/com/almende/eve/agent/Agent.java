@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.Namespace;
@@ -129,7 +130,7 @@ public abstract class Agent implements AgentInterface {
 			delete();
 		} else if ("setSchedulerFactory".equals(event.getEvent())) {
 			// init scheduler tasks
-			this.scheduler=agentHost.getScheduler(this);
+			this.scheduler = agentHost.getScheduler(this);
 		} else if ("addTransportService".equals(event.getEvent())) {
 			TransportService service = (TransportService) event.getService();
 			service.reconnect(getId());
@@ -145,6 +146,14 @@ public abstract class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void create() {
+		for (TransportService service : agentHost.getTransportServices()) {
+			try {
+				service.reconnect(getId());
+			} catch (Exception e) {
+				LOG.log(Level.WARNING, "Couldn't reconnect transport:"
+						+ service + " for agent:" + getId(), e);
+			}
+		}
 	}
 	
 	/**
@@ -213,7 +222,6 @@ public abstract class Agent implements AgentInterface {
 		return state;
 	}
 	
-	
 	@Override
 	@Namespace("scheduler")
 	public final Scheduler getScheduler() {
@@ -266,7 +274,7 @@ public abstract class Agent implements AgentInterface {
 		return getAgentHost().getMethods(this);
 	}
 	
-	//TODO: only allow ObjectNode as params?
+	// TODO: only allow ObjectNode as params?
 	private JSONResponse locSend(URI url, String method, Object params)
 			throws ProtocolException, JSONRPCException {
 		// TODO: implement support for adding custom http headers (for
@@ -282,7 +290,7 @@ public abstract class Agent implements AgentInterface {
 		// invoke the other agent via the AgentHost, allowing the factory
 		// to route the request internally or externally
 		String id = new UUID().toString();
-//		String id = "hi there!";
+		// String id = "hi there!";
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
 		JSONResponse response = getAgentHost().send(this, url, request);
 		JSONRPCException err = response.getError();
@@ -296,14 +304,14 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Class<T> type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(locSend(url, method, params).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Type type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject( locSend(url, method, params).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
 	@Override
@@ -317,21 +325,21 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, JavaType type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(locSend(url, method, params).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Type type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(locSend(url, method, null).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, JavaType type)
 			throws ProtocolException, JSONRPCException {
-		return TypeUtil.inject(locSend(url, method, null).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
 	@Override
@@ -339,7 +347,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> T send(URI url, String method, Class<T> type)
 			throws ProtocolException, JSONRPCException {
 		
-		return TypeUtil.inject(locSend(url, method, null).getResult(),type);
+		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
 	@Override
@@ -451,7 +459,8 @@ public abstract class Agent implements AgentInterface {
 						callback.onFailure(err);
 					}
 					if (type != null && !type.hasRawClass(Void.class)) {
-						callback.onSuccess((T) TypeUtil.inject(response.getResult(),type));
+						callback.onSuccess((T) TypeUtil.inject(
+								response.getResult(), type));
 					} else {
 						callback.onSuccess(null);
 					}
