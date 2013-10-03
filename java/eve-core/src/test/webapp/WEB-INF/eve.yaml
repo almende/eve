@@ -16,7 +16,7 @@ transport_services:
 - class: HttpService
   servlet_url: http://localhost:8080/agents/
 - class: ZmqService
-  baseUrl: tcp://127.0.0.1:5555
+  baseUrl: tcp://127.0.0.1:5444
 - class: ZmqService
   baseUrl: inproc://
 - class: ZmqService
