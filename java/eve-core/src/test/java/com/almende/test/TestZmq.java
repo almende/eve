@@ -35,7 +35,7 @@ public class TestZmq extends TestCase {
 		host.addTransportService(new ZmqService(host, params));
 		
 		Test2Agent test = host.createAgent(Test2Agent.class, "test");
-		host.createAgent(Test2Agent.class, "test2");
+		Test2Agent test2 = host.createAgent(Test2Agent.class, "test2");
 		
 		
 		final Set<String> results = new ConcurrentHashSet<String>();
@@ -58,24 +58,46 @@ public class TestZmq extends TestCase {
 		parms.put("message", "1");
 		test.sendAsync(URI.create("zmq:tcp://127.0.0.1:5556"), "slowPing",
 				parms, callback, String.class);
-		Thread.sleep(100);
 		
+		parms = JOM.createObjectNode();
 		parms.put("message", "2");
 		test.sendAsync(URI.create("zmq:tcp://127.0.0.1:5556"), "slowPing",
 				parms, callback, String.class);
-		
+
+		parms = JOM.createObjectNode();
 		parms.put("message", "3");
 		test.sendAsync(URI.create("zmq:tcp://127.0.0.1:5555"), "slowPing",
 				parms, callback, String.class);
-		Thread.sleep(100);
 		
+		parms = JOM.createObjectNode();
 		parms.put("message", "4");
 		test.sendAsync(URI.create("zmq:tcp://127.0.0.1:5555"), "slowPing",
+				parms, callback, String.class);
+		
+		
+		parms = JOM.createObjectNode();
+		parms.put("message", "5");
+		test2.sendAsync(URI.create("zmq:tcp://127.0.0.1:5555"), "slowPing",
+				parms, callback, String.class);
+		
+		parms = JOM.createObjectNode();
+		parms.put("message", "6");
+		test2.sendAsync(URI.create("zmq:tcp://127.0.0.1:5555"), "slowPing",
+				parms, callback, String.class);
+
+		parms = JOM.createObjectNode();
+		parms.put("message", "7");
+		test2.sendAsync(URI.create("zmq:tcp://127.0.0.1:5556"), "slowPing",
+				parms, callback, String.class);
+		
+		parms = JOM.createObjectNode();
+		parms.put("message", "8");
+		test2.sendAsync(URI.create("zmq:tcp://127.0.0.1:5556"), "slowPing",
 				parms, callback, String.class);
 		Thread.sleep(2000);
 		
 		System.err.println("results:"+results);
-		assertEquals(4,results.size());
+		assertEquals(8,results.size());
 		
 	}
 	

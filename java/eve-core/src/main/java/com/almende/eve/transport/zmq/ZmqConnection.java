@@ -1,5 +1,6 @@
 package com.almende.eve.transport.zmq;
 
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +21,8 @@ public class ZmqConnection {
 													.getCanonicalName());
 	
 	private final Socket		socket;
+	private final Object		inLock		= new Object();
+	private final Object		outLock		= new Object();
 	private String				zmqUrl		= null;
 	private Thread				myThread	= null;
 	private AgentHost			host		= null;
@@ -74,9 +77,21 @@ public class ZmqConnection {
 	}
 	
 	private void sendResponse(final byte[] connId, final JSONResponse response) {
-		socket.send(connId, ZMQ.SNDMORE);
-		socket.send(new byte[0], ZMQ.SNDMORE);
-		socket.send(response.toString());
+		synchronized (outLock) {
+			socket.send(connId, ZMQ.SNDMORE);
+			socket.send(new byte[0], ZMQ.SNDMORE);
+			socket.send(response.toString());
+		}
+	}
+	
+	private ByteBuffer[] getRequest() {
+		synchronized (inLock) {
+			ByteBuffer[] result = new ByteBuffer[2];
+			result[0] = ByteBuffer.wrap(socket.recv());
+			socket.recv();
+			result[1] = ByteBuffer.wrap(socket.recv());
+			return result;
+		}
 	}
 	
 	/**
@@ -94,11 +109,10 @@ public class ZmqConnection {
 				while (true) {
 					
 					// Receive connID|empty delimiter|body
-					final byte[] connId = socket.recv();
-					socket.recv();
-					String body = new String(socket.recv());
+					ByteBuffer[] msg = getRequest();
+					final byte[] connId = msg[0].array();
+					String body = new String(msg[1].array());
 					
-					LOG.warning("Received message:"+body);
 					if (body != null && body.startsWith("{")
 							|| body.trim().startsWith("{")) {
 						// the body contains a JSON object
