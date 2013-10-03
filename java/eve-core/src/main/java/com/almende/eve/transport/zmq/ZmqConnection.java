@@ -86,10 +86,12 @@ public class ZmqConnection {
 	
 	private ByteBuffer[] getRequest() {
 		synchronized (inLock) {
-			ByteBuffer[] result = new ByteBuffer[2];
+			ByteBuffer[] result = new ByteBuffer[4];
 			result[0] = ByteBuffer.wrap(socket.recv());
 			socket.recv();
 			result[1] = ByteBuffer.wrap(socket.recv());
+			result[2] = ByteBuffer.wrap(socket.recv());
+			result[3] = ByteBuffer.wrap(socket.recv());
 			return result;
 		}
 	}
@@ -108,10 +110,13 @@ public class ZmqConnection {
 			public void run() {
 				while (true) {
 					
-					// Receive connID|empty delimiter|body
+					// Receive connID|empty delimiter|senderUrl|token|body
 					ByteBuffer[] msg = getRequest();
 					final byte[] connId = msg[0].array();
-					String body = new String(msg[1].array());
+					final String senderUrl = new String(msg[1].array());
+					//TODO: provide token handshake. But without encryption this is mute!
+//					final String token = new String(msg[2].array());
+					final String body = new String(msg[3].array());
 					
 					if (body != null && body.startsWith("{")
 							|| body.trim().startsWith("{")) {
@@ -121,8 +126,6 @@ public class ZmqConnection {
 							json = JOM.getInstance().readValue(body,
 									ObjectNode.class);
 							
-							// TODO: senderUrl
-							String senderUrl = "";
 							JSONRequest request = new JSONRequest(json);
 							invoke(senderUrl, request,
 									new AsyncCallback<JSONResponse>() {

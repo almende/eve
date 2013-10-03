@@ -17,6 +17,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
+import com.almende.util.tokens.TokenStore;
 
 public class ZmqService implements TransportService {
 	private static final Logger		LOG				= Logger.getLogger(ZmqService.class
@@ -79,12 +80,14 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public JSONResponse send(String senderId, String receiver,
+	public JSONResponse send(String senderUrl, String receiverUrl,
 			JSONRequest request) throws JSONRPCException {
 		JSONResponse response = null;
 		try {
 			Socket socket = ZMQ.getInstance().createSocket(ZMQ.REQ);
-			socket.connect(receiver.replaceFirst("zmq:/?/?", ""));
+			socket.connect(receiverUrl.replaceFirst("zmq:/?/?", ""));
+			socket.send(senderUrl,ZMQ.SNDMORE);
+			socket.send(TokenStore.create().getToken(),ZMQ.SNDMORE);
 			socket.send(request.toString());
 			String result = socket.recvStr();
 			response = new JSONResponse(result);
@@ -97,7 +100,7 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public void sendAsync(final String senderId, final String receiver,
+	public void sendAsync(final String senderUrl, final String receiver,
 			final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) throws JSONRPCException {
 		new Thread(new Runnable() {
@@ -105,7 +108,7 @@ public class ZmqService implements TransportService {
 			public void run() {
 				JSONResponse response;
 				try {
-					response = send(senderId, receiver, request);
+					response = send(senderUrl, receiver, request);
 					callback.onSuccess(response);
 				} catch (Exception e) {
 					callback.onFailure(e);
