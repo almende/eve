@@ -137,7 +137,7 @@ public class AgentServlet extends HttpServlet {
 				doAuthenticationStr = AgentListener.getParam("authentication");
 				if (doAuthenticationStr == null) {
 					doAuthenticationStr = "true";
-					LOG.warning("context-param \"eve_uthentication\" not found. Using default value " + doAuthenticationStr);
+					LOG.warning("context-param \"eve_authentication\" not found. Using default value " + doAuthenticationStr);
 				}
 				else {
 					LOG.warning("context-param \"authentication\" is deprecated. Use \"eve_authentication\" instead.");
