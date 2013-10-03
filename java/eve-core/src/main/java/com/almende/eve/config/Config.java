@@ -34,6 +34,7 @@ public class Config extends YamlConfig {
 				"com.almende.eve.scheduler.google.GaeSchedulerFactory");
 		LABELS.put("xmppservice", "com.almende.eve.transport.xmpp.XmppService");
 		LABELS.put("httpservice", "com.almende.eve.transport.http.HttpService");
+		LABELS.put("zmqservice", "com.almende.eve.transport.zmq.ZmqService");
 	}
 	
 	public Config() {

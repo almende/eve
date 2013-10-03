@@ -23,7 +23,6 @@ public class ZmqService implements TransportService {
 															.getCanonicalName());
 	
 	private AgentHost				agentHost		= null;
-	private int						basePort		= 0;
 	private String					baseUrl			= "";
 	HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
 	
@@ -44,7 +43,6 @@ public class ZmqService implements TransportService {
 		this.agentHost = agentHost;
 		
 		if (params != null) {
-			basePort = (Integer) params.get("basePort");
 			baseUrl = (String) params.get("baseUrl");
 		}
 		
@@ -122,6 +120,20 @@ public class ZmqService implements TransportService {
 		return Arrays.asList("zmq");
 	}
 	
+	private String genUrl(String agentId){
+		if (baseUrl.startsWith("tcp://")){
+			int basePort = Integer.parseInt(baseUrl.replaceAll(".*:", ""));
+			//TODO: this is not nice. Agents might change address at server restart.... How to handle this?
+			return baseUrl.replaceFirst(":[0-9]*$", "") + ":" + (basePort + inboundSockets.size());	
+		} else if (baseUrl.startsWith("inproc://")){
+			return baseUrl + agentId;
+		} else if (baseUrl.startsWith("ipc://")){
+			return baseUrl + agentId;
+		} else {
+			throw new IllegalStateException("ZMQ baseUrl not valid! (baseUrl:'"+baseUrl+"')");
+		}
+	}
+	
 	@Override
 	public synchronized void reconnect(String agentId) throws JSONRPCException,
 			IOException {
@@ -135,7 +147,8 @@ public class ZmqService implements TransportService {
 			ZmqConnection socket = new ZmqConnection(ZMQ.getInstance()
 					.createSocket(ZMQ.ROUTER));
 			
-			String url = baseUrl + ":" + (basePort + inboundSockets.size());
+			
+			String url = genUrl(agentId);
 			socket.getSocket().bind(url);
 			socket.setAgentUrl(url);
 			socket.setAgentId(agentId);
@@ -148,7 +161,7 @@ public class ZmqService implements TransportService {
 	
 	@Override
 	public String getKey() {
-		return "zmq:" + baseUrl + ":" + basePort;
+		return "zmq:" + baseUrl;
 	}
 	
 }
