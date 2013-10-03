@@ -17,6 +17,7 @@ import com.almende.util.uuid.UUID;
  * the call, it can request a resend of the
  * token at time X.
  * 
+ * 
  * @author ludo
  * 
  */
@@ -27,10 +28,17 @@ public final class TokenStore {
 	private static State			tokens;
 	private static DateTime			last	= DateTime.now();
 	
-	private TokenStore() {
+	static {
 		AgentHost host = AgentHost.getInstance();
 		
-		StateFactory factory = host.getStateFactoryFromConfig(host.getConfig(), "tokens");
+		StateFactory factory = null;
+		if (host.getConfig() != null){
+			factory = host.getStateFactoryFromConfig(
+				host.getConfig(), "tokens");
+		}
+		if (factory == null){
+			factory = host.getStateFactory();
+		}
 		if (factory.exists("_TokenStore")) {
 			tokens = factory.get("_TokenStore");
 		} else {
@@ -42,6 +50,7 @@ public final class TokenStore {
 			}
 		}
 	}
+	private TokenStore(){};
 	
 	public static String get(String time) {
 		try {

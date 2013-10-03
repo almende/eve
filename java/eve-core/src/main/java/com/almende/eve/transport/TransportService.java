@@ -28,24 +28,24 @@ public interface TransportService {
 	/**
 	 * Send a message to an other agent
 	 * 
-	 * @param senderId
+	 * @param senderUrl
 	 * @oaran receiverUrl
 	 * @param request
 	 * @response response
 	 */
-	JSONResponse send(final String senderId, final String receiver,
+	JSONResponse send(final String senderUrl, final String receiverUrl,
 			final JSONRequest request) throws JSONRPCException;
 	
 	/**
 	 * Asynchronously Send a message to an other agent
 	 * 
-	 * @param senderId
+	 * @param senderUrl
 	 * @oaran receiverUrl
 	 * @param request
 	 * @param callback
 	 *            with a JSONResponse
 	 */
-	void sendAsync(final String senderId, final String receiver,
+	void sendAsync(final String senderUrl, final String receiverUrl,
 			final JSONRequest request,
 			final AsyncCallback<JSONResponse> callback) throws JSONRPCException;
 	

@@ -93,8 +93,14 @@ public final class ApacheHttpClient {
 		
 		MyCookieStore() throws IOException {
 			AgentHost host = AgentHost.getInstance();
-			StateFactory factory = host.getStateFactoryFromConfig(
+			StateFactory factory = null;
+			if (host.getConfig() != null){
+				factory = host.getStateFactoryFromConfig(
 					host.getConfig(), "cookies");
+			}
+			if (factory == null){
+				factory = host.getStateFactory();
+			}
 			if (factory.exists(COOKIESTORE)) {
 				myState = factory.get(COOKIESTORE);
 			} else {
