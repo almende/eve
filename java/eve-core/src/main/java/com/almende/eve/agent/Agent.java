@@ -387,8 +387,8 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> void sendAsync(URI url, String method, ObjectNode params,
-			final AsyncCallback<T> callback, Class<T> type)
+	public final <T> void sendAsync(final URI url, final String method, final ObjectNode params,
+			final AsyncCallback<T> callback, final Class<T> type)
 			throws ProtocolException, JSONRPCException {
 		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
@@ -398,7 +398,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> void sendAsync(URI url, String method, ObjectNode params,
+	public final <T> void sendAsync(final URI url, final String method, final ObjectNode params,
 			final AsyncCallback<T> callback, final Type type)
 			throws ProtocolException, JSONRPCException {
 		String id = new UUID().toString();
@@ -409,7 +409,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> void sendAsync(URI url, String method, ObjectNode params,
+	public final <T> void sendAsync(final URI url, final String method, final ObjectNode params,
 			final AsyncCallback<T> callback, final JavaType type)
 			throws ProtocolException, JSONRPCException {
 		String id = new UUID().toString();
@@ -420,7 +420,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
-			final AsyncCallback<T> callback, Class<T> type)
+			final AsyncCallback<T> callback, final Class<T> type)
 			throws ProtocolException, JSONRPCException {
 		sendAsync(url, request, callback, JOM.getTypeFactory()
 				.uncheckedSimpleType(type));
@@ -429,7 +429,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
-			final AsyncCallback<T> callback, Type type)
+			final AsyncCallback<T> callback, final Type type)
 			throws ProtocolException, JSONRPCException {
 		sendAsync(url, request, callback,
 				JOM.getTypeFactory().constructType(type));

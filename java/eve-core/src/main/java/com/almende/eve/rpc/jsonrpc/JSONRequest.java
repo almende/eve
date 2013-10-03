@@ -67,23 +67,23 @@ public class JSONRequest implements Serializable {
 		init(null, method, params);
 	}
 	
-	public JSONRequest(Object id, String method, ObjectNode params) {
+	public JSONRequest(final Object id, final String method, final ObjectNode params) {
 		init(id, method, params);
 	}
 	
-	public JSONRequest(String method, ObjectNode params, String callbackUrl,
-			String callbackMethod) {
+	public JSONRequest(final String method, final ObjectNode params, final String callbackUrl,
+			final String callbackMethod) {
 		init(null, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	public JSONRequest(Object id, String method, ObjectNode params,
-			String callbackUrl, String callbackMethod) {
+	public JSONRequest(final Object id, final String method, final ObjectNode params,
+			final String callbackUrl, final String callbackMethod) {
 		init(id, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	private void init(Object id, String method, ObjectNode params) {
+	private void init(final Object id, final String method, final ObjectNode params) {
 		setVersion();
 		setId(id);
 		setMethod(method);
@@ -112,7 +112,11 @@ public class JSONRequest implements Serializable {
 	}
 	
 	public final void setParams(ObjectNode params) {
-		req.put("params", params != null ? params : JOM.createObjectNode());
+		ObjectNode newParams = JOM.createObjectNode();
+		if (params != null){
+			newParams.setAll(params);
+		}
+		req.put("params", newParams );
 	}
 	
 	public ObjectNode getParams() {
