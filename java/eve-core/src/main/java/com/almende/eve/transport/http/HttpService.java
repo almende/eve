@@ -22,6 +22,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
+import com.almende.util.tokens.TokenStore;
 
 public class HttpService implements TransportService {
 	private static final Logger	LOG			= Logger.getLogger(HttpService.class
@@ -112,8 +113,7 @@ public class HttpService implements TransportService {
 	/**
 	 * Send a JSON-RPC request to an agent via HTTP
 	 * 
-	 * @param senderId
-	 *            Unused in the case of a HttpTransport
+	 * @param senderUrl
 	 * @param receiverUrl
 	 * @param request
 	 * @return response
@@ -157,7 +157,7 @@ public class HttpService implements TransportService {
 	/**
 	 * Send an asynchronous JSON-RPC request to an agent via HTTP
 	 * 
-	 * @param senderId
+	 * @param senderUrl
 	 * @param receiver
 	 * @param receiverUrl
 	 * @return response

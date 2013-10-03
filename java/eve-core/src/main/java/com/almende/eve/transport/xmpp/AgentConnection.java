@@ -307,6 +307,8 @@ public class AgentConnection {
 		 * @param senderUrl
 		 * @param request
 		 */
+		
+		//TODO: refactor this to reuse the ZmqConnection structure (with a AsyncCallback)
 		private void invoke(final String senderUrl, final JSONRequest request) {
 			new Thread(new Runnable() {
 				@Override

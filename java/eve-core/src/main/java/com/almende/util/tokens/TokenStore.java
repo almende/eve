@@ -1,4 +1,4 @@
-package com.almende.eve.transport.http;
+package com.almende.util.tokens;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.util.uuid.UUID;
@@ -24,7 +23,6 @@ import com.almende.util.uuid.UUID;
 public final class TokenStore {
 	private static final Logger		LOG		= Logger.getLogger(TokenStore.class
 													.getCanonicalName());
-	private static final TokenStore	ME		= new TokenStore();
 	private static final int		SIZE	= 5;
 	private static State			tokens;
 	private static DateTime			last	= DateTime.now();
@@ -61,7 +59,7 @@ public final class TokenStore {
 					|| last.plus(3600000).isBeforeNow()) {
 				DateTime now = DateTime.now();
 				String token = new UUID().toString();
-				result = ME.new TokenRet(token, now);
+				result = new TokenRet(token, now);
 				tokens.put(now.toString(), token);
 				last = now;
 				
@@ -81,38 +79,10 @@ public final class TokenStore {
 					tokens.remove(oldest.toString());
 				}
 			} else {
-				result = ME.new TokenRet(tokens.get(last.toString(),
+				result = new TokenRet(tokens.get(last.toString(),
 						String.class), last);
 			}
 			return result;
-		}
-	}
-	
-	class TokenRet {
-		private String	token	= null;
-		private String	time	= null;
-		
-		public TokenRet(String token, DateTime time) {
-			this.token = token;
-			this.time = time.toString();
-		}
-		
-		public String toString() {
-			try {
-				return JOM.getInstance().writeValueAsString(this);
-			} catch (Exception e) {
-				LOG.log(Level.WARNING, "", e);
-				return "{\"token\":\"" + token + "\",\"time\":\"" + time
-						+ "\"}";
-			}
-		}
-		
-		public String getToken() {
-			return token;
-		}
-		
-		public String getTime() {
-			return time;
 		}
 	}
 }

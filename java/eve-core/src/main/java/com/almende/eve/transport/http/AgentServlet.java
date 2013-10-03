@@ -28,6 +28,7 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
+import com.almende.util.tokens.TokenStore;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("serial")
