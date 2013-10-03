@@ -63,6 +63,19 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return message;
 	}
 
+	public String slowPing(@Name("message") String message, 
+			@Sender String sender) throws Exception {
+		ObjectNode params = JOM.createObjectNode();
+		params.put("message", message);
+		params.put("sender", sender);
+		
+		Thread.sleep(1000);
+		
+		getEventsFactory().trigger("message", params);
+		
+		return message;
+	}
+	
 	public void create() {
 		System.out.println("creating Test2Agent/" + getId());
 		super.create();
