@@ -86,9 +86,11 @@ public class ZmqService implements TransportService {
 		try {
 			Socket socket = ZMQ.getInstance().createSocket(ZMQ.REQ);
 			socket.connect(receiverUrl.replaceFirst("zmq:/?/?", ""));
+			socket.send(ZMQ.NORMAL,ZMQ.SNDMORE);
 			socket.send(senderUrl,ZMQ.SNDMORE);
-			socket.send(TokenStore.create().getToken(),ZMQ.SNDMORE);
+			socket.send(TokenStore.create().toString(),ZMQ.SNDMORE);
 			socket.send(request.toString());
+			
 			String result = socket.recvStr();
 			response = new JSONResponse(result);
 		} catch (Exception e) {

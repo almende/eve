@@ -13,6 +13,8 @@ public class TokenRet {
 	private String	token	= null;
 	private String	time	= null;
 	
+	public TokenRet(){}
+	
 	public TokenRet(String token, DateTime time) {
 		this.token = token;
 		this.time = time.toString();
@@ -31,8 +33,13 @@ public class TokenRet {
 	public String getToken() {
 		return token;
 	}
-	
+	public void setToken(String token) {
+		this.token = token;
+	}	
 	public String getTime() {
 		return time;
+	}
+	public void setTime(String time) {
+		this.time = time;
 	}
 }
