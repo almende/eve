@@ -74,7 +74,7 @@ public final class AgentHost implements AgentHostInterface {
 	public void loadConfig(Config config) {
 		HOST.setConfig(config);
 		if (config != null) {
-			ObjectCache.configCache(config);
+			ObjectCache.get("agents").configCache(config);
 			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first,
 			// then the state and transport services, and lastly scheduler.
@@ -115,7 +115,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		
 		// Check if agent is instantiated already, returning if it is:
-		Agent agent = ObjectCache.get(agentId, Agent.class);
+		Agent agent = ObjectCache.get("agents").get(agentId, Agent.class);
 		if (agent != null) {
 			return agent;
 		}
@@ -153,7 +153,7 @@ public final class AgentHost implements AgentHostInterface {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			ObjectCache.put(agentId, agent);
+			ObjectCache.get("agents").put(agentId, agent);
 		}
 		
 		return agent;
@@ -173,7 +173,7 @@ public final class AgentHost implements AgentHostInterface {
 			throw new IllegalArgumentException("agentInterface must extend "
 					+ AgentInterface.class.getName());
 		}
-		T proxy = ObjectCache.get(
+		T proxy = ObjectCache.get("agents").get(
 				"proxy_" + (sender != null ? sender.getId() + "_" : "")
 						+ agentInterface, agentInterface);
 		if (proxy != null) {
@@ -208,7 +208,7 @@ public final class AgentHost implements AgentHostInterface {
 					}
 				});
 		
-		ObjectCache.put("proxy_" + (sender != null ? sender.getId() + "_" : "")
+		ObjectCache.get("agents").put("proxy_" + (sender != null ? sender.getId() + "_" : "")
 				+ agentInterface.getCanonicalName(), proxy);
 		
 		return proxy;
@@ -267,7 +267,7 @@ public final class AgentHost implements AgentHostInterface {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			ObjectCache.put(agentId, agent);
+			ObjectCache.get("agents").put(agentId, agent);
 		}
 		
 		return agent;
@@ -303,7 +303,7 @@ public final class AgentHost implements AgentHostInterface {
 				// get the agent and execute the delete method
 				agent.signalAgent(new AgentSignal<Void>("destroy"));
 				agent.signalAgent(new AgentSignal<Void>("delete"));
-				ObjectCache.delete(agentId);
+				ObjectCache.get("agents").delete(agentId);
 				agent = null;
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);

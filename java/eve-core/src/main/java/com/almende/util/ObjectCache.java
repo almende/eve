@@ -7,14 +7,31 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.almende.eve.config.Config;
 
-public final class ObjectCache {
-	private static int						maxSize	= 1000;
-	private static Map<String, MetaInfo<?>>	cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
+public class ObjectCache {
+	private int								maxSize	= 1000;
+	private Map<String, MetaInfo<?>>		cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
 															maxSize);
-	private static TreeSet<MetaInfo<?>>		scores	= new TreeSet<MetaInfo<?>>();
+	private TreeSet<MetaInfo<?>>			scores	= new TreeSet<MetaInfo<?>>();
 	
-	private ObjectCache() {
-	};
+	private static Map<String, ObjectCache>	caches	= new ConcurrentHashMap<String, ObjectCache>();
+	
+	protected ObjectCache(String label, Config config) {
+		if (config != null) {
+			configCache(config);
+		}
+		caches.put(label, this);
+	}
+	
+	protected ObjectCache(String label) {
+		this(label, null);
+	}
+	
+	public static ObjectCache get(String label) {
+		if (!caches.containsKey(label)) {
+			new ObjectCache(label);
+		}
+		return caches.get(label);
+	}
 	
 	/**
 	 * Reinitialize cache, using given configuration. (currently only
@@ -22,15 +39,15 @@ public final class ObjectCache {
 	 * 
 	 * @param config
 	 */
-	public static void configCache(Config config) {
+	public void configCache(Config config) {
 		synchronized (cache) {
 			Integer max = config.get("ObjectCache", "maxSize");
 			if (max != null) {
-				ObjectCache.maxSize = max;
+				this.maxSize = max;
 			}
-			ObjectCache.cache = new ConcurrentHashMap<String, MetaInfo<?>>(
-					ObjectCache.maxSize + 1);
-			ObjectCache.scores = new TreeSet<MetaInfo<?>>();
+			this.cache = new ConcurrentHashMap<String, MetaInfo<?>>(
+					this.maxSize + 1);
+			this.scores = new TreeSet<MetaInfo<?>>();
 		}
 	}
 	
@@ -41,7 +58,7 @@ public final class ObjectCache {
 	 * @param key
 	 * @return
 	 */
-	public static <T> T get(String key, Class<T> type) {
+	public <T> T get(String key, Class<T> type) {
 		synchronized (cache) {
 			MetaInfo<?> result = cache.get(key);
 			if (result != null
@@ -53,6 +70,10 @@ public final class ObjectCache {
 		}
 	}
 	
+	public boolean containsKey(String key) {
+		return cache.containsKey(key);
+	}
+	
 	/**
 	 * Put agent instance into the cache from later retrieval. Runs eviction
 	 * policy after entry of agent.
@@ -60,7 +81,7 @@ public final class ObjectCache {
 	 * @param key
 	 * @param value
 	 */
-	public static <T> void put(String key, T value) {
+	public <T> void put(String key, T value) {
 		synchronized (cache) {
 			MetaInfo<T> entry = new MetaInfo<T>(key, value);
 			cache.put(key, entry);
@@ -72,16 +93,16 @@ public final class ObjectCache {
 		}
 	}
 	
-	protected static void evict(int amount) {
+	protected void evict(int amount) {
 		synchronized (cache) {
 			ArrayList<MetaInfo<?>> toEvict = new ArrayList<MetaInfo<?>>(amount);
-			if (scores.size()<= amount){
+			if (scores.size() <= amount) {
 				cache.clear();
 				scores.clear();
 				return;
 			}
 			for (int i = 0; i < amount; i++) {
-				if (scores.size()>0){
+				if (scores.size() > 0) {
 					MetaInfo<?> entry = scores.first();
 					toEvict.add(entry);
 					scores.remove(entry);
@@ -98,12 +119,25 @@ public final class ObjectCache {
 	 * 
 	 * @param key
 	 */
-	public static void delete(String key) {
-		MetaInfo<?> item =cache.remove(key); 
-		if (item != null){
+	public void delete(String key) {
+		MetaInfo<?> item = cache.remove(key);
+		if (item != null) {
 			scores.remove(item);
 		}
 	}
+	
+	public int size() {
+		return cache.size();
+	}
+	
+	public boolean isEmpty() {
+		return cache.isEmpty();
+	}
+	
+	public void clear() {
+		cache.clear();
+	}
+	
 }
 
 class MetaInfo<T> implements Comparable<MetaInfo<?>> {
