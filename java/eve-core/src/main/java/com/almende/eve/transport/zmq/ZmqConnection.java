@@ -10,6 +10,7 @@ import org.zeromq.ZMQ.Socket;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -138,50 +139,56 @@ public class ZmqConnection {
 	}
 	
 	private void handleMsg(final ByteBuffer[] msg) {
+		
 		// Receive connID|emptyDelimiter|ZMQ.NORMAL|senderUrl|tokenJson|body
 		// or connID|emptyDelimiter|ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
 		final byte[] connId = msg[0].array();
-		final boolean handShake = Arrays.equals(msg[1].array(), ZMQ.HANDSHAKE);
-		final String senderUrl = new String(msg[2].array());
-		final String body = new String(msg[4].array());
-		
-		TokenRet token = null;
 		try {
-			token = JOM.getInstance().readValue(msg[3].array(), TokenRet.class);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Failed to parse token structure:"
-					+ new String(msg[3].array()), e);
-			return;
-		}
-		if (handShake) {
-			String res = TokenStore.get(body);
-			sendResponse(connId, res);
-			return;
-		} else {
-			ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
-			String key = senderUrl + ":" + token.getToken();
-			if (!sessionCache.containsKey(key)) {
-				Socket locSocket = ZMQ.getInstance().createSocket(ZMQ.REQ);
-				locSocket.connect(senderUrl.replaceFirst("zmq:/?/?", ""));
-				locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
-				locSocket.send(senderUrl, ZMQ.SNDMORE);
-				locSocket.send(token.toString(), ZMQ.SNDMORE);
-				locSocket.send(token.getTime());
-				
-				String result = locSocket.recvStr();
-				if (token.getToken().equals(result)) {
-					sessionCache.put(key, true);
-				} else {
-					LOG.warning("Failed to complete handshake!");
-					return;
+			final boolean handShake = Arrays.equals(msg[1].array(),
+					ZMQ.HANDSHAKE);
+			final String senderUrl = new String(msg[2].array());
+			final String body = new String(msg[4].array());
+			
+			TokenRet token = null;
+			try {
+				token = JOM.getInstance().readValue(msg[3].array(),
+						TokenRet.class);
+			} catch (Exception e) {
+				LOG.log(Level.WARNING, "Failed to parse token structure:"
+						+ new String(msg[3].array()), e);
+				return;
+			}
+			if (handShake) {
+				String res = TokenStore.get(body);
+				sendResponse(connId, res);
+				return;
+			} else {
+				ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
+				String key = senderUrl + ":" + token.getToken();
+				if (!sessionCache.containsKey(key)
+						&& JSONRPC
+								.hasPrivate(host.getAgent(agentId).getClass())) {
+					Socket locSocket = ZMQ.getInstance().createSocket(ZMQ.REQ);
+					locSocket.connect(senderUrl.replaceFirst("zmq:/?/?", ""));
+					locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
+					locSocket.send(senderUrl, ZMQ.SNDMORE);
+					locSocket.send(token.toString(), ZMQ.SNDMORE);
+					locSocket.send(token.getTime());
+					
+					String result = locSocket.recvStr();
+					if (token.getToken().equals(result)) {
+						sessionCache.put(key, true);
+					} else {
+						LOG.warning("Failed to complete handshake!");
+						return;
+					}
 				}
 			}
-		}
-		
-		if (body != null && body.startsWith("{") || body.trim().startsWith("{")) {
-			// the body contains a JSON object
-			ObjectNode json = null;
-			try {
+			
+			if (body != null && body.startsWith("{")
+					|| body.trim().startsWith("{")) {
+				// the body contains a JSON object
+				ObjectNode json = null;
 				json = JOM.getInstance().readValue(body, ObjectNode.class);
 				
 				JSONRequest request = new JSONRequest(json);
@@ -203,14 +210,14 @@ public class ZmqConnection {
 					}
 					
 				});
-			} catch (Exception e) {
-				LOG.log(Level.WARNING, "Failed to handle request", e);
-				// generate JSON error response
-				JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
-				JSONResponse response = new JSONResponse(jsonError);
-				sendResponse(connId, response);
 			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Failed to handle request", e);
+			// generate JSON error response
+			JSONRPCException jsonError = new JSONRPCException(
+					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
+			JSONResponse response = new JSONResponse(jsonError);
+			sendResponse(connId, response);
 		}
 	}
 	
