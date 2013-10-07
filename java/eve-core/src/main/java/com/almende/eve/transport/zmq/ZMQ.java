@@ -1,16 +1,17 @@
 package com.almende.eve.transport.zmq;
 
-import org.zeromq.ZContext;
 
 public class ZMQ extends org.zeromq.ZMQ {
-	private static ZContext zcontext = null;
+	private static Context context =  ZMQ.context(10);
 	public final static byte[] NORMAL = new byte[]{new Integer(0).byteValue()};
 	public final static byte[] HANDSHAKE = new byte[]{new Integer(1).byteValue()};
 	
-	public static ZContext getInstance(){
-		if (zcontext == null){
-			zcontext = new ZContext();
+	public static Context getInstance(){
+		return context;
+	}
+	public static Socket getSocket(int type){
+		synchronized(context){
+			return context.socket(type);
 		}
-		return zcontext;
 	}
 }

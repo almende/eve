@@ -82,23 +82,36 @@ public class ZmqService implements TransportService {
 	@Override
 	public JSONResponse send(String senderUrl, String receiverUrl,
 			JSONRequest request) throws JSONRPCException {
-		JSONResponse response = null;
-		try {
-			Socket socket = ZMQ.getInstance().createSocket(ZMQ.REQ);
-			socket.connect(receiverUrl.replaceFirst("zmq:/?/?", ""));
-			socket.send(ZMQ.NORMAL,ZMQ.SNDMORE);
-			socket.send(senderUrl,ZMQ.SNDMORE);
-			socket.send(TokenStore.create().toString(),ZMQ.SNDMORE);
-			socket.send(request.toString());
-			
-			String result = socket.recvStr();
-			response = new JSONResponse(result);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
-			response = new JSONResponse(e);
-		}
 		
+		JSONResponse response = null;
+		final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
+		Socket socket = ZMQ.getSocket(ZMQ.REQ);
+		synchronized (socket) {
+			try {
+				socket.connect(addr);
+				socket.setIdentity(Long.valueOf(System.currentTimeMillis())
+						.toString().getBytes());
+				socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
+				socket.send(senderUrl, ZMQ.SNDMORE);
+				socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
+				socket.send(request.toString());
+				
+				String result = socket.recvStr();
+				response = new JSONResponse(result);
+			} catch (Throwable e) {
+				LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
+				response = new JSONResponse(e);
+			}
+			if (socket != null) {
+				socket.setLinger(0);
+				socket.setTCPKeepAlive(0);
+				socket.disconnect(addr);
+				socket.close();
+				socket = null;
+			}
+		}
 		return response;
+		
 	}
 	
 	@Override
@@ -125,43 +138,51 @@ public class ZmqService implements TransportService {
 		return Arrays.asList("zmq");
 	}
 	
-	private String genUrl(String agentId){
-		if (baseUrl.startsWith("tcp://")){
+	private String genUrl(String agentId) {
+		if (baseUrl.startsWith("tcp://")) {
 			int basePort = Integer.parseInt(baseUrl.replaceAll(".*:", ""));
-			//TODO: this is not nice. Agents might change address at server restart.... How to handle this?
-			return baseUrl.replaceFirst(":[0-9]*$", "") + ":" + (basePort + inboundSockets.size());	
-		} else if (baseUrl.startsWith("inproc://")){
+			// TODO: this is not nice. Agents might change address at server
+			// restart.... How to handle this?
+			return baseUrl.replaceFirst(":[0-9]*$", "") + ":"
+					+ (basePort + inboundSockets.size());
+		} else if (baseUrl.startsWith("inproc://")) {
 			return baseUrl + agentId;
-		} else if (baseUrl.startsWith("ipc://")){
+		} else if (baseUrl.startsWith("ipc://")) {
 			return baseUrl + agentId;
 		} else {
-			throw new IllegalStateException("ZMQ baseUrl not valid! (baseUrl:'"+baseUrl+"')");
+			throw new IllegalStateException("ZMQ baseUrl not valid! (baseUrl:'"
+					+ baseUrl + "')");
 		}
 	}
 	
 	@Override
 	public synchronized void reconnect(String agentId) throws JSONRPCException,
 			IOException {
-		
-		if (inboundSockets.containsKey(agentId)) {
-			ZmqConnection conn = inboundSockets.get(agentId);
-			conn.getSocket().disconnect(conn.getZmqUrl());
-			conn.getSocket().bind(conn.getZmqUrl());
-			conn.listen();
-		} else {
-			ZmqConnection socket = new ZmqConnection(ZMQ.getInstance()
-					.createSocket(ZMQ.ROUTER));
-			
-			
-			String url = genUrl(agentId);
-			socket.getSocket().bind(url);
-			socket.setAgentUrl(url);
-			socket.setAgentId(agentId);
-			socket.setHost(agentHost);
-			socket.listen();
-			inboundSockets.put(agentId, socket);
+		try {
+			if (inboundSockets.containsKey(agentId)) {
+				ZmqConnection conn = inboundSockets.get(agentId);
+				conn.getSocket().disconnect(conn.getZmqUrl());
+				conn.getSocket().bind(conn.getZmqUrl());
+				conn.listen();
+			} else {
+				ZmqConnection socket = new ZmqConnection(
+						ZMQ.getSocket(ZMQ.ROUTER));
+				
+				String url = genUrl(agentId);
+				socket.getSocket().setIdentity(
+						Long.valueOf(System.currentTimeMillis()).toString()
+								.getBytes());
+				socket.getSocket().bind(url);
+				socket.setAgentUrl(url);
+				socket.setAgentId(agentId);
+				socket.setHost(agentHost);
+				socket.listen();
+				inboundSockets.put(agentId, socket);
+			}
+		} catch (Throwable e) {
+			LOG.severe("Caught error:" + e);
+			e.printStackTrace();
 		}
-		
 	}
 	
 	@Override

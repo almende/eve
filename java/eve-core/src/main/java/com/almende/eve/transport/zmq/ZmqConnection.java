@@ -124,14 +124,19 @@ public class ZmqConnection {
 					// connID|emptyDelimiter|ZMQ.NORMAL|senderUrl|tokenJson|body
 					// or
 					// connID|emptyDelimiter|ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
-					final ByteBuffer[] msg = getRequest();
-					
-					new Thread(new Runnable() {
-						@Override
-						public void run() {
-							handleMsg(msg);
-						}
-					}).start();
+					try {
+						final ByteBuffer[] msg = getRequest();
+						
+						new Thread(new Runnable() {
+							@Override
+							public void run() {
+								handleMsg(msg);
+							}
+						}).start();
+					} catch (Throwable e) {
+						LOG.severe("Caught error:" + e);
+						e.printStackTrace();
+					}
 				}
 			}
 		});
@@ -168,14 +173,23 @@ public class ZmqConnection {
 				if (!sessionCache.containsKey(key)
 						&& JSONRPC
 								.hasPrivate(host.getAgent(agentId).getClass())) {
-					Socket locSocket = ZMQ.getInstance().createSocket(ZMQ.REQ);
-					locSocket.connect(senderUrl.replaceFirst("zmq:/?/?", ""));
-					locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
-					locSocket.send(senderUrl, ZMQ.SNDMORE);
-					locSocket.send(token.toString(), ZMQ.SNDMORE);
-					locSocket.send(token.getTime());
-					
-					String result = locSocket.recvStr();
+					final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
+					final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
+					String result = "";
+					synchronized (locSocket) {
+						locSocket.setIdentity(Long
+								.valueOf(System.currentTimeMillis()).toString()
+								.getBytes());
+						locSocket.connect(addr);
+						locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
+						locSocket.send(senderUrl, ZMQ.SNDMORE);
+						locSocket.send(token.toString(), ZMQ.SNDMORE);
+						locSocket.send(token.getTime());
+						
+						result = locSocket.recvStr();
+						locSocket.setLinger(0);
+						locSocket.close();
+					}
 					if (token.getToken().equals(result)) {
 						sessionCache.put(key, true);
 					} else {
