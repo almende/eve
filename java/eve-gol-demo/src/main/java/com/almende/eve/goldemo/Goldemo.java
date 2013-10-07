@@ -13,6 +13,7 @@ import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.eve.state.MemoryStateFactory;
 
 public class Goldemo {
+//	final static String	PATH	= "zmq:ipc:///tmp/zmq-socket-";
 	final static String	PATH	= "local:";
 	
 	public static void main(String[] args) throws IOException,
@@ -20,8 +21,15 @@ public class Goldemo {
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
 		AgentHost host = AgentHost.getInstance();
+		host.setDoesShortcut(false);
+		
 		// host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
 		host.setStateFactory(new MemoryStateFactory());
+		
+/*		HashMap<String, Object> params = new HashMap<String, Object>();
+		params.put("baseUrl", "ipc:///tmp/zmq-socket-");
+		host.addTransportService(new ZmqService(host, params));
+*/	
 		host.setSchedulerFactory(new ClockSchedulerFactory(host,
 				"_myRunnableScheduler"));
 		// host.setSchedulerFactory(new RunnableSchedulerFactory(host,
