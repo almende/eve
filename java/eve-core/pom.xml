@@ -81,14 +81,6 @@
 			<version>${jzmq.version}</version>
 			<scope>compile</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.zeromq</groupId>
-			<artifactId>jzmq</artifactId>
-			<version>${jzmq.version}</version>
-			<classifier>native-${os.arch}-${native.os}-null-null</classifier>
-			<optional>true</optional>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -180,15 +172,22 @@
 			</build>
 		</profile>
 		<profile>
-			<id>Windows</id>
+			<id>Linux</id>
 			<activation>
 				<os>
-					<family>windows</family>
+					<family>unix</family>
 				</os>
 			</activation>
-			<properties>
-				<native.os>Windows</native.os>
-			</properties>
+			<dependencies>
+			<dependency>
+				<groupId>org.zeromq</groupId>
+				<artifactId>jzmq</artifactId>
+				<version>${jzmq.version}</version>
+				<classifier>native-${os.arch}-${native.os}-null-null</classifier>
+				<optional>true</optional>
+			</dependency>
+			</dependencies>
 		</profile>
+
 	</profiles>
 </project>
