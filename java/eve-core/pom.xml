@@ -87,6 +87,7 @@
 			<artifactId>jzmq</artifactId>
 			<version>${jzmq.version}</version>
 			<classifier>native-${os.arch}-${native.os}-null-null</classifier>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
