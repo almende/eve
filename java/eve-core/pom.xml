@@ -17,7 +17,7 @@
 	<properties>
 		<jackson.version>2.2.3</jackson.version>
 		<jodah.version>0.3.0</jodah.version>
-		<jzmq.version>2.2.0</jzmq.version>
+		<jzmq.version>3.0.0</jzmq.version>
 		<joda-time.version>2.1</joda-time.version>
 		<snakeyaml.version>1.11</snakeyaml.version>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
@@ -179,13 +179,12 @@
 				</os>
 			</activation>
 			<dependencies>
-			<dependency>
-				<groupId>org.zeromq</groupId>
-				<artifactId>jzmq</artifactId>
-				<version>${jzmq.version}</version>
-				<classifier>native-${os.arch}-${native.os}-null-null</classifier>
-				<optional>true</optional>
-			</dependency>
+				<dependency>
+					<groupId>org.zeromq</groupId>
+					<artifactId>jzmq</artifactId>
+					<version>${jzmq.version}</version>
+					<classifier>native-${os.arch}-${native.os}-null-null</classifier>
+				</dependency>
 			</dependencies>
 		</profile>
 
