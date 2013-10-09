@@ -2,9 +2,11 @@ package com.almende.eve.transport.zmq;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
@@ -26,8 +28,8 @@ public class ZmqConnection {
 													.getCanonicalName());
 	
 	private final Socket		socket;
-	private final Object		inLock		= new Object();
-	private final Object		outLock		= new Object();
+	private Socket		signal;
+	private final String 		SIGADDR;
 	private String				zmqUrl		= null;
 	private Thread				myThread	= null;
 	private AgentHost			host		= null;
@@ -35,6 +37,7 @@ public class ZmqConnection {
 	
 	public ZmqConnection(Socket socket) {
 		this.socket = socket;
+		SIGADDR = "inproc://signal_"+UUID.randomUUID().toString();
 	}
 	
 	public Socket getSocket() {
@@ -81,29 +84,48 @@ public class ZmqConnection {
 		this.zmqUrl = agentUrl.replaceFirst("zmq:/?/?", "");
 	}
 	
-	private void sendResponse(final byte[] connId, final String response) {
-		synchronized (outLock) {
+	private void sig(){
+		Socket sig = ZMQ.getSocket(ZMQ.REQ);
+		sig.connect(SIGADDR);
+		sig.send("1",0);
+		sig.recv();
+		sig.setLinger(0);
+		sig.close();
+	}
+	
+	private void sendResponse(Socket socket, final byte[] connId,
+			final String response) {
+		sig();
+		synchronized (socket) {
 			socket.send(connId, ZMQ.SNDMORE);
 			socket.send(new byte[0], ZMQ.SNDMORE);
 			socket.send(response);
+			
+			socket.notifyAll();
 		}
 	}
 	
-	private void sendResponse(final byte[] connId, final JSONResponse response) {
-		sendResponse(connId, response.toString());
+	private void sendResponse(Socket socket, final byte[] connId,
+			final JSONResponse response) {
+		sendResponse(socket, connId, response.toString());
 	}
 	
-	private ByteBuffer[] getRequest() {
-		synchronized (inLock) {
-			ByteBuffer[] result = new ByteBuffer[5];
-			result[0] = ByteBuffer.wrap(socket.recv());
+	private ByteBuffer[] getRequest(Socket socket) {
+		byte[] res = null;
+		synchronized (socket) {
+			res = socket.recv(ZMQ.DONTWAIT);
+		}
+		ByteBuffer[] result = new ByteBuffer[5];
+		if (res != null) {
+			result[0] = ByteBuffer.wrap(res);
 			socket.recv();
 			result[1] = ByteBuffer.wrap(socket.recv());
 			result[2] = ByteBuffer.wrap(socket.recv());
 			result[3] = ByteBuffer.wrap(socket.recv());
 			result[4] = ByteBuffer.wrap(socket.recv());
-			return result;
 		}
+		return result;
+		
 	}
 	
 	/**
@@ -118,21 +140,41 @@ public class ZmqConnection {
 			
 			@Override
 			public void run() {
+				signal = ZMQ.getSocket(ZMQ.REP);
+				signal.bind(SIGADDR);
+				
+				ZMQ.Poller items = new ZMQ.Poller (2);
+				items.register(socket,Poller.POLLIN);
+				items.register(signal,Poller.POLLIN);
+
 				while (true) {
+					synchronized(socket){
+						items.poll(-1);
+						
+						if (signal.getEvents() == Poller.POLLIN){
+							signal.recv();
+							signal.send("ok",0);
+							try {
+								socket.wait();
+							} catch (InterruptedException e) {}
+						}
+					}
 					
 					// Receive
 					// connID|emptyDelimiter|ZMQ.NORMAL|senderUrl|tokenJson|body
 					// or
 					// connID|emptyDelimiter|ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
+					
 					try {
-						final ByteBuffer[] msg = getRequest();
-						
-						new Thread(new Runnable() {
-							@Override
-							public void run() {
-								handleMsg(msg);
-							}
-						}).start();
+						final ByteBuffer[] msg = getRequest(socket);
+						if (msg[0] != null) {
+							new Thread(new Runnable() {
+								@Override
+								public void run() {
+									handleMsg(msg);
+								}
+							}).start();
+						}
 					} catch (Throwable e) {
 						LOG.severe("Caught error:" + e);
 						e.printStackTrace();
@@ -165,7 +207,7 @@ public class ZmqConnection {
 			}
 			if (handShake) {
 				String res = TokenStore.get(body);
-				sendResponse(connId, res);
+				sendResponse(socket, connId, res);
 				return;
 			} else {
 				ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
@@ -186,7 +228,7 @@ public class ZmqConnection {
 						locSocket.send(token.toString(), ZMQ.SNDMORE);
 						locSocket.send(token.getTime());
 						
-						result = locSocket.recvStr();
+						result = new String(locSocket.recv());
 						locSocket.setLinger(0);
 						locSocket.close();
 					}
@@ -210,7 +252,7 @@ public class ZmqConnection {
 					
 					@Override
 					public void onSuccess(JSONResponse result) {
-						sendResponse(connId, result);
+						sendResponse(socket, connId, result);
 					}
 					
 					@Override
@@ -220,7 +262,7 @@ public class ZmqConnection {
 								JSONRPCException.CODE.INTERNAL_ERROR, e
 										.getMessage(), e);
 						JSONResponse response = new JSONResponse(jsonError);
-						sendResponse(connId, response);
+						sendResponse(socket, connId, response);
 					}
 					
 				});
@@ -231,7 +273,7 @@ public class ZmqConnection {
 			JSONRPCException jsonError = new JSONRPCException(
 					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
 			JSONResponse response = new JSONResponse(jsonError);
-			sendResponse(connId, response);
+			sendResponse(socket, connId, response);
 		}
 	}
 	

@@ -85,18 +85,16 @@ public class ZmqService implements TransportService {
 		
 		JSONResponse response = null;
 		final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
-		Socket socket = ZMQ.getSocket(ZMQ.REQ);
+		final Socket socket = ZMQ.getSocket(ZMQ.REQ);
 		synchronized (socket) {
 			try {
 				socket.connect(addr);
-				socket.setIdentity(Long.valueOf(System.currentTimeMillis())
-						.toString().getBytes());
 				socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
 				socket.send(senderUrl, ZMQ.SNDMORE);
 				socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
 				socket.send(request.toString());
 				
-				String result = socket.recvStr();
+				String result = new String(socket.recv());
 				response = new JSONResponse(result);
 			} catch (Throwable e) {
 				LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
@@ -107,7 +105,6 @@ public class ZmqService implements TransportService {
 				socket.setTCPKeepAlive(0);
 				socket.disconnect(addr);
 				socket.close();
-				socket = null;
 			}
 		}
 		return response;
@@ -167,17 +164,14 @@ public class ZmqService implements TransportService {
 			} else {
 				ZmqConnection socket = new ZmqConnection(
 						ZMQ.getSocket(ZMQ.ROUTER));
+				inboundSockets.put(agentId, socket);
 				
 				String url = genUrl(agentId);
-				socket.getSocket().setIdentity(
-						Long.valueOf(System.currentTimeMillis()).toString()
-								.getBytes());
 				socket.getSocket().bind(url);
 				socket.setAgentUrl(url);
 				socket.setAgentId(agentId);
 				socket.setHost(agentHost);
 				socket.listen();
-				inboundSockets.put(agentId, socket);
 			}
 		} catch (Throwable e) {
 			LOG.severe("Caught error:" + e);
