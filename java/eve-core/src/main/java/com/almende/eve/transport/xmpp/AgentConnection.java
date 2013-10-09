@@ -132,6 +132,7 @@ public class AgentConnection {
 			// instantiate a packet listener
 			conn.addPacketListener(new JSONRPCListener(conn, agentHost,
 					agentId, resource, callbacks), null);
+
 		} catch (XMPPException e) {
 			LOG.log(Level.WARNING, "", e);
 			throw new JSONRPCException("Failed to connect to messenger", e);

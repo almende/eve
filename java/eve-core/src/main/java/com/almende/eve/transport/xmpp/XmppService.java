@@ -52,6 +52,15 @@ public class XmppService implements TransportService {
 	protected XmppService() {
 	}
 	
+	//Needed to force Android loading the ReconnectionManager....
+	static {
+	    try {
+	        Class.forName("org.jivesoftware.smack.ReconnectionManager");
+	    } catch (ClassNotFoundException ex) {
+	        // problem loading reconnection manager
+	    }
+	}
+	
 	/**
 	 * Construct an XmppService
 	 * This constructor is called when the TransportService is constructed
@@ -228,11 +237,14 @@ public class XmppService implements TransportService {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(String agentId, String username, String password,
-			String resource) throws InvalidKeyException,
-			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
-			InvalidKeySpecException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, JSONRPCException,
-			IOException {
+			String resource){
+		//First store the connection info for later reconnection.
+		try {
+			storeConnection(agentId, username, password, resource);
+		} catch (Exception e) {
+			LOG.log(Level.SEVERE, "Failed to store XMPP Connection.",e);
+		}
+		
 		String agentUrl = generateUrl(username, host, resource);
 		AgentConnection connection;
 		if (connectionsByUrl.containsKey(agentUrl)) {
@@ -247,12 +259,13 @@ public class XmppService implements TransportService {
 			LOG.warning("Warning: Username should not contain a domain! "
 					+ username);
 		}
-		
-		connection.connect(agentId, host, port, service, username, password,
-				resource);
-		
+		try {
+			connection.connect(agentId, host, port, service, username, password,
+					resource);
+		} catch (JSONRPCException e) {
+			LOG.log(Level.WARNING, "Failed to connect XMPP connection:",e);
+		}
 		connectionsByUrl.put(agentUrl, connection);
-		storeConnection(agentId, username, password, resource);
 	}
 	
 	private void storeConnection(String agentId, String username,
