@@ -217,21 +217,15 @@ public class ZmqConnection {
 								.hasPrivate(host.getAgent(agentId).getClass())) {
 					final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
 					final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
-					String result = "";
-					synchronized (locSocket) {
-						locSocket.setIdentity(Long
-								.valueOf(System.currentTimeMillis()).toString()
-								.getBytes());
-						locSocket.connect(addr);
-						locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
-						locSocket.send(senderUrl, ZMQ.SNDMORE);
-						locSocket.send(token.toString(), ZMQ.SNDMORE);
-						locSocket.send(token.getTime());
-						
-						result = new String(locSocket.recv());
-						locSocket.setLinger(0);
-						locSocket.close();
-					}
+					locSocket.connect(addr);
+					locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
+					locSocket.send(senderUrl, ZMQ.SNDMORE);
+					locSocket.send(token.toString(), ZMQ.SNDMORE);
+					locSocket.send(token.getTime());
+					
+					String result = new String(locSocket.recv());
+					locSocket.setLinger(0);
+					locSocket.close();
 					if (token.getToken().equals(result)) {
 						sessionCache.put(key, true);
 					} else {

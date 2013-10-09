@@ -86,29 +86,22 @@ public class ZmqService implements TransportService {
 		JSONResponse response = null;
 		final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
 		final Socket socket = ZMQ.getSocket(ZMQ.REQ);
-		synchronized (socket) {
-			try {
-				socket.connect(addr);
-				socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
-				socket.send(senderUrl, ZMQ.SNDMORE);
-				socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
-				socket.send(request.toString());
-				
-				String result = new String(socket.recv());
-				response = new JSONResponse(result);
-			} catch (Throwable e) {
-				LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
-				response = new JSONResponse(e);
-			}
-			if (socket != null) {
-				socket.setLinger(0);
-				socket.setTCPKeepAlive(0);
-				socket.disconnect(addr);
-				socket.close();
-			}
+		try {
+			socket.connect(addr);
+			socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
+			socket.send(senderUrl, ZMQ.SNDMORE);
+			socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
+			socket.send(request.toString());
+			
+			String result = new String(socket.recv());
+			response = new JSONResponse(result);
+		} catch (Throwable e) {
+			LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
+			response = new JSONResponse(e);
 		}
+		socket.setLinger(0);
+		socket.close();
 		return response;
-		
 	}
 	
 	@Override

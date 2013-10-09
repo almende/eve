@@ -13,8 +13,12 @@ import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.eve.state.MemoryStateFactory;
 
 public class Goldemo {
-//	final static String	PATH	= "zmq:ipc:///tmp/zmq-socket-";
-	final static String	PATH	= "local:";
+//	final static String BASE	= "inproc://";
+	//final static String	BASE	= "ipc:///tmp/zmq-socket-";
+//	final static String PATH	= "zmq:"+BASE;
+	
+	final static String PATH = "local:";
+
 	
 	public static void main(String[] args) throws IOException,
 			JSONRPCException, ClassNotFoundException, InstantiationException,
@@ -26,10 +30,10 @@ public class Goldemo {
 		// host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
 		host.setStateFactory(new MemoryStateFactory());
 		
-/*		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("baseUrl", "ipc:///tmp/zmq-socket-");
-		host.addTransportService(new ZmqService(host, params));
-*/	
+//		HashMap<String, Object> params = new HashMap<String, Object>();
+//		params.put("baseUrl", BASE);
+//		host.addTransportService(new ZmqService(host, params));
+	
 		host.setSchedulerFactory(new ClockSchedulerFactory(host,
 				"_myRunnableScheduler"));
 		// host.setSchedulerFactory(new RunnableSchedulerFactory(host,
