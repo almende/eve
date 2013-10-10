@@ -181,7 +181,24 @@ public class FileStateFactory implements StateFactory {
 	 * @return
 	 */
 	private String getFilename(String agentId) {
-		return (path != null ? path : "") + agentId;
+
+		String apath = path!=null ? path : "";
+
+		String ret = path + agentId;
+		if( new File( ret ).exists() )return ret;
+
+		//try 1 level of subdirs. I need this badly, tymon
+		File folder = new File(path);
+		File[] files = folder.listFiles();
+		List<File> totalList = Arrays.asList(files);
+		for (File file : totalList)
+		{
+			if( !file.isDirectory() )continue;
+			ret = path + file.getName()+"/"+ agentId;
+			if( new File( ret ).exists() )return ret;
+		}
+
+		return null;
 	}
 	
 	@Override
@@ -208,6 +225,19 @@ public class FileStateFactory implements StateFactory {
 						&& file.length() > 2) {
 					list.add(file);
 				}
+		
+				//try 1 level of subdirs. i need this badly, tymon
+				if( file.isDirectory() && file.canRead() )
+				{
+					File folder2 = new File(path+ file.getName() );
+					File[] files2 = folder2.listFiles();
+					List<File> totalList2 = Arrays.asList(files2);
+					for (File file2 : totalList2) {
+						if( file2.isFile() && file2.canRead() )
+							list.add( file2 );
+					}
+				}
+
 			}
 		}
 		return new Iterator<String>() {
