@@ -182,23 +182,20 @@ public class FileStateFactory implements StateFactory {
 	 */
 	private String getFilename(String agentId) {
 
-		String apath = path!=null ? path : "";
-
-		String ret = path + agentId;
-		if( new File( ret ).exists() )return ret;
+		String apath = path!=null ? path : "./";
 
 		//try 1 level of subdirs. I need this badly, tymon
-		File folder = new File(path);
+		File folder = new File(apath);
 		File[] files = folder.listFiles();
 		List<File> totalList = Arrays.asList(files);
 		for (File file : totalList)
 		{
 			if( !file.isDirectory() )continue;
-			ret = path + file.getName()+"/"+ agentId;
+			String ret = apath + file.getName()+"/"+ agentId;
 			if( new File( ret ).exists() )return ret;
 		}
 
-		return null;
+		return apath + agentId;
 	}
 	
 	@Override
