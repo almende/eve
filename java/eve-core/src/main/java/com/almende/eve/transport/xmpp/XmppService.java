@@ -116,6 +116,25 @@ public class XmppService implements TransportService {
 	
 	/**
 	 * Get the first XMPP url of an agent from its id.
+	 * If the agent exists (is not null) retrieve the current 'isConnected' status and return it.
+	 * 
+	 * @param agentUrl
+	 *            The url of the agent
+	 * @return connectionStatus
+	 */
+	public Boolean isConnected(String agentUrl) {
+		AgentConnection connection = connectionsByUrl.get(agentUrl);
+		
+		if(connection == null){
+			return false;
+		}
+		
+		LOG.info("Current connection of agent " + agentUrl + " is: " + connection.isConnected());
+		return connection.isConnected();
+	}
+	
+	/**
+	 * Get the first XMPP url of an agent from its id.
 	 * If no agent with given id is connected via XMPP, null is returned.
 	 * 
 	 * @param agentId
