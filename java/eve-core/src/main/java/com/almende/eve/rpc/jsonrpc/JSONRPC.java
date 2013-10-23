@@ -31,11 +31,11 @@ import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.almende.util.AnnotationUtil.AnnotatedParam;
 import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
+import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JSONRPC {
@@ -387,8 +387,7 @@ public final class JSONRPC {
 	 */
 	private static Object[] castParams(Object params,
 			List<AnnotatedParam> annotatedParams, RequestParams requestParams) {
-		ObjectMapper mapper = JOM.getInstance();
-		
+
 		if (annotatedParams.size() == 0) {
 			return new Object[0];
 		}
@@ -400,6 +399,7 @@ public final class JSONRPC {
 					&& annotatedParams.get(0).getType()
 							.equals(ObjectNode.class)
 					&& annotatedParams.get(0).getAnnotations().size() == 0) {
+
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];
@@ -421,8 +421,7 @@ public final class JSONRPC {
 						if (name != null) {
 							// this is a named parameter
 							if (paramsObject.has(name)) {
-								objects[i] = mapper.convertValue(
-										paramsObject.get(name), p.getType());
+								objects[i] = TypeUtil.inject(paramsObject.get(name),p.getGenericType()); 
 							} else {
 								if (isRequired(p)) {
 									throw new ClassCastException(
