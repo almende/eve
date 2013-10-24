@@ -44,5 +44,5 @@ bootstrap:
     calc: com.almende.eve.agent.example.CalcAgent
     echo: com.almende.eve.agent.example.EchoAgent
     aspect: com.almende.eve.agent.example.ExampleAspect
-
+    test2agent: com.almende.test.agents.Test2Agent
 

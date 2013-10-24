@@ -173,6 +173,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	//TODO: doesn't work!
 	private JsonNode	lastRes	= null;
 	
 	@Access(AccessType.SELF)
@@ -226,6 +227,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			@Name("callbackParams") ObjectNode callbackParams)
 			throws JSONRPCException {
 		
+		
+		//TODO: THis is unclean!
 		String[] ids = pushId.split("_");
 		
 		if (ids.length != 2) {

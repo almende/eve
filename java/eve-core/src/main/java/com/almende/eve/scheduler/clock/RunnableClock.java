@@ -1,5 +1,6 @@
 package com.almende.eve.scheduler.clock;
 
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,7 +14,7 @@ import org.joda.time.Interval;
 public class RunnableClock implements Runnable, Clock {
 	@SuppressWarnings("unused")
 	private static final Logger								LOG			= Logger.getLogger("RunnableClock");
-	private static final TreeMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
+	private static final NavigableMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
 	private static ScheduledExecutorService					pool		= Executors
 																				.newScheduledThreadPool(8);
 	private static ScheduledFuture<?>						future		= null;

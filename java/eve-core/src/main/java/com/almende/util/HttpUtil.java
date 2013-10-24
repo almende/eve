@@ -211,9 +211,8 @@ public final class HttpUtil {
 	 * @return url        Url with query parameters appended
 	 * @throws IOException 
 	 */
-	public static String appendQueryParams(String url, 
+	public static String appendQueryParams(String fullUrl, 
 			Map<String, String> params) throws IOException {
-		String fullUrl = new String(url);
 		
 		if (params != null) {
 			boolean first = (fullUrl.indexOf('?') == -1);

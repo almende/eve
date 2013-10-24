@@ -350,7 +350,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			params.put("request", request.toString());
 			params.put("timestamp", timestamp.toString());
 			params.put("interval", new Long(interval).toString());
-			params.put("sequential", new Boolean(sequential).toString());
+			params.put("sequential", Boolean.valueOf(sequential).toString());
 			return params;
 		}
 		

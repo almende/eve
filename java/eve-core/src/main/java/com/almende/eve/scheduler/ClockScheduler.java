@@ -100,7 +100,6 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		
 		if (!myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(), timeline,
 				oldTimeline)) {
-//			LOG.severe("need to retry putTask...");
 			// recursive retry....
 			putTask(task, onlyIfExists);
 			return;
@@ -127,7 +126,6 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		if (timeline != null
 				&& !myAgent.getState().putIfUnchanged(TYPEDKEY.getKey(),
 						timeline, oldTimeline)) {
-//			LOG.severe("need to retry cancelTask...");
 			// recursive retry....
 			cancelTask(id);
 			return;

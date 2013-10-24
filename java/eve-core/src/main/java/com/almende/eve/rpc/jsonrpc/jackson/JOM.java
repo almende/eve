@@ -15,24 +15,24 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public final class JOM {
-	private static final ObjectMapper	m;
+	private static final ObjectMapper	mapper;
 	static {
-		m = createInstance();
+		mapper = createInstance();
 	}
 	
 	protected JOM() {
 	}
 	
 	public static ObjectMapper getInstance() {
-		return m;
+		return mapper;
 	}
 	
 	public static ObjectNode createObjectNode() {
-		return m.createObjectNode();
+		return mapper.createObjectNode();
 	}
 	
 	public static ArrayNode createArrayNode() {
-		return m.createArrayNode();
+		return mapper.createArrayNode();
 	}
 	
 	public static NullNode createNullNode() {
@@ -58,7 +58,7 @@ public final class JOM {
 	}
 	
 	public static TypeFactory getTypeFactory() {
-		return m.getTypeFactory();
+		return mapper.getTypeFactory();
 	}
 	
 	/**
@@ -67,7 +67,7 @@ public final class JOM {
 	 */
 	@Deprecated
 	public static JavaType getVoid() {
-		return m.getTypeFactory()
+		return mapper.getTypeFactory()
 				.uncheckedSimpleType(Void.class);
 	}
 	
@@ -77,6 +77,6 @@ public final class JOM {
 	 */
 	@Deprecated
 	public static JavaType getSimpleType(Class<?> c) {
-		return m.getTypeFactory().uncheckedSimpleType(c);
+		return mapper.getTypeFactory().uncheckedSimpleType(c);
 	}
 }

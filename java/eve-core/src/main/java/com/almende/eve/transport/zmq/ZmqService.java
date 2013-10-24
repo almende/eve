@@ -25,8 +25,8 @@ public class ZmqService implements TransportService {
 	
 	private AgentHost				agentHost		= null;
 	private String					baseUrl			= "";
-	HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
-	
+	private HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
+
 	protected ZmqService() {
 	}
 	
@@ -95,7 +95,7 @@ public class ZmqService implements TransportService {
 			
 			String result = new String(socket.recv());
 			response = new JSONResponse(result);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
 			response = new JSONResponse(e);
 		}
@@ -166,9 +166,8 @@ public class ZmqService implements TransportService {
 				socket.setHost(agentHost);
 				socket.listen();
 			}
-		} catch (Throwable e) {
-			LOG.severe("Caught error:" + e);
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.log(Level.SEVERE,"Caught error:",e);
 		}
 	}
 	

@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -257,7 +256,8 @@ public final class UUIDGen {
 
         // time hi and version
 
-        time |= 0x1000 | ((timeMillis >> 48) & 0x0FFF); // version 1
+        // version 1
+        time |= 0x1000 | ((timeMillis >> 48) & 0x0FFF); 
 
         return time;
 

@@ -29,21 +29,19 @@ public class AgentListener implements ServletContextListener {
 	
 	protected static String getParam(String param, String defaultVal) {
 		String result = c.getInitParameter(param);
-		if (result == null) {
-			if (c.getMajorVersion() >= 3) {
-				for (Entry<String, ? extends ServletRegistration> ent : c
-						.getServletRegistrations().entrySet()) {
-					result = ent.getValue().getInitParameter(param);
-					if (result != null) {
-						LOG.warning("Context param '" + param
-								+ "' should be migrated to <context-param>'");
-						break;
-					}
+		if (result == null && c.getMajorVersion() >= 3) {
+			for (Entry<String, ? extends ServletRegistration> ent : c
+					.getServletRegistrations().entrySet()) {
+				result = ent.getValue().getInitParameter(param);
+				if (result != null) {
+					LOG.warning("Context param '" + param
+							+ "' should be migrated to <context-param>'");
+					break;
 				}
 			}
 		}
 		if (result == null && c.getMajorVersion() < 3) {
-				LOG.warning("Eve configuration in Servlet variables works only in Servlet 3+ (and is deprecated in that situation.)");
+			LOG.warning("Eve configuration in Servlet variables works only in Servlet 3+ (and is deprecated in that situation.)");
 		}
 		if (result == null && defaultVal != null) {
 			

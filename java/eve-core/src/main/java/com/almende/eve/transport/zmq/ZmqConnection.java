@@ -28,7 +28,6 @@ public class ZmqConnection {
 													.getCanonicalName());
 	
 	private final Socket		socket;
-	private Socket		signal;
 	private final String 		SIGADDR;
 	private String				zmqUrl		= null;
 	private Thread				myThread	= null;
@@ -140,7 +139,7 @@ public class ZmqConnection {
 			
 			@Override
 			public void run() {
-				signal = ZMQ.getSocket(ZMQ.REP);
+				Socket signal = ZMQ.getSocket(ZMQ.REP);
 				signal.bind(SIGADDR);
 				
 				ZMQ.Poller items = new ZMQ.Poller (2);
@@ -175,9 +174,8 @@ public class ZmqConnection {
 								}
 							}).start();
 						}
-					} catch (Throwable e) {
-						LOG.severe("Caught error:" + e);
-						e.printStackTrace();
+					} catch (Exception e) {
+						LOG.log(Level.SEVERE,"Caught error:", e);
 					}
 				}
 			}

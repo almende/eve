@@ -2,6 +2,7 @@ package com.almende.util;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,7 +12,7 @@ public class ObjectCache {
 	private int								maxSize	= 1000;
 	private Map<String, MetaInfo<?>>		cache	= new ConcurrentHashMap<String, MetaInfo<?>>(
 															maxSize);
-	private TreeSet<MetaInfo<?>>			scores	= new TreeSet<MetaInfo<?>>();
+	private SortedSet<MetaInfo<?>>			scores	= new TreeSet<MetaInfo<?>>();
 	
 	private static Map<String, ObjectCache>	caches	= new ConcurrentHashMap<String, ObjectCache>();
 	

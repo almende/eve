@@ -256,7 +256,7 @@ public class XmppService implements TransportService {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(String agentId, String username, String password,
-			String resource){
+			String resource) throws JSONRPCException{
 		//First store the connection info for later reconnection.
 		try {
 			storeConnection(agentId, username, password, resource);
@@ -278,12 +278,8 @@ public class XmppService implements TransportService {
 			LOG.warning("Warning: Username should not contain a domain! "
 					+ username);
 		}
-		try {
-			connection.connect(agentId, host, port, service, username, password,
+		connection.connect(agentId, host, port, service, username, password,
 					resource);
-		} catch (JSONRPCException e) {
-			LOG.log(Level.WARNING, "Failed to connect XMPP connection:",e);
-		}
 		connectionsByUrl.put(agentUrl, connection);
 	}
 	
@@ -332,11 +328,19 @@ public class XmppService implements TransportService {
 	 * Disconnect the agent from the connected messaging service(s) (if any)
 	 * 
 	 * @param agentId
+	 * @throws JSONRPCException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws InvalidKeySpecException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidAlgorithmParameterException 
+	 * @throws InvalidKeyException 
+	 * @throws IOException 
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public final void disconnect(String agentId) {
+	public final void disconnect(String agentId) throws JSONRPCException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 		
-		try {
 			ArrayNode conns = getConns(agentId);
 			if (conns != null) {
 				for (JsonNode conn : conns) {
@@ -365,9 +369,6 @@ public class XmppService implements TransportService {
 				}
 			}
 			delConnections(agentId);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
 	}
 	
 	/**

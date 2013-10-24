@@ -26,6 +26,7 @@ public class Push implements ResultMonitorConfigType {
 	}
 	
 	public Push() {
+		this.pushId = new UUID().toString();
 	}
 	
 	public Push onInterval(int interval) {
