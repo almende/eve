@@ -28,4 +28,21 @@ public abstract class TypedKey<T> {
 		return key;
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof TypedKey)) {
+			return false;
+		}
+		TypedKey<?> other = (TypedKey<?>) o;
+		return key.equals(other.key) && valueType.equals(other.valueType);
+	}
+	
+	@Override
+	public int hashCode() {
+		return key.hashCode() & valueType.hashCode();
+	}
+	
 }
