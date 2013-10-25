@@ -15,6 +15,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
+import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
@@ -64,7 +65,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * 
 	 */
 	State getState();
-
+	
 	/**
 	 * Get the associated AgentHost of this agent
 	 * 
@@ -113,8 +114,8 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * booting, adding or removal of services, etc.
 	 * 
 	 * @param event
-	 * @throws IOException 
-	 * @throws JSONRPCException 
+	 * @throws IOException
+	 * @throws JSONRPCException
 	 */
 	void signalAgent(AgentSignal<?> event) throws JSONRPCException, IOException;
 	
@@ -351,4 +352,30 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	<T> AsyncProxy<T> createAsyncAgentProxy(URI url, Class<T> agentInterface);
 	
+	/**
+	 * Utility method to get back references to in-memory objects from the
+	 * agent. The references are stored as WeakReferences, so the life-cycle of
+	 * the referenced objects will not be influenced by storing them. However,
+	 * the return value of this method is the hard-reference again.
+	 * If the object has been garbage collected, this method will return null.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	<T> T getRef(TypedKey<T> key);
+	
+	/**
+	 * Utility method to keep reference of in-memory objects from the agent. The
+	 * references are stored as WeakReferences, so the life-cycle of the
+	 * referenced objects will not be influenced by storing them.
+	 * This means that you can't use this method for storing objects you created
+	 * in the agent, those still need to be stored in the agent's state.
+	 * 
+	 * Purpose for these methods is to allow agents to work with/for legacy
+	 * software objects.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	<T> void putRef(TypedKey<T> key, T value);
 }

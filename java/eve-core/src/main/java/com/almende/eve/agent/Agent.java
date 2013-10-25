@@ -57,6 +57,7 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
+import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.TypeUtil;
@@ -499,6 +500,17 @@ public abstract class Agent implements AgentInterface {
 		}
 		return urls;
 	}
+	
+	@Override
+	public <T> T getRef(TypedKey<T> key){
+		return agentHost.getRef(getId(), key);
+	}
+	
+	@Override
+	public <T> void putRef(TypedKey<T> key, T value){
+		agentHost.putRef(getId(), key, value);
+	}
+	
 	
 	@Override
 	@Access(AccessType.PUBLIC)

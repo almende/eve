@@ -1,6 +1,7 @@
 package com.almende.eve.agent;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +32,7 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
+import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
@@ -40,18 +42,20 @@ import com.almende.util.TypeUtil;
 
 public final class AgentHost implements AgentHostInterface {
 	
-	private static final Logger							LOG					= Logger.getLogger(AgentHost.class
-																					.getSimpleName());
-	private static final AgentHost						HOST				= new AgentHost();
-	private ConcurrentHashMap<String, TransportService>	transportServices	= new ConcurrentHashMap<String, TransportService>();
-	private StateFactory								stateFactory		= null;
-	private SchedulerFactory							schedulerFactory	= null;
-	private Config										config				= null;
-	private EventLogger									eventLogger			= new EventLogger(
-																					this);
-	private boolean										doesShortcut		= true;
+	private static final Logger													LOG					= Logger.getLogger(AgentHost.class
+																											.getSimpleName());
+	private static final AgentHost												HOST				= new AgentHost();
+	private final ConcurrentHashMap<String, TransportService>					transportServices	= new ConcurrentHashMap<String, TransportService>();
+	private StateFactory														stateFactory		= null;
+	private SchedulerFactory													schedulerFactory	= null;
+	private Config																config				= null;
+	private final EventLogger													eventLogger			= new EventLogger(
+																											this);
+	private boolean																doesShortcut		= true;
 	
-	private static final RequestParams					EVEREQUESTPARAMS	= new RequestParams();
+	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
+	
+	private static final RequestParams	EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
@@ -141,8 +145,9 @@ public final class AgentHost implements AgentHostInterface {
 					+ "(agentId='" + agentId + "')");
 		}
 		
-		if (!Agent.class.isAssignableFrom(agentType)){
-			//Found state info not representing an Agent, like e.g. TokenStore or CookieStore.
+		if (!Agent.class.isAssignableFrom(agentType)) {
+			// Found state info not representing an Agent, like e.g. TokenStore
+			// or CookieStore.
 			return null;
 		}
 		
@@ -208,8 +213,9 @@ public final class AgentHost implements AgentHostInterface {
 					}
 				});
 		
-		ObjectCache.get("agents").put("proxy_" + (sender != null ? sender.getId() + "_" : "")
-				+ agentInterface.getCanonicalName(), proxy);
+		ObjectCache.get("agents").put(
+				"proxy_" + (sender != null ? sender.getId() + "_" : "")
+						+ agentInterface.getCanonicalName(), proxy);
 		
 		return proxy;
 	}
@@ -478,6 +484,28 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public Config getConfig() {
 		return config;
+	}
+	
+	@Override
+	public <T> T getRef(String agentId, TypedKey<T> key) {
+		ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore.get(agentId);
+		if (objects != null) {
+			return TypeUtil.inject(objects.get(key).get(),key.getType());
+		}
+		
+		return null;
+	}
+	
+	@Override
+	public <T> void putRef(String agentId, TypedKey<T> key, T value) {
+		synchronized (refStore) {
+			ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore.get(agentId);
+			if (objects == null) {
+				objects = new ConcurrentHashMap<TypedKey<?>, WeakReference<?>>();
+			}
+			objects.put(key, new WeakReference<Object>(value));
+			refStore.put(agentId, objects);
+		}
 	}
 	
 	@Override
