@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Access(AccessType.PUBLIC)
 @ThreadSafe(true)
 public class Cell extends Agent {
-	ArrayList<String> neighbors = null;
+	private ArrayList<String> neighbors = null;
 	
 	public void create(@Name("neighbors") ArrayList<String> neighbors,
 			@Name("state") Boolean initState) {
