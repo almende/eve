@@ -85,7 +85,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	private void initState() {
 		// set a state for the service, where the service can
 		// persist its state.
-		if (stateId == null) {
+		if (stateId == null || stateId.equals("")) {
 			stateId = "_runnableScheduler";
 			LOG.info("No id specified for RunnableSchedulerFactory. "
 					+ "Using '" + stateId + "' as id.");
