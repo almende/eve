@@ -341,7 +341,8 @@ public final class AgentHost implements AgentHostInterface {
 				return response;
 			}
 		} catch (Exception e) {
-			throw new JSONRPCException("Couldn't instantiate agent for id '"
+			LOG.log(Level.WARNING,"Exception during receive:",e);
+			throw new JSONRPCException("Exception during receive for id '"
 					+ receiverId + "'", e);
 		}
 		throw new JSONRPCException("Agent with id '" + receiverId
