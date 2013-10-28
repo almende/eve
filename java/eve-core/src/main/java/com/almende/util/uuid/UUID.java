@@ -48,7 +48,7 @@ import java.io.ObjectOutput;
  * </a>
  * @see <a href="http://johannburkard.de/software/uuid/">UUID</a>
  * @author <a href="mailto:jb@eaio.de">Johann Burkard</a>
- * @version $Id: UUID.java 4688 2012-03-09 14:49:49Z johann $
+ * @version UUID.java 4688 2012-03-09 14:49:49Z johann $
  */
 public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 

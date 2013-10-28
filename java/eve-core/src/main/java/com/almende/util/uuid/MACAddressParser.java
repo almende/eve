@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  *
  * @see <a href="http://johannburkard.de/software/uuid/">UUID</a>
  * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
- * @version $Id: MACAddressParser.java 4714 2012-03-16 11:43:28Z johann $
+ * @version MACAddressParser.java 4714 2012-03-16 11:43:28Z johann $
  */
 public class MACAddressParser {
 	

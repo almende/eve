@@ -29,7 +29,7 @@ import java.io.IOException;
  *
  * @see <a href="http://johannburkard.de/software/uuid/">UUID</a>
  * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
- * @version $Id: Hex.java 4714 2012-03-16 11:43:28Z johann $
+ * @version Hex.java 4714 2012-03-16 11:43:28Z johann $
  */
 public final class Hex {
 

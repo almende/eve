@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @see <a href="http://johannburkard.de/software/uuid/">UUID</a>
  * @author <a href="mailto:jb@eaio.de">Johann Burkard</a>
- * @version $Id: UUIDGen.java 4714 2012-03-16 11:43:28Z johann $
+ * @version UUIDGen.java 4714 2012-03-16 11:43:28Z johann $
  * @see com.eaio.uuid.UUID
  */
 public final class UUIDGen {
