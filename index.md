@@ -12,8 +12,8 @@ title: Introduction
 <div style="float: right;">
     <div id="dropdown-1" class="dropdown dropdown-tip">
         <ul class="dropdown-menu">
-            <li><a href="/eve/implementations/java/downloads.html">Eve Java</a></li>
-            <li><a href="/eve/implementations/javascript/downloads.html">Eve JavaScript</a></li>
+            <li><a href="implementations/java/downloads.html">Eve Java</a></li>
+            <li><a href="implementations/javascript/downloads.html">Eve JavaScript</a></li>
         </ul>
     </div>
     <a class="download" href="#" title="Download Eve" data-dropdown="#dropdown-1">Download &nbsp; &#x25BC;</a>

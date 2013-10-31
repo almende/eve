@@ -21,7 +21,7 @@ For a good understanding of Eve, it is important to look at its concept "Agent".
 
 Eve provides these features as services to the agents, therefor the implementation of the agent can focus on the domain specific logic and data management.
 
-<img src="/eve/img/eve_agent.png"
+<img src="../img/eve_agent.png"
   style="margin-top: 30px;width:60%;margin-left:auto;margin-right:auto;display:block"
   title="Eve agentmodel infograph">
 
@@ -37,7 +37,7 @@ This model mimics the way modern webservers handle servlets, allowing any servle
 
 ## Eve protocol {#protocoldriven}
 
-The agent model is based on request driven instantiation. The requests, that trigger this instantiation, are JSON-RPC encoded. In the [Protocol](/eve/concepts/protocol.html) section, this protocol is further defined and described. Using JSON as its base, Eve is highly programming language independent; for most mainstream languages there are existing JSON handling libraries. Any implementation that adheres to the described protocol and basic agent model, is therefor considered an Eve implementation. This high level definition allowed effective reuse of existing tools and protocols in the implementation of Eve. 
+The agent model is based on request driven instantiation. The requests, that trigger this instantiation, are JSON-RPC encoded. In the [Protocol](protocol.html) section, this protocol is further defined and described. Using JSON as its base, Eve is highly programming language independent; for most mainstream languages there are existing JSON handling libraries. Any implementation that adheres to the described protocol and basic agent model, is therefor considered an Eve implementation. This high level definition allowed effective reuse of existing tools and protocols in the implementation of Eve. 
 
 Eve is defined by its agent model and its RPC protocol. But the JSON-RPC messages still need to be transported from one agent to another agent, possibly crossing to  a completely different platform. The two implementations (on the different platforms) need to share a common transport service for this. Currently the Eve implementations support HTTP and XMPP as transport protocols, but it's relatively straight-forward to e.g. implement a ZeroMQ transport. If two implementations share a common transport service, its agents can work flawlessly together. For example, this allows a Java cloud agent to communicate with an in-browser Javascript agent, through JSON-RPC over an XMPP transport.
 
