@@ -29,6 +29,9 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
+import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Documentation on Scheduling:
@@ -476,10 +479,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		int failedTaskCount = 0;
 		
 		try {
-			List<Map<String, String>> list = new ArrayList<Map<String,String>>();
-			
-			@SuppressWarnings("unchecked")
-			List<Map<String, String>> serializedTasks = state.get("tasks",list.getClass());
+			List<Map<String, String>> serializedTasks = state.get("tasks",new TypeUtil<List<Map<String,String>>>(){});
 			
 			if (serializedTasks != null) {
 				for (Map<String, String> taskParams : serializedTasks) {

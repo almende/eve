@@ -9,7 +9,7 @@ import org.junit.Test;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.scheduler.ClockSchedulerFactory;
+import com.almende.eve.scheduler.RunnableSchedulerFactory;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestResultMonitorAgent;
 
@@ -20,7 +20,8 @@ public class TestResultMonitor extends TestCase {
 		AgentHost factory = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents_resultmonitor", true);
 		factory.setStateFactory(stateFactory);
-		factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
+		//factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
+		factory.setSchedulerFactory(new RunnableSchedulerFactory(factory, ""));
 		
 		if (factory.hasAgent("alice")) factory.deleteAgent("alice");
 		if (factory.hasAgent("bob")) factory.deleteAgent("bob");

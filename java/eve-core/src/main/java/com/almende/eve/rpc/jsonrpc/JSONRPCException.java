@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@SuppressWarnings("serial")
 public class JSONRPCException extends Exception {
+	private static final long	serialVersionUID	= -4258336566828038603L;
 	private static final Logger	LOG			= Logger.getLogger(JSONRPCException.class
 													.getCanonicalName());
 	private ObjectNode			error		= JOM.createObjectNode();
@@ -68,6 +68,7 @@ public class JSONRPCException extends Exception {
 		try {
 			setData(JOM.getInstance().writeValueAsString(t));
 		} catch (JsonProcessingException e) {
+			LOG.log(Level.SEVERE,"Failed to init JSONRPCException!",e);
 		}
 	}
 	
