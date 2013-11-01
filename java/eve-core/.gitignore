@@ -7,3 +7,5 @@ target
 .testStates
 /pom.xml.asc
 /pom.xml.versionsBackup
+/.eveagents_resultmonitor
+/.eveagents_schedulerTest
