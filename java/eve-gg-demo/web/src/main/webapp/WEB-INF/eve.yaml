@@ -1,0 +1,13 @@
+# Eve settings
+
+# context settings (for persistency)
+state:
+  class: MemoryStateFactory
+
+# scheduler settings (for tasks)
+scheduler:
+  class: ClockSchedulerFactory
+
+bootstrap:
+  agents:
+     demo: com.almende.eve.ggdemo.DemoAgent

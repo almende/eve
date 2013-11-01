@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+<head>
+<title>Global Goal Demo</title>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script type="text/javascript" src="js/vis.js"></script>
+
+<style type="text/css">
+html,body {
+	font: 11pt arial;
+}
+
+.button {
+	width:3em;
+	border: 1px solid black;
+	background-color: 'gray';
+}
+
+.control {
+	border: 1px solid black;
+	width: 200px;
+	float: left;
+}
+div {
+	padding: 10px
+}
+
+</style>
+</head>
+<body>
+
+
+	<div class="control">
+		<div class="results">
+			Lights on: <span id="on">...</span><br> Lights off: <span
+				id="off">...</span><br> Percentage: <span id="perc">...</span>%
+		</div>
+		<div class="topo_box">
+			Topology:<br> size:<input name="size" id="size" value="0" /><br>
+			form:<select name="type" id="type">
+				<option value="line">line</option>
+				<option value="circle">circle</option>
+				<option value="star">star</option>
+				<option value="binTree">binary tree</option>
+			</select><br> stepSize:<input name="stepSize" id="stepSize" value="2" />
+			<div id="topology" class="button">load</div>
+		</div>
+		<div class="goal_box">
+			Goal:<br> percentage:<input name="goalPerc" id="goalPerc"
+				value="70">%<br> startLamp:<input name="startLamp"
+				id="startLamp" value="lamp0"><br>
+			<div id="goal" class="button">start</div>
+		</div>
+
+	</div>
+	<div id="mygraph"></div>
+
+	<script type="text/javascript">
+		//handle controls
+		var nodes = new vis.DataSet();
+		var edges = new vis.DataSet();
+
+		$('#topology').click(function() {
+			nodes.clear();
+			edges.clear();
+			$.ajax({
+				url : "agents/demo",
+				type : "POST",
+				processData : false,
+				data : JSON.stringify({
+					"id" : 1,
+					"method" : "genTopology",
+					"params" : {
+						"type" : $("#type").val(),
+						"size" : $("#size").val(),
+						"stepSize" : $("#stepSize").val()
+					}
+				})
+			}).done(function() {
+				loadGraph()
+			});
+		});
+		$('#goal').click(function() {
+			$.ajax({
+				url : "agents/demo",
+				type : "POST",
+				processData : false,
+				data : JSON.stringify({
+					"id" : 1,
+					"method" : "startGoal",
+					"params" : {
+						"goal" : {
+							"goalPct" : $("#goalPerc").val()
+						},
+						"startLamp" : $("#startLamp").val()
+					}
+				})
+			}).done(function() {
+				setTimeout(function() {
+					loadGraph()
+				}, 500);
+			});
+		});
+
+		// create the graph
+		var container = document.getElementById('mygraph');
+		var options = {
+			width : "500px",
+			height : "500px",
+			stabilize : true,
+
+			groups : {
+				On : {
+					color : 'yellow'
+				},
+				Off : {
+					color : 'gray'
+				}
+			}
+		}
+		
+		function onSelect() {
+			$("#startLamp").val("lamp"+graph.getSelection());
+		}
+		var graph = new vis.Graph(container, {
+			nodes : nodes,
+			edges : edges
+		}, options);
+		vis.events.addListener(graph, 'select', onSelect);
+
+		function loadGraph() {
+			$.ajax({
+				url : "agents/demo",
+				type : "POST",
+				processData : false,
+				data : '{"id": 1,"method": "getLights","params": {}}'
+			}).done(
+					function(agent_data) {
+						agent_data = agent_data.result;
+						
+						nodes.update(agent_data.nodes);
+						edges.update(agent_data.edges);
+						$("#on").html(agent_data.on);
+						$("#off").html(agent_data.off);
+						$("#perc").html(
+								agent_data.on * 100
+										/ (agent_data.on + agent_data.off));
+						if ($("#size").val() == 0){
+							$("#size").val(agent_data.nodes.length);
+						}
+					});
+		};
+		loadGraph();
+		window.setInterval(function() {
+			loadGraph()
+		}, 5000);
+	</script>
+</body>
+</html>
