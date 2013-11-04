@@ -177,6 +177,7 @@
 				<os>
 					<family>unix</family>
 					<name>Linux</name>
+					<arch>amd64</arch>
 				</os>
 			</activation>
 			<dependencies>
