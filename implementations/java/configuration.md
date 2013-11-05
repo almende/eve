@@ -18,37 +18,33 @@ field names are case sensitive.
 
 file: **war/WEB-INF/eve.yaml**
 
-    # Eve configuration
-
-    # environment specific settings
-    environment:
-      Development:
-        # ... development properties
-      Production:
-        # ... production properties
-
-    # transport services (for communication)
-    services:
-    - class: XmppService
-      host: my_xmpp_server.com
-      port: 5222
-
-    # state settings (for persistency)
-    state:
-      class: FileStateFactory
-      path: .eveagents
-
-    # scheduler settings (for tasks)
-    scheduler:
-      class: RunnableSchedulerFactory
-
-    # bootstrap agents
-    # agents will be automatically created on system startup (if not existing)
-    bootstrap:
-      agents:
-        calc1: com.almende.eve.agent.example.CalcAgent
-        echo1: com.almende.eve.agent.example.EchoAgent
-
+{% highlight yaml %}
+# Eve configuration
+# environment specific settings
+environment:
+  Development:
+    # ... development properties
+  Production:
+    # ... production properties
+# transport services (for communication)
+services:
+- class: XmppService
+  host: my_xmpp_server.com
+  port: 5222
+# state settings (for persistency)
+state:
+  class: FileStateFactory
+  path: .eveagents
+# scheduler settings (for tasks)
+scheduler:
+  class: RunnableSchedulerFactory
+# bootstrap agents
+# agents will be automatically created on system startup (if not existing)
+bootstrap:
+  agents:
+    calc1: com.almende.eve.agent.example.CalcAgent
+    echo1: com.almende.eve.agent.example.EchoAgent
+{% endhighlight %}
 
 Description of the available properties:
 
@@ -226,22 +222,23 @@ The library Eve Planning (eve-planning) comes with some extra configuration prop
 
 file: **war/WEB-INF/eve.yaml**
 
-    # Eve configuration
+{% highlight yaml %}
+# Eve configuration
 
-    # environment specific settings
-    environment:
-      Development:
-        auth_google_servlet_url: http://localhost:8888/auth/google
-      Production:
-        auth_google_servlet_url: http://my_server.com/auth/google
+# environment specific settings
+environment:
+  Development:
+    auth_google_servlet_url: http://localhost:8888/auth/google
+  Production:
+    auth_google_servlet_url: http://my_server.com/auth/google
 
-    # ...
+# ...
 
-    # Google API access
-    google:
-      client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
-      client_secret: xxxxxxxxxxxxxxxx
-
+# Google API access
+google:
+  client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
+  client_secret: xxxxxxxxxxxxxxxx
+{% endhighlight %}
 
 Description:
 
@@ -300,25 +297,28 @@ For example, to
 one typically needs to have a `client_id` and `client_secret`.
 These properties can be stored in the configuration file:
 
-    # Eve settings
-    ...
+{% highlight yaml %}
+# Eve settings
+...
 
-    # Google API access
-    google:
-      client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
-      client_secret: xxxxxxxxxxxxxxxx
+# Google API access
+google:
+  client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
+  client_secret: xxxxxxxxxxxxxxxx
+{% endhighlight %}
 
 The properties can be retrieved by an agent via its agent host:
 
-    void authorizeGoogleApis () {
-        // retrieve properties
-        Config config = getAgentHost().getConfig();
-        String client_id = config.get('google', 'client_id');
-        String client_secret = config.get('google', 'client_secret');
+{% highlight java %}
+void authorizeGoogleApis () {
+	// retrieve properties
+	Config config = getAgentHost().getConfig();
+	String client_id = config.get("google", "client_id");
+	String client_secret = config.get("google", "client_secret");
 
-        // ... access google services
-    }
-
+	// ... access google services
+}
+{% endhighlight %}
 
 ## Examples {#examples}
 
@@ -347,60 +347,63 @@ There is one scheduler available: `AppEngineSchedulerFactory`.
 
 Example file: **war/WEB-INF/web.inf**
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="http://java.sun.com/xml/ns/javaee"
-            xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+{% highlight xml %}
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
-        <welcome-file-list>
-            <welcome-file>index.html</welcome-file>
-        </welcome-file-list>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
 
-        <context-param>
-            <description>eve configuration (yaml file)</description>
-            <param-name>eve_config</param-name>
-            <param-value>eve.yaml</param-value>
-        </context-param>
-        <context-param>
-            <param-name>eve_authentication</param-name>
-            <param-value>false</param-value>
-        </context-param>
-        <listener>
-            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
-        </listener>
+	<context-param>
+		<description>eve configuration (yaml file)</description>
+		<param-name>eve_config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<context-param>
+		<param-name>eve_authentication</param-name>
+		<param-value>false</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
 
-        <servlet>
-            <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>environment.Development.servlet_url</param-name>
-                <param-value>http://localhost:8888/agents</param-value>
-            </init-param>
-            <init-param>
-                <param-name>environment.Production.servlet_url</param-name>
-                <param-value>http://eveagents.appspot.com/agents</param-value>
-            </init-param>
-        </servlet>
-        <servlet-mapping>
-            <servlet-name>AgentServlet</servlet-name>
-            <url-pattern>/agents/*</url-pattern>
-        </servlet-mapping>
-    </web-app>
+	<servlet>
+		<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<param-name>environment.Development.servlet_url</param-name>
+			<param-value>http://localhost:8888/agents</param-value>
+		</init-param>
+		<init-param>
+			<param-name>environment.Production.servlet_url</param-name>
+			<param-value>http://eveagents.appspot.com/agents</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
+</web-app>
+{% endhighlight %}
 
 Example file: **war/WEB-INF/eve.yaml**
 
-    # Eve configuration
+{% highlight yaml %}
+# Eve configuration
 
-    # state settings (for persistency)
-    state:
-      class: DatastoreStateFactory
+# state settings (for persistency)
+state:
+  class: DatastoreStateFactory
 
-    # scheduler settings (for tasks)
-    scheduler:
-      class: AppEngineSchedulerFactory
-
+# scheduler settings (for tasks)
+scheduler:
+  class: AppEngineSchedulerFactory
+{% endhighlight %}
 
 
 ### Tomcat configuration {#tomcat_configuration}
@@ -418,64 +421,66 @@ There is one scheduler available: `RunnableSchedulerFactory`.
 
 Example file: **war/WEB-INF/web.inf**
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="http://java.sun.com/xml/ns/javaee"
-            xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+{% highlight xml %}
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
-        <welcome-file-list>
-            <welcome-file>index.html</welcome-file>
-        </welcome-file-list>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
 
-        <context-param>
-            <description>eve configuration (yaml file)</description>
-            <param-name>eve_config</param-name>
-            <param-value>eve.yaml</param-value>
-        </context-param>
-        <context-param>
-            <param-name>eve_authentication</param-name>
-            <param-value>false</param-value>
-        </context-param>
-        <listener>
-            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
-        </listener>
+	<context-param>
+		<description>eve configuration (yaml file)</description>
+		<param-name>eve_config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<context-param>
+		<param-name>eve_authentication</param-name>
+		<param-value>false</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
 
-        <servlet>
-            <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>servlet_url</param-name>
-                <param-value>http://localhost:8888/MyProject/agents</param-value>
-            </init-param>
-        </servlet>
-        <servlet-mapping>
-            <servlet-name>AgentServlet</servlet-name>
-            <url-pattern>/agents/*</url-pattern>
-        </servlet-mapping>
-    </web-app>
+	<servlet>
+		<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<param-name>servlet_url</param-name>
+			<param-value>http://localhost:8888/MyProject/agents</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
+</web-app>
+{% endhighlight %}
 
 Example file: **war/WEB-INF/eve.yaml**
 
-    # Eve configuration
+{% highlight yaml %}
+# Eve configuration
 
-    services:
-    # communication services
-    services:
-    - class: XmppService
-      host: my_xmpp_server.com
-      port: 5222
+# communication services
+services:
+- class: XmppService
+  host: my_xmpp_server.com
+  port: 5222
 
-    # state settings (for persistency)
-    state:
-      class: FileStateFactory
-      path: .eveagents
+# state settings (for persistency)
+state:
+  class: FileStateFactory
+  path: .eveagents
 
-    # scheduler settings (for tasks)
-    scheduler:
-      class: RunnableSchedulerFactory
-
+# scheduler settings (for tasks)
+scheduler:
+  class: RunnableSchedulerFactory
+{% endhighlight %}
 
 ### Eve Planning configuration {#eve_planning_configuration}
 
@@ -494,78 +499,79 @@ Eve Planning comes with an additional servlet to handle user authentication:
 
 Example file: **war/WEB-INF/web.inf**
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="http://java.sun.com/xml/ns/javaee"
-            xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+{% highlight xml %}
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 
-        <welcome-file-list>
-            <welcome-file>index.html</welcome-file>
-        </welcome-file-list>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
 
-        <context-param>
-            <description>eve configuration (yaml file)</description>
-            <param-name>eve_config</param-name>
-            <param-value>eve.yaml</param-value>
-        </context-param>
-        <context-param>
-            <param-name>eve_authentication</param-name>
-            <param-value>false</param-value>
-        </context-param>
-        <listener>
-            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
-        </listener>
+	<context-param>
+		<description>eve configuration (yaml file)</description>
+		<param-name>eve_config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<context-param>
+		<param-name>eve_authentication</param-name>
+		<param-value>false</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
 
-        <servlet>
-            <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>environment.Development.servlet_url</param-name>
-                <param-value>http://localhost:8888/agents</param-value>
-            </init-param>
-            <init-param>
-                <param-name>environment.Production.servlet_url</param-name>
-                <param-value>http://eveagents.appspot.com/agents</param-value>
-            </init-param>
-        </servlet>
-        <servlet-mapping>
-            <servlet-name>AgentServlet</servlet-name>
-            <url-pattern>/agents/*</url-pattern>
-        </servlet-mapping>
+	<servlet>
+		<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<param-name>environment.Development.servlet_url</param-name>
+			<param-value>http://localhost:8888/agents</param-value>
+		</init-param>
+		<init-param>
+			<param-name>environment.Production.servlet_url</param-name>
+			<param-value>http://eveagents.appspot.com/agents</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
 
-        <servlet>
-            <servlet-name>GoogleAuth</servlet-name>
-            <servlet-class>com.almende.eve.servlet.google.GoogleAuth</servlet-class>
-            <init-param>
-            <param-name>eve_config</param-name>
-            <param-value>eve.yaml</param-value>
-            </init-param>
-        </servlet>
-        <servlet-mapping>
-            <servlet-name>GoogleAuth</servlet-name>
-            <url-pattern>/auth/google</url-pattern>
-        </servlet-mapping>
-    </web-app>
+	<servlet>
+		<servlet-name>GoogleAuth</servlet-name>
+		<servlet-class>com.almende.eve.servlet.google.GoogleAuth</servlet-class>
+		<init-param>
+			<param-name>eve_config</param-name>
+			<param-value>eve.yaml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>GoogleAuth</servlet-name>
+		<url-pattern>/auth/google</url-pattern>
+	</servlet-mapping>
+</web-app>
+{% endhighlight %}
 
 Example file: **war/WEB-INF/eve.yaml**
 
-    # Eve settings
+{% highlight yaml %}
+# Eve settings
 
-    # environment specific settings
-    environment:
-      Development:
-        auth_google_servlet_url: http://localhost:8888/auth/google
-      Production:
-        auth_google_servlet_url: http://myproject.appspot.com/auth/google
+# environment specific settings
+environment:
+  Development:
+    auth_google_servlet_url: http://localhost:8888/auth/google
+  Production:
+    auth_google_servlet_url: http://myproject.appspot.com/auth/google
 
-    # state settings
-    # the state is used by agents for storing their state.
-    state:
-      class: DatastoreStateFactory
+# state settings
+# the state is used by agents for storZZZ    # Google API access 
+google:
+  client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
+  client_secret: xxxxxxxxxxxxxxxx
+{% endhighlight %}
 
-    # Google API access
-    google:
-      client_id: xxxxxxxxxxxxxxxx.apps.googleusercontent.com
-      client_secret: xxxxxxxxxxxxxxxx

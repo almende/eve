@@ -14,17 +14,19 @@ An agent can be accessed via a servlet or via an xmpp server
 
 The Java code of a basic Eve agent looks as follows:
 
-    import com.almende.eve.agent.Agent;
-    import com.almende.eve.rpc.annotation.Access;
-    import com.almende.eve.rpc.annotation.AccessType;
-    import com.almende.eve.rpc.annotation.Name;
+{% highlight java %}
+import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
 
-    public class HelloWorldAgent extends Agent {
-        @Access(AccessType.PUBLIC)
-        public String welcome(@Name("name") String name) {
-            return "Hello " + name + "!";
-        }
-    }
+public class HelloWorldAgent extends Agent {
+   @Access(AccessType.PUBLIC)
+   public String welcome(@Name("name") String name) {
+       return "Hello " + name + "!";
+   }
+}
+{% endhighlight %}
 
 Remarks on this example:
 
@@ -65,27 +67,29 @@ Non-required parameters are initialized with value `null` when not provided.
 Parameters can be of any type, both primitive types like Double or String, 
 and Java objects such as a Contact or Person class.
 
-    @Access(AccessType.PUBLIC)
-    public void storePerson (@Name("person") Person person,
-            @Name("confirm") @Required(false) Boolean confirm ) {
-        // ...
-    }
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public void storePerson (@Name("person") Person person,
+    @Name("confirm") @Required(false) Boolean confirm ) {
+    // ...
+}
+{% endhighlight %}
 
 There is a special annotation to retrieve the url of the sender, `@Sender`.
 This url can for example be used for authorization purposes.
 The sender url is currently only provided when communication via XMPP,
 not via HTTP. In the case of HTTP, the @Sender parameter will be null.
 
-    @Access(AccessType.PUBLIC)
-    public String echo (@Name("message") String message, @Sender String senderUrl) {
-        if (sender != null) {
-            return "Hello " + senderUrl + ", you said: " + message;
-        }
-        else {
-            return "Who are you?";
-        }
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public String echo (@Name("message") String message, @Sender String senderUrl) {
+    if (sender != null) {
+       return "Hello " + senderUrl + ", you said: " + message;
+    } else {
+       return "Who are you?";
     }
-
+}
+{% endhighlight %}
 
 ## Life cycle {#life_cycle}
 
@@ -141,33 +145,38 @@ or by creating a proxy to an agent and invoke methods on the proxy.
 A synchronous call to an agent is executed using the method `send`,
 providing a url, method, parameters, and return type.
 
-    String url = "http://myserver.com/agents/mycalcagent/";
-    String method = "eval";
-    ObjectNode params = JOM.createObjectNode();
-    params.put("expr", "Sin(0.25 * pi) ^ 2");
-    String result = send(url, method, params, String.class);
-    System.out.println("result=" + result);
+{% highlight java %}
+String url = "http://myserver.com/agents/mycalcagent/";
+String method = "eval";
+ObjectNode params = JOM.createObjectNode();
+params.put("expr", "Sin(0.25 * pi) ^ 2");
+String result = send(url, method, params, String.class);
+System.out.println("result=" + result);
+{% endhighlight %}
+
 
 ### Asynchronous request: {#asynchronous_request}
 An asynchronous request is executed using the method `sendAsync`,
 providing a url, method, parameters, and a callback.
 
-    String url = "xmpp:mycalcagent@myxmppserver.com";
-    String method = "getDurationHuman";
-    String method = "eval";
-    ObjectNode params = JOM.createObjectNode();
-    params.put("expr", "Sin(0.25 * pi) ^ 2");
-    sendAsync(url, method, params, new AsyncCallback<String>() {
-        @Override
-        public void onSuccess(String result) {
-            System.out.println("result=" + result);
-        }
+{% highlight java %}
+String url = "xmpp:mycalcagent@myxmppserver.com";
+String method = "getDurationHuman";
+String method = "eval";
+ObjectNode params = JOM.createObjectNode();
+params.put("expr", "Sin(0.25 * pi) ^ 2");
 
-        @Override
-        public void onFailure(Throwable caught) {
-            caught.printStackTrace();
-        }
-    }, String.class);
+sendAsync(url, method, params, new AsyncCallback<String>() {
+   @Override
+   public void onSuccess(String result) {
+       System.out.println("result=" + result);
+   }
+   @Override
+   public void onFailure(Throwable caught) {
+      caught.printStackTrace();
+   }
+}, String.class);
+{% endhighlight %}
 
 ### Agent Proxy {#proxy}
 
@@ -179,21 +188,26 @@ matches the agents actual features.
 
 The interface must extend the interface `AgentInterface`. For example:
 
-    import com.almende.eve.agent.AgentInterface;
-    import com.almende.eve.agent.annotation.Name;
+{% highlight java %}
+import com.almende.eve.agent.AgentInterface;
+import com.almende.eve.agent.annotation.Name;
 
-    public interface CalcAgent extends AgentInterface {
-        @Access(AccessType.PUBLIC)
-    	public Double eval(@Name("expr") String expr);
-    }
+public interface CalcAgent extends AgentInterface {
+   @Access(AccessType.PUBLIC)
+   public Double eval(@Name("expr") String expr);
+}
+{% endhighlight %}
+
 
 To create a proxy to an agent using this interface:
 
-    String url = "http://myserver.com/agents/mycalcagent/";
-    CalcAgent calcAgent = getAgentHost().createAgentProxy(url, CalcAgent.class);
+{% highlight java %}
+String url = "http://myserver.com/agents/mycalcagent/";
+CalcAgent calcAgent = getAgentHost().createAgentProxy(url, CalcAgent.class);
 
-    String result = calcAgent.eval("Sin(0.25 * pi) ^ 2");
-    System.out.println("result=" + result);
+String result = calcAgent.eval("Sin(0.25 * pi) ^ 2");
+System.out.println("result=" + result);
+{% endhighlight %}
 
 
 ## State {#state}
@@ -213,15 +227,16 @@ on Amazon Elastic Cloud, Amazons SimpleDB or DynamoDB can be used.
 
 An example of using the state is shown in the following example:
 
-    @Access(AccessType.PUBLIC)
-    public void setUsername(@Name("username") String username) {
-        getState().put("username", username);
-    }
-    
-    @Access(AccessType.PUBLIC)
-    public String getUsername() {
-        return getState().get("username");
-    }
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public void setUsername(@Name("username") String username) {
+	getState().put("username", username);
+}
+@Access(AccessType.PUBLIC)
+public String getUsername() {
+	return getState().get("username");
+}
+{% endhighlight %}
 
 ## Events {#events}
 
@@ -231,9 +246,7 @@ They will be triggered when the event occurs.
 To subscribe AgentX to an event from AgentY, the method `subscribe` can be used.
 This method is called with three parameters: the url of the agent
 to subscribe to, the name of the event, and the callback method on which to
-retrieve a callback when the event is triggered. Similarly, an agent can use
-the `unsubscribe` method to remove a subscription.
-Behind the scenes, AgentX will make an JSON-RPC call to the `onSubscribe` or
+retrieve a callback when the event is triggered. Optionally the subscription can also contain a callback parameter object, which will be send to the callback method. Similarly, an agent can use the `unsubscribe` method to remove a subscription. Behind the scenes, AgentX will make an JSON-RPC call to the `onSubscribe` or
 `onUnsubscribe` methods of AgentY, providing its own url and the event parameters.
 
 An agent can subscribe to a single event using the event name,
@@ -244,57 +257,60 @@ to receive a callback on its method `onEvent` when the event happens.
 The callback method `onEvent` can have any name, and must have three parameters:
 `agent`, `event`, and `params`.
 
-    @Access(AccessType.PUBLIC)
-    public void subscribeToAgentY() throws Exception {
-        String url = "http://server/agents/agenty/";
-        String event = "dataChanged";
-        String callback = "onEvent";
-
-        subscribe(url, event, callback);
-    }
-
-    @Access(AccessType.PUBLIC)
-    public void unsubscribeFromAgentY() throws Exception {
-        String url = "http://server/agents/agenty/";
-        String event = "dataChanged";
-        String callback = "onEvent";
-
-        unsubscribe(url, event, callback);
-    }
-
-    @Access(AccessType.PUBLIC)
-    public void onEvent(
-            @Name("agent") String agent,
-            @Name("event") String event, 
-            @Required(false) @Name("params") ObjectNode params) throws Exception {
-        System.out.println("onEvent " +
-                "agent=" + agent + ", " +
-                "event=" + event + ", " +
-                "params=" + ((params != null) ? params.toString() : null));
-    }
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public void subscribeToAgentY() throws Exception {
+    String url = "http://server/agents/agenty/";
+    String event = "dataChanged";
+    String callback = "onEvent";
+	ObjectNode callbackParams = JOM.createObjectNode();
+    callbackParams.put("original_data","some data");
+	callbackParams.put("message","Somewhere the dataChanged event was triggered.");
+    getEventsFactory().subscribe(url, event, callback, callbackParams);
+}
+@Access(AccessType.PUBLIC)
+public void unsubscribeFromAgentY() throws Exception {
+    String url = "http://server/agents/agenty/";
+    String event = "dataChanged";
+    String callback = "onEvent";
+    getEventsFactory().unsubscribe(url, event, callback);
+}
+@Access(AccessType.PUBLIC)
+public void onEvent(
+    @Name("agent") String agent,
+    @Name("event") String event, 
+    @Required(false) @Name("params") ObjectNode params) throws Exception {
+    System.out.println("onEvent " +
+       "agent=" + agent + ", " +
+       "event=" + event + ", " +
+       "params=" + ((params != null) ? params.toString() : null));
+}
+{% endhighlight %}
 
 To let AgentY trigger the event "dataChanged", the method `trigger` can be used.
 Behind the scenes, a JSON-RPC call will be sent to all agents that have
 subscribed to that particular event.
 
-    @Access(AccessType.PUBLIC)
-    public void triggerDataChangedEvent () throws Exception {
-        String event = "dataChanged";
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public void triggerDataChangedEvent () throws Exception {
+   String event = "dataChanged";
+   // optionally send extra parameters (can contain anything)
+   ObjectNode params = JOM.createObjectNode();
+   params.put("message", "Hi, I changed the data.");
+   getEventsFactory().trigger(event, params);
+}
+{% endhighlight %}
 
-        // optionally send extra parameters (can contain anything)
-        ObjectNode params = JOM.createObjectNode();
-        params.put("message": "Hi, I changed the data.");
-
-        trigger(event, params);
-    }
+The trigger method has an optional parameter object, which will be merged with the subscription callbackParameter object. (The trigger parameter fields will override existing subscription fields) The merged object will be send to the event callback method.
 
 When the trigger above is executed, the callback method `onEvent` of AgentX will
 be called with the following parameters:
 
 - `agent` containing the url of AgentY, from which the trigger comes,
 - `event` containing the triggered event "dataChanged",
-- `params` containing optional parameters, in this case an object containing
-  a field "message" with value "Hi, I changed the data.".
+- `params` containing optional parameters, a merged object from the subscription and the trigger, in this case an object containing
+  a field "message" with value "Hi, I changed the data." (overriding the "message" field of the subscription) and a field "original_data" with value "some data".
 
 
 ## Scheduler {#scheduler}
@@ -316,26 +332,25 @@ A task is a delayed JSON-RPC call to the agent itself.
 Tasks can be created and canceled.
 The following example shows how to schedule a task:
 
-    @Access(AccessType.PUBLIC)
-    public String createTask() throws Exception {
-        ObjectNode params = JOM.createObjectNode();
-        params.put("message", "hello world");
-        JSONRequest request = new JSONRequest("myTask", params);
-        long delay = 5000; // milliseconds
-        
-        String id = getScheduler().createTask(request, delay);
-        return id;
-    }
-
-    @Access(AccessType.PUBLIC)
-    public void cancelTask(@Name("id") String id) {
-        getScheduler().cancelTask(id);
-    }
-
-    @Access(AccessType.PUBLIC)
-    public void myTask(@Name("message") String message) {
-        System.out.println("myTask is executed. Message: " + message);
-    }
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public String createTask() throws Exception {
+    ObjectNode params = JOM.createObjectNode();
+    params.put("message", "hello world");
+    JSONRequest request = new JSONRequest("myTask", params);
+    long delay = 5000; // milliseconds 
+    String id = getScheduler().createTask(request, delay);
+    return id;
+}
+@Access(AccessType.PUBLIC)
+public void cancelTask(@Name("id") String id) {
+    getScheduler().cancelTask(id);
+}
+@Access(AccessType.PUBLIC)
+public void myTask(@Name("message") String message) {
+    System.out.println("myTask is executed. Message: " + message);
+}
+{% endhighlight %}
 
 
 ## AgentHost {#agenthost}
@@ -356,8 +371,10 @@ reading any configuration settings. If an agent requires some specific
 configuration properties, these properties can be stored in the configuration
 file (typically eve.yaml), and read by the agent:
 
-    Config config = getAgentHost().getConfig();
-    String database_url = config.get('database_url');
+{% highlight java %}
+Config config = getAgentHost().getConfig();
+String database_url = config.get("database_url");
+{% endhighlight %}
 
 See also the page
 [Configuration](configuration.html#accessing_configuration_properties).

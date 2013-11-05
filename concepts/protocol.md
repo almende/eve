@@ -162,7 +162,7 @@ Currently the following patterns are described:
 ### Publish-subscribe model {#pubsub}
 
 #### Description
-<div class="highlight">An event is identified as a label. The set of events that an agent can trigger is part of the application that is written, Eve does not define any specific events. Subscribing to an event does not guarantee the existence of such an event, nor if the event will ever be triggered by the agent.</div>
+<div class="Evehighlight">An event is identified as a label. The set of events that an agent can trigger is part of the application that is written, Eve does not define any specific events. Subscribing to an event does not guarantee the existence of such an event, nor if the event will ever be triggered by the agent.</div>
 
 Through the event subscription model, agents can request to be informed when a certain event is triggered. The two agents involved (subscriber and publisher) should share a common list of events. When the publisher triggers the event, it will call the provided callback method of the subscriber. 
 

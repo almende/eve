@@ -45,7 +45,7 @@ Currently there are two main implementations of Eve:
 There is extensive documentation for each of the implementations available on this website.
 
 ## Why?
-<div class="highlight">
+<div class="Evehighlight">
 <span>Why software agents?</span><br>
 Designing robust, distributed software systems is notoriously hard. At the same time, humans are pretty good at distributing work among themselves and forming robust organizations and/or teams. Designing and using software agents is inspired by such human organizations, making software designs fit closer to our collective experience, providing a boost in stability, scalability and maintainability of the software system.
 </div>

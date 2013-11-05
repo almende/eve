@@ -27,7 +27,7 @@ Eve provides these features as services to the agents, therefor the implementati
 
 The main reason for providing a separate memory service to the agents is that, in most implementations, Eve agents have a request based lifecycle. The agent is only instantiated to handle a single incoming request and is destroyed again as soon as the request has been handled. Only the externally stored state is kept between requests. The agent identity is formed by the address of its state, not by an in-memory, running instance of some class. The clock-scheduler service provides requests at scheduled times, thus instantiating the agent at that time.
 
-<div class="highlight">
+<div class="Evehighlight">
 <span style="font-weight:bold">Implementation caveat</span><br>
 The model has some design constrains that are important to understand: It is possible that multiple instances of the same agent are running simultaneously and in some cases it is even possible that multiple threads access the same instance in parallel. Besides the provided state service (and potential external databases) an agent should be stateless, without global or class level scoped variables. It is possible in some implementations, to cache bootstrap information in the agent instance, but there is no guarantee that the instance remains active, nor that the next request ends up in the same instance (or even in the same execution environment!). If cache structures are used, be certain to make them completely thread-safe!
 </div>

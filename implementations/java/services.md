@@ -52,35 +52,37 @@ To configure the servlet and context listener,
 add the following lines to the **web.xml** file of the Java project,
 inside the &lt;web-app&gt; tag:
 
-	<context-param>
-		<description>eve configuration (yaml file)</description>
-		<param-name>eve_config</param-name>
-		<param-value>eve.yaml</param-value>
-	</context-param>
-	<context-param>
-		<param-name>eve_authentication</param-name>
-		<param-value>false</param-value>
-	</context-param>
-	<listener>
-		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
-	</listener>
+{% highlight xml %}
+<context-param>
+	<description>eve configuration (yaml file)</description>
+	<param-name>eve_config</param-name>
+	<param-value>eve.yaml</param-value>
+</context-param>
+<context-param>
+	<param-name>eve_authentication</param-name>
+	<param-value>false</param-value>
+</context-param>
+<listener>
+	<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+</listener>
 
-    <servlet>
-        <servlet-name>AgentServlet</servlet-name>
-        <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-        <init-param>
-            <param-name>environment.Development.servlet_url</param-name>
-            <param-value>http://localhost:8888/agents/</param-value>
-        </init-param>
-        <init-param>
-            <param-name>environment.Production.servlet_url</param-name>
-            <param-value>http://myeveproject.appspot.com/agents/</param-value>
-        </init-param>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AgentServlet</servlet-name>
-        <url-pattern>/agents/*</url-pattern>
-    </servlet-mapping>
+<servlet>
+	<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<param-name>environment.Development.servlet_url</param-name>
+			<param-value>http://localhost:8888/agents/</param-value>
+		</init-param>
+		<init-param>
+			<param-name>environment.Production.servlet_url</param-name>
+			<param-value>http://myeveproject.appspot.com/agents/</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
+{% endhighlight %}
 
 The *url-pattern* in the servlet mapping can be freely chosen (in the example
 chosen as `/agents/*`).
@@ -216,23 +218,25 @@ be started and stopped any moment.
 XMPP support must be configured in the Eve configuration file with default
 file name **eve.yaml**.
 
-    # Eve configuration
+{% highlight yaml %}
+# Eve configuration
 
-    # communication services
-    services:
-    - class: XmppService
-      host: my_xmpp_server.com
-      port: 5222
-      service: my_xmpp_service_name
+# communication services
+services:
+- class: XmppService
+  host: my_xmpp_server.com
+  port: 5222
+  service: my_xmpp_service_name
 
-    # state settings (for persistency)
-    state:
-      class: FileStateFactory
-      path: .eveagents
+# state settings (for persistency)
+state:
+  class: FileStateFactory
+  path: .eveagents
 
-    # scheduler settings (for tasks)
-    scheduler:
-      class: RunnableSchedulerFactory
+# scheduler settings (for tasks)
+scheduler:
+  class: RunnableSchedulerFactory
+{% endhighlight %}
 
 ### Usage
 
@@ -241,28 +245,26 @@ XmppService. The following code example shows how an agent can retrieve the
 xmpp service via its AgentHost,
 and connect itself to the service with a username and password.
 
-    @Access(AccessType.PUBLIC)
-    public void xmppConnect(@Name("username") String username,
-            @Name("password") String password) throws Exception {
-        AgentHost host = getAgentHost();
-
-        XmppService service = (XmppService) host.getService("xmpp");
-        if (service != null) {
-            service.connect(getId(), username, password);
-        }
-        else {
-            throw new Exception("No XMPP service registered");
-        }
-    }
-
-    @Access(AccessType.PUBLIC)
-    public void xmppDisconnect() throws Exception {
-        AgentHost host = getAgentHost();
-        XmppService service = (XmppService) host.getService("xmpp");
-        if (service != null) {
-            service.disconnect(getId());
-        }
-        else {
-            throw new Exception("No XMPP service registered");
-        }
-    }
+{% highlight java %}
+@Access(AccessType.PUBLIC)
+public void xmppConnect(@Name("username") String username,
+	@Name("password") String password) throws Exception {
+	AgentHost host = getAgentHost();
+	XmppService service = (XmppService) host.getService("xmpp");
+	if (service != null) {
+		service.connect(getId(), username, password);
+	} else {
+		throw new Exception("No XMPP service registered");
+	}
+}
+@Access(AccessType.PUBLIC)
+public void xmppDisconnect() throws Exception {
+	AgentHost host = getAgentHost();
+	XmppService service = (XmppService) host.getService("xmpp");
+	if (service != null) {
+		service.disconnect(getId());
+	} else {
+		throw new Exception("No XMPP service registered");
+	}
+}
+{% endhighlight %}
