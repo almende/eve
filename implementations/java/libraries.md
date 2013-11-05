@@ -41,7 +41,7 @@ The Java libraries are spread over three different layers:
 
 The image below shows a schematic overview of the layers and libraries. 
 
-![../img/java_libraries.png](../img/java_libraries.png)
+![/img/java_libraries.png](/img/java_libraries.png)
 
 ## Libraries {#libraries}
 

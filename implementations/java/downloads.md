@@ -21,41 +21,49 @@ pom.xml file. Only eve-core is required, the others depend on the environment in
 
 Core library.
 
+{% highlight xml %}
     <dependency>
         <groupId>com.almende.eve</groupId>
         <artifactId>eve-core</artifactId>
         <version>{{version}}</version>
     </dependency>
+{% endhighlight %}
 
 ### eve-gae
 
 Google App Engine support.
 
+{% highlight xml %}
     <dependency>
         <groupId>com.almende.eve</groupId>
         <artifactId>eve-gae</artifactId>
         <version>{{version}}</version>
     </dependency>
+{% endhighlight %}
 
 ### eve-android
 
 Android support.
 
+{% highlight xml %}
     <dependency>
         <groupId>com.almende.eve</groupId>
         <artifactId>eve-android</artifactId>
         <version>{{version}}</version>
     </dependency>
+{% endhighlight %}
 
 ### eve-planning
 
 Example application on top of Eve:
 
+{% highlight xml %}
     <dependency>
         <groupId>com.almende.eve</groupId>
         <artifactId>eve-gae</artifactId>
         <version>{{version}}</version>
     </dependency>
+{% endhighlight %}
 
 
 ## Manual download

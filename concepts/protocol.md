@@ -30,7 +30,9 @@ Agent Y executes the method with the provided parameters, and returns the result
 <th class="example">Url</th><td class="example"><pre class="example">http://myserver.com/agents/agent_y</pre></td>
 </tr>
 <tr>
-<th class="example">Request</th><td class="example"><pre class="example">{
+<th class="example">Request</th><td class="example">
+{% highlight javascript %}
+{
     "jsonrpc":"2.0",
     "id": 1,
     "method": "add",
@@ -38,15 +40,21 @@ Agent Y executes the method with the provided parameters, and returns the result
         "a": 2.2,
         "b": 4.5
     }
-}</pre></td>
+}
+{% endhighlight %}
+</td>
 </tr>
 <tr>
-<th class="example">Response</th><td class="example"><pre class="example">{
+<th class="example">Response</th><td class="example">
+{% highlight javascript %}
+{
     "jsonrpc":"2.0",
     "id": 1,
     "result": 6.7,
     "error": null
-}</pre></td>
+}
+{% endhighlight %}
+</td>
 </tr>
 </table>
 
@@ -127,7 +135,7 @@ The method descriptions have the following structure:
 
 
 For example a method `add(a,b)` can be described as:
-
+{% highlight javascript %}
     {
         "result": {
             "type": "Double"
@@ -146,7 +154,7 @@ For example a method `add(a,b)` can be described as:
             }
         ]
     }
-
+{% endhighlight %}
 
 ## Management methods {#management}
 

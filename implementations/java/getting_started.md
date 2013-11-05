@@ -48,10 +48,9 @@ First, we will create a regular Maven web application in Eclipse.
 We will use Jetty to run the created web application. We will run jetty using the Jetty plugin for Maven.
 
 Open the file pom.xml in the root of the project and add the jetty plugin:
-
-    <project ...>
+{% highlight xml %}
+    <project>
         ...
-
         <build>
             ...
             <plugins>
@@ -89,6 +88,7 @@ Open the file pom.xml in the root of the project and add the jetty plugin:
             ...
         </build>
     </project>
+{% endhighlight %}
 
 Start the project via the following command:
 
@@ -105,17 +105,16 @@ When the web application runs fine, we can continue with adding Eve to the proje
 
 Add the maven dependencies for Eve in pom.xml:
 
-    ...
+{% highlight xml %}
     <dependencies>
         ...
-
         <dependency>
             <groupId>com.almende.eve</groupId>
             <artifactId>eve-core</artifactId>
             <version>{{version}}</version>
         </dependency>
     </dependencies>
-    ...
+{% endhighlight %}
 
 Maven will take care resolving all dependencies of the Eve library.
 
@@ -124,21 +123,23 @@ Maven will take care resolving all dependencies of the Eve library.
 
 Configure an Eve AgentHost, which manages Eve agents. Open the servlet configuration file `web.xml` in the folder `src/main/webapp/WEB-INF`, and add the following configuration:
 
-    <web-app>
+{% highlight xml %}
+<web-app>
     ...
-        <context-param>
-            <description>eve configuration (yaml file)</description>
-            <param-name>eve_config</param-name>
-            <param-value>eve.yaml</param-value>
-        </context-param>
-        <context-param>
-            <param-name>eve_authentication</param-name>
-            <param-value>false</param-value>
-        </context-param>
-        <listener>
-            <listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
-        </listener>
-    </web-app>
+	<context-param>
+		<description>eve configuration (yaml file)</description>
+		<param-name>eve_config</param-name>
+		<param-value>eve.yaml</param-value>
+	</context-param>
+	<context-param>
+		<param-name>eve_authentication</param-name>
+		<param-value>false</param-value>
+	</context-param>
+	<listener>
+		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+	</listener>
+</web-app>
+{% endhighlight %}
 
 Note that we have specified a number of context parameters.
 
@@ -147,21 +148,21 @@ Note that we have specified a number of context parameters.
 
 Create an Eve configuration file named `eve.yaml` in the folder `war/WEB-INF` (where `web.xml` is located too). Insert the following text in this file:
 
-    # Eve configuration
+{% highlight yaml %}
+# Eve configuration
 
-    # communication services
-    # services:
-    # - class: ...
+# communication services
+# services:
+# - class: ...
 
-    # state settings (for persistence)
-    state:
-      class: FileStateFactory
-      path: .eveagents
-
-
-    # scheduler settings (for tasks)
-    scheduler:
-      class: RunnableSchedulerFactory
+# state settings (for persistence)
+state:
+  class: FileStateFactory
+  path: .eveagents
+# scheduler settings (for tasks)
+scheduler:
+  class: RunnableSchedulerFactory
+{% endhighlight %}
 
 The configuration is a [YAML](http://en.wikipedia.org/wiki/YAML) file. It contains:
 
@@ -182,23 +183,26 @@ The AgentHost is now fully configured so we can run agents on it. However, we do
 
 Now, we will configure an HTTP Transport service for Eve, which allows us to communicate via HTTP with the agents running in our application. Open the servlet configuration file `web.xml` in the folder `src/main/webapp/WEB-INF`, and add the following configuration:
 
-    <web-app>
-        ...
-        <servlet>
-            <servlet-name>AgentServlet</servlet-name>
-            <servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
-            <init-param>
-                <param-name>servlet_url</param-name>
-                <param-value>http://localhost:8080/myeveproject/agents/</param-value>
-            </init-param>
-            <load-on-startup>1</load-on-startup>
-        </servlet>
-        <servlet-mapping>
-            <servlet-name>AgentServlet</servlet-name>
-            <url-pattern>/agents/*</url-pattern>
-        </servlet-mapping>
-        ...
-    </web-app>
+
+{% highlight xml %}
+<web-app>
+	...
+	<servlet>
+		<servlet-name>AgentServlet</servlet-name>
+		<servlet-class>com.almende.eve.transport.http.AgentServlet</servlet-class>
+		<init-param>
+			<param-name>servlet_url</param-name>
+			<param-value>http://localhost:8080/myeveproject/agents/</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AgentServlet</servlet-name>
+		<url-pattern>/agents/*</url-pattern>
+	</servlet-mapping>
+	...
+</web-app>
+{% endhighlight %}
 
 The servlet can route incoming HTTP requests to agents running on the AgentHost. The servlet needs a parameter `servlet_url`. This url is needed in order to be able to built an agents full url, which is used to share with others via the method `getUrls()`.
 
@@ -232,6 +236,7 @@ Perform an HTTP POST request to the CalcAgent on the url
 
 With request body:
 
+{% highlight javascript %}
     {
         "jsonrpc": "2.0",
         "id": 1,
@@ -240,14 +245,17 @@ With request body:
             "expr": "2.5 + 3 / sqrt(16)"
         }
     }
+{% endhighlight %}
 
 This request will return the following response:
 
+{% highlight javascript %}
     {
         "jsonrpc": "2.0",
         "id": 1,
         "result": "3.25"
     }
+{% endhighlight %}
 
 The agent also has a web interface, allowing you to interact with the agent more easily, to go to the agents web interface, open its url in your browser: http://localhost:8080/myeveproject/agents/calcagent1/.
 
@@ -258,24 +266,25 @@ Now, what you want of course is create your own agents. This is quite easy: crea
 
 Create a source folder `src/main/java` in the project. In there, create a new class named `MyFirstAgent` in package `com.mycompany.myeveproject` with the following contents:
 
-    package com.mycompany.myeveproject;
+{% highlight java %}
+package com.mycompany.myeveproject;
 
-    import com.almende.eve.agent.Agent;
-    import com.almende.eve.rpc.annotation.Access;
-    import com.almende.eve.rpc.annotation.AccessType;
-    import com.almende.eve.rpc.annotation.Name;
+import com.almende.eve.agent.Agent;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Name;
 
-    public class MyFirstAgent extends Agent {
-        @Access(AccessType.PUBLIC)
-        public String echo (@Name("message") String message) {
-            return "You said: " + message;
-        }
-
-        @Access(AccessType.PUBLIC)
-        public double add (@Name("a") double a, @Name("b") double b) {
-            return a + b;
-        }
-    }
+public class MyFirstAgent extends Agent {
+	@Access(AccessType.PUBLIC)
+	public String echo (@Name("message") String message) {
+		return "You said: " + message;
+	}
+	@Access(AccessType.PUBLIC)
+	public double add (@Name("a") double a, @Name("b") double b) {
+		return a + b;
+	}
+}
+{% endhighlight %}
 
 By default, an agents methods cannot be accessed by other agents. The availability of methods can be specified using the `@Access` annotation, as done in the example above where both methods `echo` and `add` are declared public. Eve agents communicate with each other via JSON-RPC 2.0, which uses named parameters. As Java doesn't support named parameters, the parameter names need to be specified using the `@Name` annotation. Furthermore, parameters can be declared optional using the `@Required` annotation.
 
@@ -294,6 +303,7 @@ Now you can perform an HTTP POST request to the new agent
 
 With as request body:
 
+{% highlight javascript %}
     {
         "jsonrpc": "2.0",
         "id": 1,
@@ -302,17 +312,21 @@ With as request body:
             "message": "Hello World"
         }
     }
+{% endhighlight %}
 
 which returns:
 
+{% highlight javascript %}
     {
         "jsonrpc": "2.0",
         "id": 1,
         "result": "Hello World"
     }
+{% endhighlight %}
 
 or send the following request:
 
+{% highlight javascript %}
     {
         "jsonrpc": "2.0",
         "id": 1,
@@ -322,17 +336,21 @@ or send the following request:
               "b": 3.5
          }
     }
+{% endhighlight %}
 
 which returns:
 
+{% highlight javascript %}
     {
         "jsonrpc": "2.0",
         "id": 1,
         "result": 5.6
     }
+{% endhighlight %}
 
 ## Conclusion {#conclusion}
 
 This tutorial demonstrated step by step how to set up a web application running via Jetty, how to set up Eve, and how to create and use Eve agents.
 
 Now you know how to set up an Eve environment, you can start doing interesting things with the agents. Eve comes with functionality to let the agents communicate with each other, store state, and schedule tasks, subscribe to events, monitor other agents, and more. In-depth documentation can be found in the Reference section of this website.
+
