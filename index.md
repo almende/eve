@@ -3,17 +3,14 @@ layout: default
 title: Introduction
 ---
 
-{% assign version = '1.1.0' %}
-
-
 #Eve - a web-based agent platform
 
 
 <div style="float: right;">
     <div id="dropdown-1" class="dropdown dropdown-tip">
         <ul class="dropdown-menu">
-            <li><a href="/eve/implementations/java/downloads.html">Eve Java</a></li>
-            <li><a href="/eve/implementations/javascript/downloads.html">Eve JavaScript</a></li>
+            <li><a href="implementations/java/downloads.html">Eve Java</a></li>
+            <li><a href="implementations/javascript/downloads.html">Eve JavaScript</a></li>
         </ul>
     </div>
     <a class="download" href="#" title="Download Eve" data-dropdown="#dropdown-1">Download &nbsp; &#x25BC;</a>
@@ -46,23 +43,6 @@ Currently there are two main implementations of Eve:
 - In the future, implementations in other languages will follow.
 
 There is extensive documentation for each of the implementations available on this website.
-
-
-<!-- TODO: cleanup
-## Download
-
-The easiest way to get Eve for Java is through Maven:
-
-<div class="code"><pre><span class="nt">&lt;dependency&gt;</span>
-    <span class="nt">&lt;groupId&gt;</span>com.almende.eve<span class="nt">&lt;/groupId&gt;</span>
-    <span class="nt">&lt;artifactId&gt;</span>eve-core<span class="nt">&lt;/artifactId&gt;</span>
-    <span class="nt">&lt;version&gt;</span>{{version}}<span class="nt">&lt;/version&gt;</span>
-<span class="nt">&lt;/dependency&gt;</span>
-</pre></div>
-
-Eve is entirely open-source (Apache License, version 2.0) so you can also [fork](https://github.com/almende/eve) the project on github.
-Full information on Java downloads can be found on the [Java downloads](java_downloads.html) section.
--->
 
 ## Why?
 <div class="highlight">

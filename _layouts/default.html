@@ -2,7 +2,16 @@
 <html>
 <head>
     <title>Eve - {{ page.title }} </title>
-    <link rel="shortcut icon" href="/eve/img/favicon.ico" >
+    <link rel="shortcut icon" href="/img/favicon.ico" >
+
+	<script type="text/javascript">
+		var url = window.location;
+		url = url.toString();
+		if (url.substring(0,29) == "http://almende.github.com/eve"){
+			url = url.replace(/almende.github.com\/eve/,"eve.almende.com")
+			window.location = url;
+		}
+	</script>
 
     <meta name="title" content="Eve - {{ page.title }}">
     <meta name="keywords" content="eve, agent, software agent, software agents, agent platform, scalable, multiplatform, multipurpose, web based, cloud, http, json, json-rpc, opensource, open source" >
@@ -10,28 +19,28 @@
     <meta name="author" content="Almende B.V." >
 
     <!--
-    <link type="text/css" rel="stylesheet" href="/eve/js/foundation/css/normalize.css">
-    <link type="text/css" rel="stylesheet" href="/eve/js/foundation/css/foundation.min.css">
+    <link type="text/css" rel="stylesheet" href="/js/foundation/css/normalize.css">
+    <link type="text/css" rel="stylesheet" href="/js/foundation/css/foundation.min.css">
     -->
-    <link type="text/css" rel="stylesheet" href="/eve/js/jquery/jquery-dropdown/jquery.dropdown.css">
-    <link type="text/css" rel="stylesheet" href="/eve/css/style.css">
-    <link type="text/css" rel="stylesheet" href="/eve/css/menu.css">
-    <link type="text/css" rel="stylesheet" href="/eve/js/lightbox/css/lightbox.css">
+    <link type="text/css" rel="stylesheet" href="/js/jquery/jquery-dropdown/jquery.dropdown.css">
+    <link type="text/css" rel="stylesheet" href="/css/style.css">
+    <link type="text/css" rel="stylesheet" href="/css/menu.css">
+    <link type="text/css" rel="stylesheet" href="/js/lightbox/css/lightbox.css">
 
-    <script type="text/javascript" src="/eve/js/jquery/jquery-1.10.2.min.js"></script>
-    <script type="text/javascript" src="/eve/js/jquery/jquery-dropdown/jquery.dropdown.js"></script>
-	<script type="text/javascript" src="/eve/js/lightbox/js/lightbox-2.6.min.js"></script>
+    <script type="text/javascript" src="/js/jquery/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/js/jquery/jquery-dropdown/jquery.dropdown.js"></script>
+	<script type="text/javascript" src="/js/lightbox/js/lightbox-2.6.min.js"></script>
     <!--
-    <script type="text/javascript" src="/eve/js/foundation/js/foundation.min.js"></script>
-    <script type="text/javascript" src="/eve/js/foundation/js/foundation/foundation.dropdown.js"></script>
+    <script type="text/javascript" src="/js/foundation/js/foundation.min.js"></script>
+    <script type="text/javascript" src="/js/foundation/js/foundation/foundation.dropdown.js"></script>
     -->
-    <script type="text/javascript" src="/eve/js/menu.js"></script>
+    <script type="text/javascript" src="/js/menu.js"></script>
 </head>
 
 <body>
 
 <a href="https://github.com/almende/eve" style="position: fixed; top: 0; right: 0; border: 0;" >
-    <img src="/eve/img/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" >
+    <img src="/img/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" >
 </a>
 
 <div id="container">
@@ -39,39 +48,39 @@
     <div id="menu">
         <div id="menu-inner">
 
-            <a href="/eve/index.html"><img src="/eve/img/logo/eve128.png" alt="logo"></a>
+            <a href="/index.html"><img src="/img/logo/eve128.png" alt="logo"></a>
             <br>
 
             <div id="menu-tree-container">
                 <ul id="menu-tree">
                     <li class="home">
-                        <a href="/eve/index.html">Home</a>
+                        <a href="/index.html">Home</a>
                     </li>
                     <li id="concepts">
                         <span class="title">Concepts</span>
                         <ul>
-                            <li><a href="/eve/concepts/introduction.html">Introduction</a></li>
-                            <li><a href="/eve/concepts/protocol.html">Protocol</a></li>
-                            <li><a href="/eve/concepts/application_areas.html">Application Areas</a></li>
-                            <li><a href="/eve/concepts/position.html">Position</a></li>
+                            <li><a href="/concepts/introduction.html">Introduction</a></li>
+                            <li><a href="/concepts/protocol.html">Protocol</a></li>
+                            <li><a href="/concepts/application_areas.html">Application Areas</a></li>
+                            <li><a href="/concepts/position.html">Position</a></li>
                         </ul>
                     </li>
 
                     <li id="java">
                         <span class="title">Java</span>
                         <ul>
-                            <li><a href="/eve/implementations/java/introduction.html">Introduction</a></li>
-                            <li><a href="/eve/implementations/java/downloads.html">Downloads</a></li>
-                            <li><a href="/eve/implementations/java/getting_started.html">Getting Started</a></li>
+                            <li><a href="/implementations/java/introduction.html">Introduction</a></li>
+                            <li><a href="/implementations/java/downloads.html">Downloads</a></li>
+                            <li><a href="/implementations/java/getting_started.html">Getting Started</a></li>
                             <li id="reference">
                                 <span class="title">Reference</span>
                                 <ul>
-                                    <li><a href="/eve/implementations/java/libraries.html">Libraries</a></li>
-                                    <li><a href="/eve/implementations/java/configuration.html">Configuration</a></li>
-                                    <li><a href="/eve/implementations/java/services.html">Services</a></li>
-                                    <li><a href="/eve/implementations/java/agents.html">Agents</a></li>
+                                    <li><a href="/implementations/java/libraries.html">Libraries</a></li>
+                                    <li><a href="/implementations/java/configuration.html">Configuration</a></li>
+                                    <li><a href="/implementations/java/services.html">Services</a></li>
+                                    <li><a href="/implementations/java/agents.html">Agents</a></li>
                                     <!-- TODO: link to java doc
-                                    <li><a href="/eve/implementations/java/javadoc/">JavaDoc</a></li>
+                                    <li><a href="/implementations/java/javadoc/">JavaDoc</a></li>
                                     -->
                                 </ul>
                             </li>
@@ -80,9 +89,9 @@
                     <li id="javascript">
                         <span class="title">JavaScript</span>
                         <ul>
-                            <li><a href="/eve/implementations/javascript/introduction.html">Introduction</a></li>
-                            <li><a href="/eve/implementations/javascript/downloads.html">Downloads</a></li>
-                            <li><a href="/eve/implementations/javascript/gettingstarted.html">Getting Started</a></li>
+                            <li><a href="/implementations/javascript/introduction.html">Introduction</a></li>
+                            <li><a href="/implementations/javascript/downloads.html">Downloads</a></li>
+                            <li><a href="/implementations/javascript/gettingstarted.html">Getting Started</a></li>
                         </ul>
                     </li>
                 </ul>

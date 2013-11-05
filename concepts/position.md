@@ -104,7 +104,7 @@ activities on behalf of agents or the AgentScape middleware.
 
 ### Eve
 
-Site: [http://almende.github.com/eve/](http://almende.github.com/eve/)
+Site: [http://eve.almende.com/](http://eve.almende.com/)
 
 Eve is a multipurpose, web based agent platform.
 The project aims to develop an open protocol for communication between software
