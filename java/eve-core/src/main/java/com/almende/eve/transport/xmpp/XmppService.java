@@ -494,4 +494,14 @@ public class XmppService implements TransportService {
 	public String getKey() {
 		return "xmpp://" + host + ":" + port + "/" + service;
 	}
+
+
+
+	public boolean ping(String senderUrl, String receiver )
+	{
+		AgentConnection connection = this.connectionsByUrl.get(senderUrl );
+		return connection.isAvailable( receiver );
+	}
+
+
 }

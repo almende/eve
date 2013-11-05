@@ -343,4 +343,32 @@ public class AgentConnection {
 			}).start();
 		}
 	}
+
+	public boolean isAvailable(String receiver)
+	{
+		//split url (xmpp:user/resource) into parts 
+		if (receiver.startsWith("xmpp:"))
+			receiver = receiver.substring( 5, receiver.length() );
+		int slash = receiver.indexOf("/");
+		String resource = receiver.substring(slash+1,receiver.length() );
+		String user = receiver.substring(0,slash);
+
+		Roster roster = this.conn.getRoster();
+		java.util.Collection<org.jivesoftware.smack.RosterEntry> entries = roster.getEntries();
+		for (org.jivesoftware.smack.RosterEntry entry : entries)
+		{
+			if( !entry.getUser().equals(user) )continue;
+
+			Presence.Type pt = roster.getPresenceResource( user+"/"+resource ).getType();
+			return pt == Presence.Type.available;
+		}
+				
+		// not in roster yet..
+		Presence subscribe = new Presence(Presence.Type.subscribe);
+		subscribe.setTo( receiver );
+		conn.sendPacket(subscribe); 
+
+		return true;
+        }
+
 }
