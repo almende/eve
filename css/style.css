@@ -15,6 +15,10 @@ body {
     overflow-y: scroll;
 }
 
+h1.hidden {
+	display:none;
+}
+
 #container {
     margin: 0 auto;
     width: 950px;
