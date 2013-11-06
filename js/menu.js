@@ -27,7 +27,7 @@ function prepareMenu() {
 
     // find the page where we are now and highlight it
     menuTree.find('a').each(function (index, elem) {
-        if (location.href.indexOf(elem.href) == 0) {
+		if (location.href.indexOf(elem.href) == 0 || ( /.*\/$/.test(location.href) && /.*\/index\.html$/.test(elem.href))) {
             var parent = $(elem).parent();
             parent.addClass('current');
 
@@ -39,6 +39,7 @@ function prepareMenu() {
 
                 parent = parent.parent();
             }
+			return false;
         }
     });
 }
