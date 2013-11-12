@@ -24,6 +24,7 @@
 		<smack.version>3.1.0</smack.version>
 		<jetty.version>8.1.12.v20130726</jetty.version>
 		<httpclient.version>4.2.3</httpclient.version>
+		<ektorp.version>1.4.1</ektorp.version>
 		<native.os>${os.name}</native.os>
 	</properties>
 
@@ -80,6 +81,11 @@
 			<artifactId>jzmq</artifactId>
 			<version>${jzmq.version}</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.ektorp</groupId>
+			<artifactId>org.ektorp</artifactId>
+			<version>${ektorp.version}</version>
 		</dependency>
 	</dependencies>
 
