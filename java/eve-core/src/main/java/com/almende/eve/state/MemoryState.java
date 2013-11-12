@@ -44,7 +44,10 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 	
 	@Override
 	public void clear() {
+
+		String agentType = (String) properties.get(KEY_AGENT_TYPE);
 		properties.clear();
+		properties.put(KEY_AGENT_TYPE, agentType);
 	}
 	
 	@Override

@@ -320,7 +320,9 @@ public class DatastoreState extends AbstractState<Serializable> {
 	@Override
 	public void clear() {
 		load();
+		String agentType = (String) properties.get(KEY_AGENT_TYPE);
 		properties.clear();
+		properties.put(KEY_AGENT_TYPE, agentType);
 		save();
 	}
 

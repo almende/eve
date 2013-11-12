@@ -210,7 +210,9 @@ public class ConcurrentSerializableFileState extends
 	public synchronized void clear() {
 		try {
 			openFile();
+			String agentType = (String) properties.get(KEY_AGENT_TYPE);
 			properties.clear();
+			properties.put(KEY_AGENT_TYPE, agentType);
 			write();
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);

@@ -219,7 +219,9 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	public synchronized void clear() {
 		try {
 			openFile();
+			String agentType = properties.get(KEY_AGENT_TYPE).textValue();
 			properties.clear();
+			properties.put(KEY_AGENT_TYPE, JOM.getInstance().valueToTree(agentType));
 			write();
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
