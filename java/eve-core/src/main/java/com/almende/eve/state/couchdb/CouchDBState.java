@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.UpdateConflictException;
 
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.AbstractState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -173,9 +174,9 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	@Override
 	public synchronized void clear() {	
 		try {
-			JsonNode type = properties.get("_type");
+			String agentType = (String) properties.get(couchify(KEY_AGENT_TYPE)).textValue();;
 			properties.clear();
-			properties.put("_type", type);
+			properties.put(couchify(KEY_AGENT_TYPE), JOM.getInstance().valueToTree(agentType));
 			update();
 		} catch(Exception e) {
 			LOG.log(Level.WARNING, "Failed clearing state", e);
