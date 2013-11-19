@@ -21,6 +21,7 @@ public class Config extends YamlConfig {
 	 */
 	private static final Map<String, String>	LABELS				= new HashMap<String, String>();
 	static {
+		LABELS.put("couchdbstatefactory", "com.almende.eve.state.couchdb.CouchDBStateFactory");
 		LABELS.put("filestatefactory", "com.almende.eve.state.FileStateFactory");
 		LABELS.put("memorystatefactory",
 				"com.almende.eve.state.MemoryStateFactory");
