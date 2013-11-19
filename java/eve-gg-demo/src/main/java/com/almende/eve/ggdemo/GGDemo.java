@@ -51,7 +51,7 @@ public class GGDemo {
 		goal.setGoalPct(goalPct);
 		DemoAgent demo = host.createAgent(DemoAgent.class, "demo");
 		
-		demo.genTopology(type, agentCount, stepSize);
+		demo.genTopology(type, agentCount, stepSize, "LinPathAgent");
 		demo.startGoal(goal, "lamp"+startLamp);
 		
 		while (true) {

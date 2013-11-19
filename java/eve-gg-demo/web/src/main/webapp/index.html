@@ -38,7 +38,12 @@ div {
 		</div>
 		<div class="topo_box">
 			Topology:<br> size:<input name="size" id="size" value="0" /><br>
+			agentType:<select name="agentType" id="agentType">
+				<option value="com.almende.eve.ggdemo.LinPathAgent">Linear path</option>
+				<option value="com.almende.eve.ggdemo.HolonAgent">Holonic</option>
+			</select><br>
 			form:<select name="type" id="type">
+				<option value="fully">fully connected</option>
 				<option value="line">line</option>
 				<option value="circle">circle</option>
 				<option value="star">star</option>
@@ -74,7 +79,8 @@ div {
 					"params" : {
 						"type" : $("#type").val(),
 						"size" : $("#size").val(),
-						"stepSize" : $("#stepSize").val()
+						"stepSize" : $("#stepSize").val(),
+						"agentType" : $("#agentType").val()
 					}
 				})
 			}).done(function() {

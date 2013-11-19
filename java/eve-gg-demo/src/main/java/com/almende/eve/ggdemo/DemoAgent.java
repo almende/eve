@@ -28,58 +28,78 @@ public class DemoAgent extends Agent {
 		firstLamp.handleGoal(goal, "");
 	}
 	
-	public void genTopology(@Name("type") String type, @Name("size") Integer agentCount, @Name("stepSize") Integer stepSize) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException{
+	public void genTopology(@Name("type") String type,
+			@Name("size") Integer agentCount,
+			@Name("stepSize") Integer stepSize,
+			@Name("agentType") String agentType)
+			throws JSONRPCException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException, ClassNotFoundException {
 		AgentHost host = getAgentHost();
-		ArrayList<String> agents = getState().get("agents",new TypeUtil<ArrayList<String>>(){});
-		if (agents != null){
-			for (String agentId: agents){
+		ArrayList<String> agents = getState().get("agents",
+				new TypeUtil<ArrayList<String>>() {
+				});
+		if (agents != null) {
+			for (String agentId : agents) {
 				host.deleteAgent(agentId);
 			}
 		}
-		if ("line".equals(type)) {
-			genLine(host, agentCount, stepSize);
+		
+		if ("fully".equals(type)){
+			genFully(host, agentCount, stepSize, agentType);
+		} else if ("line".equals(type)) {
+			genLine(host, agentCount, stepSize, agentType);
 		} else if ("circle".equals(type)) {
-			genCircle(host, agentCount, stepSize);
+			genCircle(host, agentCount, stepSize, agentType);
 		} else if ("star".equals(type)) {
-			genStar(host, agentCount, stepSize);
+			genStar(host, agentCount, stepSize, agentType);
 		} else if ("binTree".equals(type)) {
-			genBinaryTree(host, agentCount, stepSize);
+			genBinaryTree(host, agentCount, stepSize, agentType);
 		} else {
-			throw new JSONRPCException("Unknown topology type given:"+type);
+			throw new JSONRPCException("Unknown topology type given:" + type);
 		}
 	}
-
-	public ObjectNode getLights() throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException{
+	
+	public ObjectNode getLights() throws JSONRPCException,
+			ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
 		ObjectNode result = JOM.createObjectNode();
 		
-		ArrayList<String> agents = getState().get("agents",new TypeUtil<ArrayList<String>>(){});
-		if (agents != null){
+		ArrayList<String> agents = getState().get("agents",
+				new TypeUtil<ArrayList<String>>() {
+				});
+		if (agents != null) {
 			result.put("init", true);
 			ArrayNode nodes = JOM.createArrayNode();
 			ArrayNode edges = JOM.createArrayNode();
 			int off = 0;
 			int on = 0;
 			HashSet<String> uniqueEdges = new HashSet<String>();
-			for (String agent: agents){
+			for (String agent : agents) {
 				ObjectNode node = JOM.createObjectNode();
 				LampAgent lamp = (LampAgent) getAgentHost().getAgent(agent);
+				if (lamp == null){
+					System.err.println("Warning, agent doesn't exists:"+agent);
+					continue;
+				}
 				String id = lamp.getId().substring(4);
 				Boolean isOn = lamp.isOn();
 				if (isOn == null) {
 					isOn = false;
 				}
-				if (isOn){
+				if (isOn) {
 					on++;
 				} else {
 					off++;
 				}
 				node.put("id", id);
 				node.put("label", lamp.getId());
-				node.put("group", isOn?"On":"Off");
+				node.put("group", isOn ? "On" : "Off");
 				nodes.add(node);
-				for (String other : lamp.getNeighbours()){
+				for (String other : lamp.getNeighbours()) {
 					String otherId = other.substring(10);
-					if (!uniqueEdges.contains(otherId + ":" + id)){
+					if (!uniqueEdges.contains(otherId + ":" + id)) {
 						ObjectNode edge = JOM.createObjectNode();
 						edge.put("from", id);
 						edge.put("to", otherId);
@@ -101,16 +121,36 @@ public class DemoAgent extends Agent {
 		}
 		return result;
 	}
-
 	
-	private void genCircle(AgentHost host, int agentCount, int stepSize)
+	private void genFully(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+			NoSuchMethodException, IOException, ClassNotFoundException {
 		ArrayList<String> agents = new ArrayList<String>(agentCount);
 		for (int i = 0; i < agentCount; i++) {
 			String agentId = "lamp" + i;
-			LampAgent agent = host.createAgent(LampAgent.class, agentId);
+			LampAgent agent = (LampAgent)host.createAgent(agentType, agentId);
+			agents.add(agentId);
+			ArrayList<String> neighbours = new ArrayList<String>(agentCount - 1);
+			for (int j = 0; j < agentCount; j++) {
+				if (j == i) {
+					continue;
+				}
+				neighbours.add("local:lamp" + j);
+			}
+			agent.create(neighbours, stepSize);
+		}
+		getState().put("agents", agents);
+	}
+	
+	private void genCircle(AgentHost host, int agentCount, int stepSize, String agentType)
+			throws JSONRPCException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException, ClassNotFoundException {
+		ArrayList<String> agents = new ArrayList<String>(agentCount);
+		for (int i = 0; i < agentCount; i++) {
+			String agentId = "lamp" + i;
+			LampAgent agent = (LampAgent)host.createAgent(agentType, agentId);
 			agents.add(agentId);
 			ArrayList<String> neighbours = new ArrayList<String>(2);
 			neighbours.add("local:lamp" + (agentCount + i - 1) % agentCount);
@@ -120,14 +160,14 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genLine(AgentHost host, int agentCount, int stepSize)
+	private void genLine(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+			NoSuchMethodException, IOException, ClassNotFoundException {
 		ArrayList<String> agents = new ArrayList<String>(agentCount);
 		for (int i = 0; i < agentCount; i++) {
 			String agentId = "lamp" + i;
-			LampAgent agent = host.createAgent(LampAgent.class, agentId);
+			LampAgent agent = (LampAgent)host.createAgent(agentType, agentId);
 			agents.add(agentId);
 			ArrayList<String> neighbours = new ArrayList<String>(2);
 			if (i > 0) {
@@ -141,17 +181,17 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genStar(AgentHost host, int agentCount, int stepSize)
+	private void genStar(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+			NoSuchMethodException, IOException, ClassNotFoundException {
 		ArrayList<String> agents = new ArrayList<String>(agentCount);
-		LampAgent agent = host.createAgent(LampAgent.class, "lamp0");
+		LampAgent agent = (LampAgent)host.createAgent(agentType, "lamp0");
 		agents.add("lamp0");
 		ArrayList<String> neighbours = new ArrayList<String>(agentCount);
 		for (int i = 1; i < agentCount; i++) {
 			String agentId = "lamp" + i;
-			LampAgent leafAgent = host.createAgent(LampAgent.class, agentId);
+			LampAgent leafAgent = (LampAgent)host.createAgent(agentType, agentId);
 			agents.add(agentId);
 			
 			ArrayList<String> locNeighbours = new ArrayList<String>(0);
@@ -163,10 +203,10 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genBinaryTree(AgentHost host, int agentCount,
-			int stepSize) throws JSONRPCException, InstantiationException,
+	private void genBinaryTree(AgentHost host, int agentCount, int stepSize, String agentType)
+			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+			NoSuchMethodException, IOException, ClassNotFoundException {
 		ArrayList<String> agents = new ArrayList<String>(agentCount);
 		
 		int level = 0;
@@ -180,7 +220,7 @@ public class DemoAgent extends Agent {
 				nextFirst = (int) (count + Math.pow(2, level));
 			}
 			String agentId = "lamp" + count;
-			LampAgent agent = host.createAgent(LampAgent.class, agentId);
+			LampAgent agent = (LampAgent)host.createAgent(agentType, agentId);
 			agents.add(agentId);
 			ArrayList<String> neighbours = new ArrayList<String>(2);
 			int child = nextFirst + 2 * (count - first);
@@ -200,5 +240,5 @@ public class DemoAgent extends Agent {
 		}
 		getState().put("agents", agents);
 	}
-
+	
 }
