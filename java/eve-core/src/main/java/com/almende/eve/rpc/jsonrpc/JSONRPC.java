@@ -146,23 +146,33 @@ public final class JSONRPC {
 		} catch (JSONRPCException err) {
 			resp.setError((JSONRPCException) err);
 		} catch (Exception err) {
-			if (err.getCause() != null
-					&& err.getCause() instanceof JSONRPCException) {
-				resp.setError((JSONRPCException) err.getCause());
+			Throwable cause = err.getCause();
+			if (cause != null && cause instanceof JSONRPCException) {
+				resp.setError((JSONRPCException) cause);
 			} else {
-				if (err instanceof InvocationTargetException
-						&& err.getCause() != null) {
-					err = (Exception) err.getCause();
+				if (err instanceof InvocationTargetException && cause != null) {
+					logger.log(
+							Level.WARNING,
+							"Exception raised, returning it as JSONRPCException.",
+							cause);
+					
+					JSONRPCException jsonError = new JSONRPCException(
+							JSONRPCException.CODE.INTERNAL_ERROR,
+							getMessage(cause), cause);
+					jsonError.setData(cause);
+					resp.setError(jsonError);
+				} else {
+					logger.log(
+							Level.WARNING,
+							"Exception raised, returning it as JSONRPCException.",
+							err);
+					
+					JSONRPCException jsonError = new JSONRPCException(
+							JSONRPCException.CODE.INTERNAL_ERROR,
+							getMessage(err), err);
+					jsonError.setData(err);
+					resp.setError(jsonError);
 				}
-				logger.log(Level.WARNING,
-						"Exception raised, returning it as JSONRPCException.",
-						err);
-				
-				JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, getMessage(err),
-						err);
-				jsonError.setData(err);
-				resp.setError(jsonError);
 			}
 		}
 		
@@ -225,7 +235,7 @@ public final class JSONRPC {
 			RequestParams requestParams, String namespace) {
 		Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
-			if (c == null){
+			if (c == null) {
 				return methods;
 			}
 			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
@@ -267,7 +277,7 @@ public final class JSONRPC {
 						requestParams, innerNamespace));
 			}
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to describe class", e);
+			logger.log(Level.WARNING, "Failed to describe class:"+c.toString(), e);
 			return null;
 		}
 		return methods;
@@ -298,7 +308,7 @@ public final class JSONRPC {
 			}
 			return sortedMethods;
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to describe class", e);
+			logger.log(Level.WARNING, "Failed to describe class:"+c.toString(), e);
 			return null;
 		}
 	}
@@ -385,7 +395,7 @@ public final class JSONRPC {
 	 */
 	private static Object[] castParams(Object params,
 			List<AnnotatedParam> annotatedParams, RequestParams requestParams) {
-
+		
 		if (annotatedParams.size() == 0) {
 			return new Object[0];
 		}
@@ -397,7 +407,7 @@ public final class JSONRPC {
 					&& annotatedParams.get(0).getType()
 							.equals(ObjectNode.class)
 					&& annotatedParams.get(0).getAnnotations().size() == 0) {
-
+				
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
 				Object[] objects = new Object[1];
@@ -419,12 +429,14 @@ public final class JSONRPC {
 						if (name != null) {
 							// this is a named parameter
 							if (paramsObject.has(name)) {
-								objects[i] = TypeUtil.inject(paramsObject.get(name),p.getGenericType()); 
+								objects[i] = TypeUtil.inject(
+										paramsObject.get(name),
+										p.getGenericType());
 							} else {
 								if (isRequired(p)) {
 									throw new ClassCastException(
 											"Required parameter '" + name
-													+ "' missing");
+													+ "' missing.");
 								} else if (p.getType().isPrimitive()) {
 									// TODO: should this test be moved to
 									// isAvailable()?
@@ -553,8 +565,8 @@ public final class JSONRPC {
 					methodAccess.tag()) : false;
 		}
 		if (methodAccess.value() == AccessType.SELF) {
-			return auth != null ? auth.isSelf(
-					(String) requestParams.get(Sender.class)) : false;
+			return auth != null ? auth.isSelf((String) requestParams
+					.get(Sender.class)) : false;
 		}
 		return true;
 	}
