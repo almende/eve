@@ -20,11 +20,11 @@ public interface Scheduler {
 	 * 
 	 * @param request    A JSONRequest with method and params
 	 * @param delay      The delay in milliseconds
-	 * @param interval   Should the task be repeated at an interval?
-	 * @param sequential Should (long running) tasks run sequential, or may they run in parallel?
+	 * @param reoeat   Should the task be repeated at an interval?
+	 * @param sequential Should (long running) repetitive tasks run sequentially, or may they run in parallel? (are they threadsafe?)
 	 * @return taskId
 	 */
-	String createTask(JSONRequest request, long delay, boolean interval, boolean sequential);
+	String createTask(JSONRequest request, long delay, boolean repeat, boolean sequential);
 
 	/**
 	 * Cancel a scheduled task by its id

@@ -384,7 +384,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 *            A JSONRequest with method and params
 		 * @param delay
 		 *            The delay in milliseconds
-		 * @param interval
+		 * @param repeat
 		 *            Should the task be repeated at an interval?
 		 * @param sequential
 		 *            Should (long running) tasks run sequential, or may they
@@ -392,8 +392,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @return taskId
 		 */
 		public String createTask(JSONRequest request, long delay,
-				boolean interval, boolean sequential) {
-			Task task = new Task(agentId, request, delay, interval, sequential);
+				boolean repeat, boolean sequential) {
+			Task task = new Task(agentId, request, delay, repeat, sequential);
 			return task.getTaskId();
 		}
 		

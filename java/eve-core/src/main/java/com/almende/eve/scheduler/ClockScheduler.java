@@ -186,12 +186,12 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	@Override
-	public String createTask(JSONRequest request, long delay, boolean interval,
+	public String createTask(JSONRequest request, long delay, boolean repeat,
 			boolean sequential) {
 		TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request,
-				(interval ? delay : 0), sequential);
+				(repeat ? delay : 0), sequential);
 		putTask(task);
-		if (interval || delay <= 0) {
+		if (repeat || delay <= 0) {
 			runTask(task);
 		} else {
 			run();
