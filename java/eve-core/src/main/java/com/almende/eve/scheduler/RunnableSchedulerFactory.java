@@ -218,6 +218,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			if (taskId == null) {
 				taskId = createTaskId();
 			}
+			// persist the task, must be before schedule, because otherwise it will report as cancelled!
+			store();
+			
 			future = scheduler.schedule(new Runnable() {
 				@Override
 				public void run() {
@@ -252,9 +255,6 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 					}
 				}
 			}, delay, TimeUnit.MILLISECONDS);
-			
-			// persist the task
-			store();
 		}
 		
 		public String getTaskId() {
