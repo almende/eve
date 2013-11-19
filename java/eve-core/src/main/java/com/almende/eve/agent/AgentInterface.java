@@ -329,6 +329,27 @@ public interface AgentInterface extends JSONAuthorizor {
 	<T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, final JavaType type)
 			throws ProtocolException, JSONRPCException;
+
+	/**
+	 * Do a RPC call to another agent, expecting no result (void)
+	 * 
+	 * @param url
+	 * @param method
+	 * @param params
+	 * @throws Exception
+	 */
+	void sendAsync(URI url, String method, ObjectNode params) throws ProtocolException,
+			JSONRPCException;
+	
+	/**
+	 * Do a RPC call to another agent, expecting no result (void)
+	 * 
+	 * @param url
+	 * @param method
+	 * @throws Exception
+	 */
+	void sendAsync(URI url, String method) throws ProtocolException,
+			JSONRPCException;
 	
 	/**
 	 * Create a proxy to an other agent. Invoked methods will be send to the

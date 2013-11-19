@@ -385,6 +385,21 @@ public abstract class Agent implements AgentInterface {
 			Class<T> agentInterface) {
 		return getAgentHost().createAsyncAgentProxy(this, url, agentInterface);
 	}
+
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	public final void sendAsync(final URI url, final String method, final ObjectNode params)
+			throws ProtocolException, JSONRPCException {
+		sendAsync(url, method, params, null, Void.class);
+	}
+
+	@Override
+	@Access(AccessType.UNAVAILABLE)
+	public final void sendAsync(final URI url, final String method)
+			throws ProtocolException, JSONRPCException {
+		sendAsync(url, method, null, null, Void.class);
+	}
+
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
