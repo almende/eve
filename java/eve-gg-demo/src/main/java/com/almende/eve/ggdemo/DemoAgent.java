@@ -70,6 +70,7 @@ public class DemoAgent extends Agent {
 				new TypeUtil<ArrayList<String>>() {
 				});
 		if (agents != null) {
+			boolean labels = agents.size()<50;
 			result.put("init", true);
 			ArrayNode nodes = JOM.createArrayNode();
 			ArrayNode edges = JOM.createArrayNode();
@@ -93,9 +94,15 @@ public class DemoAgent extends Agent {
 				} else {
 					off++;
 				}
+				
 				node.put("id", id);
-				node.put("label", lamp.getId());
+				if (labels){
+					node.put("label", lamp.getId());
+				}
+				node.put("radius",10);
+				node.put("shape","dot");
 				node.put("group", isOn ? "On" : "Off");
+				
 				nodes.add(node);
 				for (String other : lamp.getNeighbours()) {
 					String otherId = other.substring(10);

@@ -122,6 +122,9 @@ public class HolonAgent extends Agent implements LampAgent {
 	
 	public Boolean merge(@Name("size") int size, @Sender String sender)
 			throws JSONRPCException, IOException {
+		if (neighbours == null) {
+			neighbours = getNeighbours();
+		}
 		String parent = getState().get("parent",String.class);
 		if (parent != null && parent.equals(sender)){
 			return false;
