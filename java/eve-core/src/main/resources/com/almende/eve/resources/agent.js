@@ -55,7 +55,7 @@ function Controller($scope, $resource) {
     $scope.lastTimestamp = 0;
     $scope.pollingInterval = 10000;  // polling interval in milliseconds
     $scope.logs = [];
-    $scope.enableEvents = true;
+    $scope.enableEvents = false;
 
     // define a RESTful resource
     var agent = $resource(url + ':resource', {}, {
