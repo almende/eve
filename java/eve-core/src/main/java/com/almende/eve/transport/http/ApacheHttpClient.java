@@ -8,6 +8,7 @@ import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,8 +54,26 @@ public final class ApacheHttpClient {
 		schemeRegistry.register(https);
 		
 		// Work with PoolingClientConnectionManager
-		ClientConnectionManager connection = new PoolingClientConnectionManager(
+		final ClientConnectionManager connection = new PoolingClientConnectionManager(
 				schemeRegistry);
+		
+		//Provide eviction thread to clear out stale threads.
+		new Thread( new Runnable() {
+			@Override
+			public void run() {
+				try {
+					while (true) {
+						synchronized (this) {
+							wait(5000);
+							connection.closeExpiredConnections();
+							connection.closeIdleConnections(30,
+									TimeUnit.SECONDS);
+						}
+					}
+				} catch (InterruptedException ex) {
+				}
+			}
+		}).start();
 		
 		// generate httpclient
 		httpClient = new DefaultHttpClient(connection);
@@ -94,11 +113,11 @@ public final class ApacheHttpClient {
 		MyCookieStore() throws IOException {
 			AgentHost host = AgentHost.getInstance();
 			StateFactory factory = null;
-			if (host.getConfig() != null){
-				factory = host.getStateFactoryFromConfig(
-					host.getConfig(), "cookies");
+			if (host.getConfig() != null) {
+				factory = host.getStateFactoryFromConfig(host.getConfig(),
+						"cookies");
 			}
-			if (factory == null){
+			if (factory == null) {
 				factory = host.getStateFactory();
 			}
 			if (factory.exists(COOKIESTORE)) {
