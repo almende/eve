@@ -181,6 +181,6 @@ public class JSONRPCException extends Exception {
 	
 	@Override
 	public String toString() {
-		return error.get("message").textValue();
+		return this.getClass().getCanonicalName() + ": " + error.get("message").textValue();
 	}
 }
