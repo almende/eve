@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,5 +148,19 @@ public abstract class AbstractState<V> implements State {
 			Serializable oldVal) {
 		ObjectMapper om = JOM.getInstance();
 		return locPutIfUnchanged(key, om.valueToTree(newVal), om.valueToTree(oldVal));
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder result= new StringBuilder();
+		for (String key : this.keySet()){
+			try {
+				result.append("'"+key+"': "+JOM.getInstance().writeValueAsString(get(key,JsonNode.class)));
+			} catch (JsonProcessingException e) {
+				result.append("'"+key+"': [unprintable]");
+			}
+			result.append("\n");
+		}
+		return result.toString();
 	}
 }

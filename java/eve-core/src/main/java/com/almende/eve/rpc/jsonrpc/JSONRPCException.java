@@ -181,12 +181,6 @@ public class JSONRPCException extends Exception {
 	
 	@Override
 	public String toString() {
-		ObjectMapper mapper = JOM.getInstance();
-		try {
-			return mapper.writeValueAsString(error);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING,"",e);
-		}
-		return null;
+		return this.getClass().getCanonicalName() + ": " + error.get("message").textValue();
 	}
 }

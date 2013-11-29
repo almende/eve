@@ -22,21 +22,21 @@ import com.almende.util.uuid.UUID;
  * 
  */
 public final class TokenStore {
-	private static final Logger		LOG		= Logger.getLogger(TokenStore.class
-													.getCanonicalName());
-	private static final int		SIZE	= 5;
-	private static State			tokens;
-	private static DateTime			last	= DateTime.now();
+	private static final Logger	LOG		= Logger.getLogger(TokenStore.class
+												.getCanonicalName());
+	private static final int	SIZE	= 5;
+	private static State		tokens;
+	private static DateTime		last	= DateTime.now();
 	
 	static {
 		AgentHost host = AgentHost.getInstance();
 		
 		StateFactory factory = null;
-		if (host.getConfig() != null){
-			factory = host.getStateFactoryFromConfig(
-				host.getConfig(), "tokens");
+		if (host.getConfig() != null) {
+			factory = host
+					.getStateFactoryFromConfig(host.getConfig(), "tokens");
 		}
-		if (factory == null){
+		if (factory == null) {
 			factory = host.getStateFactory();
 		}
 		if (factory.exists("_TokenStore")) {
@@ -50,12 +50,15 @@ public final class TokenStore {
 			}
 		}
 	}
-	private TokenStore(){};
+	
+	private TokenStore() {
+	};
 	
 	public static String get(String time) {
 		try {
 			return tokens.get(time, String.class);
 		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Exception during TokenStore get:", e);
 			return null;
 		}
 	}
@@ -76,20 +79,22 @@ public final class TokenStore {
 					DateTime oldest = last;
 					for (String time : tokens.keySet()) {
 						try {
-							if (time.equals(State.KEY_AGENT_TYPE)){
+							if (time.equals(State.KEY_AGENT_TYPE)) {
 								continue;
 							}
 							if (DateTime.parse(time).isBefore(oldest)) {
 								oldest = DateTime.parse(time);
 							}
 						} catch (Exception e) {
+							LOG.log(Level.WARNING,
+									"Failed in eviction of tokens:", e);
 						}
 					}
 					tokens.remove(oldest.toString());
 				}
 			} else {
-				result = new TokenRet(tokens.get(last.toString(),
-						String.class), last);
+				result = new TokenRet(
+						tokens.get(last.toString(), String.class), last);
 			}
 			return result;
 		}
