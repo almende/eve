@@ -252,7 +252,7 @@ public class AgentConnection {
 				if (index > 0) {
 					String resource = to.substring(index + 1);
 					if (!this.resource.equals(resource)) {
-						LOG.warning("Received stanza meant for another agent, disregarding.");
+						LOG.warning("Received stanza meant for another agent, disregarding. "+ resource );
 						return;
 					}
 				}
@@ -350,25 +350,37 @@ public class AgentConnection {
 		if (receiver.startsWith("xmpp:"))
 			receiver = receiver.substring( 5, receiver.length() );
 		int slash = receiver.indexOf("/");
+		if( slash <= 0 )return false;
 		String resource = receiver.substring(slash+1,receiver.length() );
 		String user = receiver.substring(0,slash);
 
 		Roster roster = this.conn.getRoster();
-		java.util.Collection<org.jivesoftware.smack.RosterEntry> entries = roster.getEntries();
-		for (org.jivesoftware.smack.RosterEntry entry : entries)
-		{
-			if( !entry.getUser().equals(user) )continue;
 
-			Presence.Type pt = roster.getPresenceResource( user+"/"+resource ).getType();
-			return pt == Presence.Type.available;
+		org.jivesoftware.smack.RosterEntry re = roster.getEntry( user );
+		if( re == null )
+		{
+LOG.info("subscribing to " + receiver );
+			Presence subscribe = new Presence(Presence.Type.subscribe);
+			subscribe.setTo( receiver );
+			conn.sendPacket(subscribe); 
 		}
-				
-		// not in roster yet..
+
+		Presence p = roster.getPresenceResource( user+"/"+resource );
+LOG.info("Presence for " + user+"/"+resource + " : "+p.getType() );
+		if( p.isAvailable() )return true;
+	
+		
+		/* try resubscribe?
+		Presence unsubscribe = new Presence(Presence.Type.unsubscribe);
+		unsubscribe.setTo( receiver );
+		conn.sendPacket(unsubscribe); 
+
 		Presence subscribe = new Presence(Presence.Type.subscribe);
 		subscribe.setTo( receiver );
 		conn.sendPacket(subscribe); 
+		*/
 
-		return true;
+		return false;
         }
 
 }
