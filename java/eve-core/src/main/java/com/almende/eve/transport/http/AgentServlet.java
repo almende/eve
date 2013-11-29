@@ -73,13 +73,14 @@ public class AgentServlet extends HttpServlet {
 	private boolean handleHandShake(HttpServletRequest req,
 			HttpServletResponse res) throws IOException {
 		String time = req.getHeader("X-Eve-requestToken");
+		
 		if (time == null) {
 			return false;
 		}
 		
 		String token = TokenStore.get(time);
 		if (token == null) {
-			res.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			res.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
 		} else {
 			res.setHeader("X-Eve-replyToken", token);
 			res.setStatus(HttpServletResponse.SC_OK);
@@ -103,12 +104,17 @@ public class AgentServlet extends HttpServlet {
 				httpGet.setHeader("X-Eve-requestToken", tokenObj.get("time")
 						.textValue());
 				HttpResponse response = ApacheHttpClient.get().execute(httpGet);
-				if (tokenObj
-						.get("token")
-						.textValue()
-						.equals(response.getLastHeader("X-Eve-replyToken")
-								.getValue())) {
-					return Handshake.OK;
+				if (response.getStatusLine().getStatusCode() == HttpServletResponse.SC_OK) {
+					if (tokenObj
+							.get("token")
+							.textValue()
+							.equals(response.getLastHeader("X-Eve-replyToken")
+									.getValue())) {
+						return Handshake.OK;
+					}
+				} else {
+					LOG.log(Level.WARNING, "Failed to receive valid handshake:"
+							+ response);
 				}
 			}
 		} catch (Exception e) {
@@ -131,20 +137,23 @@ public class AgentServlet extends HttpServlet {
 				return false;
 			}
 			
-			String doAuthenticationStr = AgentListener.getParam("eve_authentication");
+			String doAuthenticationStr = AgentListener
+					.getParam("eve_authentication");
 			if (doAuthenticationStr == null) {
-				// TODO: authentication param is deprecated since v2.0. Cleanup some day
+				// TODO: authentication param is deprecated since v2.0. Cleanup
+				// some day
 				doAuthenticationStr = AgentListener.getParam("authentication");
 				if (doAuthenticationStr == null) {
 					doAuthenticationStr = "true";
-					LOG.warning("context-param \"eve_authentication\" not found. Using default value " + doAuthenticationStr);
-				}
-				else {
+					LOG.warning("context-param \"eve_authentication\" not found. Using default value "
+							+ doAuthenticationStr);
+				} else {
 					LOG.warning("context-param \"authentication\" is deprecated. Use \"eve_authentication\" instead.");
 				}
 			}
-			Boolean doAuthentication = Boolean.parseBoolean(doAuthenticationStr);
-
+			Boolean doAuthentication = Boolean
+					.parseBoolean(doAuthenticationStr);
+			
 			if (hs.equals(Handshake.NAK) && doAuthentication) {
 				if (!req.isSecure()) {
 					res.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -282,8 +291,8 @@ public class AgentServlet extends HttpServlet {
 						"No agentId found in url.");
 				return;
 			}
-			Agent agent = agentHost.getAgent(agentId); 
-			if (agent == null){
+			Agent agent = agentHost.getAgent(agentId);
+			if (agent == null) {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
 						"Agent not found at this host.");
 				return;
