@@ -3,7 +3,7 @@
  * 
  * @brief 
  * CalcAgent can evaluate mathematical expressions. 
- * It uses the Google calculator API.
+ * It uses the math.js RESTful API.
  *
  * @license
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -18,67 +18,55 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  *
- * Copyright © 2012 Almende B.V.
+ * Copyright © 2012-2013 Almende B.V.
  *
  * @author 	Jos de Jong, <jos@almende.org>
- * @date	  2011-03-23
+ * @date	  2013-11-29
  */
 package com.almende.eve.agent.example;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.rmi.RemoteException;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.util.HttpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.almende.util.StringUtil;
 
 @Access(AccessType.PUBLIC)
 public class CalcAgent extends Agent {
-	private static final String CALCAPIURL = "http://www.google.com/ig/calculator";
+	private static final String CALC_API_URL = "http://api.mathjs.org/v1/";
 
 	/**
-	 * Evaluate given expression
-	 * For example expr="2.5 + 3 / sqrt(16)" will return "3.25"
+	 * Evaluate given expression For example expr="2.5 + 3 / sqrt(16)" will return "3.25"
+	 * 
 	 * @param expr
 	 * @return result
-	 * @throws IOException 
 	 */
 	public String eval(@Name("expr") String expr) throws IOException {
-		String url = CALCAPIURL + "?q=" + URLEncoder.encode(expr, "UTF-8");
-		String resp = HttpUtil.get(url);
-		
-		// the field names in resp are not enclosed by quotes :( 
-		resp = resp.replaceAll("lhs:", "\"lhs\":");
-		resp = resp.replaceAll("rhs:", "\"rhs\":");
-		resp = resp.replaceAll("error:", "\"error\":");
-		resp = resp.replaceAll("icc:", "\"icc\":");
-		
-		ObjectMapper mapper = JOM.getInstance();
-		ObjectNode json = mapper.readValue(resp, ObjectNode.class);
-		
-		String error = json.get("error").asText();
-		if (error != null && !error.equals("")) {
-			throw new RemoteException(error);
-		}
-		
-		String rhs = json.get("rhs").asText();
-		return rhs;
+		String url = CALC_API_URL + "?expr=" + URLEncoder.encode(expr, "UTF-8");
+
+		HttpClient client = new DefaultHttpClient();
+		HttpGet request = new HttpGet(url);
+		HttpResponse response = client.execute(request);
+
+		return StringUtil.streamToString(response.getEntity().getContent());
 	}
-	
+
 	@Override
 	public String getVersion() {
-		return "1.0";
+		return "2.0";
 	}
+
 	@Override
 	public String getDescription() {
-		return 
-			"CalcAgent can evaluate mathematical expressions. " + 
-			"It uses the Google calculator API.";
+		return "CalcAgent can evaluate mathematical expressions. "
+				+ "It uses the math.js RESTful API.";
 	}
 }

@@ -9,3 +9,7 @@ state:
 scheduler:
   class: GaeSchedulerFactory
 
+bootstrap:
+  agents:
+    benchmark: com.almende.eve.benchmark.BenchmarkAgent
+
