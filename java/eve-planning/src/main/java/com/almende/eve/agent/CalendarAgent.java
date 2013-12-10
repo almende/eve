@@ -30,7 +30,7 @@ import java.util.Set;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -42,36 +42,36 @@ public interface CalendarAgent {
 	public ArrayNode getCalendarList() throws Exception;
 	
 	public ArrayNode getEvents(
-			@Required(false) @Name("start") String start, 
-			@Required(false) @Name("end") String end, 
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("start") String start, 
+			@Optional @Name("end") String end, 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception;
 	
 	public ObjectNode getEvent (
 			@Name("eventId") String eventId,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception;
 
 	public ArrayNode getBusy(
 			@Name("timeMin") String timeMin, 
 			@Name("timeMax") String timeMax,
-			@Required(false) @Name("calendarId") String calendarId,
-			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds,
-			@Required(false) @Name("timeZone") String timeZone)
+			@Optional @Name("calendarId") String calendarId,
+			@Optional @Name("excludeEventIds") Set<String> excludeEventIds,
+			@Optional @Name("timeZone") String timeZone)
 			throws Exception;
 			
 	public ObjectNode createEvent (
 			@Name("event") ObjectNode event,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception;
 	
 	public ObjectNode updateEvent (@Name("event") ObjectNode event,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception;
 	
 	public void deleteEvent (
 			@Name("eventId") String eventId,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception;
 	
 	

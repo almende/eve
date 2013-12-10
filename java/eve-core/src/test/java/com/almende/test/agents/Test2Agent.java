@@ -41,7 +41,7 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
@@ -178,8 +178,8 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public String testDoubleNonRequired(
-			@Required(false) @Name("testme") String testme,
-			@Required(false) @Name("testme2") String testme2) {
+			@Optional @Name("testme") String testme,
+			@Optional @Name("testme2") String testme2) {
 		
 		return testme + ":" + testme2;
 	}
@@ -365,7 +365,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void triggerPingEvent(
-			@Name("message") @Required(false) String message) throws Exception {
+			@Name("message") @Optional String message) throws Exception {
 		String event = "ping";
 		ObjectNode params = null;
 		if (message != null) {
@@ -394,8 +394,8 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		System.out.println("myTask is executed. Message: " + message);
 	}
 	
-	public Object testSend(@Name("url") @Required(false) String url,
-			@Name("method") @Required(false) String method) throws Exception {
+	public Object testSend(@Name("url") @Optional String url,
+			@Name("method") @Optional String method) throws Exception {
 		if (url == null) {
 			url = "http://localhost:8080/EveCore/agents/chatagent/1/";
 		}
@@ -415,7 +415,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return res;
 	}
 	
-	public String subscribeToAgent(@Required(false) @Name("url") String url)
+	public String subscribeToAgent(@Optional @Name("url") String url)
 			throws Exception {
 		if (url == null) {
 			url = "http://localhost:8080/agents/testagent2/";
@@ -425,7 +425,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return getEventsFactory().subscribe(URI.create(url), event, callback);
 	}
 	
-	public void unsubscribeFromAgent(@Required(false) @Name("url") String url,
+	public void unsubscribeFromAgent(@Optional @Name("url") String url,
 			@Name("subscriptionId") String subscriptionId) throws Exception {
 		if (url == null) {
 			url = "http://localhost:8080/agents/testagent2/";
@@ -444,10 +444,10 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void onEvent(
-			@Required(false) @Name("subscriptionId") String subscriptionId,
-			@Required(false) @Name("agent") String agent,
-			@Required(false) @Name("event") String event,
-			@Required(false) @Name("params") ObjectNode params)
+			@Optional @Name("subscriptionId") String subscriptionId,
+			@Optional @Name("agent") String agent,
+			@Optional @Name("event") String event,
+			@Optional @Name("params") ObjectNode params)
 			throws Exception {
 		System.out.println("onEvent " + "subscriptionId=" + subscriptionId
 				+ ", " + "agent=" + agent + ", " + "event=" + event + ", "

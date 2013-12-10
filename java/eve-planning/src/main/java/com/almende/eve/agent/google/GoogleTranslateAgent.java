@@ -31,7 +31,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.util.HttpUtil;
 
 @Access(AccessType.PUBLIC)
@@ -57,7 +57,7 @@ public class GoogleTranslateAgent extends Agent {
 	 */
 	public String translate(@Name("text") String text,
 			@Name("target") String target, 
-			@Name("source") @Required(false) String source) throws Exception {
+			@Name("source") @Optional String source) throws Exception {
 		String key = getState().get("key",String.class);
 		if (key == null) {
 			throw new Exception("No valid API Key set. " +

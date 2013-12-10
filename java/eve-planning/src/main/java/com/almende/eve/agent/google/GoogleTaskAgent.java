@@ -14,7 +14,7 @@ import com.almende.eve.entity.calendar.Authorization;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -296,9 +296,9 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 *                         used by default
 	 */
 	@Override
-	public ArrayNode getTasks(@Required(false) @Name("dueMin") String dueMin, 
-							  @Required(false) @Name("dueMax") String dueMax, 
-							  @Required(false) @Name("taskListId") String taskListId)
+	public ArrayNode getTasks(@Optional @Name("dueMin") String dueMin, 
+							  @Optional @Name("dueMax") String dueMax, 
+							  @Optional @Name("taskListId") String taskListId)
 			throws Exception {
 		if (taskListId == null) {
 			taskListId = getDefaultTaskList();
@@ -360,7 +360,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public ObjectNode getTask(@Name("taskId") String taskId,
-							  @Required(false) @Name("taskListId") String taskListId)
+							  @Optional @Name("taskListId") String taskListId)
 			throws Exception {
 		if (taskListId == null) {
 			taskListId = getDefaultTaskList();
@@ -407,7 +407,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public ObjectNode createTask(@Name("task") ObjectNode task, 
-								 @Required(false) @Name("taskListId") String taskListId)
+								 @Optional @Name("taskListId") String taskListId)
 			throws Exception {
 		if (taskListId == null) {
 			taskListId = getDefaultTaskList();
@@ -445,7 +445,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public ObjectNode updateTask(@Name("task") ObjectNode task, 
-								 @Required(false) @Name("taskListId")String taskListId)
+								 @Optional @Name("taskListId")String taskListId)
 			throws Exception {
 		if (taskListId == null) {
 			taskListId = getDefaultTaskList();
@@ -487,7 +487,7 @@ public class GoogleTaskAgent extends Agent implements TaskAgent {
 	 */
 	@Override
 	public void deleteTask(@Name("taskId") String taskId, 
-						   @Required(false) @Name("taskListId") String taskListId) throws Exception {
+						   @Optional @Name("taskListId") String taskListId) throws Exception {
 		if (taskListId == null) {
 			taskListId = getDefaultTaskList();
 		}

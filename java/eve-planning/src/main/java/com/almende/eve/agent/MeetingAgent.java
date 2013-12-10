@@ -93,7 +93,7 @@ import com.almende.eve.entity.calendar.AgentData;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -131,7 +131,7 @@ public class MeetingAgent extends Agent {
 	 *            List with calendar agent urls of the attendees
 	 */
 	public void setActivityQuick(@Name("summary") String summary,
-			@Required(false) @Name("location") String location,
+			@Optional @Name("location") String location,
 			@Name("duration") Integer duration,
 			@Name("agents") List<String> agents) {
 		Activity activity = new Activity();

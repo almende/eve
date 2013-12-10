@@ -13,7 +13,7 @@ import com.almende.eve.agent.annotation.EventTriggered;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -178,7 +178,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	@Access(AccessType.SELF)
 	public final void doPush(@Name("pushKey") String pushKey,
-			@Required(false) @Name("params") ObjectNode triggerParams)
+			@Optional @Name("params") ObjectNode triggerParams)
 			throws JSONRPCException, IOException {
 		
 		if (myAgent.getState().containsKey(pushKey)) {

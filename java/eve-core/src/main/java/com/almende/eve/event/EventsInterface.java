@@ -8,7 +8,7 @@ import java.util.List;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -42,7 +42,7 @@ public interface EventsInterface {
 	String createSubscription(@Name("event") String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
-			@Required(false) @Name("callbackParams") ObjectNode params);
+			@Optional @Name("callbackParams") ObjectNode params);
 	
 	/**
 	 * Let an other agent unsubscribe from one of this agents events
@@ -60,10 +60,10 @@ public interface EventsInterface {
 	 * @param callbackMethod
 	 */
 	void deleteSubscription(
-			@Required(false) @Name("subscriptionId") String subscriptionId,
-			@Required(false) @Name("event") String event,
-			@Required(false) @Name("callbackUrl") String callbackUrl,
-			@Required(false) @Name("callbackMethod") String callbackMethod);
+			@Optional @Name("subscriptionId") String subscriptionId,
+			@Optional @Name("event") String event,
+			@Optional @Name("callbackUrl") String callbackUrl,
+			@Optional @Name("callbackMethod") String callbackMethod);
 	
 	/**
 	 * Asynchronously trigger an event.

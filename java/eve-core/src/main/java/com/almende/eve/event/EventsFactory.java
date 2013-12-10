@@ -13,12 +13,13 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.TypedKey;
 import com.almende.util.uuid.UUID;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -240,7 +241,7 @@ public class EventsFactory implements EventsInterface {
 	public final String createSubscription(@Name(EVENT) String event,
 			@Name("callbackUrl") String callbackUrl,
 			@Name("callbackMethod") String callbackMethod,
-			@Required(false) @Name("callbackParams") ObjectNode params) {
+			@Optional @Name("callbackParams") ObjectNode params) {
 		
 		// check if callback already existed, returning existing instead
 		List<Callback> subscriptions = getSubscriptions(event);
@@ -282,10 +283,10 @@ public class EventsFactory implements EventsInterface {
 	
 	@Access(AccessType.PUBLIC)
 	public final void deleteSubscription(
-			@Required(false) @Name("subscriptionId") String subscriptionId,
-			@Required(false) @Name(EVENT) String event,
-			@Required(false) @Name("callbackUrl") String callbackUrl,
-			@Required(false) @Name("callbackMethod") String callbackMethod) {
+			@Optional @Name("subscriptionId") String subscriptionId,
+			@Optional @Name(EVENT) String event,
+			@Optional @Name("callbackUrl") String callbackUrl,
+			@Optional @Name("callbackMethod") String callbackMethod) {
 		Map<String, List<Callback>> allSubscriptions = myAgent.getState().get(
 				SUBSCRIPTIONS);
 		if (allSubscriptions == null) {

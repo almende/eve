@@ -22,7 +22,8 @@ import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
+
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.AnnotationUtil;
@@ -33,6 +34,8 @@ import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
 import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -606,11 +609,15 @@ public final class JSONRPC {
 	 * @param param
 	 * @return required
 	 */
+	@SuppressWarnings("deprecation")
 	private static boolean isRequired(AnnotatedParam param) {
 		boolean required = true;
-		Required requiredAnnotation = param.getAnnotation(Required.class);
+		com.almende.eve.rpc.annotation.Required requiredAnnotation = param.getAnnotation(com.almende.eve.rpc.annotation.Required.class);
 		if (requiredAnnotation != null) {
 			required = requiredAnnotation.value();
+		}
+		if (param.getAnnotation(Optional.class) != null){
+			required=false;
 		}
 		return required;
 	}

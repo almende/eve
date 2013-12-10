@@ -71,7 +71,7 @@ import com.almende.eve.entity.calendar.Authorization;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -348,7 +348,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception
 	 */
 	public ArrayNode getEventsToday(
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+			@Optional @Name("calendarId") String calendarId) throws Exception {
 		DateTime now = DateTime.now();
 		DateTime timeMin = now.minusMillis(now.getMillisOfDay());
 		DateTime timeMax = timeMin.plusDays(1);
@@ -365,9 +365,9 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public ArrayNode getEvents(
-			@Required(false) @Name("timeMin") String timeMin, 
-			@Required(false) @Name("timeMax") String timeMax, 
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("timeMin") String timeMin, 
+			@Optional @Name("timeMax") String timeMax, 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
@@ -424,8 +424,8 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception
 	 */
 	public ArrayNode getBusyToday(
-			@Required(false) @Name("calendarId") String calendarId,
-			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds) 
+			@Optional @Name("calendarId") String calendarId,
+			@Optional @Name("excludeEventIds") Set<String> excludeEventIds) 
 			throws Exception {
 		DateTime now = DateTime.now();
 		DateTime timeMin = now.minusMillis(now.getMillisOfDay());
@@ -530,9 +530,9 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	public ArrayNode getBusy(
 			@Name("timeMin") String timeMin, 
 			@Name("timeMax") String timeMax,
-			@Required(false) @Name("calendarId") String calendarId,
-			@Required(false) @Name("excludeEventIds") Set<String> excludeEventIds,
-			@Required(false) @Name("timeZone") String timeZone ) 
+			@Optional @Name("calendarId") String calendarId,
+			@Optional @Name("excludeEventIds") Set<String> excludeEventIds,
+			@Optional @Name("timeZone") String timeZone ) 
 			throws Exception {
 		DateTimeZone dtz = DateTimeZone.UTC;
 		if (timeZone != null) {
@@ -582,7 +582,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	@Override
 	public ObjectNode getEvent (
 			@Name("eventId") String eventId,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
@@ -630,7 +630,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public ObjectNode createEvent (@Name("event") ObjectNode event,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
@@ -674,11 +674,11 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 * @throws Exception
 	 */
 	public ObjectNode createEventQuick (
-			@Required(false) @Name("start") String start,
-			@Required(false) @Name("end") String end,
-			@Required(false) @Name("summary") String summary,
-			@Required(false) @Name("location") String location,
-			@Required(false) @Name("calendarId") String calendarId) throws Exception {
+			@Optional @Name("start") String start,
+			@Optional @Name("end") String end,
+			@Optional @Name("summary") String summary,
+			@Optional @Name("location") String location,
+			@Optional @Name("calendarId") String calendarId) throws Exception {
 		ObjectNode event = JOM.createObjectNode();
 		
 		if (start == null) {
@@ -722,7 +722,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public ObjectNode updateEvent (@Name("event") ObjectNode event,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {
@@ -769,7 +769,7 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
 	 */
 	@Override
 	public void deleteEvent (@Name("eventId") String eventId,
-			@Required(false) @Name("calendarId") String calendarId) 
+			@Optional @Name("calendarId") String calendarId) 
 			throws Exception {
 		// initialize optional parameters
 		if (calendarId == null) {

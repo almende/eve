@@ -7,9 +7,10 @@ import java.util.Map;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -39,7 +40,7 @@ public interface ResultMonitorFactoryInterface {
 	 * @throws Exception
 	 */
 	void doPush(@Name("pushKey") String pushKey,
-			@Required(false) @Name("params") ObjectNode triggerParams)
+			@Optional @Name("params") ObjectNode triggerParams)
 			throws JSONRPCException, IOException;
 	
 	/**
