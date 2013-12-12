@@ -12,10 +12,10 @@
 		upon many restarts of the maven plugin -->
 	<Get name="securityHandler">
 		<Set name="identityService">
-			<Ref id="DefaultIdentityService" />
+			<Ref refid="DefaultIdentityService" />
 		</Set>
 		<Set name="loginService">
-			<Ref id="DefaultLoginService" />
+			<Ref refid="DefaultLoginService" />
 		</Set>
 	</Get>
 

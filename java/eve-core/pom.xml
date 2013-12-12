@@ -22,7 +22,7 @@
 		<snakeyaml.version>1.11</snakeyaml.version>
 		<javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 		<smack.version>3.1.0</smack.version>
-		<jetty.version>8.1.12.v20130726</jetty.version>
+		<jetty.version>9.1.0.v20131115</jetty.version>
 		<httpclient.version>4.2.3</httpclient.version>
 		<ektorp.version>1.4.1</ektorp.version>
 		<native.os>${os.name}</native.os>
@@ -61,7 +61,7 @@
 			<version>${smack.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mortbay.jetty</groupId>
+			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-maven-plugin</artifactId>
 			<version>${jetty.version}</version>
 			<scope>test</scope>
@@ -93,7 +93,7 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>org.mortbay.jetty</groupId>
+					<groupId>org.eclipse.jetty</groupId>
 					<artifactId>jetty-maven-plugin</artifactId>
 					<version>${jetty.version}</version>
 					<configuration>
@@ -158,7 +158,7 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.mortbay.jetty</groupId>
+						<groupId>org.eclipse.jetty</groupId>
 						<artifactId>jetty-maven-plugin</artifactId>
 						<version>${jetty.version}</version>
 						<configuration>
