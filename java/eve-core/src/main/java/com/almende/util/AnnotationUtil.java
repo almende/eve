@@ -44,6 +44,7 @@
 package com.almende.util;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -103,6 +104,7 @@ public final class AnnotationUtil {
 		private Class<?> clazz = null;
 		private List<Annotation> annotations = new ArrayList<Annotation>();
 		private List<AnnotatedMethod> methods = new ArrayList<AnnotatedMethod>();
+		private List<AnnotatedField> fields = new ArrayList<AnnotatedField>();
 
 		/**
 		 * Create a new AnnotatedClass
@@ -135,6 +137,8 @@ public final class AnnotationUtil {
 				
 				// merge the methods
 				AnnotationUtil.merge(methods, c.getDeclaredMethods());
+				
+				AnnotationUtil.merge(fields, c.getDeclaredFields());
 
 				// merge all interfaces and the superclasses of the interfaces
 				for (Class<?> i : c.getInterfaces()) {
@@ -194,6 +198,22 @@ public final class AnnotationUtil {
 			return filteredMethods;
 		}
 		/**
+		 * Get all fields including fields declared in superclasses, filtered
+		 * by annotation
+		 * @param annotation
+		 * @return filteredMethods
+		 */
+		public <T> List<AnnotatedField> getAnnotatedFields (Class<T> annotation) {
+			List<AnnotatedField> filteredFields = new ArrayList<AnnotatedField>();
+			for (AnnotatedField field : fields) {
+				if (field.getAnnotation(annotation) != null) {
+					filteredFields.add(field);
+				}
+			}
+			return filteredFields;
+		}
+		
+		/**
 		 * Get all annotations defined on this class, its superclasses, and its
 		 * interfaces
 		 * @return annotations
@@ -204,6 +224,62 @@ public final class AnnotationUtil {
 
 		/**
 		 * Get an annotation of this class by type. 
+		 * Returns null if not available.
+		 * @param annotationClass
+		 * @return annotation
+		 */
+		@SuppressWarnings("unchecked")
+		public <T> T getAnnotation (Class<T> type) {
+			for (Annotation annotation : annotations) {
+				if (annotation.annotationType() == type) {
+					return (T) annotation;
+				}
+			}
+			return null;
+		}
+	}
+	
+	public static class AnnotatedField {
+		private Field field = null;
+		private String name = null;
+		private Type type = null;
+		private List<Annotation> annotations = new ArrayList<Annotation>();
+		
+		public AnnotatedField(Field field){
+			this.field = field;
+			this.name = field.getName();
+			this.type = field.getType();
+			
+			merge(field);
+		}
+		
+		/**
+		 * Merge a java method into this Annotated method.
+		 * Annotations and parameter annotations will be merged.
+		 * @param method
+		 */
+		private void merge(Field field) {
+			AnnotationUtil.merge(annotations, field.getDeclaredAnnotations());
+		}
+		
+		public Field getField(){
+			return field;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public Type getType() {
+			return type;
+		}
+
+		public List<Annotation> getAnnotations() {
+			return annotations;
+		}
+		
+		/**
+		 * Get an annotation of this field by type. 
 		 * Returns null if not available.
 		 * @param annotationClass
 		 * @return annotation
@@ -440,7 +516,30 @@ public final class AnnotationUtil {
 			}
 		}
 	}
-
+	/**
+	 * Merge an array with annotations (listB) into a list with 
+	 * annotations (listA)
+	 * @param listA
+	 * @param listB
+	 */
+	private static void merge(List<AnnotatedField> listA, Field[] listB) {
+		for (Field b : listB) {
+			AnnotatedField fieldAnnotations = null;
+			for (AnnotatedField a : listA) {
+				if (equals(a.field, b)) {
+					fieldAnnotations = a;
+					break;
+				}
+			}
+			
+			if (fieldAnnotations != null) {
+				fieldAnnotations.merge(b);
+			}
+			else {
+				listA.add(new AnnotatedField(b));
+			}
+		}
+	}
 	/**
 	 * Test if two methods have equal names, return type, param count, 
 	 * and param types
@@ -468,6 +567,22 @@ public final class AnnotationUtil {
             }
         }
 		
+		return true;
+	}
+	/**
+	 * Test if two fields have equal names and types
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	private static boolean equals(Field a, Field b) {
+		// http://stackoverflow.com/q/10062957/1262753
+		if (!a.getName().equals(b.getName())) {
+			return false;
+		}
+		if (a.getType() != b.getType()) {
+			return false;
+		}
 		return true;
 	}
 }
