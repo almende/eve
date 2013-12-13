@@ -49,8 +49,11 @@ import com.almende.eve.event.EventsFactory;
 import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactory;
 import com.almende.eve.monitor.ResultMonitorFactoryInterface;
+import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
+import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -481,7 +484,8 @@ public abstract class Agent implements AgentInterface {
 						} catch (ClassCastException cce) {
 							callback.onFailure(new JSONRPCException(
 									"Incorrect return type received for JSON-RPC call:"
-											+ request.getMethod() + "@" + url, cce));
+											+ request.getMethod() + "@" + url,
+									cce));
 						}
 						
 					} else {
@@ -552,5 +556,67 @@ public abstract class Agent implements AgentInterface {
 		data.put("class", this.getClass().getName());
 		data.put("id", getId());
 		return data.toString();
+	}
+	
+	// TODO: This method is called in its own thread.
+	public void receive(Object msg, URI senderUrl) {
+		try {
+			ObjectNode json = null;
+			if (msg != null) {
+				if (msg instanceof String) {
+					String message = (String) msg;
+					if (message.startsWith("{")
+							|| message.trim().startsWith("{")) {
+						
+						json = JOM.getInstance().readValue(message,
+								ObjectNode.class);
+					}
+				} else if (msg instanceof ObjectNode) {
+					json = (ObjectNode) msg;
+				}
+			}
+			if (json != null) {
+				
+				if (JSONRPC.isResponse(json)) {
+					// TODO: obtain callback structure from callback storage
+					// service
+					// Invoke callback
+				} else if (JSONRPC.isRequest(json)) {
+					RequestParams params = new RequestParams();
+					params.put(Sender.class, senderUrl);
+					
+					JSONRequest request = new JSONRequest(json);
+					JSONResponse response = JSONRPC.invoke(this, request,
+							params, this);
+					send(response.toString(), senderUrl);
+				} else {
+					throw new Exception(
+							getId()
+									+ ": Request does not contain a valid JSON-RPC request or response");
+				}
+				
+			} else {
+				LOG.log(Level.WARNING, getId()
+						+ ": Received non-JSON message:'" + msg + "'");
+			}
+		} catch (Exception e) {
+			// generate JSON error response
+			JSONRPCException jsonError = new JSONRPCException(
+					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
+			JSONResponse response = new JSONResponse(jsonError);
+			try {
+				send(response.toString(), senderUrl);
+			} catch (Exception e1) {
+				LOG.log(Level.WARNING,
+						getId() + ": failed to send '"
+								+ e.getLocalizedMessage()
+								+ "' error to remote agent.", e1);
+			}
+		}
+	}
+	
+	public void send(Object msg, URI receiverUrl) throws JSONRPCException {
+		// TODO: Use agentHost send function
+		// BIG DRAWBACK: Local shortcut now needs full text (de)serialization
 	}
 }

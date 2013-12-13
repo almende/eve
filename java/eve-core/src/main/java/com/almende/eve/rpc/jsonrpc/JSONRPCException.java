@@ -19,7 +19,7 @@ public class JSONRPCException extends Exception {
 	static final String			DATA_S		= "data";
 	
 	public static enum CODE {
-		UNKNOWN_ERROR, PARSE_ERROR, INVALID_REQUEST, REMOTE_EXCEPTION, METHOD_NOT_FOUND, INVALID_PARAMS, INTERNAL_ERROR, NOT_FOUND
+		UNKNOWN_ERROR, PARSE_ERROR, INVALID_REQUEST, REMOTE_EXCEPTION, METHOD_NOT_FOUND, INVALID_PARAMS, INTERNAL_ERROR, NOT_FOUND, UNAUTHORIZED
 	};
 	
 	public JSONRPCException() {
@@ -137,6 +137,10 @@ public class JSONRPCException extends Exception {
 			case NOT_FOUND:
 				setCode(404);
 				setMessage("Not found");
+				break;
+			case UNAUTHORIZED:
+				setCode(-32401);
+				setMessage("Unauthorized");
 				break;
 		}
 		
