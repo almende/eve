@@ -25,8 +25,6 @@
 
 package com.almende.eve.agent;
 
-import java.util.Set;
-
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -52,13 +50,9 @@ public interface CalendarAgent {
 			@Optional @Name("calendarId") String calendarId) 
 			throws Exception;
 
-	public ArrayNode getBusy(
-			@Name("timeMin") String timeMin, 
-			@Name("timeMax") String timeMax,
-			@Optional @Name("calendarId") String calendarId,
-			@Optional @Name("excludeEventIds") Set<String> excludeEventIds,
-			@Optional @Name("timeZone") String timeZone)
-			throws Exception;
+    public ArrayNode getBusy(@Name("timeMin") String timeMin, @Name("timeMax") String timeMax,
+            @Optional @Name("calendarId") String calendarId,
+            @Optional @Name("timeZone") String timeZone) throws Exception;
 			
 	public ObjectNode createEvent (
 			@Name("event") ObjectNode event,
