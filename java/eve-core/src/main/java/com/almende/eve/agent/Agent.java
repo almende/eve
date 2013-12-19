@@ -138,7 +138,9 @@ public abstract class Agent implements AgentInterface {
 			sigInit();
 		} else if (AgentSignal.DELETE.equals(event.getEvent())) {
 			sigDelete();
-		} else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
+		} else if (AgentSignal.DESTROY.equals(event.getEvent())) {
+			sigDestroy();
+		}else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
 			// init scheduler tasks
 			this.scheduler = agentHost.getScheduler(this);
 		} else if (AgentSignal.ADDTRANSPORTSERVICE.equals(event.getEvent())) {

@@ -154,7 +154,7 @@ public final class AgentHost implements AgentHostInterface {
 		// instantiate the agent
 		agent = (Agent) agentType.getConstructor().newInstance();
 		agent.constr(this, state);
-		agent.signalAgent(new AgentSignal<Void>("init"));
+		agent.signalAgent(new AgentSignal<Void>(AgentSignal.INIT));
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
@@ -307,8 +307,8 @@ public final class AgentHost implements AgentHostInterface {
 			}
 			try {
 				// get the agent and execute the delete method
-				agent.signalAgent(new AgentSignal<Void>("destroy"));
-				agent.signalAgent(new AgentSignal<Void>("delete"));
+				agent.signalAgent(new AgentSignal<Void>(AgentSignal.DESTROY));
+				agent.signalAgent(new AgentSignal<Void>(AgentSignal.DELETE));
 				ObjectCache.get("agents").delete(agentId);
 				agent = null;
 			} catch (Exception e) {

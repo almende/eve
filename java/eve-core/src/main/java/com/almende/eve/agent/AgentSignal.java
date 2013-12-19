@@ -4,6 +4,7 @@ public class AgentSignal<T> {
 	
 	public static final String	CREATE	= "create";
 	public static final String	INIT	= "init";
+	public static final String	DESTROY	= "destroy";
 	public static final String	DELETE	= "delete";
 	public static final String  INVOKE	= "invoke";
 	public static final String  RESPOND	= "respond";
