@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.ThreadSafe;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
@@ -33,7 +34,6 @@ import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.state.TypedKey;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
@@ -268,8 +268,8 @@ public final class AgentHost implements AgentHostInterface {
 		// instantiate the agent
 		T agent = (T) agentType.getConstructor().newInstance();
 		agent.constr(this, state);
-		agent.signalAgent(new AgentSignal<Void>("create"));
-		agent.signalAgent(new AgentSignal<Void>("init"));
+		agent.signalAgent(new AgentSignal<Void>(AgentSignal.CREATE));
+		agent.signalAgent(new AgentSignal<Void>(AgentSignal.INIT));
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
@@ -336,8 +336,10 @@ public final class AgentHost implements AgentHostInterface {
 		try {
 			Agent receiver = getAgent(receiverId);
 			if (receiver != null) {
+				receiver.signalAgent(new AgentSignal<JSONRequest>(AgentSignal.INVOKE,request));
 				JSONResponse response = JSONRPC.invoke(receiver, request,
 						requestParams, receiver);
+				receiver.signalAgent(new AgentSignal<JSONResponse>(AgentSignal.RESPOND,response));
 				return response;
 			}
 		} catch (Exception e) {

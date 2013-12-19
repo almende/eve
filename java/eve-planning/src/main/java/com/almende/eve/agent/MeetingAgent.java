@@ -1408,11 +1408,11 @@ public class MeetingAgent extends Agent {
 	 * Delete everything of the agent
 	 */
 	@Override
-	public void delete() {
+	public void sigDelete() {
 		clear(); 
 		
 		// super class will delete the state
-		super.delete();
+		super.sigDelete();
 	}
 
 	/**

@@ -3,6 +3,7 @@ package com.almende.eve.transport;
 import java.io.IOException;
 import java.util.List;
 
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;

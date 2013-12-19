@@ -1,4 +1,4 @@
-package com.almende.eve.transport;
+package com.almende.eve.agent.callback;
 
 public class SyncCallback<T> implements AsyncCallback<T> {
 	private T response = null;

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.List;
 
 import com.almende.eve.agent.annotation.Namespace;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactoryInterface;
@@ -16,7 +17,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;

@@ -14,7 +14,7 @@ import com.almende.eve.rpc.annotation.Sender;
 public class TestAccessAgent extends Agent {
 
 	@Override
-	public void create(){
+	public void sigCreate(){
 		this.getState().put("senderLabel", "trusted");
 	}
 	
