@@ -129,7 +129,7 @@ public abstract class Agent implements AgentInterface {
 	public void signalAgent(AgentSignal<?> event) throws JSONRPCException,
 			IOException {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
-			sigInvoke((JSONRequest)event.getData());
+			sigInvoke((Object[])event.getData());
 		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
 			sigRespond((JSONResponse)event.getData());
 		} else if (AgentSignal.CREATE.equals(event.getEvent())) {
@@ -176,7 +176,7 @@ public abstract class Agent implements AgentInterface {
 	 * @param request
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigInvoke(JSONRequest request) {
+	protected void sigInvoke(Object[] signalData) {
 	}
 	/**
 	 * This method is called after handling each incoming RPC call.
