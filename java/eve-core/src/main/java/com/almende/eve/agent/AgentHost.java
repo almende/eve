@@ -339,7 +339,10 @@ public final class AgentHost implements AgentHostInterface {
 				receiver.signalAgent(new AgentSignal<JSONRequest>(AgentSignal.INVOKE,request));
 				JSONResponse response = JSONRPC.invoke(receiver, request,
 						requestParams, receiver);
-				receiver.signalAgent(new AgentSignal<JSONResponse>(AgentSignal.RESPOND,response));
+				Object[] signalData = new Object[2];
+				signalData[0] = request;
+				signalData[1] = requestParams;
+				receiver.signalAgent(new AgentSignal<Object[]>(AgentSignal.INVOKE, signalData));
 				return response;
 			}
 		} catch (Exception e) {
