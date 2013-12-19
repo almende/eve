@@ -13,14 +13,14 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.callback.AsyncCallback;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.transport.AsyncCallback;
-import com.almende.eve.transport.AsyncCallbackQueue;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AgentConnection {

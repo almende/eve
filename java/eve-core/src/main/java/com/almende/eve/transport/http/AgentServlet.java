@@ -377,7 +377,7 @@ public class AgentServlet extends HttpServlet {
 			for (String url : agent.getUrls()) {
 				resp.getWriter().println(url);
 			}
-			agent.signalAgent(new AgentSignal<Void>("destroy", null));
+			agent.signalAgent(new AgentSignal<Void>(AgentSignal.DESTROY, null));
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}

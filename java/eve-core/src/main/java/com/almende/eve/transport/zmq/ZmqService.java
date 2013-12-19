@@ -12,10 +12,10 @@ import java.util.logging.Logger;
 import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 

@@ -16,11 +16,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 

@@ -14,10 +14,10 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.MemoryStateFactory;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.zmq.ZmqService;
 import com.almende.test.agents.Test2Agent;
 import com.fasterxml.jackson.databind.node.ObjectNode;

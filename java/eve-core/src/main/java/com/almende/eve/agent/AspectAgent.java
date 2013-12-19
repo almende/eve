@@ -21,7 +21,7 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 	private T					aspect	= null;
 	
 	@Override
-	public void init() {
+	public void sigInit() {
 		myState = getState();
 	}
 	

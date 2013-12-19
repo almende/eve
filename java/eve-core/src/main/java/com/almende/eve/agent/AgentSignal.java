@@ -2,21 +2,28 @@ package com.almende.eve.agent;
 
 public class AgentSignal<T> {
 	
+	public static final String	CREATE	= "create";
+	public static final String	INIT	= "init";
+	public static final String	DESTROY	= "destroy";
+	public static final String	DELETE	= "delete";
+	public static final String  INVOKE	= "invoke";
+	public static final String  RESPOND	= "respond";
 	public static final String	ADDTRANSPORTSERVICE	= "addTransportService";
 	public static final String	DELTRANSPORTSERVICE	= "removeTransportService";
 	public static final String	SETSCHEDULERFACTORY	= "setSchedulerFactory";
 	public static final String	SETSTATEFACTORY		= "setStateFactory";
 	
+	
 	private String				event				= "";
-	private T					service				= null;
+	private T					data				= null;
 	
 	public AgentSignal(String event) {
 		this.event = event;
 	}
 	
-	public AgentSignal(String event, T service) {
+	public AgentSignal(String event, T data) {
 		this.event = event;
-		this.service = service;
+		this.data = data;
 	}
 	
 	public String getEvent() {
@@ -27,11 +34,11 @@ public class AgentSignal<T> {
 		this.event = event;
 	}
 	
-	public T getService() {
-		return service;
+	public T getData() {
+		return data;
 	}
 	
-	public void setService(T service) {
-		this.service = service;
+	public void setData(T data) {
+		this.data = data;
 	}
 }

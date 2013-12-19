@@ -38,6 +38,7 @@ import java.util.Map;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -47,7 +48,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.xmpp.XmppService;
 import com.almende.test.agents.entity.Person;
 import com.almende.util.TypeUtil;
@@ -81,24 +81,24 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return message;
 	}
 	
-	public void create() {
+	public void sigCreate() {
 		System.out.println("creating Test2Agent/" + getId());
-		super.create();
+		super.sigCreate();
 	}
 	
-	public void delete() {
+	public void sigDelete() {
 		System.out.println("deleting Test2Agent/" + getId());
-		super.delete();
+		super.sigDelete();
 	}
 	
-	public void init() {
+	public void sigInit() {
 		System.out.println("initializing Test2Agent/" + getId());
-		super.init();
+		super.sigInit();
 	}
 	
-	public void destroy() {
+	public void sigDestroy() {
 		System.out.println("destroying Test2Agent/" + getId());
-		super.destroy();
+		super.sigDestroy();
 	}
 	
 	public String getName(@Name("person") Person person) {

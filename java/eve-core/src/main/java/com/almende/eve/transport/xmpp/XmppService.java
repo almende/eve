@@ -20,6 +20,8 @@ import javax.crypto.NoSuchPaddingException;
 import org.jivesoftware.smack.SmackConfiguration;
 
 import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.callback.AsyncCallback;
+import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -27,8 +29,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
-import com.almende.eve.transport.AsyncCallback;
-import com.almende.eve.transport.SyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.EncryptionUtil;
 import com.fasterxml.jackson.databind.JsonNode;

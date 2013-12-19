@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import com.almende.eve.transport.SyncCallback;
+import com.almende.eve.agent.callback.SyncCallback;
 
 public class TestAsyncCallback {
 

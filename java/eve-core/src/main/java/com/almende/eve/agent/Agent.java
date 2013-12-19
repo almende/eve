@@ -44,6 +44,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.Namespace;
+import com.almende.eve.agent.callback.AsyncCallback;
+import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsFactory;
 import com.almende.eve.event.EventsInterface;
@@ -61,7 +63,6 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
@@ -77,6 +78,7 @@ public abstract class Agent implements AgentInterface {
 	private Scheduler						scheduler		= null;
 	private ResultMonitorFactoryInterface	monitorFactory	= null;
 	private EventsInterface					eventsFactory	= null;
+	private CallbackInterface				callbacks		= null;
 	
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
@@ -97,6 +99,7 @@ public abstract class Agent implements AgentInterface {
 			this.state = state;
 			this.monitorFactory = new ResultMonitorFactory(this);
 			this.eventsFactory = new EventsFactory(this);
+			this.callbacks = agentHost.getCallbackService(getId());
 		}
 	}
 	
@@ -126,17 +129,23 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public void signalAgent(AgentSignal<?> event) throws JSONRPCException,
 			IOException {
-		if ("create".equals(event.getEvent())) {
-			create();
-		} else if ("init".equals(event.getEvent())) {
-			init();
-		} else if ("delete".equals(event.getEvent())) {
-			delete();
-		} else if ("setSchedulerFactory".equals(event.getEvent())) {
+		if (AgentSignal.INVOKE.equals(event.getEvent())) {
+			sigInvoke((Object[])event.getData());
+		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
+			sigRespond((JSONResponse)event.getData());
+		} else if (AgentSignal.CREATE.equals(event.getEvent())) {
+			sigCreate();
+		} else if (AgentSignal.INIT.equals(event.getEvent())) {
+			sigInit();
+		} else if (AgentSignal.DELETE.equals(event.getEvent())) {
+			sigDelete();
+		} else if (AgentSignal.DESTROY.equals(event.getEvent())) {
+			sigDestroy();
+		}else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
 			// init scheduler tasks
 			this.scheduler = agentHost.getScheduler(this);
-		} else if ("addTransportService".equals(event.getEvent())) {
-			TransportService service = (TransportService) event.getService();
+		} else if (AgentSignal.ADDTRANSPORTSERVICE.equals(event.getEvent())) {
+			TransportService service = (TransportService) event.getData();
 			service.reconnect(getId());
 		}
 	}
@@ -145,11 +154,11 @@ public abstract class Agent implements AgentInterface {
 	 * This method is called once in the life time of an agent, at the moment
 	 * the agent is being created by the AgentHost.
 	 * It can be overridden and used to perform some action when the agent
-	 * is create, in that case super.create() should be called in
-	 * the overridden create().
+	 * is create, in that case super.sigCreate() should be called in
+	 * the overridden sigCreate().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void create() {
+	protected void sigCreate() {
 		for (TransportService service : agentHost.getTransportServices()) {
 			try {
 				service.reconnect(getId());
@@ -161,14 +170,33 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	/**
+	 * This method is called on each incoming RPC call.
+	 * It can be overridden and used to perform some action when the agent
+	 * is invoked.
+	 * 
+	 * @param request
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void sigInvoke(Object[] signalData) {
+	}
+	/**
+	 * This method is called after handling each incoming RPC call.
+	 * It can be overridden and used to perform some action when the agent
+	 * has been invoked.
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void sigRespond(JSONResponse response) {
+	}
+	
+	/**
 	 * This method is called directly after the agent and its state is
 	 * initiated.
 	 * It can be overridden and used to perform some action when the agent
-	 * is initialized, in that case super.init() should be called in
-	 * the overridden init().
+	 * is initialized, in that case super.sigInit() should be called in
+	 * the overridden sigInit().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void init() {
+	protected void sigInit() {
 	}
 	
 	/**
@@ -176,18 +204,18 @@ public abstract class Agent implements AgentInterface {
 	 * agent from memory.
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void destroy() {
+	protected void sigDestroy() {
 	}
 	
 	/**
 	 * This method is called once in the life time of an agent, at the moment
 	 * the agent is being deleted by the AgentHost.
 	 * It can be overridden and used to perform some action when the agent
-	 * is deleted, in that case super.delete() should be called in
-	 * the overridden delete().
+	 * is deleted, in that case super.sigDelete() should be called in
+	 * the overridden sigDelete().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void delete() {
+	protected void sigDelete() {
 		// TODO: unsubscribe from all subscriptions
 		
 		// cancel all scheduled tasks.
@@ -215,7 +243,7 @@ public abstract class Agent implements AgentInterface {
 	protected void finalize() throws Throwable {
 		// ensure the state is cleanup when the agent's method destroy is not
 		// called.
-		destroy();
+		sigDestroy();
 		getState().destroy();
 		super.finalize();
 	}
@@ -558,7 +586,7 @@ public abstract class Agent implements AgentInterface {
 		return data.toString();
 	}
 	
-	// TODO: This method is called in its own thread.
+	// TODO: NOTE: This method should be called in its own thread.
 	public void receive(Object msg, URI senderUrl) {
 		try {
 			ObjectNode json = null;
@@ -578,9 +606,15 @@ public abstract class Agent implements AgentInterface {
 			if (json != null) {
 				
 				if (JSONRPC.isResponse(json)) {
-					// TODO: obtain callback structure from callback storage
-					// service
-					// Invoke callback
+					if (callbacks != null){
+						String id = json.has("id") ? json.get("id").asText()
+								: null;
+						AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
+								.get(id) : null;
+						if (callback != null) {
+							callback.onSuccess(new JSONResponse(json));
+						}
+					}
 				} else if (JSONRPC.isRequest(json)) {
 					RequestParams params = new RequestParams();
 					params.put(Sender.class, senderUrl);
@@ -588,7 +622,7 @@ public abstract class Agent implements AgentInterface {
 					JSONRequest request = new JSONRequest(json);
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
-					send(response.toString(), senderUrl);
+					send(response, senderUrl, null);
 				} else {
 					throw new Exception(
 							getId()
@@ -605,7 +639,7 @@ public abstract class Agent implements AgentInterface {
 					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
 			JSONResponse response = new JSONResponse(jsonError);
 			try {
-				send(response.toString(), senderUrl);
+				send(response, senderUrl, null);
 			} catch (Exception e1) {
 				LOG.log(Level.WARNING,
 						getId() + ": failed to send '"
@@ -615,8 +649,15 @@ public abstract class Agent implements AgentInterface {
 		}
 	}
 	
-	public void send(Object msg, URI receiverUrl) throws JSONRPCException {
-		// TODO: Use agentHost send function
-		// BIG DRAWBACK: Local shortcut now needs full text (de)serialization
+	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback) throws JSONRPCException, ProtocolException {
+		if (msg instanceof JSONRequest){
+			JSONRequest request = (JSONRequest) msg;
+			if (callback != null && callbacks != null){
+				callbacks.store(request.getId().toString(), callback);
+			}
+			agentHost.sendAsync(this,receiverUrl, request, callback);
+		} else if (msg instanceof JSONRPCException){
+			//TODO: this needs to be send as well:)
+		}
 	}
 }

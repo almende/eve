@@ -6,6 +6,7 @@ import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
 
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
@@ -17,7 +18,6 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.state.TypedKey;
-import com.almende.eve.transport.AsyncCallback;
 import com.almende.eve.transport.TransportService;
 
 /**
