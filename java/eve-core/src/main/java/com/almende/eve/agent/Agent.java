@@ -99,6 +99,7 @@ public abstract class Agent implements AgentInterface {
 			this.state = state;
 			this.monitorFactory = new ResultMonitorFactory(this);
 			this.eventsFactory = new EventsFactory(this);
+			this.callbacks = agentHost.getCallbackService(getId());
 		}
 	}
 	
@@ -129,7 +130,7 @@ public abstract class Agent implements AgentInterface {
 	public void signalAgent(AgentSignal<?> event) throws JSONRPCException,
 			IOException {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
-			sigInvoke((JSONRequest)event.getData());
+			sigInvoke((Object[])event.getData());
 		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
 			sigRespond((JSONResponse)event.getData());
 		} else if (AgentSignal.CREATE.equals(event.getEvent())) {
@@ -176,7 +177,7 @@ public abstract class Agent implements AgentInterface {
 	 * @param request
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigInvoke(JSONRequest request) {
+	protected void sigInvoke(Object[] signalData) {
 	}
 	/**
 	 * This method is called after handling each incoming RPC call.
@@ -606,9 +607,13 @@ public abstract class Agent implements AgentInterface {
 				
 				if (JSONRPC.isResponse(json)) {
 					if (callbacks != null){
-						// TODO: obtain callback structure from callback storage
-						// service
-						// Invoke callback						
+						String id = json.has("id") ? json.get("id").asText()
+								: null;
+						AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
+								.get(id) : null;
+						if (callback != null) {
+							callback.onSuccess(new JSONResponse(json));
+						}
 					}
 				} else if (JSONRPC.isRequest(json)) {
 					RequestParams params = new RequestParams();
@@ -617,7 +622,7 @@ public abstract class Agent implements AgentInterface {
 					JSONRequest request = new JSONRequest(json);
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
-					send(response.toString(), senderUrl);
+					send(response, senderUrl, null);
 				} else {
 					throw new Exception(
 							getId()
@@ -634,7 +639,7 @@ public abstract class Agent implements AgentInterface {
 					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
 			JSONResponse response = new JSONResponse(jsonError);
 			try {
-				send(response.toString(), senderUrl);
+				send(response, senderUrl, null);
 			} catch (Exception e1) {
 				LOG.log(Level.WARNING,
 						getId() + ": failed to send '"
@@ -644,7 +649,15 @@ public abstract class Agent implements AgentInterface {
 		}
 	}
 	
-	public void send(Object msg, URI receiverUrl) throws JSONRPCException {
-		// TODO: Use agentHost send function
+	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback) throws JSONRPCException, ProtocolException {
+		if (msg instanceof JSONRequest){
+			JSONRequest request = (JSONRequest) msg;
+			if (callback != null && callbacks != null){
+				callbacks.store(request.getId().toString(), callback);
+			}
+			agentHost.sendAsync(this,receiverUrl, request, callback);
+		} else if (msg instanceof JSONRPCException){
+			//TODO: this needs to be send as well:)
+		}
 	}
 }

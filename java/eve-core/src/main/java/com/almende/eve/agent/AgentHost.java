@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.callback.AsyncCallback;
+import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.CallbackService;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
@@ -42,20 +44,21 @@ import com.almende.util.TypeUtil;
 
 public final class AgentHost implements AgentHostInterface {
 	
-	private static final Logger													LOG					= Logger.getLogger(AgentHost.class
-																											.getSimpleName());
-	private static final AgentHost												HOST				= new AgentHost();
-	private final ConcurrentHashMap<String, TransportService>					transportServices	= new ConcurrentHashMap<String, TransportService>();
-	private StateFactory														stateFactory		= null;
-	private SchedulerFactory													schedulerFactory	= null;
-	private Config																config				= null;
-	private final EventLogger													eventLogger			= new EventLogger(
-																											this);
-	private boolean																doesShortcut		= true;
+	private static final Logger																	LOG					= Logger.getLogger(AgentHost.class
+																															.getSimpleName());
+	private static final AgentHost																HOST				= new AgentHost();
+	private final ConcurrentHashMap<String, TransportService>									transportServices	= new ConcurrentHashMap<String, TransportService>();
+	private final ConcurrentHashMap<String, CallbackInterface>									callbacks			= new ConcurrentHashMap<String, CallbackInterface>();
+	private StateFactory																		stateFactory		= null;
+	private SchedulerFactory																	schedulerFactory	= null;
+	private Config																				config				= null;
+	private final EventLogger																	eventLogger			= new EventLogger(
+																															this);
+	private boolean																				doesShortcut		= true;
 	
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
 	
-	private static final RequestParams	EVEREQUESTPARAMS	= new RequestParams();
+	private static final RequestParams															EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
@@ -336,14 +339,19 @@ public final class AgentHost implements AgentHostInterface {
 		try {
 			Agent receiver = getAgent(receiverId);
 			if (receiver != null) {
-				receiver.signalAgent(new AgentSignal<JSONRequest>(AgentSignal.INVOKE,request));
+				Object[] signalData = new Object[2];
+				signalData[0] = request;
+				signalData[1] = requestParams;
+				receiver.signalAgent(new AgentSignal<Object[]>(
+						AgentSignal.INVOKE, signalData));
 				JSONResponse response = JSONRPC.invoke(receiver, request,
 						requestParams, receiver);
-				receiver.signalAgent(new AgentSignal<JSONResponse>(AgentSignal.RESPOND,response));
+				receiver.signalAgent(new AgentSignal<JSONResponse>(
+						AgentSignal.RESPOND, response));
 				return response;
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING,"Exception during receive:",e);
+			LOG.log(Level.WARNING, "Exception during receive:", e);
 			throw new JSONRPCException("Exception during receive for id '"
 					+ receiverId + "'", e);
 		}
@@ -491,9 +499,10 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public <T> T getRef(String agentId, TypedKey<T> key) {
-		ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore.get(agentId);
+		ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
+				.get(agentId);
 		if (objects != null) {
-			return TypeUtil.inject(objects.get(key).get(),key.getType());
+			return TypeUtil.inject(objects.get(key).get(), key.getType());
 		}
 		
 		return null;
@@ -502,7 +511,8 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public <T> void putRef(String agentId, TypedKey<T> key, T value) {
 		synchronized (refStore) {
-			ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore.get(agentId);
+			ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
+					.get(agentId);
 			if (objects == null) {
 				objects = new ConcurrentHashMap<TypedKey<?>, WeakReference<?>>();
 			}
@@ -788,6 +798,15 @@ public final class AgentHost implements AgentHostInterface {
 			return null;
 		}
 		return schedulerFactory.getScheduler(agent);
+	}
+	
+	public CallbackInterface getCallbackService(String id) {
+		CallbackInterface result = callbacks.get(id);
+		if (result == null){
+			result = new CallbackService();
+			callbacks.put(id, result);
+		}
+		return result;
 	}
 	
 }

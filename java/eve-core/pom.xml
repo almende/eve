@@ -97,6 +97,8 @@
 					<artifactId>jetty-maven-plugin</artifactId>
 					<version>${jetty.version}</version>
 					<configuration>
+						<jettyXml>src/test/resources/jetty.xml,src/test/resources/jetty-http.xml,src/test/resources/jetty-ssl.xml,src/test/resources/jetty-https.xml</jettyXml>
+					
 						<!-- TODO: http://blog.max.berger.name/2010/02/jetty-7-maven-plugin-authentication.html 
 							http://theholyjava.wordpress.com/2010/09/10/jetty-maven-plugin-running-a-webapp-with-a-datasource-and-security/ 
 							http://docs.oracle.com/cd/E19798-01/821-1841/bncck/index.html -->
@@ -127,7 +129,7 @@
 							</userRealm>
 						</userRealms>
 						<webAppXml>src/test/resources/jetty-test.xml</webAppXml>
-						<connectors>
+						<!-- <connectors>
 							<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
 								<port>8080</port>
 								<maxIdleTime>60000</maxIdleTime>
@@ -140,7 +142,7 @@
 								<password>testKey</password>
 								<keyPassword>testKey</keyPassword>
 							</connector>
-						</connectors>
+						</connectors> -->
 					</configuration>
 				</plugin>
 			</plugins>
