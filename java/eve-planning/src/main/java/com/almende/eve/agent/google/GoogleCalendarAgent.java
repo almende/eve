@@ -58,7 +58,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.CalendarAgent;
@@ -438,84 +437,6 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
         DateTime timeMax = timeMin.plusDays(1);
 
         return getBusy(timeMin.toString(), timeMax.toString(), calendarId, timeZone);
-    }
-
-    /**
-     * Get the start time from a google event (including all-day-events) Returns
-     * null if not found
-     * 
-     * @param event
-     * @param timeZone
-     *            Timezone, needed for all-day-events
-     * @return start
-     */
-    private static DateTime getStart(ObjectNode event, DateTimeZone timeZone) {
-        if (!event.has("start")) {
-            return null;
-        }
-        JsonNode startObj = event.get("start");
-
-        DateTime start = null;
-        if (startObj.has("dateTime") && !startObj.get("dateTime").isNull()) {
-            String dateTimeStr = startObj.get("dateTime").asText();
-            start = new DateTime(dateTimeStr);
-        } else
-            if (startObj.has("date") && !startObj.get("date").isNull()) {
-                String dateStr = startObj.get("date").asText();
-
-                if (startObj.has("timeZone") && !startObj.get("timeZone").isNull()) {
-                    String timeZoneStr = startObj.get("timeZone").asText();
-                    timeZone = DateTimeZone.forID(timeZoneStr);
-                }
-                if (timeZone != null) {
-                    start = new DateTime(dateStr, timeZone);
-                } else {
-                    start = new DateTime(dateStr);
-                }
-            } else {
-                start = null;
-            }
-
-        return start;
-    }
-
-    /**
-     * Get the end time from a google event (including all-day-events) Returns
-     * null if not found
-     * 
-     * @param event
-     * @param timeZone
-     *            Timezone, needed for all-day-events
-     * @return end
-     */
-    private static DateTime getEnd(ObjectNode event, DateTimeZone timeZone) {
-        if (!event.has("end")) {
-            return null;
-        }
-        JsonNode endObj = event.get("end");
-
-        DateTime end = null;
-        if (endObj.has("dateTime") && !endObj.get("dateTime").isNull()) {
-            String dateTimeStr = endObj.get("dateTime").asText();
-            end = new DateTime(dateTimeStr);
-        } else
-            if (endObj.has("date") && !endObj.get("date").isNull()) {
-                String dateStr = endObj.get("date").asText();
-
-                if (endObj.has("timeZone") && !endObj.get("timeZone").isNull()) {
-                    String timeZoneStr = endObj.get("timeZone").asText();
-                    timeZone = DateTimeZone.forID(timeZoneStr);
-                }
-                if (timeZone != null) {
-                    end = new DateTime(dateStr, timeZone);
-                } else {
-                    end = new DateTime(dateStr);
-                }
-            } else {
-                end = null;
-            }
-
-        return end;
     }
 
     /**
