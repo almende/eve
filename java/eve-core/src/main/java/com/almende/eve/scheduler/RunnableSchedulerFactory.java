@@ -22,11 +22,8 @@ import org.joda.time.Interval;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.RequestParams;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.util.TypeUtil;
@@ -218,7 +215,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			if (taskId == null) {
 				taskId = createTaskId();
 			}
-			// persist the task, must be before schedule, because otherwise it will report as cancelled!
+			// persist the task, must be before schedule, because otherwise it
+			// will report as cancelled!
 			store();
 			
 			future = scheduler.schedule(new Runnable() {
@@ -232,19 +230,12 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 							start(interval);
 						}
 						
-						RequestParams params = new RequestParams();
 						String senderUrl = "local:" + agentId;
-						params.put(Sender.class, senderUrl);
-						// TODO: provide itself
 						
-						JSONResponse resp = host.receive(agentId, request,
-								params);
+						host.receive(agentId, request, senderUrl, null);
 						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
-						}
-						if (resp.getError() != null) {
-							throw resp.getError();
 						}
 					} catch (Exception e) {
 						LOG.log(Level.WARNING, "", e);
@@ -479,7 +470,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		int failedTaskCount = 0;
 		
 		try {
-			List<Map<String, String>> serializedTasks = state.get("tasks",new TypeUtil<List<Map<String,String>>>(){});
+			List<Map<String, String>> serializedTasks = state.get("tasks",
+					new TypeUtil<List<Map<String, String>>>() {
+					});
 			
 			if (serializedTasks != null) {
 				for (Map<String, String> taskParams : serializedTasks) {

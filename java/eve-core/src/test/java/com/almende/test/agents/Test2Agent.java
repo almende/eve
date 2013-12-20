@@ -631,13 +631,6 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 		return value;
 	}
 	
-	public void testAgentProxy5() {
-		String url = "http://eveagents.appspot.com/agents/testagent/1/";
-		// This should fail, Person is no Interface...
-		Person other = createAgentProxy(URI.create(url), Person.class);
-		other.setName("bla");
-	}
-	
 	public Double testAgentProxy4() {
 		String url = "http://eveagents.appspot.com/agents/testagent/1/";
 		

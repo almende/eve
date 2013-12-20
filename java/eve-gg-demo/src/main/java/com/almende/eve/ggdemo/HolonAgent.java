@@ -1,7 +1,6 @@
 package com.almende.eve.ggdemo;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -158,7 +157,7 @@ public class HolonAgent extends Agent implements LampAgent {
 	}
 	
 	public void handleTask(@Name("count") Integer count, @Sender String sender)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		if (sender != null
 				&& !getState().get("parent", String.class).equals(sender)) {
 			System.out.println("Warning: got task from non-parent!!!" + sender);
@@ -186,7 +185,7 @@ public class HolonAgent extends Agent implements LampAgent {
 	}
 	
 	public void handleGoal(@Name("goal") Goal goal, @Sender String sender)
-			throws ProtocolException, JSONRPCException, JsonProcessingException {
+			throws IOException, JSONRPCException, JsonProcessingException {
 		String parent = getState().get("parent", String.class);
 		
 		if (parent != null) {

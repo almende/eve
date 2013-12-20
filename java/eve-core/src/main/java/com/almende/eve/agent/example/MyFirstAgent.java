@@ -1,6 +1,8 @@
 package com.almende.eve.agent.example;
 
+import java.io.IOException;
 import java.net.ProtocolException;
+
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
@@ -34,7 +36,7 @@ public class MyFirstAgent extends Agent {
 	 * @throws ProtocolException
 	 * @throws JSONRPCException
 	 */
-	public void callMyself() throws ProtocolException, JSONRPCException {
+	public void callMyself() throws IOException, JSONRPCException {
 		ObjectNode params = JOM.createObjectNode();
 		params.put("name", getId());
 		String result = send(getFirstUrl(), "helloWorld", params, String.class);

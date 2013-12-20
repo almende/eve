@@ -12,10 +12,7 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.RequestParams;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
 import com.almende.eve.scheduler.clock.RunnableClock;
@@ -51,9 +48,10 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			int count = 0;
 			while (task != null && task.isActive() && count < MAXCOUNT) {
 				count++;
-				Entry<String,TaskEntry> entry =timeline.higherEntry(task.getTaskId());
-				task=null;
-				if (entry != null){
+				Entry<String, TaskEntry> entry = timeline.higherEntry(task
+						.getTaskId());
+				task = null;
+				if (entry != null) {
 					task = entry.getValue();
 				}
 			}
@@ -153,22 +151,17 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 							_this.run();
 						}
 					}
-					RequestParams params = new RequestParams();
 					String senderUrl = "local:" + myAgent.getId();
-					params.put(Sender.class, senderUrl);
 					
 					// Next call is potentially long duration:
-					JSONResponse resp = myAgent.getAgentHost().receive(
-							myAgent.getId(), task.getRequest(), params);
+					myAgent.getAgentHost().receive(myAgent.getId(),
+							task.getRequest(), senderUrl, null);
 					
 					if (task.getInterval() > 0 && task.isSequential()) {
 						task.setDue(DateTime.now().plus(task.getInterval()));
 						task.setActive(false);
 						_this.putTask(task, true);
 						_this.run();
-					}
-					if (resp.getError() != null) {
-						throw resp.getError();
 					}
 				} catch (Exception e) {
 					LOG.log(Level.SEVERE,
@@ -206,7 +199,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 		
 		Set<String> result = new HashSet<String>();
-		TreeMap<String,TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -220,7 +213,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 		
 		Set<String> result = new HashSet<String>();
-		TreeMap<String,TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -250,7 +243,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			return null;
 		}
 		
-		TreeMap<String,TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }

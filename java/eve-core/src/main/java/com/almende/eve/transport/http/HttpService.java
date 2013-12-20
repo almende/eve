@@ -1,5 +1,6 @@
 package com.almende.eve.transport.http;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -17,9 +18,7 @@ import org.apache.http.util.EntityUtils;
 
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.config.Config;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
@@ -28,6 +27,7 @@ public class HttpService implements TransportService {
 	private static final Logger	LOG			= Logger.getLogger(HttpService.class
 													.getCanonicalName());
 	private String				servletUrl	= null;
+	private AgentHost			host		= null;
 	private List<String>		protocols	= Arrays.asList("http", "https");
 	
 	public HttpService() {
@@ -42,30 +42,23 @@ public class HttpService implements TransportService {
 	 *            Available parameters: {String} servlet_url
 	 */
 	public HttpService(AgentHost agentHost, Map<String, Object> params) {
+		this.host = agentHost;
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}
 	}
 	
 	/**
-	 * Construct an HttpService from a config The config can contain parameters:
-	 * environment.Production.servlet_url environment.Development.servlet_url
-	 * servlet_url The HttpService will select the parameter based on the
-	 * current environment
+	 * Construct an HttpService This constructor is called when the
+	 * TransportService is constructed by the AgentHost
 	 * 
+	 * @param agentHost
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(Config config) {
-	}
-	
-	/**
-	 * Construct an HttpService
-	 * 
-	 * @param servletUrl
-	 */
-	public HttpService(String servletUrl) {
-		setServletUrl(servletUrl);
+	public HttpService(AgentHost agentHost, String servlet_url) {
+		this.host = agentHost;
+		setServletUrl(servlet_url);
 	}
 	
 	/**
@@ -120,15 +113,32 @@ public class HttpService implements TransportService {
 	 * @throws Exception
 	 */
 	@Override
-	public JSONResponse send(final String senderUrl, final String receiverUrl,
-			final JSONRequest request) throws JSONRPCException {
+	public void sendAsync(final String senderUrl, final String receiverUrl,
+			final Object message, String tag) throws IOException {
 		try {
-			JSONResponse response;
-			String req = request.toString();
+			
+			if (tag != null) {
+				// This is a reply to a synchronous inbound call, get callback
+				// and use it to send the message
+				CallbackInterface callbacks = host
+						.getCallbackService("HttpTransport");
+				if (callbacks != null){
+					AsyncCallback<JSONResponse> callback = callbacks.get(tag);
+					if (callback != null && message instanceof JSONResponse){
+						JSONResponse response = (JSONResponse) message;
+						if (response.getError() != null){
+							callback.onFailure(response.getError());
+						} else {
+							callback.onSuccess(response);
+						}
+						return;
+					}
+				}
+			}
 			
 			// invoke via Apache HttpClient request:
 			HttpPost httpPost = new HttpPost(receiverUrl);
-			httpPost.setEntity(new StringEntity(req));
+			httpPost.setEntity(new StringEntity(message.toString()));
 			
 			// Add token for HTTP handshake
 			httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
@@ -137,48 +147,14 @@ public class HttpService implements TransportService {
 			HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
 			try {
 				String result = EntityUtils.toString(webResp.getEntity());
-				if (result != null) {
-					response = new JSONResponse(result);
-				} else {
-					response = new JSONResponse();
-				}
-			} catch (JSONRPCException err) {
-				response = new JSONResponse(err);
+				host.receive(senderUrl, result, receiverUrl, null);
 			} finally {
 				httpPost.reset();
 			}
-			return response;
+			
 		} catch (Exception e) {
-			throw new JSONRPCException("Failed to send RPC call through HTTP",
-					e);
+			throw new IOException("Failed to send RPC call through HTTP", e);
 		}
-	}
-	
-	/**
-	 * Send an asynchronous JSON-RPC request to an agent via HTTP
-	 * 
-	 * @param senderUrl
-	 * @param receiver
-	 * @param receiverUrl
-	 * @return response
-	 * @throws IOException
-	 */
-	@Override
-	public void sendAsync(final String senderUrl, final String receiverUrl,
-			final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback) {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				JSONResponse response;
-				try {
-					response = send(senderUrl, receiverUrl, request);
-					callback.onSuccess(response);
-				} catch (Exception e) {
-					callback.onFailure(e);
-				}
-			}
-		}).start();
 	}
 	
 	/**
@@ -191,7 +167,7 @@ public class HttpService implements TransportService {
 	public String getAgentUrl(String agentId) {
 		if (servletUrl != null) {
 			try {
-				return servletUrl + URLEncoder.encode(agentId,"UTF-8") + "/";
+				return servletUrl + URLEncoder.encode(agentId, "UTF-8") + "/";
 			} catch (UnsupportedEncodingException e) {
 				return servletUrl + agentId + "/";
 			}

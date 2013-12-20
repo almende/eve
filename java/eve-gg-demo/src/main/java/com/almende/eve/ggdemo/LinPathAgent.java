@@ -1,6 +1,6 @@
 package com.almende.eve.ggdemo;
 
-import java.net.ProtocolException;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 
@@ -61,7 +61,7 @@ public class LinPathAgent extends Agent implements LampAgent  {
 		return result;
 	}
 	
-	public void handleGoal(@Name("goal") Goal goal, @Sender String sender) throws ProtocolException,
+	public void handleGoal(@Name("goal") Goal goal, @Sender String sender) throws IOException,
 			JSONRPCException, JsonProcessingException {
 		if (neighbours == null) {
 			neighbours = getNeighbours();

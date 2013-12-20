@@ -91,7 +91,7 @@ public class EventsFactory implements EventsInterface {
 	 * @throws Exception
 	 */
 	public String subscribe(URI url, String event, String callbackMethod)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		return subscribe(url, event, callbackMethod, null);
 	}
 	
@@ -107,7 +107,7 @@ public class EventsFactory implements EventsInterface {
 	 * @throws Exception
 	 */
 	public String subscribe(URI url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws ProtocolException,
+			ObjectNode callbackParams) throws IOException,
 			JSONRPCException {
 		String method = "event.createSubscription";
 		ObjectNode params = JOM.createObjectNode();
@@ -132,7 +132,7 @@ public class EventsFactory implements EventsInterface {
 	 * @throws ProtocolException
 	 */
 	public void unsubscribe(URI url, String subscriptionId)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
@@ -150,7 +150,7 @@ public class EventsFactory implements EventsInterface {
 	 * @throws Exception
 	 */
 	public void unsubscribe(URI url, String event, String callbackMethod)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put(EVENT, event);
@@ -343,7 +343,7 @@ public class EventsFactory implements EventsInterface {
 	@Access(AccessType.SELF)
 	public final void doTrigger(@Name("url") String url,
 			@Name("method") String method, @Name("params") ObjectNode params)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
 		myAgent.send(URI.create(url), method, params);
 	}

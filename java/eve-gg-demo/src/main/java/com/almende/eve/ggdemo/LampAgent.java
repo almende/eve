@@ -1,7 +1,6 @@
 package com.almende.eve.ggdemo;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 import java.util.ArrayList;
 
 import com.almende.eve.agent.AgentInterface;
@@ -22,7 +21,7 @@ public interface LampAgent extends AgentInterface {
 	
 	public boolean isOn();
 	public boolean isOnBlock() throws InterruptedException;
-	public void handleGoal(@Name("goal") Goal goal, @Sender String sender) throws ProtocolException,
-			JSONRPCException, JsonProcessingException;
+	public void handleGoal(@Name("goal") Goal goal, @Sender String sender) throws 
+			JSONRPCException, JsonProcessingException, IOException;
 	public Iterable<String> getNeighbours();
 }

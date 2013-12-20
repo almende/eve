@@ -1,7 +1,6 @@
 package com.almende.eve.event;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
 
@@ -76,7 +75,7 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	void doTrigger(@Name("url") String url, @Name("method") String method,
-			@Name("params") ObjectNode params) throws ProtocolException,
+			@Name("params") ObjectNode params) throws IOException,
 			JSONRPCException;
 	
 	/**
@@ -90,7 +89,7 @@ public interface EventsInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String subscribe(URI url, String event, String callbackMethod)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Subscribe to an other agents event
@@ -103,7 +102,7 @@ public interface EventsInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String subscribe(URI url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws ProtocolException,
+			ObjectNode callbackParams) throws IOException,
 			JSONRPCException;
 	
 	/**
@@ -114,7 +113,7 @@ public interface EventsInterface {
 	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	void unsubscribe(URI url, String subscriptionId) throws ProtocolException,
+	void unsubscribe(URI url, String subscriptionId) throws IOException,
 			JSONRPCException;
 	
 	/**
@@ -127,7 +126,7 @@ public interface EventsInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void unsubscribe(URI url, String event, String callbackMethod)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Trigger an event

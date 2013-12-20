@@ -1,5 +1,6 @@
 package com.almende.eve.transport.xmpp;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,15 +14,7 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.callback.AsyncCallbackQueue;
-import com.almende.eve.rpc.RequestParams;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
-import com.almende.eve.rpc.jsonrpc.jackson.JOM;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AgentConnection {
 	private static final Logger					LOG			= Logger.getLogger(AgentConnection.class
@@ -35,7 +28,6 @@ public class AgentConnection {
 	private String								serviceName	= null;
 	private Integer								port		= 5222;
 	private XMPPConnection						conn		= null;
-	private AsyncCallbackQueue<JSONResponse>	callbacks	= new AsyncCallbackQueue<JSONResponse>();
 	
 	public AgentConnection(AgentHost agentHost) {
 		this.agentHost = agentHost;
@@ -68,9 +60,8 @@ public class AgentConnection {
 		return resource;
 	}
 	
-	public void connect() throws JSONRPCException {
-		connect(agentId, host, port, serviceName, username, password,
-				resource);
+	public void connect() throws IOException {
+		connect(agentId, host, port, serviceName, username, password, resource);
 	}
 	
 	/**
@@ -88,7 +79,7 @@ public class AgentConnection {
 	 */
 	public void connect(String agentId, String host, Integer port,
 			String serviceName, String username, String password,
-			String resource) throws JSONRPCException {
+			String resource) throws IOException {
 		
 		if (isConnected()) {
 			// this is a reconnect.
@@ -97,7 +88,7 @@ public class AgentConnection {
 		this.agentId = agentId;
 		this.username = username;
 		this.resource = resource;
-		this.host=host;
+		this.host = host;
 		this.port = port;
 		this.serviceName = serviceName;
 		this.password = password;
@@ -130,12 +121,12 @@ public class AgentConnection {
 					Roster.SubscriptionMode.accept_all);
 			
 			// instantiate a packet listener
-			conn.addPacketListener(new JSONRPCListener(conn, agentHost,
-					agentId, resource, callbacks), null);
-
+			conn.addPacketListener(new JSONRPCListener(agentHost,
+					agentId, resource), null);
+			
 		} catch (XMPPException e) {
 			LOG.log(Level.WARNING, "", e);
-			throw new JSONRPCException("Failed to connect to messenger", e);
+			throw new IOException("Failed to connect to messenger", e);
 		}
 	}
 	
@@ -147,7 +138,6 @@ public class AgentConnection {
 			conn.disconnect();
 			conn = null;
 		}
-		callbacks.clear();
 	}
 	
 	/**
@@ -166,27 +156,20 @@ public class AgentConnection {
 	 * @param message
 	 * @throws JSONRPCException
 	 */
-	public void send(String username, JSONRequest request,
-			AsyncCallback<JSONResponse> callback) throws JSONRPCException {
+	public void send(String username, Object message) throws IOException {
 		if (!isConnected()) {
 			disconnect();
 			connect();
 		}
 		if (isConnected()) {
-			// create a unique id
-			final String id = (String) request.getId();
-			
-			String description = username + " -> " + request.getMethod();
-			// queue the response callback
-			callbacks.push(id, description, callback);
 			
 			// send the message
 			Message reply = new Message();
 			reply.setTo(username);
-			reply.setBody(request.toString());
+			reply.setBody(message.toString());
 			conn.sendPacket(reply);
 		} else {
-			throw new JSONRPCException("Cannot send request, not connected");
+			throw new IOException("Cannot send request, not connected");
 		}
 	}
 	
@@ -196,42 +179,15 @@ public class AgentConnection {
 	 * reply the result.
 	 */
 	private static class JSONRPCListener implements PacketListener {
-		private XMPPConnection						conn		= null;
 		private AgentHost							host		= null;
 		private String								agentId		= null;
-		private AsyncCallbackQueue<JSONResponse>	callbacks	= null;
 		private String								resource	= null;
 		
-		public JSONRPCListener(XMPPConnection conn, AgentHost agentHost,
-				String agentId, String resource,
-				AsyncCallbackQueue<JSONResponse> callbacks) {
-			this.conn = conn;
+		public JSONRPCListener(AgentHost agentHost,
+				String agentId, String resource) {
 			this.host = agentHost;
 			this.agentId = agentId;
-			this.callbacks = callbacks;
 			this.resource = resource;
-		}
-		
-		/**
-		 * Check if given json object contains all fields required for a
-		 * json-rpc request (id, method, params)
-		 * 
-		 * @param json
-		 * @return
-		 */
-		private boolean isRequest(ObjectNode json) {
-			return json.has("method");
-		}
-		
-		/**
-		 * Check if given json object contains all fields required for a
-		 * json-rpc response (id, result or error)
-		 * 
-		 * @param json
-		 * @return
-		 */
-		private boolean isResponse(ObjectNode json) {
-			return (json.has("result") || json.has("error"));
 		}
 		
 		/**
@@ -252,51 +208,17 @@ public class AgentConnection {
 				if (index > 0) {
 					String resource = to.substring(index + 1);
 					if (!this.resource.equals(resource)) {
-						LOG.warning("Received stanza meant for another agent, disregarding. "+ resource );
+						LOG.warning("Received stanza meant for another agent, disregarding. "
+								+ resource);
 						return;
 					}
 				}
 			}
 			String body = message.getBody();
+			String senderUrl = "xmpp:" + message.getFrom();
 			
-			if (body != null && body.startsWith("{")
-					|| body.trim().startsWith("{")) {
-				// the body contains a JSON object
-				ObjectNode json = null;
-				try {
-					json = JOM.getInstance().readValue(body, ObjectNode.class);
-					if (isResponse(json)) {
-						// this is a response
-						// Find and execute the corresponding callback
-						String id = json.has("id") ? json.get("id").asText()
-								: null;
-						AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
-								.pull(id) : null;
-						if (callback != null) {
-							callback.onSuccess(new JSONResponse(body));
-						}
-					} else if (isRequest(json)) {
-						// this is a request
-						String senderUrl = "xmpp:" + message.getFrom();
-						JSONRequest request = new JSONRequest(json);
-						invoke(senderUrl, request);
-					} else {
-						throw new Exception(
-								"Request does not contain a valid JSON-RPC request or response");
-					}
-				} catch (Exception e) {
-					// generate JSON error response
-					JSONRPCException jsonError = new JSONRPCException(
-							JSONRPCException.CODE.INTERNAL_ERROR,
-							e.getMessage(), e);
-					JSONResponse response = new JSONResponse(jsonError);
-					
-					// send exception as response
-					Message reply = new Message();
-					reply.setTo(message.getFrom());
-					reply.setBody(response.toString());
-					conn.sendPacket(reply);
-				}
+			if (body != null) {
+				invoke(senderUrl, body);
 			}
 		}
 		
@@ -309,78 +231,53 @@ public class AgentConnection {
 		 * @param request
 		 */
 		
-		//TODO: refactor this to reuse the ZmqConnection structure (with a AsyncCallback)
-		private void invoke(final String senderUrl, final JSONRequest request) {
+		// TODO: refactor this to reuse the ZmqConnection structure (with a
+		// AsyncCallback)
+		private void invoke(final String senderUrl, final Object message) {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					JSONResponse response;
-					try {
-						// append the sender to the request parameters
-						RequestParams params = new RequestParams();
-						params.put(Sender.class, senderUrl);
-						
-						// invoke the agent
-						response = host.receive(agentId, request, params);
-					} catch (Exception err) {
-						// generate JSON error response
-						JSONRPCException jsonError = new JSONRPCException(
-								JSONRPCException.CODE.INTERNAL_ERROR, err
-										.getMessage(), err);
-						response = new JSONResponse(jsonError);
-					}
-					
-					if (response != null) {
-						Message reply = new Message();
-						String sender = senderUrl.replaceFirst("xmpps?:", "");
-						reply.setTo(sender);
-						reply.setBody(response.toString());
-						conn.sendPacket(reply);
-					} else {
-						LOG.severe("XMPP response is null? This shouldn't happen...");
-					}
+					host.receive(agentId, message, senderUrl,null);
 				}
 			}).start();
 		}
 	}
-
-	public boolean isAvailable(String receiver)
-	{
-		//split url (xmpp:user/resource) into parts 
-		if (receiver.startsWith("xmpp:"))
-			receiver = receiver.substring( 5, receiver.length() );
-		int slash = receiver.indexOf("/");
-		if( slash <= 0 )return false;
-		String resource = receiver.substring(slash+1,receiver.length() );
-		String user = receiver.substring(0,slash);
-
-		Roster roster = this.conn.getRoster();
-
-		org.jivesoftware.smack.RosterEntry re = roster.getEntry( user );
-		if( re == null )
-		{
-LOG.info("subscribing to " + receiver );
-			Presence subscribe = new Presence(Presence.Type.subscribe);
-			subscribe.setTo( receiver );
-			conn.sendPacket(subscribe); 
-		}
-
-		Presence p = roster.getPresenceResource( user+"/"+resource );
-LOG.info("Presence for " + user+"/"+resource + " : "+p.getType() );
-		if( p.isAvailable() )return true;
 	
+	public boolean isAvailable(String receiver) {
+		// split url (xmpp:user/resource) into parts
+		if (receiver.startsWith("xmpp:")) receiver = receiver.substring(5,
+				receiver.length());
+		int slash = receiver.indexOf("/");
+		if (slash <= 0) return false;
+		String resource = receiver.substring(slash + 1, receiver.length());
+		String user = receiver.substring(0, slash);
 		
-		/* try resubscribe?
-		Presence unsubscribe = new Presence(Presence.Type.unsubscribe);
-		unsubscribe.setTo( receiver );
-		conn.sendPacket(unsubscribe); 
-
-		Presence subscribe = new Presence(Presence.Type.subscribe);
-		subscribe.setTo( receiver );
-		conn.sendPacket(subscribe); 
-		*/
-
+		Roster roster = this.conn.getRoster();
+		
+		org.jivesoftware.smack.RosterEntry re = roster.getEntry(user);
+		if (re == null) {
+			LOG.info("subscribing to " + receiver);
+			Presence subscribe = new Presence(Presence.Type.subscribe);
+			subscribe.setTo(receiver);
+			conn.sendPacket(subscribe);
+		}
+		
+		Presence p = roster.getPresenceResource(user + "/" + resource);
+		LOG.info("Presence for " + user + "/" + resource + " : " + p.getType());
+		if (p.isAvailable()) return true;
+		
+		/*
+		 * try resubscribe?
+		 * Presence unsubscribe = new Presence(Presence.Type.unsubscribe);
+		 * unsubscribe.setTo( receiver );
+		 * conn.sendPacket(unsubscribe);
+		 * 
+		 * Presence subscribe = new Presence(Presence.Type.subscribe);
+		 * subscribe.setTo( receiver );
+		 * conn.sendPacket(subscribe);
+		 */
+		
 		return false;
-        }
-
+	}
+	
 }

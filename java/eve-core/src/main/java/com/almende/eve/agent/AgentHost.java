@@ -22,6 +22,7 @@ import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.CallbackService;
+import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
@@ -31,6 +32,8 @@ import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.State;
@@ -41,6 +44,9 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class AgentHost implements AgentHostInterface {
 	
@@ -169,21 +175,23 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Deprecated
 	@Override
-	public <T> T createAgentProxy(final URI receiverUrl, Class<T> agentInterface) {
+	public <T extends AgentInterface> T createAgentProxy(final URI receiverUrl,
+			Class<T> agentInterface) {
 		return createAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T createAgentProxy(final AgentInterface sender,
-			final URI receiverUrl, Class<T> agentInterface) {
+	public <T extends AgentInterface> T createAgentProxy(
+			final AgentInterface sender, final URI receiverUrl,
+			Class<T> agentInterface) {
 		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
 			throw new IllegalArgumentException("agentInterface must extend "
 					+ AgentInterface.class.getName());
 		}
-		T proxy = ObjectCache.get("agents").get(
-				"proxy_" + (sender != null ? sender.getId() + "_" : "")
-						+ agentInterface, agentInterface);
+		final String proxyId = "proxy_"
+				+ (sender != null ? sender.getId() + "_" : "") + agentInterface;
+		T proxy = ObjectCache.get("agents").get(proxyId, agentInterface);
 		if (proxy != null) {
 			return proxy;
 		}
@@ -192,47 +200,110 @@ public final class AgentHost implements AgentHostInterface {
 		proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					public Object invoke(Object proxy, Method method,
-							Object[] args) throws ProtocolException,
-							JSONRPCException {
+							Object[] args) throws JSONRPCException,
+							JsonParseException, JsonMappingException,
+							IOException {
 						
 						// TODO: if method calls for Namespace getter, return
 						// new proxy for subtype. All calls to that proxy need
 						// to add namespace to method name for JSON-RPC.
-						JSONRequest request = JSONRPC.createRequest(method,
-								args);
-						JSONResponse response = send(sender, receiverUrl,
-								request);
+						T agent = (T) proxy;
 						
-						JSONRPCException err = response.getError();
-						if (err != null) {
-							throw err;
-						} else if (response.getResult() != null
-								&& !method.getReturnType().equals(Void.TYPE)) {
-							return TypeUtil.inject(response.getResult(),
-									method.getGenericReturnType());
-						} else {
+						if (method.getName().equals("receive")
+								&& args.length > 1) {
+							ObjectNode json = null;
+							if (args[0] != null) {
+								if (args[0] instanceof String) {
+									String message = (String) args[0];
+									if (message.startsWith("{")
+											|| message.trim().startsWith("{")) {
+										
+										json = JOM.getInstance().readValue(
+												message, ObjectNode.class);
+									}
+								} else if (args[0] instanceof ObjectNode) {
+									json = (ObjectNode) args[0];
+								}
+							}
+							if (json != null) {
+								
+								if (JSONRPC.isResponse(json)) {
+									if (callbacks != null) {
+										String id = json.has("id") ? json.get(
+												"id").asText() : null;
+										CallbackInterface callbacks = getCallbackService(proxyId);
+										AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
+												.get(id) : null;
+										if (callback != null) {
+											JSONResponse response = new JSONResponse(
+													json);
+											if (response.getError() != null) {
+												callback.onFailure(response
+														.getError());
+											} else {
+												callback.onSuccess(new JSONResponse(
+														json));
+											}
+										}
+									}
+								}
+							}
 							return null;
+						} else {
+							
+							JSONRequest request = JSONRPC.createRequest(method,
+									args);
+							
+							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
+							CallbackInterface callbacks = getCallbackService(proxyId);
+							callbacks.store(request.getId().toString(),
+									callback);
+							
+							try {
+								sendAsync(receiverUrl, request, agent, null);
+							} catch (IOException e1) {
+								throw new JSONRPCException(
+										CODE.REMOTE_EXCEPTION, "", e1);
+							}
+							
+							JSONResponse response;
+							try {
+								response = callback.get();
+							} catch (Exception e) {
+								throw new JSONRPCException(
+										CODE.REMOTE_EXCEPTION, "", e);
+							}
+							JSONRPCException err = response.getError();
+							if (err != null) {
+								throw err;
+							} else if (response.getResult() != null
+									&& !method.getReturnType()
+											.equals(Void.TYPE)) {
+								return TypeUtil.inject(response.getResult(),
+										method.getGenericReturnType());
+							} else {
+								return null;
+							}
 						}
 					}
 				});
 		
-		ObjectCache.get("agents").put(
-				"proxy_" + (sender != null ? sender.getId() + "_" : "")
-						+ agentInterface.getCanonicalName(), proxy);
+		ObjectCache.get("agents").put(proxyId, proxy);
 		
 		return proxy;
 	}
 	
 	@Deprecated
 	@Override
-	public <T> AsyncProxy<T> createAsyncAgentProxy(final URI receiverUrl,
-			Class<T> agentInterface) {
+	public <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
+			final URI receiverUrl, Class<T> agentInterface) {
 		return createAsyncAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
 	@Override
-	public <T> AsyncProxy<T> createAsyncAgentProxy(final AgentInterface sender,
-			final URI receiverUrl, Class<T> agentInterface) {
+	public <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
+			final AgentInterface sender, final URI receiverUrl,
+			Class<T> agentInterface) {
 		return new AsyncProxy<T>(createAgentProxy(sender, receiverUrl,
 				agentInterface));
 	}
@@ -334,109 +405,49 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public JSONResponse receive(String receiverId, JSONRequest request,
-			RequestParams requestParams) throws JSONRPCException {
+	public void receive(String receiverId, Object message, String senderUrl,
+			String tag) {
+		Agent receiver = null;
 		try {
-			Agent receiver = getAgent(receiverId);
+			receiver = getAgent(receiverId);
 			if (receiver != null) {
-				Object[] signalData = new Object[2];
-				signalData[0] = request;
-				signalData[1] = requestParams;
-				receiver.signalAgent(new AgentSignal<Object[]>(
-						AgentSignal.INVOKE, signalData));
-				JSONResponse response = JSONRPC.invoke(receiver, request,
-						requestParams, receiver);
-				receiver.signalAgent(new AgentSignal<JSONResponse>(
-						AgentSignal.RESPOND, response));
-				return response;
+				receiver.receive(message, URI.create(senderUrl), tag);
 			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Exception during receive:", e);
-			throw new JSONRPCException("Exception during receive for id '"
-					+ receiverId + "'", e);
-		}
-		throw new JSONRPCException("Agent with id '" + receiverId
-				+ "' not found");
-	}
-	
-	@Deprecated
-	@Override
-	public JSONResponse send(URI receiverUrl, JSONRequest request)
-			throws ProtocolException, JSONRPCException {
-		return send(null, receiverUrl, request);
-	}
-	
-	@Override
-	public JSONResponse send(AgentInterface sender, URI receiverUrl,
-			JSONRequest request) throws ProtocolException, JSONRPCException {
-		String receiverId = getAgentId(receiverUrl.toASCIIString());
-		String protocol = receiverUrl.getScheme();
-		String senderUrl = null;
-		if (sender != null) {
-			senderUrl = getSenderUrl(sender.getId(),
-					receiverUrl.toASCIIString());
-		}
-		
-		if ("local".equals(protocol) || (doesShortcut && receiverId != null)) {
-			// local shortcut
-			RequestParams requestParams = new RequestParams();
-			requestParams.put(Sender.class, senderUrl);
-			return receive(receiverId, request, requestParams);
-		} else {
-			TransportService service = null;
-			service = getTransportService(protocol);
-			
-			if (service != null) {
-				JSONResponse response = service.send(senderUrl,
-						receiverUrl.toASCIIString(), request);
-				return response;
-			} else {
-				throw new ProtocolException(
-						"No transport service configured for protocol '"
-								+ protocol + "'.");
+			LOG.log(Level.WARNING, "", e);
+			try {
+				sendAsync(URI.create(senderUrl), new JSONRPCException(
+						CODE.REMOTE_EXCEPTION, "", e), receiver, tag);
+			} catch (Exception e1) {
+				LOG.log(Level.WARNING,
+						"Couldn't send exception to remote agent!", e1);
 			}
 		}
 	}
 	
-	@Deprecated
 	@Override
-	public void sendAsync(final URI receiverUrl, final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback)
-			throws ProtocolException, JSONRPCException {
-		sendAsync(null, receiverUrl, request, callback);
-	}
-	
-	@Override
-	public void sendAsync(final AgentInterface sender, final URI receiverUrl,
-			final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback)
-			throws JSONRPCException, ProtocolException {
+	public void sendAsync(final URI receiverUrl, final Object message,
+			final AgentInterface sender, final String tag) throws IOException {
 		final String receiverId = getAgentId(receiverUrl.toASCIIString());
-		if (doesShortcut && receiverId != null) {
+		if (doesShortcut && receiverId != null
+				&& message instanceof JSONRequest) {
+			final JSONRequest request = (JSONRequest) message;
 			// local shortcut
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					JSONResponse response;
-					try {
-						String senderUrl = null;
-						if (sender != null) {
-							senderUrl = getSenderUrl(sender.getId(),
-									receiverUrl.toASCIIString());
-						}
-						RequestParams requestParams = new RequestParams();
-						requestParams.put(Sender.class, senderUrl);
-						response = receive(receiverId, request, requestParams);
-						callback.onSuccess(response);
-					} catch (Exception e) {
-						callback.onFailure(e);
+					String senderUrl = null;
+					if (sender != null) {
+						senderUrl = getSenderUrl(sender.getId(),
+								receiverUrl.toASCIIString()).toASCIIString();
 					}
+					receive(receiverId, request, senderUrl, tag);
 				}
 			}).start();
 		} else {
 			TransportService service = null;
 			String protocol = null;
-			String senderUrl = null;
+			URI senderUrl = null;
 			if (sender != null) {
 				senderUrl = getSenderUrl(sender.getId(),
 						receiverUrl.toASCIIString());
@@ -444,8 +455,8 @@ public final class AgentHost implements AgentHostInterface {
 			protocol = receiverUrl.getScheme();
 			service = getTransportService(protocol);
 			if (service != null) {
-				service.sendAsync(senderUrl, receiverUrl.toASCIIString(),
-						request, callback);
+				service.sendAsync(senderUrl.toASCIIString(),
+						receiverUrl.toASCIIString(), message, tag);
 			} else {
 				throw new ProtocolException(
 						"No transport service configured for protocol '"
@@ -469,9 +480,9 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public String getSenderUrl(String agentId, String receiverUrl) {
+	public URI getSenderUrl(String agentId, String receiverUrl) {
 		if (receiverUrl.startsWith("local:")) {
-			return "local:" + agentId;
+			return URI.create("local:" + agentId);
 		}
 		for (TransportService service : transportServices.values()) {
 			List<String> protocols = service.getProtocols();
@@ -479,7 +490,7 @@ public final class AgentHost implements AgentHostInterface {
 				if (receiverUrl.startsWith(protocol + ":")) {
 					String senderUrl = service.getAgentUrl(agentId);
 					if (senderUrl != null) {
-						return senderUrl;
+						return URI.create(senderUrl);
 					}
 				}
 			}
@@ -802,7 +813,7 @@ public final class AgentHost implements AgentHostInterface {
 	
 	public CallbackInterface getCallbackService(String id) {
 		CallbackInterface result = callbacks.get(id);
-		if (result == null){
+		if (result == null) {
 			result = new CallbackService();
 			callbacks.put(id, result);
 		}

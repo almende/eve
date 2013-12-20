@@ -34,7 +34,6 @@ package com.almende.eve.agent;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +45,7 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsFactory;
 import com.almende.eve.event.EventsInterface;
@@ -57,6 +57,7 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -308,7 +309,7 @@ public abstract class Agent implements AgentInterface {
 	
 	// TODO: only allow ObjectNode as params?
 	private JSONResponse locSend(URI url, String method, Object params)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		// TODO: implement support for adding custom http headers (for
 		// authorization for example)
 		
@@ -324,7 +325,14 @@ public abstract class Agent implements AgentInterface {
 		String id = new UUID().toString();
 		// String id = "hi there!";
 		JSONRequest request = new JSONRequest(id, method, jsonParams);
-		JSONResponse response = getAgentHost().send(this, url, request);
+		SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
+		send(request, url, callback);
+		JSONResponse response;
+		try {
+			response = callback.get();
+		} catch (Exception e) {
+			throw new JSONRPCException(CODE.REMOTE_EXCEPTION,"",e);
+		}
 		JSONRPCException err = response.getError();
 		if (err != null) {
 			throw err;
@@ -335,49 +343,49 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Class<T> type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, Type type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params,
-			TypeUtil<T> type) throws ProtocolException, JSONRPCException {
+			TypeUtil<T> type) throws IOException, JSONRPCException {
 		return type.inject(locSend(url, method, params).getResult());
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Object params, JavaType type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Type type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, JavaType type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, Class<T> type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		
 		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
@@ -385,7 +393,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(URI url, String method, TypeUtil<T> type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		
 		return type.inject(locSend(url, method, null).getResult());
 	}
@@ -393,26 +401,25 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void send(URI url, String method, Object params)
-			throws ProtocolException, JSONRPCException {
+			throws IOException, JSONRPCException {
 		locSend(url, method, params);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final void send(URI url, String method) throws ProtocolException,
-			JSONRPCException {
+	public final void send(URI url, String method) throws IOException, JSONRPCException {
 		locSend(url, method, null);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T createAgentProxy(URI url, Class<T> agentInterface) {
+	public final <T  extends AgentInterface> T createAgentProxy(URI url, Class<T> agentInterface) {
 		return getAgentHost().createAgentProxy(this, url, agentInterface);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> AsyncProxy<T> createAsyncAgentProxy(URI url,
+	public final <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(URI url,
 			Class<T> agentInterface) {
 		return getAgentHost().createAsyncAgentProxy(this, url, agentInterface);
 	}
@@ -420,14 +427,14 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void sendAsync(final URI url, final String method,
-			final ObjectNode params) throws ProtocolException, JSONRPCException {
+			final ObjectNode params) throws IOException {
 		sendAsync(url, method, params, null, Void.class);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void sendAsync(final URI url, final String method)
-			throws ProtocolException, JSONRPCException {
+			throws IOException {
 		sendAsync(url, method, null, null, Void.class);
 	}
 	
@@ -435,7 +442,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final String method,
 			final ObjectNode params, final AsyncCallback<T> callback,
-			final Class<T> type) throws ProtocolException, JSONRPCException {
+			final Class<T> type) throws IOException {
 		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, JOM.getTypeFactory()
@@ -446,7 +453,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final String method,
 			final ObjectNode params, final AsyncCallback<T> callback,
-			final Type type) throws ProtocolException, JSONRPCException {
+			final Type type) throws IOException {
 		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback,
@@ -457,7 +464,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final String method,
 			final ObjectNode params, final AsyncCallback<T> callback,
-			final JavaType type) throws ProtocolException, JSONRPCException {
+			final JavaType type) throws IOException {
 		String id = new UUID().toString();
 		JSONRequest request = new JSONRequest(id, method, params);
 		sendAsync(url, request, callback, type);
@@ -467,7 +474,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, final Class<T> type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException {
 		sendAsync(url, request, callback, JOM.getTypeFactory()
 				.uncheckedSimpleType(type));
 	}
@@ -476,7 +483,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, final Type type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException {
 		sendAsync(url, request, callback,
 				JOM.getTypeFactory().constructType(type));
 	}
@@ -485,7 +492,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, final JavaType type)
-			throws ProtocolException, JSONRPCException {
+			throws IOException {
 		
 		// Create a callback to retrieve a JSONResponse and extract the result
 		// or error from this.
@@ -533,7 +540,7 @@ public abstract class Agent implements AgentInterface {
 			}
 		};
 		
-		getAgentHost().sendAsync(this, url, request, responseCallback);
+		send(request, url, responseCallback);
 	}
 	
 	@Override
@@ -587,7 +594,13 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	// TODO: NOTE: This method should be called in its own thread.
+	// TODO: This should be abstracted to a generic "Translation service"?
+	@Override
 	public void receive(Object msg, URI senderUrl) {
+		receive(msg,senderUrl,null);
+	}
+	@Override
+	public void receive(Object msg, URI senderUrl, String tag) {
 		try {
 			ObjectNode json = null;
 			if (msg != null) {
@@ -612,7 +625,12 @@ public abstract class Agent implements AgentInterface {
 						AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
 								.get(id) : null;
 						if (callback != null) {
-							callback.onSuccess(new JSONResponse(json));
+							JSONResponse response = new JSONResponse(json);
+							if (response.getError() != null){
+								callback.onFailure(response.getError());
+							} else {
+								callback.onSuccess(new JSONResponse(json));
+							}
 						}
 					}
 				} else if (JSONRPC.isRequest(json)) {
@@ -622,7 +640,7 @@ public abstract class Agent implements AgentInterface {
 					JSONRequest request = new JSONRequest(json);
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
-					send(response, senderUrl, null);
+					send(response, senderUrl, null, tag);
 				} else {
 					throw new Exception(
 							getId()
@@ -649,15 +667,21 @@ public abstract class Agent implements AgentInterface {
 		}
 	}
 	
-	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback) throws JSONRPCException, ProtocolException {
+	@Override
+	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback) throws IOException {
+		send(msg, receiverUrl, callback, null);
+	}
+	@Override
+	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback, String tag) throws IOException {
 		if (msg instanceof JSONRequest){
 			JSONRequest request = (JSONRequest) msg;
 			if (callback != null && callbacks != null){
 				callbacks.store(request.getId().toString(), callback);
 			}
-			agentHost.sendAsync(this,receiverUrl, request, callback);
+			agentHost.sendAsync(receiverUrl, msg, this, tag);
 		} else if (msg instanceof JSONRPCException){
-			//TODO: this needs to be send as well:)
+			JSONResponse response= new JSONResponse((JSONRPCException) msg);
+			agentHost.sendAsync(receiverUrl, response, this, tag);
 		}
 	}
 }

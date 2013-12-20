@@ -185,6 +185,12 @@ public class JSONRPCException extends Exception {
 	
 	@Override
 	public String toString() {
+		try {
+			return JOM.getInstance().writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			LOG.log(Level.SEVERE,"Couldn't JSON serialize JSONRPCException!",e);
+		}
 		return this.getClass().getCanonicalName() + ": " + error.get("message").textValue();
 	}
+	
 }

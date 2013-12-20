@@ -9,10 +9,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.RequestParams;
-import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.util.uuid.UUID;
 
 
 @SuppressWarnings("serial")
@@ -48,13 +49,16 @@ public class RestServlet extends HttpServlet {
 				request.putParam(param, req.getParameter(param));
 			}
 
-			// TODO: provide authorized sender url
-			RequestParams requestParams = new RequestParams();
-			requestParams.put(Sender.class, null);
+			String tag = new UUID().toString();
+			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 			
-			// invoke the agent
-			JSONResponse response = factory.receive(agentId, request, requestParams);
+			CallbackInterface callbacks = factory.getCallbackService("HttpTransport");
+			callbacks.store(tag,callback);
+			
+			factory.receive(agentId, request, null, tag);
 
+			JSONResponse response = callback.get();
+			
 			// return response
 			resp.addHeader("Content-Type", "application/json");
 			resp.getWriter().println(response.getResult());

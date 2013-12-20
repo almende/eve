@@ -2,7 +2,6 @@ package com.almende.eve.agent.log;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class LogAgent extends Agent {
 	private static final long	TIMETOLIVE	= 20 * 60 * 1000;	// milliseconds
 						
-	public void config(URI agentUrl) throws ProtocolException, JSONRPCException{
+	public void config(URI agentUrl) throws IOException, JSONRPCException{
 		getEventsFactory().subscribe(agentUrl, "*", "eventLog");
 	}
 	

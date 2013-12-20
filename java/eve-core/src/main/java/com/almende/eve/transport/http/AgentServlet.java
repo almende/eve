@@ -17,10 +17,10 @@ import org.apache.http.client.methods.HttpGet;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AgentSignal;
+import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.RequestParams;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -29,6 +29,7 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
 import com.almende.util.tokens.TokenStore;
+import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("serial")
@@ -62,7 +63,7 @@ public class AgentServlet extends HttpServlet {
 					+ globalParam + "' or '" + envParam + "' "
 					+ "missing in context configuration web.xml.");
 		}
-		httpTransport = new HttpService(servletUrl);
+		httpTransport = new HttpService(agentHost,servletUrl);
 		agentHost.addTransportService(httpTransport);
 	}
 	
@@ -306,17 +307,21 @@ public class AgentServlet extends HttpServlet {
 				return;
 			}
 			// Attach the claimed senderId, or null if not given.
-			RequestParams requestParams = new RequestParams();
 			String senderUrl = req.getHeader("X-Eve-SenderUrl");
 			if (senderUrl == null || senderUrl.equals("")) {
 				senderUrl = "web://" + req.getRemoteUser() + "@"
 						+ req.getRemoteAddr();
 			}
-			requestParams.put(Sender.class, senderUrl);
+			String tag = new UUID().toString();
+			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 			
-			// invoke the agent
-			jsonResponse = agentHost.receive(agentId, jsonRequest,
-					requestParams);
+			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");
+			callbacks.store(tag,callback);
+			
+			agentHost.receive(agentId, jsonRequest,
+					senderUrl,tag);
+			
+			jsonResponse = callback.get(); 
 		} catch (Exception err) {
 			// generate JSON error response
 			LOG.log(Level.WARNING, "", err);

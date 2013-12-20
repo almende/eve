@@ -1,7 +1,6 @@
 package com.almende.eve.goldemo;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 
@@ -42,7 +41,7 @@ public class Cell extends Agent {
 		}
 	}
 	
-	public void stop() throws ProtocolException, JSONRPCException{
+	public void stop() throws IOException, JSONRPCException{
 		if (neighbors == null){
 			neighbors = getState().get("neighbors",
 					new TypeUtil<ArrayList<String>>() {

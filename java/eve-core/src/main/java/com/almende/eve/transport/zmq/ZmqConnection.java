@@ -10,18 +10,13 @@ import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.rpc.RequestParams;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.ObjectCache;
 import com.almende.util.tokens.TokenRet;
 import com.almende.util.tokens.TokenStore;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ZmqConnection {
 	private static final Logger	LOG			= Logger.getLogger(ZmqConnection.class
@@ -233,31 +228,8 @@ public class ZmqConnection {
 				}
 			}
 			
-			if (body != null && body.startsWith("{")
-					|| body.trim().startsWith("{")) {
-				// the body contains a JSON object
-				ObjectNode json = null;
-				json = JOM.getInstance().readValue(body, ObjectNode.class);
-				
-				JSONRequest request = new JSONRequest(json);
-				invoke(senderUrl, request, new AsyncCallback<JSONResponse>() {
-					
-					@Override
-					public void onSuccess(JSONResponse result) {
-						sendResponse(socket, connId, result);
-					}
-					
-					@Override
-					public void onFailure(Exception e) {
-						LOG.log(Level.WARNING, "Failure call", e);
-						JSONRPCException jsonError = new JSONRPCException(
-								JSONRPCException.CODE.INTERNAL_ERROR, e
-										.getMessage(), e);
-						JSONResponse response = new JSONResponse(jsonError);
-						sendResponse(socket, connId, response);
-					}
-					
-				});
+			if (body != null){
+				host.receive(agentId, body, senderUrl,null);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Failed to handle request", e);
@@ -269,39 +241,4 @@ public class ZmqConnection {
 		}
 	}
 	
-	/**
-	 * Invoke a JSON-RPC request
-	 * Invocation is done in a separate thread to prevent blocking the
-	 * single threaded XMPP PacketListener (which can cause deadlocks).
-	 * 
-	 * @param senderUrl
-	 * @param request
-	 */
-	private void invoke(final String senderUrl, final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback) {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				JSONResponse response;
-				try {
-					// append the sender to the request parameters
-					RequestParams params = new RequestParams();
-					params.put(Sender.class, senderUrl);
-					
-					// invoke the agent
-					response = host.receive(agentId, request, params);
-					callback.onSuccess(response);
-					
-				} catch (Exception err) {
-					// generate JSON error response
-					JSONRPCException jsonError = new JSONRPCException(
-							JSONRPCException.CODE.INTERNAL_ERROR,
-							err.getMessage(), err);
-					
-					callback.onFailure(jsonError);
-				}
-				
-			}
-		}).start();
-	}
 }

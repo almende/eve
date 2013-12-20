@@ -2,7 +2,6 @@ package com.almende.eve.agent;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
 
@@ -14,6 +13,7 @@ import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.jsonrpc.JSONAuthorizor;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
@@ -138,7 +138,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 */
 	<T> T send(URI url, String method, Object params, Class<T> type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -150,7 +150,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 */
 	<T> T send(URI url, String method, Object params, TypeUtil<T> type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -163,7 +163,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 */
 	<T> T send(URI url, String method, Object params, Type type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -177,7 +177,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @throws Exception
 	 */
 	<T> T send(URI url, String method, Object params, JavaType type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -188,8 +188,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> T send(URI url, String method, Type type) throws ProtocolException,
-			JSONRPCException;
+	<T> T send(URI url, String method, Type type) throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -200,8 +199,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> T send(URI url, String method, JavaType type) throws ProtocolException,
-			JSONRPCException;
+	<T> T send(URI url, String method, JavaType type) throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -212,8 +210,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> T send(URI url, String method, Class<T> type) throws ProtocolException,
-			JSONRPCException;
+	<T> T send(URI url, String method, Class<T> type) throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent.
@@ -225,7 +222,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @throws Exception
 	 */
 	<T> T send(URI url, String method, TypeUtil<T> type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent, expecting no result (void)
@@ -235,8 +232,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param params
 	 * @throws Exception
 	 */
-	void send(URI url, String method, Object params) throws ProtocolException,
-			JSONRPCException;
+	void send(URI url, String method, Object params) throws IOException, JSONRPCException;
 	
 	/**
 	 * Do a RPC call to another agent, expecting no result (void)
@@ -245,8 +241,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param method
 	 * @throws Exception
 	 */
-	void send(URI url, String method) throws ProtocolException,
-			JSONRPCException;
+	void send(URI url, String method) throws IOException, JSONRPCException;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -260,7 +255,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	<T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, Class<T> type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -274,7 +269,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	<T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, Type type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -288,7 +283,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	<T> void sendAsync(URI url, String method, ObjectNode params,
 			final AsyncCallback<T> callback, final JavaType type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -302,7 +297,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	<T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, Class<T> type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -315,7 +310,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 */
 	<T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, Type type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException;
 	
 	/**
 	 * Do an asynchronous RPC call to another agent.
@@ -324,11 +319,11 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param method
 	 * @param callback
 	 * @param type
-	 * @throws Exception
+	 * @throws IOException 
 	 */
 	<T> void sendAsync(final URI url, final JSONRequest request,
 			final AsyncCallback<T> callback, final JavaType type)
-			throws ProtocolException, JSONRPCException;
+			throws IOException;
 
 	/**
 	 * Do a RPC call to another agent, expecting no result (void)
@@ -336,10 +331,10 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param url
 	 * @param method
 	 * @param params
+	 * @throws IOException 
 	 * @throws Exception
 	 */
-	void sendAsync(URI url, String method, ObjectNode params) throws ProtocolException,
-			JSONRPCException;
+	void sendAsync(URI url, String method, ObjectNode params) throws IOException;
 	
 	/**
 	 * Do a RPC call to another agent, expecting no result (void)
@@ -348,8 +343,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param method
 	 * @throws Exception
 	 */
-	void sendAsync(URI url, String method) throws ProtocolException,
-			JSONRPCException;
+	void sendAsync(URI url, String method) throws IOException;
 	
 	/**
 	 * Create a proxy to an other agent. Invoked methods will be send to the
@@ -360,7 +354,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 *            A Java Interface, extending AgentInterface
 	 * @return agentProxy
 	 */
-	<T> T createAgentProxy(URI url, Class<T> agentInterface);
+	<T extends AgentInterface> T createAgentProxy(URI url, Class<T> agentInterface);
 	
 	/**
 	 * Create a proxy to an other agent. Invoked methods will be send to the
@@ -371,7 +365,7 @@ public interface AgentInterface extends JSONAuthorizor {
 	 *            A Java Interface, extending AgentInterface
 	 * @return agentProxy
 	 */
-	<T> AsyncProxy<T> createAsyncAgentProxy(URI url, Class<T> agentInterface);
+	<T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(URI url, Class<T> agentInterface);
 	
 	/**
 	 * Utility method to get back references to in-memory objects from the
@@ -399,4 +393,15 @@ public interface AgentInterface extends JSONAuthorizor {
 	 * @param value
 	 */
 	<T> void putRef(TypedKey<T> key, T value);
+
+	void receive(Object msg, URI senderUrl);
+
+	void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback)
+			throws IOException ;
+
+	void send(Object msg, URI receiverUrl,
+			AsyncCallback<JSONResponse> callback, String tag)
+			throws IOException;
+
+	void receive(Object msg, URI senderUrl, String tag);
 }

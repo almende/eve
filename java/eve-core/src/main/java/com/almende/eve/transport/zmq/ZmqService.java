@@ -12,21 +12,17 @@ import java.util.logging.Logger;
 import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
 public class ZmqService implements TransportService {
-	private static final Logger		LOG				= Logger.getLogger(ZmqService.class
-															.getCanonicalName());
+	private static final Logger				LOG				= Logger.getLogger(ZmqService.class
+																	.getCanonicalName());
 	
-	private AgentHost				agentHost		= null;
-	private String					baseUrl			= "";
+	private AgentHost						agentHost		= null;
+	private String							baseUrl			= "";
 	private HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
-
+	
 	protected ZmqService() {
 	}
 	
@@ -80,47 +76,33 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public JSONResponse send(String senderUrl, String receiverUrl,
-			JSONRequest request) throws JSONRPCException {
-		
-		JSONResponse response = null;
-		final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
-		final Socket socket = ZMQ.getSocket(ZMQ.REQ);
-		try {
-			socket.connect(addr);
-			socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
-			socket.send(senderUrl, ZMQ.SNDMORE);
-			socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
-			socket.send(request.toString());
-			
-			String result = new String(socket.recv());
-			response = new JSONResponse(result);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
-			response = new JSONResponse(e);
-		}
-		socket.setLinger(0);
-		socket.close();
-		return response;
-	}
-	
-	@Override
-	public void sendAsync(final String senderUrl, final String receiver,
-			final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback) throws JSONRPCException {
+	public void sendAsync(final String senderUrl, final String receiverUrl, final Object message, String tag) {
+		final String receiverId=getAgentId(receiverUrl);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				JSONResponse response;
+				String result = null;
+				final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
+				final Socket socket = ZMQ.getSocket(ZMQ.REQ);
 				try {
-					response = send(senderUrl, receiver, request);
-					callback.onSuccess(response);
+					socket.connect(addr);
+					socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
+					socket.send(senderUrl, ZMQ.SNDMORE);
+					socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
+					socket.send(message.toString());
+					
+					result = new String(socket.recv());
+					
 				} catch (Exception e) {
-					callback.onFailure(e);
+					LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
+					
+					agentHost.receive(receiverId,e,senderUrl, null);
 				}
+				socket.setLinger(0);
+				socket.close();
+				agentHost.receive(receiverId,result,senderUrl, null);
 			}
 		}).start();
-		
 	}
 	
 	@Override
@@ -146,8 +128,7 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public synchronized void reconnect(String agentId) throws JSONRPCException,
-			IOException {
+	public synchronized void reconnect(String agentId) throws IOException {
 		try {
 			if (inboundSockets.containsKey(agentId)) {
 				ZmqConnection conn = inboundSockets.get(agentId);
@@ -167,7 +148,7 @@ public class ZmqService implements TransportService {
 				socket.listen();
 			}
 		} catch (Exception e) {
-			LOG.log(Level.SEVERE,"Caught error:",e);
+			LOG.log(Level.SEVERE, "Caught error:", e);
 		}
 	}
 	

@@ -2,18 +2,13 @@ package com.almende.eve.agent;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.List;
 
-import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.StateFactory;
@@ -103,7 +98,8 @@ interface AgentHostInterface {
 	 * @return
 	 */
 	@Deprecated
-	<T> T createAgentProxy(final URI receiverUrl, Class<T> agentInterface);
+	<T extends AgentInterface> T createAgentProxy(final URI receiverUrl,
+			Class<T> agentInterface);
 	
 	/**
 	 * Create an agent proxy from an java interface
@@ -116,8 +112,8 @@ interface AgentHostInterface {
 	 *            A java Interface, extending AgentInterface
 	 * @return
 	 */
-	<T> T createAgentProxy(final AgentInterface sender, final URI receiverUrl,
-			Class<T> agentInterface);
+	<T extends AgentInterface> T createAgentProxy(final AgentInterface sender,
+			final URI receiverUrl, Class<T> agentInterface);
 	
 	/**
 	 * Create an asynchronous agent proxy from an java interface, each call will
@@ -132,8 +128,8 @@ interface AgentHostInterface {
 	 * @return
 	 */
 	@Deprecated
-	<T> AsyncProxy<T> createAsyncAgentProxy(final URI receiverUrl,
-			Class<T> agentInterface);
+	<T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
+			final URI receiverUrl, Class<T> agentInterface);
 	
 	/**
 	 * Create an asynchronous agent proxy from an java interface, each call will
@@ -149,8 +145,9 @@ interface AgentHostInterface {
 	 *            A java Interface, extending AgentInterface
 	 * @return
 	 */
-	<T> AsyncProxy<T> createAsyncAgentProxy(final AgentInterface sender,
-			final URI receiverUrl, Class<T> agentInterface);
+	<T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
+			final AgentInterface sender, final URI receiverUrl,
+			Class<T> agentInterface);
 	
 	/**
 	 * Create an agent.
@@ -249,88 +246,30 @@ interface AgentHostInterface {
 	EventLogger getEventLogger();
 	
 	/**
-	 * Invoke a local agent
-	 * 
-	 * @param receiverId
-	 *            Id of the receiver agent
-	 * @param request
-	 * @param requestParams
-	 * @return
-	 * @throws JSONRPCException
-	 */
-	JSONResponse receive(String receiverId, JSONRequest request,
-			RequestParams requestParams) throws JSONRPCException;
-	
-	/**
-	 * Invoke a local or remote agent. In case of an local agent, the agent is
-	 * invoked immediately. In case of an remote agent, an HTTP Request is sent
-	 * to the concerning agent.
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: send(sender,receiverUrl,request);"
+	 * Receive a message for an agent.
 	 * 
 	 * @param receiverUrl
-	 * @param request
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * @param message
+	 * @param senderUrl
+
 	 */
-	@Deprecated
-	JSONResponse send(URI receiverUrl, JSONRequest request)
-			throws ProtocolException, JSONRPCException;
+	void receive(String receiverId, Object message, String senderUrl, String tag);
 	
 	/**
-	 * Invoke a local or remote agent. In case of an local agent, the agent is
-	 * invoked immediately. In case of an remote agent, an HTTP Request is sent
-	 * to the concerning agent.
-	 * 
-	 * @param sender
-	 *            Sending agent. Not required for all
-	 *            transport services (for example not for outgoing HTTP
-	 *            requests), in which cases a "null" value may be passed.
-	 * @param receiverUrl
-	 * @param request
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 */
-	JSONResponse send(AgentInterface sender, URI receiverUrl,
-			JSONRequest request) throws ProtocolException, JSONRPCException;
-	
-	/**
-	 * Asynchronously invoke a request on an agent.
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: sendAsync(sender,receiverUrl,request,callback);"
-	 * 
-	 * @param receiverUrl
-	 * @param request
-	 * @param callback
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 */
-	@Deprecated
-	void sendAsync(final URI receiverUrl, final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback)
-			throws ProtocolException, JSONRPCException;
-	
-	/**
-	 * Asynchronously invoke a request on an agent.
+	 * Asynchronously send a message to an agent.
 	 * 
 	 * @param sender
 	 *            Internal id of the sender agent. Not required for all
 	 *            transport services (for example not for outgoing HTTP
 	 *            requests)
 	 * @param receiverUrl
-	 * @param request
-	 * @param callback
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * @param message
+	 * @param sender
+	 * @throws IOException
 	 */
-	void sendAsync(final AgentInterface sender, final URI receiverUrl,
-			final JSONRequest request,
-			final AsyncCallback<JSONResponse> callback)
-			throws JSONRPCException, ProtocolException;
+	
+	void sendAsync(URI receiverUrl, Object message, AgentInterface sender, String tag)
+			throws IOException;
 	
 	/**
 	 * Get the agentId from given agentUrl. The url can be any protocol. If the
@@ -347,10 +286,10 @@ interface AgentHostInterface {
 	 * Determines best senderUrl for this agent, match receiverUrl transport
 	 * method if possible. (fallback from HTTPS to HTTP included)
 	 * 
-	 * @param agentUrl
-	 * @return agentId
+	 * @param agentId, receiverUrl
+	 * @return URI SenderUrl
 	 */
-	String getSenderUrl(String agentId, String receiverUrl);
+	URI getSenderUrl(String agentId, String receiverUrl);
 	
 	/**
 	 * Get the loaded config file

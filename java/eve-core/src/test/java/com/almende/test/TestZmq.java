@@ -1,6 +1,6 @@
 package com.almende.test;
 
-import java.net.ProtocolException;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class TestZmq extends TestCase {
 		return null;
 	}
 	
-	private void runTest(Test2Agent test, Test2Agent test2, String type) throws ProtocolException, JSONRPCException, InterruptedException{
+	private void runTest(Test2Agent test, Test2Agent test2, String type) throws IOException, JSONRPCException, InterruptedException{
 		final Set<String> results = new ConcurrentHashSet<String>();
 		
 		AsyncCallback<String> callback = new AsyncCallback<String>() {

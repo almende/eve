@@ -1,6 +1,7 @@
 package com.almende.eve.transport.xmpp;
 
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -20,17 +21,14 @@ import javax.crypto.NoSuchPaddingException;
 import org.jivesoftware.smack.SmackConfiguration;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.EncryptionUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -103,8 +101,7 @@ public class XmppService implements TransportService {
 		init();
 	}
 	
-	private ArrayNode getConns(String agentId) throws IOException,
-			JSONRPCException {
+	private ArrayNode getConns(String agentId) throws IOException {
 		State state = agentHost.getStateFactory().get(agentId);
 		
 		ArrayNode conns = null;
@@ -256,7 +253,7 @@ public class XmppService implements TransportService {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(String agentId, String username, String password,
-			String resource) throws JSONRPCException{
+			String resource) throws IOException{
 		//First store the connection info for later reconnection.
 		try {
 			storeConnection(agentId, username, password, resource);
@@ -371,24 +368,7 @@ public class XmppService implements TransportService {
 			delConnections(agentId);
 	}
 	
-	/**
-	 * Send a message to an other agent
-	 * 
-	 * @param url
-	 * @param request
-	 * @param response
-	 */
-	@Override
-	public JSONResponse send(String senderUrl, String receiver,
-			JSONRequest request) throws JSONRPCException {
-		SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-		sendAsync(senderUrl, receiver, request, callback);
-		try {
-			return callback.get();
-		} catch (Exception e) {
-			throw new JSONRPCException("Couldn't handle XMPP return.", e);
-		}
-	}
+
 	
 	/**
 	 * Asynchronously Send a message to an other agent
@@ -400,8 +380,8 @@ public class XmppService implements TransportService {
 	 */
 	@Override
 	public void sendAsync(String senderUrl, String receiver,
-			JSONRequest request, AsyncCallback<JSONResponse> callback)
-			throws JSONRPCException {
+			Object message,String tag)
+			throws IOException {
 		
 		AgentConnection connection = null;
 		
@@ -412,16 +392,16 @@ public class XmppService implements TransportService {
 			// remove the protocol from the receiver url
 			String protocol = "xmpp:";
 			if (!receiver.startsWith(protocol)) {
-				throw new JSONRPCException("Receiver url must start with '"
+				throw new ProtocolException("Receiver url must start with '"
 						+ protocol + "' (receiver='" + receiver + "')");
 			}
 			// username@domain
 			String fullUsername = receiver.substring(protocol.length());
-			connection.send(fullUsername, request, callback);
+			connection.send(fullUsername, message);
 		} else {
 			// TODO: use an anonymous xmpp connection when the sender agent has
 			// no xmpp connection.
-			throw new JSONRPCException("Cannot send an xmpp request, "
+			throw new IOException("Cannot send an xmpp request, "
 					+ "agent has no xmpp connection.");
 		}
 	}
@@ -457,7 +437,7 @@ public class XmppService implements TransportService {
 	}
 	
 	@Override
-	public void reconnect(String agentId) throws JSONRPCException, IOException {
+	public void reconnect(String agentId) throws IOException {
 		ArrayNode conns = getConns(agentId);
 		if (conns != null) {
 			for (JsonNode conn : conns) {
@@ -484,7 +464,7 @@ public class XmppService implements TransportService {
 						connect(agentId, username, password, resource);
 					}
 				} catch (Exception e) {
-					throw new JSONRPCException("Failed to connect XMPP.", e);
+					throw new IOException("Failed to connect XMPP.", e);
 				}
 			}
 		}

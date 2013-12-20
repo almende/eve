@@ -1,15 +1,12 @@
 package com.almende.eve.transport.xmpp.google;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.TransportService;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
@@ -91,20 +88,11 @@ public class GaeXmppService implements TransportService {
 
 		return null;
 	}
-	
-	@Override
-	public JSONResponse send(String senderId, String receiver,
-			JSONRequest request) throws JSONRPCException {
-		throw new JSONRPCException("JSONResponse send(String senderId, String receiver, " +
-				"JSONRequest request) not supported by GaeXmppService. " +
-				"Use sendAsync(String senderId, String receiver, " +
-				"JSONRequest request, String callback) instead.");
-	}
 
 	@Override
 	public void sendAsync(String senderId, String receiver,
-			JSONRequest request, AsyncCallback<JSONResponse> callback)
-			throws UnsupportedOperationException {
+			Object message, String tag)
+			throws IOException {
 		throw new UnsupportedOperationException("JSONResponse sendAsync(String senderId, " +
 				"String receiver, JSONRequest request, " +
 				"AsyncCallback<JSONResponse> callback) not supported by GaeXmppService. " +
