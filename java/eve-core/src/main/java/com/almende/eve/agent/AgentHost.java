@@ -46,6 +46,7 @@ import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class AgentHost implements AgentHostInterface {
@@ -252,7 +253,7 @@ public final class AgentHost implements AgentHostInterface {
 							if (response != null) {
 								
 								if (callbacks != null) {
-									String id = null;
+									JsonNode id = null;
 									if (response.getId() != null) {
 										id = response.getId();
 									}
@@ -426,7 +427,6 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public void receive(String receiverId, Object message, String senderUrl,
 			String tag) {
-		LOG.warning("receive message for "+receiverId+ " tag:"+tag+" -> "+message);
 		AgentInterface receiver = null;
 		try {
 			receiver = getAgent(receiverId);
@@ -459,26 +459,10 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public void sendAsync(final URI receiverUrl, final Object message,
 			final AgentInterface sender, final String tag) throws IOException {
-		LOG.warning("message for "+receiverUrl+ " tag:"+tag);
 		final String receiverId = getAgentId(receiverUrl.toASCIIString());
 		String protocol = receiverUrl.getScheme();
-		if (("local".equals(protocol) || doesShortcut) && receiverId != null
-				&& message instanceof JSONRequest) {
-			final JSONRequest request = (JSONRequest) message;
+		if (("local".equals(protocol)) || (doesShortcut && receiverId != null)) {
 			// local shortcut
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					String senderUrl = null;
-					if (sender != null) {
-						senderUrl = getSenderUrl(sender.getId(),
-								receiverUrl.toASCIIString()).toASCIIString();
-					}
-					receive(receiverId, request, senderUrl, tag);
-				}
-			}).start();
-		} else if ("local".equals(protocol)) {
-			// local response
 			new Thread(new Runnable() {
 				@Override
 				public void run() {

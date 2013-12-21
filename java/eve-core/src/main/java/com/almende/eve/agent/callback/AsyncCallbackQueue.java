@@ -11,7 +11,7 @@ import java.util.concurrent.TimeoutException;
  * The Queue handles timeouts on the callbacks.
  */
 public class AsyncCallbackQueue<T> {
-	private Map<String, CallbackHandler>	queue	= new ConcurrentHashMap<String, CallbackHandler>();
+	private Map<Object, CallbackHandler>	queue	= new ConcurrentHashMap<Object, CallbackHandler>();
 	// deamon timer
 	private Timer							timer	= new Timer(true);
 	
@@ -34,7 +34,7 @@ public class AsyncCallbackQueue<T> {
 	 * @param callback
 	 * @throws Exception
 	 */
-	public synchronized void push(final String id, final String description,
+	public synchronized void push(final Object id, final String description,
 			AsyncCallback<T> callback) {
 		if (queue.containsKey(id)) {
 			throw new IllegalStateException("Callback with id '" + id
@@ -72,7 +72,7 @@ public class AsyncCallbackQueue<T> {
 	 * @param id
 	 * @return
 	 */
-	public synchronized AsyncCallback<T> pull(String id) {
+	public synchronized AsyncCallback<T> pull(Object id) {
 		CallbackHandler handler = queue.get(id);
 		if (handler != null) {
 			queue.remove(id);

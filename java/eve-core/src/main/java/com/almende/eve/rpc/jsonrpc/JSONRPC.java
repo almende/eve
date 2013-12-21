@@ -23,7 +23,6 @@ import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Optional;
-
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.AnnotationUtil;
@@ -505,7 +504,10 @@ public final class JSONRPC {
 						+ " in method '" + method.getName() + "' is null.");
 			}
 		}
-		String id = new UUID().toString();
+		JsonNode id = null;
+		try {
+			id = JOM.getInstance().readTree(new UUID().toString());
+		} catch (Exception e) {}
 		return new JSONRequest(id, method.getName(), params);
 	}
 	

@@ -38,7 +38,7 @@ public class JSONResponse extends JSONMessage {
 		init(null, result, null);
 	}
 	
-	public JSONResponse(String id, Object result) {
+	public JSONResponse(JsonNode id, Object result) {
 		init(id, result, null);
 	}
 	
@@ -46,7 +46,7 @@ public class JSONResponse extends JSONMessage {
 		init(null, null, error);
 	}
 	
-	public JSONResponse(String id, JSONRPCException error) {
+	public JSONResponse(JsonNode id, JSONRPCException error) {
 		init(id, null, error);
 	}
 	
@@ -67,7 +67,7 @@ public class JSONResponse extends JSONMessage {
 					"Member 'error' is no ObjectNode");
 		}
 		
-		String id = response.get("id").textValue();
+		JsonNode id = response.get("id");
 		Object result = response.get("result");
 		JSONRPCException error = null;
 		if (hasError) {
@@ -77,20 +77,19 @@ public class JSONResponse extends JSONMessage {
 		init(id, result, error);
 	}
 	
-	private void init(String id, Object result, JSONRPCException error) {
+	private void init(JsonNode id, Object result, JSONRPCException error) {
 		setVersion();
 		setId(id);
 		setResult(result);
 		setError(error);
 	}
 	
-	public final void setId(String id) {
+	public final void setId(JsonNode id) {
 		resp.put("id", id);
 	}
 	
-	public String getId() {
-		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(resp.get("id"), String.class);
+	public JsonNode getId() {
+		return resp.get("id");
 	}
 	
 	public final void setResult(Object result) {

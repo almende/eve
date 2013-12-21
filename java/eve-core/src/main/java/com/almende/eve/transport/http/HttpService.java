@@ -28,7 +28,8 @@ public class HttpService implements TransportService {
 													.getCanonicalName());
 	private String				servletUrl	= null;
 	private AgentHost			host		= null;
-	private List<String>		protocols	= Arrays.asList("http", "https","web");
+	private List<String>		protocols	= Arrays.asList("http", "https",
+													"web");
 	
 	public HttpService() {
 	}
@@ -116,24 +117,24 @@ public class HttpService implements TransportService {
 	public void sendAsync(final String senderUrl, final String receiverUrl,
 			final Object message, String tag) throws IOException {
 		try {
-			LOG.warning("Outgoing message, tag:"+tag);
 			if (tag != null) {
 				// This is a reply to a synchronous inbound call, get callback
 				// and use it to send the message
 				CallbackInterface callbacks = host
 						.getCallbackService("HttpTransport");
-				if (callbacks != null){
+				if (callbacks != null) {
 					AsyncCallback<JSONResponse> callback = callbacks.get(tag);
-					if (callback != null && message instanceof JSONResponse){
+					if (callback != null && message instanceof JSONResponse) {
 						JSONResponse response = (JSONResponse) message;
-						if (response.getError() != null){
+						if (response.getError() != null) {
 							callback.onFailure(response.getError());
 						} else {
 							callback.onSuccess(response);
 						}
 						return;
 					} else {
-						LOG.warning("Tag set, but no callback found! "+callback);
+						LOG.warning("Tag set, but no callback found! "
+								+ callback);
 					}
 				} else {
 					LOG.warning("Tag set, but no callbacks found!");

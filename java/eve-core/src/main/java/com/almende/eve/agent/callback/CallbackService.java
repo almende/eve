@@ -6,10 +6,10 @@ public class CallbackService implements CallbackInterface {
 	//Contains list of "in-memory callbacks", like AsyncCallbacks
 	private AsyncCallbackQueue<JSONResponse> queue = new AsyncCallbackQueue<JSONResponse>();
 	
-	public void store(String id, AsyncCallback<JSONResponse> callback){
+	public void store(Object id, AsyncCallback<JSONResponse> callback){
 		queue.push(id, "", callback);
 	}
-	public AsyncCallback<JSONResponse> get(String id){
+	public AsyncCallback<JSONResponse> get(Object id){
 		return queue.pull(id);
 	}
 	

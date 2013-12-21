@@ -46,14 +46,6 @@ public class JSONRequest extends JSONMessage {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Value of member 'jsonrpc' is not equal to '2.0'");
 		}
-		if (!request.has("id")){
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
-					"Member 'id' missing in request, notifications are not supported");
-		}
-		if (!(request.get("id").isTextual())) {
-			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
-					"Member 'id' is no String");
-		}
 		if (!request.has("method")) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'method' missing in request");
@@ -67,7 +59,7 @@ public class JSONRequest extends JSONMessage {
 					"Member 'params' is no ObjectNode");
 		}
 		
-		init(request.get("id").asText(), request.get("method").asText(),
+		init(request.get("id"), request.get("method").asText(),
 				(ObjectNode) request.get("params"));
 	}
 	
@@ -75,7 +67,7 @@ public class JSONRequest extends JSONMessage {
 		init(null, method, params);
 	}
 	
-	public JSONRequest(final String id, final String method, final ObjectNode params) {
+	public JSONRequest(final JsonNode id, final String method, final ObjectNode params) {
 		init(id, method, params);
 	}
 	
@@ -85,13 +77,13 @@ public class JSONRequest extends JSONMessage {
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	public JSONRequest(final String id, final String method, final ObjectNode params,
+	public JSONRequest(final JsonNode id, final String method, final ObjectNode params,
 			final String callbackUrl, final String callbackMethod) {
 		init(id, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	private void init(final String id, final String method, final ObjectNode params) {
+	private void init(final JsonNode id, final String method, final ObjectNode params) {
 		setVersion();
 		setId(id);
 		setMethod(method);
@@ -105,9 +97,12 @@ public class JSONRequest extends JSONMessage {
 		req.put("id", id);
 	}
 	
-	public String getId() {
-		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(req.get("id"), String.class);
+	public final void setId(JsonNode id){
+		req.put("id", id);
+	}
+	
+	public JsonNode getId() {
+		return req.get("id");
 	}
 	
 	public final void setMethod(String method) {
