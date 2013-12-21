@@ -315,6 +315,7 @@ public class AgentServlet extends HttpServlet {
 			
 			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");
 			callbacks.store(tag,callback);
+			//TODO: on JSONResponse the callback will never be called and will timeout. What to do?
 			
 			agentHost.receive(agentId, body,
 					senderUrl,tag);
