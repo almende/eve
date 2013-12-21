@@ -1,7 +1,6 @@
 package com.almende.eve.rpc.jsonrpc;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class JSONRequest implements Serializable {
+public class JSONRequest extends JSONMessage {
 	private static final Logger	LOG					= Logger.getLogger(JSONRequest.class
 															.getCanonicalName());
 	private static final long	serialVersionUID	= 1970046457233622444L;

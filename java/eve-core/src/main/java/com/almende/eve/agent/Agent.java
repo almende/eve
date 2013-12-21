@@ -55,6 +55,7 @@ import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.rpc.jsonrpc.JSONMessage;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
@@ -607,6 +608,7 @@ public abstract class Agent implements AgentInterface {
 	public void receive(Object msg, URI senderUrl, String tag) {
 		String id = null;
 		try {
+			JSONMessage jsonMsg = null;
 			ObjectNode json = null;
 			if (msg != null) {
 				if (msg instanceof String) {
@@ -617,11 +619,39 @@ public abstract class Agent implements AgentInterface {
 						json = JOM.getInstance().readValue(message,
 								ObjectNode.class);
 					}
-				} else if (msg instanceof JSONRequest) {
+				} else if (msg instanceof ObjectNode) {
+					json = (ObjectNode) msg;
+				} else if (msg instanceof JSONMessage){
+					jsonMsg = (JSONMessage)msg;
+				} else {
+					LOG.warning("Message unknown type:" + msg.getClass());
+				}
+			}
+			if (json != null) {
+				if (JSONRPC.isResponse(json)) {
+					JSONResponse response = new JSONResponse(json);
+					if (response.getId() != null) {
+						id = response.getId();
+					}
+					jsonMsg = response;
+				} else if (JSONRPC.isRequest(json)) {
+					JSONRequest request = new JSONRequest(json);
+					if (request.getId() != null) {
+						id = request.getId();
+					}
+					jsonMsg = request;
+				} else {
+					throw new Exception(
+							getId()
+									+ ": Request does not contain a valid JSON-RPC request or response");
+				}
+			}
+			if (jsonMsg != null){
+				if (jsonMsg instanceof JSONRequest) {
 					RequestParams params = new RequestParams();
 					params.put(Sender.class, senderUrl);
 					
-					JSONRequest request = (JSONRequest) msg;
+					JSONRequest request = (JSONRequest) jsonMsg;
 					if (request.getId() != null) {
 						id = request.getId();
 					}
@@ -631,10 +661,9 @@ public abstract class Agent implements AgentInterface {
 						//Not a notification, so returning response....
 						send(response, senderUrl, null, tag);
 					}
-					return;
-				} else if (msg instanceof JSONResponse) {
+				} else if (jsonMsg instanceof JSONResponse) {
 					if (callbacks != null) {
-						JSONResponse response = (JSONResponse) msg;
+						JSONResponse response = (JSONResponse) jsonMsg;
 						if (response.getId() != null) {
 							id = response.getId();
 							if (id != null && !id.equals("")
@@ -651,30 +680,6 @@ public abstract class Agent implements AgentInterface {
 							}
 						}
 					}
-					return;
-				} else if (msg instanceof ObjectNode) {
-					json = (ObjectNode) msg;
-				} else {
-					LOG.warning("Message unknown type:" + msg.getClass());
-				}
-			}
-			if (json != null) {
-				if (JSONRPC.isResponse(json)) {
-					JSONResponse response = new JSONResponse(json);
-					if (response.getId() != null) {
-						id = response.getId();
-					}
-					receive(response, senderUrl, tag);
-				} else if (JSONRPC.isRequest(json)) {
-					JSONRequest request = new JSONRequest(json);
-					if (request.getId() != null) {
-						id = request.getId();
-					}
-					receive(request, senderUrl, tag);
-				} else {
-					throw new Exception(
-							getId()
-									+ ": Request does not contain a valid JSON-RPC request or response");
 				}
 			} else {
 				LOG.log(Level.WARNING, getId()
