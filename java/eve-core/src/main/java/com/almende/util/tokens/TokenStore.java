@@ -56,7 +56,8 @@ public final class TokenStore {
 	
 	public static String get(String time) {
 		try {
-			return tokens.get(time, String.class);
+			String token =tokens.get(time, String.class);
+			return token;
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Exception during TokenStore get:", e);
 			return null;

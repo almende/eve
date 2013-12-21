@@ -46,6 +46,14 @@ public class JSONRequest extends JSONMessage {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Value of member 'jsonrpc' is not equal to '2.0'");
 		}
+		if (!request.has("id")){
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Member 'id' missing in request, notifications are not supported");
+		}
+		if (!(request.get("id").isTextual())) {
+			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
+					"Member 'id' is no String");
+		}
 		if (!request.has("method")) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'method' missing in request");
@@ -59,7 +67,7 @@ public class JSONRequest extends JSONMessage {
 					"Member 'params' is no ObjectNode");
 		}
 		
-		init(request.get("id").toString(), request.get("method").asText(),
+		init(request.get("id").asText(), request.get("method").asText(),
 				(ObjectNode) request.get("params"));
 	}
 	
@@ -94,8 +102,7 @@ public class JSONRequest extends JSONMessage {
 		if (id == null){
 			id = new UUID().toString();
 		}
-		ObjectMapper mapper = JOM.getInstance();
-		req.put("id", mapper.convertValue(id, JsonNode.class));
+		req.put("id", id);
 	}
 	
 	public String getId() {

@@ -605,7 +605,8 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	@Override
-	public void receive(Object msg, URI senderUrl, String tag) {
+	public void receive(final Object msg, final URI senderUrl, final String tag) {
+		LOG.warning("receive:" + tag);
 		String id = null;
 		try {
 			JSONMessage jsonMsg = null;
@@ -648,6 +649,7 @@ public abstract class Agent implements AgentInterface {
 					}
 				}
 			}
+			LOG.warning("1:" + jsonMsg);
 			if (jsonMsg != null) {
 				if (jsonMsg instanceof JSONRequest) {
 					RequestParams params = new RequestParams();
@@ -659,19 +661,25 @@ public abstract class Agent implements AgentInterface {
 					}
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
+					LOG.warning("2:" + response + " / " + tag);
+					
 					if (id != null && !id.equals("") && !id.equals("null")) {
 						// Not a notification, so returning response....
+						LOG.warning("3:" + response + " / " + tag);
 						send(response, senderUrl, null, tag);
 					}
 				} else if (jsonMsg instanceof JSONResponse) {
 					if (callbacks != null) {
+						
 						JSONResponse response = (JSONResponse) jsonMsg;
+						LOG.warning("2v:" + response);
 						if (response.getId() != null) {
 							id = response.getId();
 							if (id != null && !id.equals("")
 									&& !id.equals("null")) {
 								AsyncCallback<JSONResponse> callback = callbacks
 										.get(id);
+								LOG.warning("3v:" + id + " -> " + callback);
 								if (callback != null) {
 									if (response.getError() != null) {
 										callback.onFailure(response.getError());
@@ -689,29 +697,27 @@ public abstract class Agent implements AgentInterface {
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Exception in receiving message", e);
-			if (id != null) {
-				// generate JSON error response, skipped if it was an incoming
-				// notification i.s.o. request.
-				JSONRPCException jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
-				JSONResponse response = new JSONResponse(jsonError);
-				response.setId(id);
-				try {
-					send(response, senderUrl, null);
-				} catch (Exception e1) {
-					LOG.log(Level.WARNING,
-							getId() + ": failed to send '"
-									+ e.getLocalizedMessage()
-									+ "' error to remote agent.", e1);
-				}
+			// generate JSON error response, skipped if it was an incoming
+			// notification i.s.o. request.
+			JSONRPCException jsonError = new JSONRPCException(
+					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
+			JSONResponse response = new JSONResponse(jsonError);
+			response.setId(id);
+			try {
+				send(response, senderUrl, null, tag);
+			} catch (Exception e1) {
+				LOG.log(Level.WARNING,
+						getId() + ": failed to send '"
+								+ e.getLocalizedMessage()
+								+ "' error to remote agent.", e1);
 			}
-			
 		}
 	}
 	
 	@Override
 	public void send(Object msg, URI receiverUrl,
 			AsyncCallback<JSONResponse> callback) throws IOException {
+		LOG.warning("send without tag");
 		send(msg, receiverUrl, callback, null);
 	}
 	
@@ -719,10 +725,13 @@ public abstract class Agent implements AgentInterface {
 	public void send(Object msg, URI receiverUrl,
 			AsyncCallback<JSONResponse> callback, String tag)
 			throws IOException {
+		LOG.warning("send tag:" + tag + " -> " + msg);
+		
 		if (msg instanceof JSONRequest) {
 			JSONRequest request = (JSONRequest) msg;
 			if (callback != null && callbacks != null) {
-				callbacks.store(request.getId().toString(), callback);
+				LOG.warning("storing callback!" + request.getId());
+				callbacks.store(request.getId(), callback);
 			}
 			agentHost.sendAsync(receiverUrl, msg, this, tag);
 		} else if (msg instanceof JSONRPCException) {

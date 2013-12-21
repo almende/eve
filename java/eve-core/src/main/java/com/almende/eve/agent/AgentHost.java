@@ -276,7 +276,7 @@ public final class AgentHost implements AgentHostInterface {
 							
 							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 							CallbackInterface callbacks = getCallbackService(proxyId);
-							callbacks.store(request.getId().toString(),callback);
+							callbacks.store(request.getId(),callback);
 							
 							try {
 								sendAsync(receiverUrl, request, agent, null);
@@ -426,6 +426,7 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public void receive(String receiverId, Object message, String senderUrl,
 			String tag) {
+		LOG.warning("receive message for "+receiverId+ " tag:"+tag+" -> "+message);
 		AgentInterface receiver = null;
 		try {
 			receiver = getAgent(receiverId);
@@ -458,6 +459,7 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public void sendAsync(final URI receiverUrl, final Object message,
 			final AgentInterface sender, final String tag) throws IOException {
+		LOG.warning("message for "+receiverUrl+ " tag:"+tag);
 		final String receiverId = getAgentId(receiverUrl.toASCIIString());
 		String protocol = receiverUrl.getScheme();
 		if (("local".equals(protocol) || doesShortcut) && receiverId != null

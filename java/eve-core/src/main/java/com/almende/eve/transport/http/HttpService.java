@@ -116,7 +116,7 @@ public class HttpService implements TransportService {
 	public void sendAsync(final String senderUrl, final String receiverUrl,
 			final Object message, String tag) throws IOException {
 		try {
-			
+			LOG.warning("Outgoing message, tag:"+tag);
 			if (tag != null) {
 				// This is a reply to a synchronous inbound call, get callback
 				// and use it to send the message
@@ -132,7 +132,11 @@ public class HttpService implements TransportService {
 							callback.onSuccess(response);
 						}
 						return;
+					} else {
+						LOG.warning("Tag set, but no callback found! "+callback);
 					}
+				} else {
+					LOG.warning("Tag set, but no callbacks found!");
 				}
 			}
 			

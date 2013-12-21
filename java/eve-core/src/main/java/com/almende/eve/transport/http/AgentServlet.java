@@ -311,11 +311,13 @@ public class AgentServlet extends HttpServlet {
 						+ req.getRemoteAddr();
 			}
 			String tag = new UUID().toString();
-			LOG.warning("Incoming message:"+tag);
+			LOG.warning("Incoming message, tag:"+tag);
 			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 			
 			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");
 			callbacks.store(tag,callback);
+			
+			LOG.warning("Callback stored, tag:"+tag);
 			
 			agentHost.receive(agentId, body,
 					senderUrl,tag);

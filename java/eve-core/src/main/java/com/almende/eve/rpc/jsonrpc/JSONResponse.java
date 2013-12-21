@@ -67,7 +67,7 @@ public class JSONResponse extends JSONMessage {
 					"Member 'error' is no ObjectNode");
 		}
 		
-		String id = response.get("id").toString();
+		String id = response.get("id").textValue();
 		Object result = response.get("result");
 		JSONRPCException error = null;
 		if (hasError) {
@@ -85,8 +85,7 @@ public class JSONResponse extends JSONMessage {
 	}
 	
 	public final void setId(String id) {
-		ObjectMapper mapper = JOM.getInstance();
-		resp.put("id", mapper.convertValue(id, JsonNode.class));
+		resp.put("id", id);
 	}
 	
 	public String getId() {

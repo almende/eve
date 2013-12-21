@@ -214,32 +214,17 @@ public class AgentConnection {
 					}
 				}
 			}
-			String body = message.getBody();
-			String senderUrl = "xmpp:" + message.getFrom();
+			final String body = message.getBody();
+			final String senderUrl = "xmpp:" + message.getFrom();
 			
 			if (body != null) {
-				invoke(senderUrl, body);
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						host.receive(agentId, body, senderUrl,null);
+					}
+				}).start();
 			}
-		}
-		
-		/**
-		 * Invoke a JSON-RPC request
-		 * Invocation is done in a separate thread to prevent blocking the
-		 * single threaded XMPP PacketListener (which can cause deadlocks).
-		 * 
-		 * @param senderUrl
-		 * @param request
-		 */
-		
-		// TODO: refactor this to reuse the ZmqConnection structure (with a
-		// AsyncCallback)
-		private void invoke(final String senderUrl, final Object message) {
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					host.receive(agentId, message, senderUrl,null);
-				}
-			}).start();
 		}
 	}
 	
