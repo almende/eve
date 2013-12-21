@@ -23,7 +23,6 @@ import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.StreamingUtil;
@@ -275,7 +274,6 @@ public class AgentServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		String body = null;
 		String agentUrl = null;
@@ -283,7 +281,6 @@ public class AgentServlet extends HttpServlet {
 		try {
 			// retrieve the agent url and the request body
 			body = StringUtil.streamToString(req.getInputStream());
-			jsonRequest = new JSONRequest(body);
 			
 			agentUrl = req.getRequestURI();
 			agentId = httpTransport.getAgentId(agentUrl);
@@ -306,6 +303,7 @@ public class AgentServlet extends HttpServlet {
 				}
 				return;
 			}
+			
 			// Attach the claimed senderId, or null if not given.
 			String senderUrl = req.getHeader("X-Eve-SenderUrl");
 			if (senderUrl == null || senderUrl.equals("")) {
@@ -313,15 +311,17 @@ public class AgentServlet extends HttpServlet {
 						+ req.getRemoteAddr();
 			}
 			String tag = new UUID().toString();
+			LOG.warning("Incoming message:"+tag);
 			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 			
 			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");
 			callbacks.store(tag,callback);
 			
-			agentHost.receive(agentId, jsonRequest,
+			agentHost.receive(agentId, body,
 					senderUrl,tag);
 			
-			jsonResponse = callback.get(); 
+			jsonResponse = callback.get();
+			LOG.warning("Incoming message done:"+tag);
 		} catch (Exception err) {
 			// generate JSON error response
 			LOG.log(Level.WARNING, "", err);

@@ -1,6 +1,7 @@
 package com.almende.eve.scheduler;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -154,8 +155,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 					String senderUrl = "local:" + myAgent.getId();
 					
 					// Next call is potentially long duration:
-					myAgent.getAgentHost().receive(myAgent.getId(),
-							task.getRequest(), senderUrl, null);
+					myAgent.send(task.getRequest(), URI.create(senderUrl),null);
 					
 					if (task.getInterval() > 0 && task.isSequential()) {
 						task.setDue(DateTime.now().plus(task.getInterval()));

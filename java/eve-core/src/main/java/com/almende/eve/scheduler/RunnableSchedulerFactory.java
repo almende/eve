@@ -2,6 +2,7 @@ package com.almende.eve.scheduler;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -232,7 +233,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						
 						String senderUrl = "local:" + agentId;
 						
-						host.receive(agentId, request, senderUrl, null);
+						host.getAgent(agentId).send(request, URI.create(senderUrl),null);
 						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);

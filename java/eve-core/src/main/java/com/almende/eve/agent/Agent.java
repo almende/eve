@@ -68,6 +68,7 @@ import com.almende.eve.transport.TransportService;
 import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
@@ -131,9 +132,9 @@ public abstract class Agent implements AgentInterface {
 	public void signalAgent(AgentSignal<?> event) throws JSONRPCException,
 			IOException {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
-			sigInvoke((Object[])event.getData());
+			sigInvoke((Object[]) event.getData());
 		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
-			sigRespond((JSONResponse)event.getData());
+			sigRespond((JSONResponse) event.getData());
 		} else if (AgentSignal.CREATE.equals(event.getEvent())) {
 			sigCreate();
 		} else if (AgentSignal.INIT.equals(event.getEvent())) {
@@ -142,7 +143,7 @@ public abstract class Agent implements AgentInterface {
 			sigDelete();
 		} else if (AgentSignal.DESTROY.equals(event.getEvent())) {
 			sigDestroy();
-		}else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
+		} else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
 			// init scheduler tasks
 			this.scheduler = agentHost.getScheduler(this);
 		} else if (AgentSignal.ADDTRANSPORTSERVICE.equals(event.getEvent())) {
@@ -180,6 +181,7 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigInvoke(Object[] signalData) {
 	}
+	
 	/**
 	 * This method is called after handling each incoming RPC call.
 	 * It can be overridden and used to perform some action when the agent
@@ -331,7 +333,7 @@ public abstract class Agent implements AgentInterface {
 		try {
 			response = callback.get();
 		} catch (Exception e) {
-			throw new JSONRPCException(CODE.REMOTE_EXCEPTION,"",e);
+			throw new JSONRPCException(CODE.REMOTE_EXCEPTION, "", e);
 		}
 		JSONRPCException err = response.getError();
 		if (err != null) {
@@ -407,20 +409,22 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final void send(URI url, String method) throws IOException, JSONRPCException {
+	public final void send(URI url, String method) throws IOException,
+			JSONRPCException {
 		locSend(url, method, null);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T  extends AgentInterface> T createAgentProxy(URI url, Class<T> agentInterface) {
+	public final <T extends AgentInterface> T createAgentProxy(URI url,
+			Class<T> agentInterface) {
 		return getAgentHost().createAgentProxy(this, url, agentInterface);
 	}
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(URI url,
-			Class<T> agentInterface) {
+	public final <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
+			URI url, Class<T> agentInterface) {
 		return getAgentHost().createAsyncAgentProxy(this, url, agentInterface);
 	}
 	
@@ -597,10 +601,12 @@ public abstract class Agent implements AgentInterface {
 	// TODO: This should be abstracted to a generic "Translation service"?
 	@Override
 	public void receive(Object msg, URI senderUrl) {
-		receive(msg,senderUrl,null);
+		receive(msg, senderUrl, null);
 	}
+	
 	@Override
 	public void receive(Object msg, URI senderUrl, String tag) {
+		String id = null;
 		try {
 			ObjectNode json = null;
 			if (msg != null) {
@@ -612,76 +618,112 @@ public abstract class Agent implements AgentInterface {
 						json = JOM.getInstance().readValue(message,
 								ObjectNode.class);
 					}
-				} else if (msg instanceof ObjectNode) {
-					json = (ObjectNode) msg;
-				}
-			}
-			if (json != null) {
-				
-				if (JSONRPC.isResponse(json)) {
-					if (callbacks != null){
-						String id = json.has("id") ? json.get("id").asText()
-								: null;
-						AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
-								.get(id) : null;
-						if (callback != null) {
-							JSONResponse response = new JSONResponse(json);
-							if (response.getError() != null){
-								callback.onFailure(response.getError());
-							} else {
-								callback.onSuccess(new JSONResponse(json));
-							}
-						}
-					}
-				} else if (JSONRPC.isRequest(json)) {
+				} else if (msg instanceof JSONRequest) {
 					RequestParams params = new RequestParams();
 					params.put(Sender.class, senderUrl);
 					
-					JSONRequest request = new JSONRequest(json);
+					JSONRequest request = (JSONRequest) msg;
+					if (request.getId() != null) {
+						id = request.getId().toString();
+					}
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
-					send(response, senderUrl, null, tag);
+					if (id != null && !id.equals("") && !id.equals("null")){
+						//Not a notification, so returning response....
+						send(response, senderUrl, null, tag);
+					}
+					return;
+				} else if (msg instanceof JSONResponse) {
+					if (callbacks != null) {
+						JSONResponse response = (JSONResponse) msg;
+						if (response.getId() != null) {
+							id = ((JsonNode) response.getId()).toString();
+							if (id != null && !id.equals("")
+									&& !id.equals("null")) {
+								AsyncCallback<JSONResponse> callback = callbacks
+										.get(id);
+								if (callback != null) {
+									if (response.getError() != null) {
+										callback.onFailure(response.getError());
+									} else {
+										callback.onSuccess(response);
+									}
+								}
+							}
+						}
+					}
+					return;
+				} else if (msg instanceof ObjectNode) {
+					json = (ObjectNode) msg;
+				} else {
+					LOG.warning("Message unknown type:" + msg.getClass());
+				}
+			}
+			if (json != null) {
+				if (JSONRPC.isResponse(json)) {
+					JSONResponse response = new JSONResponse(json);
+					if (response.getId() != null) {
+						id = response.getId().toString();
+					}
+					receive(response, senderUrl, tag);
+				} else if (JSONRPC.isRequest(json)) {
+					JSONRequest request = new JSONRequest(json);
+					if (request.getId() != null) {
+						id = request.getId().toString();
+					}
+					receive(request, senderUrl, tag);
 				} else {
 					throw new Exception(
 							getId()
 									+ ": Request does not contain a valid JSON-RPC request or response");
 				}
-				
 			} else {
 				LOG.log(Level.WARNING, getId()
 						+ ": Received non-JSON message:'" + msg + "'");
 			}
 		} catch (Exception e) {
-			// generate JSON error response
-			JSONRPCException jsonError = new JSONRPCException(
-					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
-			JSONResponse response = new JSONResponse(jsonError);
-			try {
-				send(response, senderUrl, null);
-			} catch (Exception e1) {
-				LOG.log(Level.WARNING,
-						getId() + ": failed to send '"
-								+ e.getLocalizedMessage()
-								+ "' error to remote agent.", e1);
+			LOG.log(Level.WARNING, "Exception in receiving message", e);
+			if (id != null) {
+				// generate JSON error response, skipped if it was an incoming
+				// notification i.s.o. request.
+				JSONRPCException jsonError = new JSONRPCException(
+						JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
+				JSONResponse response = new JSONResponse(jsonError);
+				response.setId(id);
+				try {
+					send(response, senderUrl, null);
+				} catch (Exception e1) {
+					LOG.log(Level.WARNING,
+							getId() + ": failed to send '"
+									+ e.getLocalizedMessage()
+									+ "' error to remote agent.", e1);
+				}
 			}
+			
 		}
 	}
 	
 	@Override
-	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback) throws IOException {
+	public void send(Object msg, URI receiverUrl,
+			AsyncCallback<JSONResponse> callback) throws IOException {
 		send(msg, receiverUrl, callback, null);
 	}
+	
 	@Override
-	public void send(Object msg, URI receiverUrl, AsyncCallback<JSONResponse> callback, String tag) throws IOException {
-		if (msg instanceof JSONRequest){
+	public void send(Object msg, URI receiverUrl,
+			AsyncCallback<JSONResponse> callback, String tag)
+			throws IOException {
+		if (msg instanceof JSONRequest) {
 			JSONRequest request = (JSONRequest) msg;
-			if (callback != null && callbacks != null){
+			if (callback != null && callbacks != null) {
 				callbacks.store(request.getId().toString(), callback);
 			}
 			agentHost.sendAsync(receiverUrl, msg, this, tag);
-		} else if (msg instanceof JSONRPCException){
-			JSONResponse response= new JSONResponse((JSONRPCException) msg);
+		} else if (msg instanceof JSONRPCException) {
+			JSONResponse response = new JSONResponse((JSONRPCException) msg);
 			agentHost.sendAsync(receiverUrl, response, this, tag);
+		} else {
+			agentHost.sendAsync(receiverUrl, msg, this, tag);
 		}
 	}
 }

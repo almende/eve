@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -91,6 +92,9 @@ public class JSONRequest implements Serializable {
 	}
 	
 	public final void setId(Object id) {
+		if (id == null){
+			id = new UUID().toString();
+		}
 		ObjectMapper mapper = JOM.getInstance();
 		req.put("id", mapper.convertValue(id, JsonNode.class));
 	}

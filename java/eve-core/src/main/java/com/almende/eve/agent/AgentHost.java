@@ -30,9 +30,9 @@ import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
@@ -189,6 +189,9 @@ public final class AgentHost implements AgentHostInterface {
 			throw new IllegalArgumentException("agentInterface must extend "
 					+ AgentInterface.class.getName());
 		}
+		
+		
+		//TODO: In the new model the proxy agents need to have an adres as well!
 		final String proxyId = "proxy_"
 				+ (sender != null ? sender.getId() + "_" : "") + agentInterface;
 		T proxy = ObjectCache.get("agents").get(proxyId, agentInterface);
@@ -207,8 +210,6 @@ public final class AgentHost implements AgentHostInterface {
 						// TODO: if method calls for Namespace getter, return
 						// new proxy for subtype. All calls to that proxy need
 						// to add namespace to method name for JSON-RPC.
-						T agent = (T) proxy;
-						
 						if (method.getName().equals("receive")
 								&& args.length > 1) {
 							ObjectNode json = null;
@@ -260,7 +261,7 @@ public final class AgentHost implements AgentHostInterface {
 									callback);
 							
 							try {
-								sendAsync(receiverUrl, request, agent, null);
+								sendAsync(receiverUrl, request, sender, null);
 							} catch (IOException e1) {
 								throw new JSONRPCException(
 										CODE.REMOTE_EXCEPTION, "", e1);
@@ -411,16 +412,22 @@ public final class AgentHost implements AgentHostInterface {
 		try {
 			receiver = getAgent(receiverId);
 			if (receiver != null) {
-				receiver.receive(message, URI.create(senderUrl), tag);
+				URI senderUri = null;
+				if (senderUrl != null) {
+					senderUri = URI.create(senderUrl);
+				}
+				receiver.receive(message, senderUri, tag);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
-			try {
-				sendAsync(URI.create(senderUrl), new JSONRPCException(
-						CODE.REMOTE_EXCEPTION, "", e), receiver, tag);
-			} catch (Exception e1) {
-				LOG.log(Level.WARNING,
-						"Couldn't send exception to remote agent!", e1);
+			if (senderUrl != null) {
+				try {
+					sendAsync(URI.create(senderUrl), new JSONRPCException(
+							CODE.REMOTE_EXCEPTION, "", e), receiver, tag);
+				} catch (Exception e1) {
+					LOG.log(Level.WARNING,
+							"Couldn't send exception to remote agent!", e1);
+				}
 			}
 		}
 	}
@@ -429,7 +436,8 @@ public final class AgentHost implements AgentHostInterface {
 	public void sendAsync(final URI receiverUrl, final Object message,
 			final AgentInterface sender, final String tag) throws IOException {
 		final String receiverId = getAgentId(receiverUrl.toASCIIString());
-		if (doesShortcut && receiverId != null
+		String protocol = receiverUrl.getScheme();
+		if (("local".equals(protocol) || doesShortcut) && receiverId != null
 				&& message instanceof JSONRequest) {
 			final JSONRequest request = (JSONRequest) message;
 			// local shortcut
@@ -444,15 +452,26 @@ public final class AgentHost implements AgentHostInterface {
 					receive(receiverId, request, senderUrl, tag);
 				}
 			}).start();
+		} else if ("local".equals(protocol)) {
+			// local response
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					String senderUrl = null;
+					if (sender != null) {
+						senderUrl = getSenderUrl(sender.getId(),
+								receiverUrl.toASCIIString()).toASCIIString();
+					}
+					receive(receiverId, message, senderUrl, tag);
+				}
+			}).start();
 		} else {
 			TransportService service = null;
-			String protocol = null;
 			URI senderUrl = null;
 			if (sender != null) {
 				senderUrl = getSenderUrl(sender.getId(),
 						receiverUrl.toASCIIString());
 			}
-			protocol = receiverUrl.getScheme();
 			service = getTransportService(protocol);
 			if (service != null) {
 				service.sendAsync(senderUrl.toASCIIString(),

@@ -28,7 +28,7 @@ public class HttpService implements TransportService {
 													.getCanonicalName());
 	private String				servletUrl	= null;
 	private AgentHost			host		= null;
-	private List<String>		protocols	= Arrays.asList("http", "https");
+	private List<String>		protocols	= Arrays.asList("http", "https","web");
 	
 	public HttpService() {
 	}
