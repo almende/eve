@@ -37,10 +37,8 @@ public class TestAgentHost extends TestCase {
 		Double res = agent.add(3.1, 4.2);
 		//result not exact due to intermediate binary representation
 		assertEquals(new Double(7.300000000000001),res);
-		log.warning("AgentProxy add done");
 		res = agent.multiply(3.1, 4.2);
 		assertEquals(new Double(13.020000000000001),res);
-		System.err.println("AgentProxy multiply done");
 		
 		agent = host.createAgentProxy(null, 
 				URI.create("https://localhost:8443/agents/"+TESTAGENT+"/"), 
@@ -54,7 +52,6 @@ public class TestAgentHost extends TestCase {
 		log.warning("checking local https call 2:");
 		res = agent.multiply(3.1, 4.2);
 		assertEquals(new Double(13.020000000000001),res);
-		log.warning("Done");
 		
 		host.deleteAgent(TESTAGENT);
 	}

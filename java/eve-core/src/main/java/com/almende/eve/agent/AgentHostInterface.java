@@ -73,7 +73,7 @@ interface AgentHostInterface {
 	 * neatly shutdown the instantiated state.
 	 * 
 	 * @param agentId
-	 * @return agent
+	 * @return agentInterface
 	 * @throws ClassNotFoundException
 	 * @throws NoSuchMethodException
 	 * @throws InvocationTargetException
@@ -81,7 +81,7 @@ interface AgentHostInterface {
 	 * @throws InstantiationException
 	 * @throws SecurityException
 	 */
-	Agent getAgent(String agentId) throws JSONRPCException,
+	AgentInterface getAgent(String agentId) throws JSONRPCException,
 			ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException;

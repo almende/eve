@@ -190,10 +190,11 @@ public final class AgentHost implements AgentHostInterface {
 					+ AgentInterface.class.getName());
 		}
 		
-		
-		//TODO: In the new model the proxy agents need to have an adres as well!
+		// TODO: In the new model the proxy agents need to have an adres as
+		// well! This will enforce usage of the agentCache!
 		final String proxyId = "proxy_"
-				+ (sender != null ? sender.getId() + "_" : "") + agentInterface;
+				+ (sender != null ? sender.getId() + "_" : "")
+				+ agentInterface.getCanonicalName().replace(' ', '_');
 		T proxy = ObjectCache.get("agents").get(proxyId, agentInterface);
 		if (proxy != null) {
 			return proxy;
@@ -207,44 +208,62 @@ public final class AgentHost implements AgentHostInterface {
 							JsonParseException, JsonMappingException,
 							IOException {
 						
+						AgentInterface agent = sender;
+						if (agent == null) {
+							agent = (T) proxy;
+						}
+						
 						// TODO: if method calls for Namespace getter, return
 						// new proxy for subtype. All calls to that proxy need
 						// to add namespace to method name for JSON-RPC.
-						if (method.getName().equals("receive")
+						if (method.getName().equals("getId")) {
+							return proxyId;
+						} else if (method.getName().equals("receive")
 								&& args.length > 1) {
-							ObjectNode json = null;
+							JSONResponse response = null;
 							if (args[0] != null) {
 								if (args[0] instanceof String) {
 									String message = (String) args[0];
 									if (message.startsWith("{")
 											|| message.trim().startsWith("{")) {
 										
-										json = JOM.getInstance().readValue(
-												message, ObjectNode.class);
+										ObjectNode json = JOM.getInstance()
+												.readValue(message,
+														ObjectNode.class);
+										if (JSONRPC.isResponse(json)) {
+											response = new JSONResponse(json);
+										}
 									}
 								} else if (args[0] instanceof ObjectNode) {
-									json = (ObjectNode) args[0];
+									ObjectNode json = (ObjectNode) args[0];
+									if (JSONRPC.isResponse(json)) {
+										response = new JSONResponse(json);
+									}
+								} else if (args[0] instanceof JSONResponse) {
+									response = (JSONResponse) args[0];
+								} else {
+									LOG.warning("Strange:"
+											+ args[0]
+											+ " "
+											+ args[0].getClass()
+													.getCanonicalName());
 								}
 							}
-							if (json != null) {
+							if (response != null) {
 								
-								if (JSONRPC.isResponse(json)) {
-									if (callbacks != null) {
-										String id = json.has("id") ? json.get(
-												"id").asText() : null;
-										CallbackInterface callbacks = getCallbackService(proxyId);
-										AsyncCallback<JSONResponse> callback = (id != null) ? callbacks
-												.get(id) : null;
-										if (callback != null) {
-											JSONResponse response = new JSONResponse(
-													json);
-											if (response.getError() != null) {
-												callback.onFailure(response
-														.getError());
-											} else {
-												callback.onSuccess(new JSONResponse(
-														json));
-											}
+								if (callbacks != null) {
+									String id = null;
+									if (response.getId() != null) {
+										id = response.getId();
+									}
+									CallbackInterface callbacks = getCallbackService(proxyId);
+									AsyncCallback<JSONResponse> callback = callbacks.get(id);
+									if (callback != null) {
+										if (response.getError() != null) {
+											callback.onFailure(response
+													.getError());
+										} else {
+											callback.onSuccess(response);
 										}
 									}
 								}
@@ -257,11 +276,10 @@ public final class AgentHost implements AgentHostInterface {
 							
 							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 							CallbackInterface callbacks = getCallbackService(proxyId);
-							callbacks.store(request.getId().toString(),
-									callback);
+							callbacks.store(request.getId().toString(),callback);
 							
 							try {
-								sendAsync(receiverUrl, request, sender, null);
+								sendAsync(receiverUrl, request, agent, null);
 							} catch (IOException e1) {
 								throw new JSONRPCException(
 										CODE.REMOTE_EXCEPTION, "", e1);
@@ -408,9 +426,14 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public void receive(String receiverId, Object message, String senderUrl,
 			String tag) {
-		Agent receiver = null;
+		AgentInterface receiver = null;
 		try {
 			receiver = getAgent(receiverId);
+			if (receiver == null) {
+				// Check if there might be a proxy in the objectcache:
+				receiver = ObjectCache.get("agents").get(receiverId,
+						AgentInterface.class);
+			}
 			if (receiver != null) {
 				URI senderUri = null;
 				if (senderUrl != null) {

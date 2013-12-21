@@ -68,7 +68,6 @@ import com.almende.eve.transport.TransportService;
 import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
@@ -624,7 +623,7 @@ public abstract class Agent implements AgentInterface {
 					
 					JSONRequest request = (JSONRequest) msg;
 					if (request.getId() != null) {
-						id = request.getId().toString();
+						id = request.getId();
 					}
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
@@ -637,7 +636,7 @@ public abstract class Agent implements AgentInterface {
 					if (callbacks != null) {
 						JSONResponse response = (JSONResponse) msg;
 						if (response.getId() != null) {
-							id = ((JsonNode) response.getId()).toString();
+							id = response.getId();
 							if (id != null && !id.equals("")
 									&& !id.equals("null")) {
 								AsyncCallback<JSONResponse> callback = callbacks
@@ -663,13 +662,13 @@ public abstract class Agent implements AgentInterface {
 				if (JSONRPC.isResponse(json)) {
 					JSONResponse response = new JSONResponse(json);
 					if (response.getId() != null) {
-						id = response.getId().toString();
+						id = response.getId();
 					}
 					receive(response, senderUrl, tag);
 				} else if (JSONRPC.isRequest(json)) {
 					JSONRequest request = new JSONRequest(json);
 					if (request.getId() != null) {
-						id = request.getId().toString();
+						id = request.getId();
 					}
 					receive(request, senderUrl, tag);
 				} else {

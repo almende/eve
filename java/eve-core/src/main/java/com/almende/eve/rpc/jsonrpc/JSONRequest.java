@@ -60,7 +60,7 @@ public class JSONRequest implements Serializable {
 					"Member 'params' is no ObjectNode");
 		}
 		
-		init(request.get("id"), request.get("method").asText(),
+		init(request.get("id").toString(), request.get("method").asText(),
 				(ObjectNode) request.get("params"));
 	}
 	
@@ -68,7 +68,7 @@ public class JSONRequest implements Serializable {
 		init(null, method, params);
 	}
 	
-	public JSONRequest(final Object id, final String method, final ObjectNode params) {
+	public JSONRequest(final String id, final String method, final ObjectNode params) {
 		init(id, method, params);
 	}
 	
@@ -78,20 +78,20 @@ public class JSONRequest implements Serializable {
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	public JSONRequest(final Object id, final String method, final ObjectNode params,
+	public JSONRequest(final String id, final String method, final ObjectNode params,
 			final String callbackUrl, final String callbackMethod) {
 		init(id, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	private void init(final Object id, final String method, final ObjectNode params) {
+	private void init(final String id, final String method, final ObjectNode params) {
 		setVersion();
 		setId(id);
 		setMethod(method);
 		setParams(params);
 	}
 	
-	public final void setId(Object id) {
+	public final void setId(String id) {
 		if (id == null){
 			id = new UUID().toString();
 		}
@@ -99,9 +99,9 @@ public class JSONRequest implements Serializable {
 		req.put("id", mapper.convertValue(id, JsonNode.class));
 	}
 	
-	public Object getId() {
+	public String getId() {
 		ObjectMapper mapper = JOM.getInstance();
-		return mapper.convertValue(req.get("id"), Object.class);
+		return mapper.convertValue(req.get("id"), String.class);
 	}
 	
 	public final void setMethod(String method) {
