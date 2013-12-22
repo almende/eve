@@ -839,7 +839,7 @@ public final class AgentHost implements AgentHostInterface {
 		return schedulerFactory.getScheduler(agent);
 	}
 	
-	public CallbackInterface getCallbackService(String id) {
+	public synchronized CallbackInterface getCallbackService(String id) {
 		CallbackInterface result = callbacks.get(id);
 		if (result == null) {
 			result = new CallbackService();
