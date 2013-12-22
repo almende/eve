@@ -315,7 +315,7 @@ public class AgentServlet extends HttpServlet {
 			
 			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");
 			callbacks.store(tag,callback);
-			//TODO: on JSONResponse the callback will never be called and will timeout. What to do?
+			//TODO: on JSONResponse the callback will never be called and will timeout. What to do? These don't come in unless the other side is async i.s.o. tagged synced. 
 			
 			agentHost.receive(agentId, body,
 					senderUrl,tag);

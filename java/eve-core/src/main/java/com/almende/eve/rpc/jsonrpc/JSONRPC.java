@@ -155,7 +155,7 @@ public final class JSONRPC {
 				if (err instanceof InvocationTargetException && cause != null) {
 					logger.log(
 							Level.WARNING,
-							"Exception raised, returning it as JSONRPCException.",
+							"Exception raised, returning its cause as JSONRPCException. Request:"+request,
 							cause);
 					
 					JSONRPCException jsonError = new JSONRPCException(
@@ -166,7 +166,7 @@ public final class JSONRPC {
 				} else {
 					logger.log(
 							Level.WARNING,
-							"Exception raised, returning it as JSONRPCException.",
+							"Exception raised, returning it as JSONRPCException. Request:"+request,
 							err);
 					
 					JSONRPCException jsonError = new JSONRPCException(
@@ -566,12 +566,12 @@ public final class JSONRPC {
 		
 		if (methodAccess.value() == AccessType.PRIVATE) {
 			return auth != null ? auth.onAccess(
-					(String) requestParams.get(Sender.class),
+					requestParams.get(Sender.class).toString(),
 					methodAccess.tag()) : false;
 		}
 		if (methodAccess.value() == AccessType.SELF) {
-			return auth != null ? auth.isSelf((String) requestParams
-					.get(Sender.class)) : false;
+			return auth != null ? auth.isSelf(requestParams
+					.get(Sender.class).toString()) : false;
 		}
 		return true;
 	}

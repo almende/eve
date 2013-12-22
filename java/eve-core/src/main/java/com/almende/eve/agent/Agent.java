@@ -664,7 +664,7 @@ public abstract class Agent implements AgentInterface {
 			if (jsonMsg != null) {
 				if (jsonMsg instanceof JSONRequest) {
 					RequestParams params = new RequestParams();
-					params.put(Sender.class, senderUrl);
+					params.put(Sender.class, senderUrl.toASCIIString());
 					
 					JSONRequest request = (JSONRequest) jsonMsg;
 					if (request.getId() != null) {
