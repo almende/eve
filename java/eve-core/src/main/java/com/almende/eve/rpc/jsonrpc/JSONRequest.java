@@ -67,23 +67,26 @@ public class JSONRequest extends JSONMessage {
 		init(null, method, params);
 	}
 	
-	public JSONRequest(final JsonNode id, final String method, final ObjectNode params) {
+	public JSONRequest(final JsonNode id, final String method,
+			final ObjectNode params) {
 		init(id, method, params);
 	}
 	
-	public JSONRequest(final String method, final ObjectNode params, final String callbackUrl,
-			final String callbackMethod) {
+	public JSONRequest(final String method, final ObjectNode params,
+			final String callbackUrl, final String callbackMethod) {
 		init(null, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	public JSONRequest(final JsonNode id, final String method, final ObjectNode params,
-			final String callbackUrl, final String callbackMethod) {
+	public JSONRequest(final JsonNode id, final String method,
+			final ObjectNode params, final String callbackUrl,
+			final String callbackMethod) {
 		init(id, method, params);
 		setCallback(callbackUrl, callbackMethod);
 	}
 	
-	private void init(final JsonNode id, final String method, final ObjectNode params) {
+	private void init(final JsonNode id, final String method,
+			final ObjectNode params) {
 		setVersion();
 		setId(id);
 		setMethod(method);
@@ -91,14 +94,18 @@ public class JSONRequest extends JSONMessage {
 	}
 	
 	public final void setId(String id) {
-		if (id == null){
+		if (id == null) {
 			id = new UUID().toString();
 		}
 		req.put("id", id);
 	}
 	
-	public final void setId(JsonNode id){
-		req.put("id", id);
+	public final void setId(JsonNode id) {
+		if (id == null || id.isNull()) {
+			setId(new UUID().toString());
+		} else {
+			req.put("id", id);
+		}
 	}
 	
 	public JsonNode getId() {
@@ -118,10 +125,10 @@ public class JSONRequest extends JSONMessage {
 	
 	public final void setParams(ObjectNode params) {
 		ObjectNode newParams = JOM.createObjectNode();
-		if (params != null){
+		if (params != null) {
 			newParams.setAll(params);
 		}
-		req.put("params", newParams );
+		req.put("params", newParams);
 	}
 	
 	public ObjectNode getParams() {

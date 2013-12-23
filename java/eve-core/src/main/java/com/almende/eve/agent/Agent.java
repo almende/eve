@@ -67,7 +67,6 @@ import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.TypeUtil;
-import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -325,12 +324,7 @@ public abstract class Agent implements AgentInterface {
 		
 		// invoke the other agent via the AgentHost, allowing the factory
 		// to route the request internally or externally
-		JsonNode id = null;
-		try {
-			id = JOM.getInstance().readTree(new UUID().toString());
-		} catch (Exception e) {
-		}
-		JSONRequest request = new JSONRequest(id, method, jsonParams);
+		JSONRequest request = new JSONRequest(method, jsonParams);
 		SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 		send(request, url, callback);
 		JSONResponse response;
@@ -451,11 +445,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> void sendAsync(final URI url, final String method,
 			final ObjectNode params, final AsyncCallback<T> callback,
 			final Class<T> type) throws IOException {
-		JsonNode id = null;
-		try {
-			id = JOM.getInstance().readTree(new UUID().toString());
-		} catch (Exception e) {}
-		JSONRequest request = new JSONRequest(id, method, params);
+		JSONRequest request = new JSONRequest(method, params);
 		sendAsync(url, request, callback, JOM.getTypeFactory()
 				.uncheckedSimpleType(type));
 	}
@@ -465,11 +455,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> void sendAsync(final URI url, final String method,
 			final ObjectNode params, final AsyncCallback<T> callback,
 			final Type type) throws IOException {
-		JsonNode id = null;
-		try {
-			id = JOM.getInstance().readTree(new UUID().toString());
-		} catch (Exception e) {}
-		JSONRequest request = new JSONRequest(id, method, params);
+		JSONRequest request = new JSONRequest(method, params);
 		sendAsync(url, request, callback,
 				JOM.getTypeFactory().constructType(type));
 	}
@@ -479,11 +465,7 @@ public abstract class Agent implements AgentInterface {
 	public final <T> void sendAsync(final URI url, final String method,
 			final ObjectNode params, final AsyncCallback<T> callback,
 			final JavaType type) throws IOException {
-		JsonNode id = null;
-		try {
-			id = JOM.getInstance().readTree(new UUID().toString());
-		} catch (Exception e) {}
-		JSONRequest request = new JSONRequest(id, method, params);
+		JSONRequest request = new JSONRequest(method, params);
 		sendAsync(url, request, callback, type);
 	}
 	
@@ -673,7 +655,7 @@ public abstract class Agent implements AgentInterface {
 					JSONResponse response = JSONRPC.invoke(this, request,
 							params, this);
 					
-					if (id != null && !id.equals("") && !id.equals("null")) {
+					if (id != null && !id.isNull()) {
 						// Not a notification, so returning response....
 						send(response, senderUrl, null, tag);
 					}
@@ -683,8 +665,7 @@ public abstract class Agent implements AgentInterface {
 						JSONResponse response = (JSONResponse) jsonMsg;
 						if (response.getId() != null) {
 							id = response.getId();
-							if (id != null && !id.equals("")
-									&& !id.equals("null")) {
+							if (id != null && !id.isNull()) {
 								AsyncCallback<JSONResponse> callback = callbacks
 										.get(id);
 								if (callback != null) {
