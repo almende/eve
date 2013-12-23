@@ -71,7 +71,7 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	private AgentHost() {
-		this.addTransportService(new HttpService());
+		this.addTransportService(new HttpService(this));
 	}
 	
 	/**

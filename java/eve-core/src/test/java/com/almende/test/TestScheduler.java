@@ -21,18 +21,18 @@ public class TestScheduler extends TestCase {
 	
 	@Test
 	public void testSingleShot() throws Exception {
-		AgentHost af = AgentHost.getInstance();
-		af.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
-		af.addTransportService(new HttpService());
-		af.setSchedulerFactory(new ClockSchedulerFactory(af, ""));
+		AgentHost host = AgentHost.getInstance();
+		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
+		host.addTransportService(new HttpService(host));
+		host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
 
-		if (af.hasAgent("SingleShot")) {
+		if (host.hasAgent("SingleShot")) {
 			log.severe("Removing old agent");
-			af.deleteAgent("SingleShot");
+			host.deleteAgent("SingleShot");
 			log.severe("Removed old agent");
 		}
 		log.severe("Setup new Agent");
-		TestSchedulerAgent test = af.createAgent(TestSchedulerAgent.class, "SingleShot");
+		TestSchedulerAgent test = host.createAgent(TestSchedulerAgent.class, "SingleShot");
 		log.severe("Running test");
 		
 		test.setTest("SingleShot",5000,false,false);
@@ -44,7 +44,7 @@ public class TestScheduler extends TestCase {
 		
 		
 		Thread.sleep(10000);
-		af.deleteAgent("SingleShot");
+		host.deleteAgent("SingleShot");
 	}
 	
 	@Test
@@ -58,33 +58,33 @@ public class TestScheduler extends TestCase {
 	}
 	
 	public void schedule(boolean clock) throws Exception {
-		AgentHost af = AgentHost.getInstance();
-		af.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
-		af.addTransportService(new HttpService());
+		AgentHost host = AgentHost.getInstance();
+		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
+		host.addTransportService(new HttpService(host));
 
 		if (clock) {
-			af.setSchedulerFactory(new ClockSchedulerFactory(af, ""));
+			host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
 		} else {
-			af.setSchedulerFactory(new RunnableSchedulerFactory(af,
+			host.setSchedulerFactory(new RunnableSchedulerFactory(host,
 					"_runnableScheduler"));
 		}
 		
 		String agentIds[] = { "myTest1", "myTest2", "myTest3" };
 		
 		for (String agentId : agentIds) {
-			if (af.hasAgent(agentId)) {
+			if (host.hasAgent(agentId)) {
 				log.severe("Agent:" + agentId + " exists, removing....");
-				af.deleteAgent(agentId);
+				host.deleteAgent(agentId);
 			}
 			log.info("Setup agent:" + agentId);
-			TestSchedulerAgent agent = (TestSchedulerAgent) af.createAgent(
+			TestSchedulerAgent agent = (TestSchedulerAgent) host.createAgent(
 					TestSchedulerAgent.class, agentId);
 			agent.resetCount();
 		}
 		DateTime start = DateTime.now();
 		log.info("Start:" + start);
 		for (String agentId : agentIds) {
-			TestSchedulerAgent agent = (TestSchedulerAgent) af
+			TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
 			agent.setTest(agentId, 500, true, false);
 			agent.setTest(agentId, 1000, true, false);
@@ -108,7 +108,7 @@ public class TestScheduler extends TestCase {
 			Thread.sleep(500);
 		}
 		for (String agentId : agentIds) {
-			TestSchedulerAgent agent = (TestSchedulerAgent) af
+			TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
 			Scheduler scheduler = agent.getScheduler();
 			
@@ -121,13 +121,13 @@ public class TestScheduler extends TestCase {
 		}
 		Thread.sleep(1000);
 		for (String agentId : agentIds) {
-			TestSchedulerAgent agent = (TestSchedulerAgent) af
+			TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
 			Scheduler scheduler = agent.getScheduler();
 			log.info("Agent " + agentId + " ran still: " + agent.getCount()
 					+ " tasks after cancel.");
 			log.info("Tasks left:" + scheduler.getTasks());
-			af.deleteAgent(agentId);
+			host.deleteAgent(agentId);
 		}
 	}
 }

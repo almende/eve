@@ -31,9 +31,9 @@ public class HttpService implements TransportService {
 	private List<String>		protocols	= Arrays.asList("http", "https",
 													"web");
 	
-	public HttpService() {
+	public HttpService(AgentHost agentHost) {
+		this.host = agentHost;
 	}
-	
 	/**
 	 * Construct an HttpService This constructor is called when the
 	 * TransportService is constructed by the AgentHost
