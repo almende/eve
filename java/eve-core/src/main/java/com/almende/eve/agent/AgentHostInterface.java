@@ -289,7 +289,7 @@ interface AgentHostInterface {
 	 * @param agentId, receiverUrl
 	 * @return URI SenderUrl
 	 */
-	URI getSenderUrl(String agentId, String receiverUrl);
+	URI getSenderUrl(String agentId, URI receiverUrl);
 	
 	/**
 	 * Get the loaded config file

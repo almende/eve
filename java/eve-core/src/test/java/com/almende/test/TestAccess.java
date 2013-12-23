@@ -5,8 +5,8 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.config.Config;
 import com.almende.eve.state.FileStateFactory;
+import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestAccessAgent;
 
 public class TestAccess extends TestCase {
@@ -15,26 +15,24 @@ public class TestAccess extends TestCase {
 
 	@Test
 	public void testAccess() throws Exception {
-		AgentHost factory = AgentHost.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
-		factory.setStateFactory(stateFactory);
-		
-		String filename = "eve.yaml";
-		String fullname = "src/test/webapp/WEB-INF/" + filename;
-		Config config = new Config(fullname);
-		factory.loadConfig(config);
+		host.setStateFactory(stateFactory);
+		host.addTransportService(new HttpService(host,"http://localhost:8080/agents"));
+		host.addTransportService(new HttpService(host,"https://localhost:8443/agents"));
+
 		TestAccessAgent testAgent;
-		if (factory.hasAgent(TEST1)) {
-			testAgent = (TestAccessAgent) factory.getAgent(TEST1);
+		if (host.hasAgent(TEST1)) {
+			testAgent = (TestAccessAgent) host.getAgent(TEST1);
 		} else {
-			testAgent = factory.createAgent(TestAccessAgent.class, TEST1);
+			testAgent = host.createAgent(TestAccessAgent.class, TEST1);
 		}
 		System.err.println("testAgent:"+testAgent.getId()+":"+testAgent.getUrls());
 		TestAccessAgent agent;
-		if (factory.hasAgent(TEST2)) {
-			agent = (TestAccessAgent) factory.getAgent(TEST2);
+		if (host.hasAgent(TEST2)) {
+			agent = (TestAccessAgent) host.getAgent(TEST2);
 		} else {
-			agent = (TestAccessAgent) factory.createAgent(
+			agent = (TestAccessAgent) host.createAgent(
 					TestAccessAgent.class, TEST2);
 		}
 		boolean[] result = agent.run((String)testAgent.getUrls().get(0));

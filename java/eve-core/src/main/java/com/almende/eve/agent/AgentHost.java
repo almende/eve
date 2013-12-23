@@ -258,7 +258,8 @@ public final class AgentHost implements AgentHostInterface {
 										id = response.getId();
 									}
 									CallbackInterface callbacks = getCallbackService(proxyId);
-									AsyncCallback<JSONResponse> callback = callbacks.get(id);
+									AsyncCallback<JSONResponse> callback = callbacks
+											.get(id);
 									if (callback != null) {
 										if (response.getError() != null) {
 											callback.onFailure(response
@@ -277,7 +278,7 @@ public final class AgentHost implements AgentHostInterface {
 							
 							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 							CallbackInterface callbacks = getCallbackService(proxyId);
-							callbacks.store(request.getId(),callback);
+							callbacks.store(request.getId(), callback);
 							
 							try {
 								sendAsync(receiverUrl, request, agent, null);
@@ -468,23 +469,23 @@ public final class AgentHost implements AgentHostInterface {
 				public void run() {
 					String senderUrl = null;
 					if (sender != null) {
-						senderUrl = getSenderUrl(sender.getId(),
-								receiverUrl.toASCIIString()).toASCIIString();
+						senderUrl = getSenderUrl(sender.getId(), receiverUrl)
+								.toASCIIString();
 					}
 					receive(receiverId, message, senderUrl, tag);
 				}
 			}).start();
 		} else {
 			TransportService service = null;
-			URI senderUrl = null;
+			String senderUrl = null;
 			if (sender != null) {
-				senderUrl = getSenderUrl(sender.getId(),
-						receiverUrl.toASCIIString());
+				URI senderUri = getSenderUrl(sender.getId(), receiverUrl);
+				senderUrl = senderUri.toASCIIString();
 			}
 			service = getTransportService(protocol);
 			if (service != null) {
-				service.sendAsync(senderUrl.toASCIIString(),
-						receiverUrl.toASCIIString(), message, tag);
+				service.sendAsync(senderUrl, receiverUrl.toASCIIString(),
+						message, tag);
 			} else {
 				throw new ProtocolException(
 						"No transport service configured for protocol '"
@@ -508,14 +509,14 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public URI getSenderUrl(String agentId, String receiverUrl) {
-		if (receiverUrl.startsWith("local:")) {
+	public URI getSenderUrl(String agentId, URI receiverUrl) {
+		if (receiverUrl.getScheme().equals("local")) {
 			return URI.create("local:" + agentId);
 		}
 		for (TransportService service : transportServices.values()) {
 			List<String> protocols = service.getProtocols();
 			for (String protocol : protocols) {
-				if (receiverUrl.startsWith(protocol + ":")) {
+				if (receiverUrl.getScheme().equals(protocol)) {
 					String senderUrl = service.getAgentUrl(agentId);
 					if (senderUrl != null) {
 						return URI.create(senderUrl);
@@ -523,6 +524,7 @@ public final class AgentHost implements AgentHostInterface {
 				}
 			}
 		}
+		LOG.warning("Couldn't find sender URL for:"+agentId+" | "+receiverUrl.toASCIIString());
 		return null;
 	}
 	

@@ -15,6 +15,8 @@ transport_services:
   service: openid.almende.org
 - class: HttpService
   servlet_url: http://localhost:8080/agents/
+- class: HttpService
+  servlet_url: https://localhost:8443/agents/
 - class: ZmqService
   baseUrl: tcp://127.0.0.1:5444
 - class: ZmqService
