@@ -6,17 +6,21 @@ public class SyncCallback<T> implements AsyncCallback<T> {
 	private boolean done = false;
 	
 	@Override
-	public synchronized void onSuccess(T response) {
+	public void onSuccess(T response) {
 		this.response = response;
 		done = true;
-		notifyAll();
+		synchronized(this){
+			notifyAll();
+		}
 	}
 	
 	@Override
-	public synchronized void onFailure(Exception exception) {
+	public void onFailure(Exception exception) {
 		this.exception = exception;
 		done = true;
-		notifyAll();
+		synchronized(this){
+			notifyAll();
+		}
 	}
 	
 	/**
@@ -26,9 +30,11 @@ public class SyncCallback<T> implements AsyncCallback<T> {
 	 * @return response
 	 * @throws Exception
 	 */
-	public synchronized T get() throws Exception {
+	public T get() throws Exception {
 		while (!done) {
-			wait();
+			synchronized(this){
+				wait();
+			}
 		}
 		
 		if (exception != null) {

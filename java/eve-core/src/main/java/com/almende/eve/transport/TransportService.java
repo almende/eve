@@ -22,7 +22,7 @@ public interface TransportService {
 	String getAgentId(String agentUrl);
 	
 	/**
-	 * Asynchronously Send a message to an other agent
+	 * Asynchronously Send a message to an other agent.
 	 * 
 	 * @param senderUrl
 	 * @oaran receiverUrl

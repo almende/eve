@@ -23,6 +23,7 @@ public class ZmqService implements TransportService {
 	private String							baseUrl			= "";
 	private HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
 	
+	
 	protected ZmqService() {
 	}
 	
@@ -78,7 +79,7 @@ public class ZmqService implements TransportService {
 	@Override
 	public void sendAsync(final String senderUrl, final String receiverUrl, final Object message, String tag) {
 		final String receiverId=getAgentId(receiverUrl);
-		new Thread(new Runnable() {
+		AgentHost.getPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				String result = null;
@@ -102,7 +103,7 @@ public class ZmqService implements TransportService {
 				socket.close();
 				agentHost.receive(receiverId,result,senderUrl, null);
 			}
-		}).start();
+		});
 	}
 	
 	@Override

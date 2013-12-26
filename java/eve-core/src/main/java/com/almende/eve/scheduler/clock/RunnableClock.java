@@ -13,11 +13,10 @@ import org.joda.time.Interval;
 
 public class RunnableClock implements Runnable, Clock {
 	@SuppressWarnings("unused")
-	private static final Logger								LOG			= Logger.getLogger("RunnableClock");
+	private static final Logger									LOG			= Logger.getLogger("RunnableClock");
 	private static final NavigableMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
-	private static ScheduledExecutorService					pool		= Executors
-																				.newScheduledThreadPool(8);
-	private static ScheduledFuture<?>						future		= null;
+	private static final ScheduledExecutorService				pool		= Executors.newScheduledThreadPool(2);
+	private static ScheduledFuture<?>							future		= null;
 	
 	public void run() {
 		synchronized (TIMELINE) {
@@ -33,7 +32,8 @@ public class RunnableClock implements Runnable, Clock {
 					future.cancel(false);
 					future = null;
 				}
-				long interval = new Interval(now, ce.getDue()).toDurationMillis();
+				long interval = new Interval(now, ce.getDue())
+						.toDurationMillis();
 				future = pool.schedule(this, interval, TimeUnit.MILLISECONDS);
 				break;
 			}
@@ -72,33 +72,33 @@ class ClockEntry implements Comparable<ClockEntry> {
 	public String getAgentId() {
 		return agentId;
 	}
-
+	
 	public void setAgentId(String agentId) {
 		this.agentId = agentId;
 	}
-
+	
 	public DateTime getDue() {
 		return due;
 	}
-
+	
 	public void setDue(DateTime due) {
 		this.due = due;
 	}
-
+	
 	public Runnable getCallback() {
 		return callback;
 	}
-
+	
 	public void setCallback(Runnable callback) {
 		this.callback = callback;
 	}
-
+	
 	@Override
 	public boolean equals(Object o) {
-		if (this == o){
+		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof ClockEntry)){
+		if (!(o instanceof ClockEntry)) {
 			return false;
 		}
 		ClockEntry other = (ClockEntry) o;
@@ -112,7 +112,7 @@ class ClockEntry implements Comparable<ClockEntry> {
 	
 	@Override
 	public int compareTo(ClockEntry o) {
-		if (due.equals(o.due)){
+		if (due.equals(o.due)) {
 			return 0;
 		}
 		return due.compareTo(o.due);

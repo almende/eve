@@ -20,7 +20,6 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.TypedKey;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -119,8 +118,7 @@ public class EventsFactory implements EventsInterface {
 		}
 		
 		// TODO: store the agents subscriptions locally
-		return myAgent.send(url, method, params, JOM.getTypeFactory()
-				.constructSimpleType(String.class, new JavaType[0]));
+		return myAgent.send(url, method, params, String.class);
 	}
 	
 	/**

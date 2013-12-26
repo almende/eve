@@ -25,7 +25,6 @@ public class ZmqConnection {
 	private final Socket		socket;
 	private final String 		SIGADDR;
 	private String				zmqUrl		= null;
-	private Thread				myThread	= null;
 	private AgentHost			host		= null;
 	private String				agentId		= null;
 	
@@ -44,14 +43,6 @@ public class ZmqConnection {
 	
 	public void setZmqUrl(String zmqUrl) {
 		this.zmqUrl = zmqUrl;
-	}
-	
-	public Thread getMyThread() {
-		return myThread;
-	}
-	
-	public void setMyThread(Thread myThread) {
-		this.myThread = myThread;
 	}
 	
 	public AgentHost getHost() {
@@ -130,7 +121,7 @@ public class ZmqConnection {
 	 * @param packet
 	 */
 	public void listen() {
-		myThread = new Thread(new Runnable() {
+		AgentHost.getPool().execute(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -175,7 +166,6 @@ public class ZmqConnection {
 				}
 			}
 		});
-		myThread.start();
 	}
 	
 	private void handleMsg(final ByteBuffer[] msg) {

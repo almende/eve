@@ -250,11 +250,20 @@ interface AgentHostInterface {
 	 * 
 	 * @param receiverUrl
 	 * @param message
-	 * @param senderUrl
+	 * @param senderUri
+
+	 */
+	void receive(String receiverId, Object message, URI senderUri, String tag);
+	/**
+	 * Receive a message for an agent.
+	 * 
+	 * @param receiverUrl
+	 * @param message
+	 * @param senderUri
 
 	 */
 	void receive(String receiverId, Object message, String senderUrl, String tag);
-	
+		
 	/**
 	 * Asynchronously send a message to an agent.
 	 * 

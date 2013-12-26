@@ -2,6 +2,7 @@ package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -318,7 +319,7 @@ public class AgentServlet extends HttpServlet {
 			//TODO: on JSONResponse the callback will never be called and will timeout. What to do? These don't come in unless the other side is async i.s.o. tagged synced. 
 			
 			agentHost.receive(agentId, body,
-					senderUrl,tag);
+					URI.create(senderUrl),tag);
 			
 			jsonResponse = callback.get();
 		} catch (Exception err) {

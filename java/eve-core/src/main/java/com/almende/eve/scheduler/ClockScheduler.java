@@ -137,40 +137,27 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		}
 		task.setActive(true);
 		_this.putTask(task, true);
-		myClock.runInPool(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (task.getInterval() <= 0) {
-						// Remove from list
-						_this.cancelTask(task.getTaskId());
-					} else {
-						if (!task.isSequential()) {
-							task.setDue(DateTime.now().plus(task.getInterval()));
-							task.setActive(false);
-							_this.putTask(task, true);
-							_this.run();
-						}
-					}
-					String senderUrl = "local:" + myAgent.getId();
-					
-					// Next call is potentially long duration:
-					myAgent.send(task.getRequest(), URI.create(senderUrl),null);
-					
-					if (task.getInterval() > 0 && task.isSequential()) {
-						task.setDue(DateTime.now().plus(task.getInterval()));
-						task.setActive(false);
-						_this.putTask(task, true);
-						_this.run();
-					}
-				} catch (Exception e) {
-					LOG.log(Level.SEVERE,
-							myAgent.getId() + ": Failed to run scheduled task:"
-									+ task.toString(), e);
-				}
-			}
+		
+		try {
+			//TODO: fix sequential calls, needs callback and guaranteed replies, also in the case of void? (This holds for all methods?)
+			String receiverUrl = "local:" + myAgent.getId();
+			// Next call is always short/asynchronous
+			myAgent.send(task.getRequest(), URI.create(receiverUrl), null);
 			
-		});
+			if (task.getInterval() <= 0) {
+				// Remove from list
+				_this.cancelTask(task.getTaskId());
+			} else {
+				task.setDue(DateTime.now().plus(task.getInterval()));
+				task.setActive(false);
+				_this.putTask(task, true);
+				_this.run();
+			}
+		} catch (Exception e) {
+			LOG.log(Level.SEVERE, myAgent.getId()
+					+ ": Failed to run scheduled task:" + task.toString(), e);
+		}
+		
 	}
 	
 	@Override

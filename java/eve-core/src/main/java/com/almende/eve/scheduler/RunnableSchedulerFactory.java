@@ -42,8 +42,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	private String									stateId		= null;
 	private AgentHost								host		= null;
 	private long									count		= 0;
-	private ScheduledExecutorService				scheduler	= Executors
-																		.newScheduledThreadPool(10);
+	private final ScheduledExecutorService			scheduler	= Executors
+																		.newScheduledThreadPool(8);
 	
 	// {agentId: {taskId: task}}
 	private final Map<String, Map<String, Task>>	allTasks	= new ConcurrentHashMap<String, Map<String, Task>>();
@@ -219,7 +219,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			// persist the task, must be before schedule, because otherwise it
 			// will report as cancelled!
 			store();
-			
+			//TODO: Double threading with send method!
+			//TODO: fix sequential calls
 			future = scheduler.schedule(new Runnable() {
 				@Override
 				public void run() {
@@ -231,12 +232,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 							start(interval);
 						}
 						
-						String senderUrl = "local:" + agentId;
-						Agent sender = host.getAgent(agentId); 
-						if (sender == null){
-							throw new IllegalStateException("Sending agent is missing:"+agentId);
+						String receiverUrl = "local:" + agentId;
+						Agent sender = host.getAgent(agentId);
+						if (sender == null) {
+							throw new IllegalStateException(
+									"Sending agent is missing:" + agentId);
 						}
-						sender.send(request, URI.create(senderUrl),null);
+						sender.send(request, URI.create(receiverUrl), null);
 						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);

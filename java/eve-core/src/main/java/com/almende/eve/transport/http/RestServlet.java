@@ -19,7 +19,7 @@ import com.almende.util.uuid.UUID;
 @SuppressWarnings("serial")
 public class RestServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	private AgentHost factory = null;
+	private AgentHost host = null;
 	
 	@Override
 	public void init() {
@@ -27,7 +27,7 @@ public class RestServlet extends HttpServlet {
 			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		factory = AgentHost.getInstance();
+		host = AgentHost.getInstance();
 	}
 	
 	@Override
@@ -52,10 +52,11 @@ public class RestServlet extends HttpServlet {
 			String tag = new UUID().toString();
 			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 			
-			CallbackInterface callbacks = factory.getCallbackService("HttpTransport");
+			CallbackInterface callbacks = host.getCallbackService("HttpTransport");
 			callbacks.store(tag,callback);
 			
-			factory.receive(agentId, request, null, tag);
+			String senderUrl = null;
+			host.receive(agentId, request, senderUrl, tag);
 
 			JSONResponse response = callback.get();
 			

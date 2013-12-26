@@ -19,21 +19,23 @@ import org.apache.http.util.EntityUtils;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
 public class HttpService implements TransportService {
-	private static final Logger	LOG			= Logger.getLogger(HttpService.class
-													.getCanonicalName());
-	private String				servletUrl	= null;
-	private AgentHost			host		= null;
-	private List<String>		protocols	= Arrays.asList("http", "https",
-													"web");
+	private static final Logger				LOG			= Logger.getLogger(HttpService.class
+																.getCanonicalName());
+	private String							servletUrl	= null;
+	private AgentHost						host		= null;
+	private List<String>					protocols	= Arrays.asList("http",
+																"https", "web");
 	
 	public HttpService(AgentHost agentHost) {
 		this.host = agentHost;
 	}
+	
 	/**
 	 * Construct an HttpService This constructor is called when the
 	 * TransportService is constructed by the AgentHost
@@ -115,51 +117,68 @@ public class HttpService implements TransportService {
 	 */
 	@Override
 	public void sendAsync(final String senderUrl, final String receiverUrl,
-			final Object message, String tag) throws IOException {
-		try {
-			if (tag != null) {
-				// This is a reply to a synchronous inbound call, get callback
-				// and use it to send the message
-				CallbackInterface callbacks = host
-						.getCallbackService("HttpTransport");
-				if (callbacks != null) {
-					AsyncCallback<JSONResponse> callback = callbacks.get(tag);
-					if (callback != null && message instanceof JSONResponse) {
-						JSONResponse response = (JSONResponse) message;
-						if (response.getError() != null) {
-							callback.onFailure(response.getError());
+			final Object message, final String tag) throws IOException {
+		
+		AgentHost.getPool().execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					if (tag != null) {
+						// This is a reply to a synchronous inbound call, get
+						// callback
+						// and use it to send the message
+						CallbackInterface callbacks = host
+								.getCallbackService("HttpTransport");
+						if (callbacks != null) {
+							AsyncCallback<JSONResponse> callback = callbacks
+									.get(tag);
+							if (callback != null
+									&& message instanceof JSONResponse) {
+								JSONResponse response = (JSONResponse) message;
+								if (response.getError() != null) {
+									callback.onFailure(response.getError());
+								} else {
+									callback.onSuccess(response);
+								}
+								return;
+							} else {
+								LOG.warning("Tag set, but no callback found! "
+										+ callback);
+							}
 						} else {
-							callback.onSuccess(response);
+							LOG.warning("Tag set, but no callbacks found!");
 						}
-						return;
-					} else {
-						LOG.warning("Tag set, but no callback found! "
-								+ callback);
 					}
-				} else {
-					LOG.warning("Tag set, but no callbacks found!");
+					
+					// invoke via Apache HttpClient request:
+					HttpPost httpPost = new HttpPost(receiverUrl);
+					httpPost.setEntity(new StringEntity(message.toString()));
+					
+					// Add token for HTTP handshake
+					httpPost.addHeader("X-Eve-Token", TokenStore.create()
+							.toString());
+					httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
+					
+					HttpResponse webResp = ApacheHttpClient.get().execute(
+							httpPost);
+					try {
+						String result = EntityUtils.toString(webResp
+								.getEntity());
+						host.receive(senderUrl, result, receiverUrl, null);
+					} finally {
+						httpPost.reset();
+					}
+					
+				} catch (Exception e) {
+					JSONRPCException jsonError = new JSONRPCException(
+							JSONRPCException.CODE.INTERNAL_ERROR, e
+									.getMessage(), e);
+					JSONResponse response = new JSONResponse(jsonError);
+					host.receive(senderUrl, response, receiverUrl, tag);
 				}
 			}
-			
-			// invoke via Apache HttpClient request:
-			HttpPost httpPost = new HttpPost(receiverUrl);
-			httpPost.setEntity(new StringEntity(message.toString()));
-			
-			// Add token for HTTP handshake
-			httpPost.addHeader("X-Eve-Token", TokenStore.create().toString());
-			httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
-			
-			HttpResponse webResp = ApacheHttpClient.get().execute(httpPost);
-			try {
-				String result = EntityUtils.toString(webResp.getEntity());
-				host.receive(senderUrl, result, receiverUrl, null);
-			} finally {
-				httpPost.reset();
-			}
-			
-		} catch (Exception e) {
-			throw new IOException("Failed to send RPC call through HTTP", e);
-		}
+		});
 	}
 	
 	/**

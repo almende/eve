@@ -592,7 +592,6 @@ public abstract class Agent implements AgentInterface {
 		return data.toString();
 	}
 	
-	// TODO: NOTE: This method should be called in its own thread.
 	// TODO: This should be abstracted to a generic "Translation service"?
 	@Override
 	public void receive(Object msg, URI senderUrl) {
@@ -601,6 +600,8 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	public void receive(final Object msg, final URI senderUrl, final String tag) {
+		// LOG.warning(getId()+": receive:"+msg);
+		
 		JsonNode id = null;
 		try {
 			JSONMessage jsonMsg = null;
@@ -645,35 +646,50 @@ public abstract class Agent implements AgentInterface {
 			}
 			if (jsonMsg != null) {
 				if (jsonMsg instanceof JSONRequest) {
-					RequestParams params = new RequestParams();
+					final RequestParams params = new RequestParams();
 					params.put(Sender.class, senderUrl.toASCIIString());
 					
-					JSONRequest request = (JSONRequest) jsonMsg;
+					final JSONRequest request = (JSONRequest) jsonMsg;
 					if (request.getId() != null) {
 						id = request.getId();
 					}
-					JSONResponse response = JSONRPC.invoke(this, request,
-							params, this);
+					final AgentInterface me = this;
+					AgentHost.getPool().execute(new Runnable() {
+						@Override
+						public void run() {
+							JSONResponse response = JSONRPC.invoke(me, request,
+									params, me);
+							try {
+								send(response, senderUrl, null, tag);
+							} catch (IOException e) {
+								LOG.log(Level.WARNING, getId()
+										+ ": Failed to send response.", e);
+							}
+						}
+					});
 					
-					if (id != null && !id.isNull()) {
-						// Not a notification, so returning response....
-						send(response, senderUrl, null, tag);
-					}
 				} else if (jsonMsg instanceof JSONResponse) {
 					if (callbacks != null) {
 						
-						JSONResponse response = (JSONResponse) jsonMsg;
+						final JSONResponse response = (JSONResponse) jsonMsg;
 						if (response.getId() != null) {
 							id = response.getId();
 							if (id != null && !id.isNull()) {
-								AsyncCallback<JSONResponse> callback = callbacks
+								final AsyncCallback<JSONResponse> callback = callbacks
 										.get(id);
 								if (callback != null) {
-									if (response.getError() != null) {
-										callback.onFailure(response.getError());
-									} else {
-										callback.onSuccess(response);
-									}
+									AgentHost.getPool().execute(new Runnable() {
+										@Override
+										public void run() {
+											
+											if (response.getError() != null) {
+												callback.onFailure(response
+														.getError());
+											} else {
+												callback.onSuccess(response);
+											}
+										}
+									});
 								}
 							}
 						}
@@ -712,7 +728,7 @@ public abstract class Agent implements AgentInterface {
 	public void send(Object msg, URI receiverUrl,
 			AsyncCallback<JSONResponse> callback, String tag)
 			throws IOException {
-		
+		// LOG.warning(getId()+": send:"+msg);
 		if (msg instanceof JSONRequest) {
 			JSONRequest request = (JSONRequest) msg;
 			if (callback != null && callbacks != null) {

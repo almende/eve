@@ -1,6 +1,7 @@
 package com.almende.eve.transport.xmpp;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,17 +18,17 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 public class AgentConnection {
-	private static final Logger					LOG			= Logger.getLogger(AgentConnection.class
-																	.getCanonicalName());
-	private AgentHost							agentHost	= null;
-	private String								agentId		= null;
-	private String								username	= null;
-	private String								host		= null;
-	private String								resource	= null;
-	private String								password	= null;
-	private String								serviceName	= null;
-	private Integer								port		= 5222;
-	private XMPPConnection						conn		= null;
+	private static final Logger	LOG			= Logger.getLogger(AgentConnection.class
+													.getCanonicalName());
+	private AgentHost			agentHost	= null;
+	private String				agentId		= null;
+	private String				username	= null;
+	private String				host		= null;
+	private String				resource	= null;
+	private String				password	= null;
+	private String				serviceName	= null;
+	private Integer				port		= 5222;
+	private XMPPConnection		conn		= null;
 	
 	public AgentConnection(AgentHost agentHost) {
 		this.agentHost = agentHost;
@@ -121,8 +122,8 @@ public class AgentConnection {
 					Roster.SubscriptionMode.accept_all);
 			
 			// instantiate a packet listener
-			conn.addPacketListener(new JSONRPCListener(agentHost,
-					agentId, resource), null);
+			conn.addPacketListener(new JSONRPCListener(agentHost, agentId,
+					resource), null);
 			
 		} catch (XMPPException e) {
 			LOG.log(Level.WARNING, "", e);
@@ -179,12 +180,12 @@ public class AgentConnection {
 	 * reply the result.
 	 */
 	private static class JSONRPCListener implements PacketListener {
-		private AgentHost							host		= null;
-		private String								agentId		= null;
-		private String								resource	= null;
+		private AgentHost	host		= null;
+		private String		agentId		= null;
+		private String		resource	= null;
 		
-		public JSONRPCListener(AgentHost agentHost,
-				String agentId, String resource) {
+		public JSONRPCListener(AgentHost agentHost, String agentId,
+				String resource) {
 			this.host = agentHost;
 			this.agentId = agentId;
 			this.resource = resource;
@@ -215,15 +216,10 @@ public class AgentConnection {
 				}
 			}
 			final String body = message.getBody();
-			final String senderUrl = "xmpp:" + message.getFrom();
+			final URI senderUrl = URI.create("xmpp:" + message.getFrom());
 			
 			if (body != null) {
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						host.receive(agentId, body, senderUrl,null);
-					}
-				}).start();
+				host.receive(agentId, body, senderUrl, null);
 			}
 		}
 	}

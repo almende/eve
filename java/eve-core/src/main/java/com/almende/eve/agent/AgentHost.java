@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,6 +64,7 @@ public final class AgentHost implements AgentHostInterface {
 	private final EventLogger																	eventLogger			= new EventLogger(
 																															this);
 	private boolean																				doesShortcut		= true;
+	private final static ExecutorService														pool				= Executors.newCachedThreadPool();
 	
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
 	
@@ -81,6 +84,10 @@ public final class AgentHost implements AgentHostInterface {
 	 */
 	public static AgentHost getInstance() {
 		return HOST;
+	}
+	
+	public static ExecutorService getPool() {
+		return pool;
 	}
 	
 	@Override
@@ -428,6 +435,20 @@ public final class AgentHost implements AgentHostInterface {
 	@Override
 	public void receive(String receiverId, Object message, String senderUrl,
 			String tag) {
+		URI senderUri = null;
+		if (senderUrl != null) {
+			try {
+				senderUri = URI.create(senderUrl);
+			} catch (Exception e) {
+				LOG.warning("Incorrect senderUrl given:" + senderUrl);
+			}
+		}
+		receive(receiverId, message, senderUri, tag);
+	}
+	
+	@Override
+	public void receive(String receiverId, Object message, URI senderUri,
+			String tag) {
 		AgentInterface receiver = null;
 		try {
 			receiver = getAgent(receiverId);
@@ -437,17 +458,13 @@ public final class AgentHost implements AgentHostInterface {
 						AgentInterface.class);
 			}
 			if (receiver != null) {
-				URI senderUri = null;
-				if (senderUrl != null) {
-					senderUri = URI.create(senderUrl);
-				}
 				receiver.receive(message, senderUri, tag);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "", e);
-			if (senderUrl != null) {
+			if (senderUri != null) {
 				try {
-					sendAsync(URI.create(senderUrl), new JSONRPCException(
+					sendAsync(senderUri, new JSONRPCException(
 							CODE.REMOTE_EXCEPTION, "", e), receiver, tag);
 				} catch (Exception e1) {
 					LOG.log(Level.WARNING,
@@ -464,17 +481,11 @@ public final class AgentHost implements AgentHostInterface {
 		String protocol = receiverUrl.getScheme();
 		if (("local".equals(protocol)) || (doesShortcut && receiverId != null)) {
 			// local shortcut
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					String senderUrl = null;
-					if (sender != null) {
-						senderUrl = getSenderUrl(sender.getId(), receiverUrl)
-								.toASCIIString();
-					}
-					receive(receiverId, message, senderUrl, tag);
-				}
-			}).start();
+			URI senderUri = null;
+			if (sender != null) {
+				senderUri = getSenderUrl(sender.getId(), receiverUrl);
+			}
+			receive(receiverId, message, senderUri, tag);
 		} else {
 			TransportService service = null;
 			String senderUrl = null;
@@ -524,7 +535,8 @@ public final class AgentHost implements AgentHostInterface {
 				}
 			}
 		}
-		LOG.warning("Couldn't find sender URL for:"+agentId+" | "+receiverUrl.toASCIIString());
+		LOG.warning("Couldn't find sender URL for:" + agentId + " | "
+				+ receiverUrl.toASCIIString());
 		return null;
 	}
 	
