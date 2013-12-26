@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.ThreadSafe;
+import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -57,21 +58,33 @@ public class Cell extends Agent {
 		getEventsFactory().trigger("cycleCalculated");
 	}
 	
-	public void askCycleState(@Sender String neighbor) throws JSONRPCException,
+	public void askCycleState(@Sender final String neighbor) throws JSONRPCException,
 			IOException {
 		
 		ObjectNode params = JOM.createObjectNode();
 		params.put("cycle", getState().get("current_cycle", Integer.class) - 1);
-		CycleState state = send(URI.create(neighbor), "getCycleState", params,
-				CycleState.class);
-		if (state != null) {
-			getState().put(neighbor + "_" + state.getCycle(), state);
-			calcCycle();
-		}
+		sendAsync(URI.create(neighbor), "getCycleState", params, new AsyncCallback<CycleState>(){
+
+			@Override
+			public void onSuccess(CycleState state) {
+				if (state != null) {
+					getState().put(neighbor + "_" + state.getCycle(), state);
+					calcCycle();
+				}
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		},
+		CycleState.class);
 	}
 	
 	//TODO: find a way to do this without synchronized
-	private synchronized void calcCycle() throws IOException {
+	private synchronized void calcCycle() {
 		if (getState().containsKey("current_cycle")) {
 			Integer currentCycle = getState().get("current_cycle",
 					Integer.class);
@@ -105,7 +118,12 @@ public class Cell extends Agent {
 						new CycleState(currentCycle, myState.isAlive()));
 			}
 			getState().put("current_cycle", currentCycle + 1);
-			getEventsFactory().trigger("cycleCalculated");
+			try {
+				getEventsFactory().trigger("cycleCalculated");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
