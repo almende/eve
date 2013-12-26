@@ -134,7 +134,7 @@ public class EventsFactory implements EventsInterface {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
-		myAgent.send(url, method, params);
+		myAgent.sendAsync(url, method, params);
 	}
 	
 	/**
@@ -154,7 +154,7 @@ public class EventsFactory implements EventsInterface {
 		params.put(EVENT, event);
 		params.put("callbackUrl", myAgent.getFirstUrl().toASCIIString());
 		params.put("callbackMethod", callbackMethod);
-		myAgent.send(url, method, params);
+		myAgent.sendAsync(url, method, params);
 	}
 	
 	/**
@@ -343,7 +343,7 @@ public class EventsFactory implements EventsInterface {
 			@Name("method") String method, @Name("params") ObjectNode params)
 			throws IOException, JSONRPCException {
 		// TODO: send the trigger as a JSON-RPC 2.0 Notification
-		myAgent.send(URI.create(url), method, params);
+		myAgent.sendAsync(URI.create(url), method, params);
 	}
 	
 	@Access(AccessType.SELF)

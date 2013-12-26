@@ -118,9 +118,7 @@ public final class JSONRPC {
 	 */
 	public static JSONResponse invoke(Object destination, JSONRequest request,
 			RequestParams requestParams, JSONAuthorizor auth) {
-		JSONResponse resp = new JSONResponse();
-		resp.setId(request.getId());
-		
+		JSONResponse resp = new JSONResponse(request.getId(), null);
 		try {
 			CallTuple tuple = NamespaceUtil.get(destination,
 					request.getMethod());
@@ -153,10 +151,9 @@ public final class JSONRPC {
 				resp.setError((JSONRPCException) cause);
 			} else {
 				if (err instanceof InvocationTargetException && cause != null) {
-					logger.log(
-							Level.WARNING,
-							"Exception raised, returning its cause as JSONRPCException. Request:"+request,
-							cause);
+					logger.log(Level.WARNING,
+							"Exception raised, returning its cause as JSONRPCException. Request:"
+									+ request, cause);
 					
 					JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR,
@@ -164,10 +161,9 @@ public final class JSONRPC {
 					jsonError.setData(cause);
 					resp.setError(jsonError);
 				} else {
-					logger.log(
-							Level.WARNING,
-							"Exception raised, returning it as JSONRPCException. Request:"+request,
-							err);
+					logger.log(Level.WARNING,
+							"Exception raised, returning it as JSONRPCException. Request:"
+									+ request, err);
 					
 					JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR,
@@ -279,7 +275,8 @@ public final class JSONRPC {
 						requestParams, innerNamespace));
 			}
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to describe class:"+c.toString(), e);
+			logger.log(Level.WARNING,
+					"Failed to describe class:" + c.toString(), e);
 			return null;
 		}
 		return methods;
@@ -310,7 +307,8 @@ public final class JSONRPC {
 			}
 			return sortedMethods;
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to describe class:"+c.toString(), e);
+			logger.log(Level.WARNING,
+					"Failed to describe class:" + c.toString(), e);
 			return null;
 		}
 	}
@@ -507,7 +505,8 @@ public final class JSONRPC {
 		JsonNode id = null;
 		try {
 			id = JOM.getInstance().readTree(new UUID().toString());
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 		return new JSONRequest(id, method.getName(), params);
 	}
 	
@@ -565,13 +564,12 @@ public final class JSONRPC {
 		}
 		
 		if (methodAccess.value() == AccessType.PRIVATE) {
-			return auth != null ? auth.onAccess(
-					requestParams.get(Sender.class).toString(),
-					methodAccess.tag()) : false;
+			return auth != null ? auth.onAccess(requestParams.get(Sender.class)
+					.toString(), methodAccess.tag()) : false;
 		}
 		if (methodAccess.value() == AccessType.SELF) {
-			return auth != null ? auth.isSelf(requestParams
-					.get(Sender.class).toString()) : false;
+			return auth != null ? auth.isSelf(requestParams.get(Sender.class)
+					.toString()) : false;
 		}
 		return true;
 	}
@@ -614,12 +612,13 @@ public final class JSONRPC {
 	@SuppressWarnings("deprecation")
 	private static boolean isRequired(AnnotatedParam param) {
 		boolean required = true;
-		com.almende.eve.rpc.annotation.Required requiredAnnotation = param.getAnnotation(com.almende.eve.rpc.annotation.Required.class);
+		com.almende.eve.rpc.annotation.Required requiredAnnotation = param
+				.getAnnotation(com.almende.eve.rpc.annotation.Required.class);
 		if (requiredAnnotation != null) {
 			required = requiredAnnotation.value();
 		}
-		if (param.getAnnotation(Optional.class) != null){
-			required=false;
+		if (param.getAnnotation(Optional.class) != null) {
+			required = false;
 		}
 		return required;
 	}
@@ -657,7 +656,6 @@ public final class JSONRPC {
 		}
 		return null;
 	}
-	
 	
 	/**
 	 * Check if given json object contains all fields required for a
