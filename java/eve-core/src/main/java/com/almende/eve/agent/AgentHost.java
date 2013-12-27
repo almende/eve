@@ -1,6 +1,7 @@
 package com.almende.eve.agent;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +30,8 @@ import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.RequestParams;
+import com.almende.eve.rpc.annotation.Access;
+import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
@@ -43,9 +46,11 @@ import com.almende.eve.state.StateFactory;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
+import com.almende.util.AnnotationUtil;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
+import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -127,6 +132,22 @@ public final class AgentHost implements AgentHostInterface {
 			}
 		}
 	}
+	
+	public static boolean hasPrivate(String agentId) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
+		Class<?> clazz = HOST.getAgent(agentId).getClass();
+		AnnotatedClass annotated = AnnotationUtil.get(clazz);
+		for (Annotation anno : annotated.getAnnotations()) {
+			if (anno.annotationType().equals(Access.class)
+					&& ((Access) anno).value() == AccessType.PRIVATE) {
+				return true;
+			}
+			if (anno.annotationType().equals(Sender.class)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	
 	@Override
 	public Agent getAgent(String agentId) throws JSONRPCException,

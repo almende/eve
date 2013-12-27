@@ -22,7 +22,6 @@ import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -210,7 +209,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			if (JSONRPC.hasPrivate(agentHost.getAgent(agentId).getClass())
+			if (AgentHost.hasPrivate(agentId)
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -297,7 +296,7 @@ public class AgentServlet extends HttpServlet {
 				return;
 			}
 			
-			if (JSONRPC.hasPrivate(agent.getClass())
+			if (AgentHost.hasPrivate(agentId)
 					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -312,6 +311,8 @@ public class AgentServlet extends HttpServlet {
 						+ req.getRemoteAddr();
 			}
 			String tag = new UUID().toString();
+			
+			//TODO: this should not depend on JSONResponse...
 			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 			
 			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");

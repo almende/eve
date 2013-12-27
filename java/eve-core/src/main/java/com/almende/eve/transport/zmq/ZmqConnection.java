@@ -10,7 +10,6 @@ import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.jsonrpc.JSONRPC;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -19,18 +18,18 @@ import com.almende.util.tokens.TokenRet;
 import com.almende.util.tokens.TokenStore;
 
 public class ZmqConnection {
-	private static final Logger	LOG			= Logger.getLogger(ZmqConnection.class
-													.getCanonicalName());
+	private static final Logger	LOG		= Logger.getLogger(ZmqConnection.class
+												.getCanonicalName());
 	
 	private final Socket		socket;
-	private final String 		SIGADDR;
-	private String				zmqUrl		= null;
-	private AgentHost			host		= null;
-	private String				agentId		= null;
+	private final String		SIGADDR;
+	private String				zmqUrl	= null;
+	private AgentHost			host	= null;
+	private String				agentId	= null;
 	
 	public ZmqConnection(Socket socket) {
 		this.socket = socket;
-		SIGADDR = "inproc://signal_"+UUID.randomUUID().toString();
+		SIGADDR = "inproc://signal_" + UUID.randomUUID().toString();
 	}
 	
 	public Socket getSocket() {
@@ -69,10 +68,10 @@ public class ZmqConnection {
 		this.zmqUrl = agentUrl.replaceFirst("zmq:/?/?", "");
 	}
 	
-	private void sig(){
+	private void sig() {
 		Socket sig = ZMQ.getSocket(ZMQ.REQ);
 		sig.connect(SIGADDR);
-		sig.send("1",0);
+		sig.send("1", 0);
 		sig.recv();
 		sig.setLinger(0);
 		sig.close();
@@ -128,20 +127,21 @@ public class ZmqConnection {
 				Socket signal = ZMQ.getSocket(ZMQ.REP);
 				signal.bind(SIGADDR);
 				
-				ZMQ.Poller items = new ZMQ.Poller (2);
-				items.register(socket,Poller.POLLIN);
-				items.register(signal,Poller.POLLIN);
-
+				ZMQ.Poller items = new ZMQ.Poller(2);
+				items.register(socket, Poller.POLLIN);
+				items.register(signal, Poller.POLLIN);
+				
 				while (true) {
-					synchronized(socket){
+					synchronized (socket) {
 						items.poll(-1);
 						
-						if (signal.getEvents() == Poller.POLLIN){
+						if (signal.getEvents() == Poller.POLLIN) {
 							signal.recv();
-							signal.send("ok",0);
+							signal.send("ok", 0);
 							try {
 								socket.wait();
-							} catch (InterruptedException e) {}
+							} catch (InterruptedException e) {
+							}
 						}
 					}
 					
@@ -161,7 +161,7 @@ public class ZmqConnection {
 							}).start();
 						}
 					} catch (Exception e) {
-						LOG.log(Level.SEVERE,"Caught error:", e);
+						LOG.log(Level.SEVERE, "Caught error:", e);
 					}
 				}
 			}
@@ -195,9 +195,7 @@ public class ZmqConnection {
 			} else {
 				ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
 				String key = senderUrl + ":" + token.getToken();
-				if (!sessionCache.containsKey(key)
-						&& JSONRPC
-								.hasPrivate(host.getAgent(agentId).getClass())) {
+				if (!sessionCache.containsKey(key) && AgentHost.hasPrivate(agentId)) {
 					final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
 					final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
 					locSocket.connect(addr);
@@ -218,8 +216,8 @@ public class ZmqConnection {
 				}
 			}
 			
-			if (body != null){
-				host.receive(agentId, body, senderUrl,null);
+			if (body != null) {
+				host.receive(agentId, body, senderUrl, null);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Failed to handle request", e);

@@ -508,20 +508,6 @@ public final class JSONRPC {
 		return new JSONRequest(id, method.getName(), params);
 	}
 	
-	public static boolean hasPrivate(Class<?> clazz) {
-		AnnotatedClass annotated = AnnotationUtil.get(clazz);
-		for (Annotation anno : annotated.getAnnotations()) {
-			if (anno.annotationType().equals(Access.class)
-					&& ((Access) anno).value() == AccessType.PRIVATE) {
-				return true;
-			}
-			if (anno.annotationType().equals(Sender.class)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	/**
 	 * Check whether a method is available for JSON-RPC calls. This is the case
 	 * when it is public, has named parameters, and has a public or private @Access
