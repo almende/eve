@@ -494,7 +494,8 @@ public abstract class Agent implements AgentInterface {
 			throws IOException {
 		
 		// Create a callback to retrieve a JSONResponse and extract the result
-		// or error from this.
+		// or error from this. This is double nested, mostly because of the type
+		// conversions required on the result.
 		final AsyncCallback<JSONResponse> responseCallback = new AsyncCallback<JSONResponse>() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -598,59 +599,58 @@ public abstract class Agent implements AgentInterface {
 		receive(msg, senderUrl, null);
 	}
 	
+	private JSONMessage jsonConvert(final Object msg) throws IOException,
+			JSONRPCException {
+		JSONMessage jsonMsg = null;
+		if (msg instanceof JSONMessage) {
+			jsonMsg = (JSONMessage) msg;
+		} else {
+			ObjectNode json = null;
+			if (msg instanceof String) {
+				String message = (String) msg;
+				if (message.startsWith("{") || message.trim().startsWith("{")) {
+					
+					json = JOM.getInstance().readValue(message,
+							ObjectNode.class);
+				}
+			} else if (msg instanceof ObjectNode) {
+				json = (ObjectNode) msg;
+			} else if (msg == null) {
+				LOG.warning("Message null!");
+			} else {
+				LOG.warning("Message unknown type:" + msg.getClass());
+			}
+			if (json != null) {
+				if (JSONRPC.isResponse(json)) {
+					JSONResponse response = new JSONResponse(json);
+					jsonMsg = response;
+				} else if (JSONRPC.isRequest(json)) {
+					JSONRequest request = new JSONRequest(json);
+					jsonMsg = request;
+				} else {
+					throw new IllegalArgumentException(
+							getId()
+									+ ": Request does not contain a valid JSON-RPC request or response");
+				}
+			}
+		}
+		return jsonMsg;
+	}
+	
 	@Override
 	public void receive(final Object msg, final URI senderUrl, final String tag) {
 		JsonNode id = null;
 		try {
-			JSONMessage jsonMsg = null;
-			if (msg != null) {
-				if (msg instanceof JSONMessage) {
-					jsonMsg = (JSONMessage) msg;
-				} else {
-					ObjectNode json = null;
-					if (msg instanceof String) {
-						String message = (String) msg;
-						if (message.startsWith("{")
-								|| message.trim().startsWith("{")) {
-							
-							json = JOM.getInstance().readValue(message,
-									ObjectNode.class);
-						}
-					} else if (msg instanceof ObjectNode) {
-						json = (ObjectNode) msg;
-					} else {
-						LOG.warning("Message unknown type:" + msg.getClass());
-					}
-					if (json != null) {
-						if (JSONRPC.isResponse(json)) {
-							JSONResponse response = new JSONResponse(json);
-							if (response.getId() != null) {
-								id = response.getId();
-							}
-							jsonMsg = response;
-						} else if (JSONRPC.isRequest(json)) {
-							JSONRequest request = new JSONRequest(json);
-							if (request.getId() != null) {
-								id = request.getId();
-							}
-							jsonMsg = request;
-						} else {
-							throw new Exception(
-									getId()
-											+ ": Request does not contain a valid JSON-RPC request or response");
-						}
-					}
-				}
-			}
+			JSONMessage jsonMsg = jsonConvert(msg);
 			if (jsonMsg != null) {
+				if (jsonMsg.getId() != null) {
+					id = jsonMsg.getId();
+				}
 				if (jsonMsg instanceof JSONRequest) {
 					final RequestParams params = new RequestParams();
 					params.put(Sender.class, senderUrl.toASCIIString());
 					
 					final JSONRequest request = (JSONRequest) jsonMsg;
-					if (request.getId() != null) {
-						id = request.getId();
-					}
 					final AgentInterface me = this;
 					AgentHost.getPool().execute(new Runnable() {
 						@Override
@@ -666,31 +666,22 @@ public abstract class Agent implements AgentInterface {
 						}
 					});
 					
-				} else if (jsonMsg instanceof JSONResponse) {
-					if (callbacks != null) {
-						
-						final JSONResponse response = (JSONResponse) jsonMsg;
-						if (response.getId() != null) {
-							id = response.getId();
-							if (id != null && !id.isNull()) {
-								final AsyncCallback<JSONResponse> callback = callbacks
-										.get(id);
-								if (callback != null) {
-									AgentHost.getPool().execute(new Runnable() {
-										@Override
-										public void run() {
-											
-											if (response.getError() != null) {
-												callback.onFailure(response
-														.getError());
-											} else {
-												callback.onSuccess(response);
-											}
-										}
-									});
+				} else if (jsonMsg instanceof JSONResponse && callbacks != null
+						&& id != null && !id.isNull()) {
+					final JSONResponse response = (JSONResponse) jsonMsg;
+					final AsyncCallback<JSONResponse> callback = callbacks
+							.get(id);
+					if (callback != null) {
+						AgentHost.getPool().execute(new Runnable() {
+							@Override
+							public void run() {
+								if (response.getError() != null) {
+									callback.onFailure(response.getError());
+								} else {
+									callback.onSuccess(response);
 								}
 							}
-						}
+						});
 					}
 				}
 			} else {

@@ -46,6 +46,8 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -194,16 +196,13 @@ public final class AgentHost implements AgentHostInterface {
 	public <T extends AgentInterface> T createAgentProxy(
 			final AgentInterface sender, final URI receiverUrl,
 			Class<T> agentInterface) {
-		if (!ClassUtil.hasInterface(agentInterface, AgentInterface.class)) {
-			throw new IllegalArgumentException("agentInterface must extend "
-					+ AgentInterface.class.getName());
-		}
 		
 		// TODO: In the new model the proxy agents need to have an adres as
 		// well! This will enforce usage of the agentCache!
 		final String proxyId = "proxy_"
 				+ (sender != null ? sender.getId() + "_" : "")
 				+ agentInterface.getCanonicalName().replace(' ', '_');
+
 		T proxy = ObjectCache.get(AGENTS).get(proxyId, agentInterface);
 		if (proxy != null) {
 			return proxy;
@@ -212,6 +211,36 @@ public final class AgentHost implements AgentHostInterface {
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
 		proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
+					private JSONResponse receive(Object arg) throws JSONRPCException, JsonParseException, JsonMappingException, IOException{
+						JSONResponse response = null;
+						if (arg instanceof String) {
+							String message = (String) arg;
+							if (message.startsWith("{")
+									|| message.trim().startsWith("{")) {
+								
+								ObjectNode json = JOM.getInstance()
+										.readValue(message,
+												ObjectNode.class);
+								if (JSONRPC.isResponse(json)) {
+									response = new JSONResponse(json);
+								}
+							}
+						} else if (arg instanceof ObjectNode) {
+							ObjectNode json = (ObjectNode) arg;
+							if (JSONRPC.isResponse(json)) {
+								response = new JSONResponse(json);
+							}
+						} else if (arg instanceof JSONResponse) {
+							response = (JSONResponse) arg;
+						} else {
+							LOG.warning("Strange:"
+									+ arg
+									+ " "
+									+ arg.getClass()
+											.getCanonicalName());
+						}
+						return response;
+					}
 					public Object invoke(Object proxy, Method method,
 							Object[] args) throws JSONRPCException, IOException {
 						
@@ -229,32 +258,7 @@ public final class AgentHost implements AgentHostInterface {
 								&& args.length > 1) {
 							JSONResponse response = null;
 							if (args[0] != null) {
-								if (args[0] instanceof String) {
-									String message = (String) args[0];
-									if (message.startsWith("{")
-											|| message.trim().startsWith("{")) {
-										
-										ObjectNode json = JOM.getInstance()
-												.readValue(message,
-														ObjectNode.class);
-										if (JSONRPC.isResponse(json)) {
-											response = new JSONResponse(json);
-										}
-									}
-								} else if (args[0] instanceof ObjectNode) {
-									ObjectNode json = (ObjectNode) args[0];
-									if (JSONRPC.isResponse(json)) {
-										response = new JSONResponse(json);
-									}
-								} else if (args[0] instanceof JSONResponse) {
-									response = (JSONResponse) args[0];
-								} else {
-									LOG.warning("Strange:"
-											+ args[0]
-											+ " "
-											+ args[0].getClass()
-													.getCanonicalName());
-								}
+								response = receive(args[0]);
 							}
 							if (response != null && callbacks != null) {
 								JsonNode id = null;
@@ -340,15 +344,11 @@ public final class AgentHost implements AgentHostInterface {
 		return (T) createAgent((Class<T>) Class.forName(agentType), agentId);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException {
-		if (!ClassUtil.hasSuperClass(agentType, Agent.class)) {
-			return (T) createAspectAgent(agentType, agentId);
-		}
 		
 		// validate the Eve agent and output as warnings
 		List<String> errors = JSONRPC.validate(agentType, EVEREQUESTPARAMS);

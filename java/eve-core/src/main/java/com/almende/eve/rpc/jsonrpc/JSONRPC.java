@@ -145,7 +145,7 @@ public final class JSONRPC {
 			resp.setError((JSONRPCException) err);
 		} catch (Exception err) {
 			Throwable cause = err.getCause();
-			if (cause != null && cause instanceof JSONRPCException) {
+			if (cause instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) cause);
 			} else {
 				if (err instanceof InvocationTargetException && cause != null) {
