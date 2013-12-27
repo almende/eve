@@ -64,7 +64,9 @@ public final class AgentHost implements AgentHostInterface {
 	private final EventLogger																	eventLogger			= new EventLogger(
 																															this);
 	private boolean																				doesShortcut		= true;
-	private final static ExecutorService														pool				= Executors.newCachedThreadPool();
+	
+	private final static ExecutorService														pool				= Executors
+																															.newCachedThreadPool();
 	
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
 	

@@ -118,14 +118,14 @@ public final class JSONRPC {
 	 */
 	public static JSONResponse invoke(Object destination, JSONRequest request,
 			RequestParams requestParams, JSONAuthorizor auth) {
-		JSONResponse resp = new JSONResponse(request.getId(), null);
+		final JSONResponse resp = new JSONResponse(request.getId(), null);
 		try {
-			CallTuple tuple = NamespaceUtil.get(destination,
+			final CallTuple tuple = NamespaceUtil.get(destination,
 					request.getMethod());
-			Object realDest = tuple.getDestination();
-			String realMethod = tuple.getMethodName();
+			final Object realDest = tuple.getDestination();
+			final String realMethod = tuple.getMethodName();
 			
-			AnnotatedMethod annotatedMethod = getMethod(realDest, realMethod,
+			final AnnotatedMethod annotatedMethod = getMethod(realDest, realMethod,
 					requestParams, auth);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
@@ -135,8 +135,8 @@ public final class JSONRPC {
 								+ "' not found. The method does not exist or you are not authorized.");
 			}
 			
-			Method method = annotatedMethod.getActualMethod();
-			Object[] params = castParams(request.getParams(),
+			final Method method = annotatedMethod.getActualMethod();
+			final Object[] params = castParams(request.getParams(),
 					annotatedMethod.getParams(), requestParams);
 			Object result = method.invoke(realDest, params);
 			if (result == null) {
