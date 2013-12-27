@@ -1,7 +1,6 @@
 package com.almende.eve.agent.example;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;

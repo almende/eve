@@ -1,7 +1,6 @@
 package com.almende.eve.event;
 
 import java.io.IOException;
-import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +18,6 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.TypedKey;
 import com.almende.util.uuid.UUID;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

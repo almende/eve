@@ -600,8 +600,6 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	public void receive(final Object msg, final URI senderUrl, final String tag) {
-		// LOG.warning(getId()+": receive:"+msg);
-		
 		JsonNode id = null;
 		try {
 			JSONMessage jsonMsg = null;
@@ -728,7 +726,6 @@ public abstract class Agent implements AgentInterface {
 	public void send(Object msg, URI receiverUrl,
 			AsyncCallback<JSONResponse> callback, String tag)
 			throws IOException {
-		// LOG.warning(getId()+": send:"+msg);
 		if (msg instanceof JSONRequest) {
 			JSONRequest request = (JSONRequest) msg;
 			if (callback != null && callbacks != null) {

@@ -46,8 +46,6 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -65,7 +63,7 @@ public final class AgentHost implements AgentHostInterface {
 																															this);
 	private boolean																				doesShortcut		= true;
 	
-	private final static ExecutorService														pool				= Executors
+	private static final ExecutorService														POOL				= Executors
 																															.newCachedThreadPool();
 	
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
@@ -74,6 +72,7 @@ public final class AgentHost implements AgentHostInterface {
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
+	private static final String																	AGENTS				= "agents";
 	
 	private AgentHost() {
 		this.addTransportService(new HttpService(this));
@@ -89,7 +88,7 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	public static ExecutorService getPool() {
-		return pool;
+		return POOL;
 	}
 	
 	@Override
@@ -97,7 +96,7 @@ public final class AgentHost implements AgentHostInterface {
 	public void loadConfig(Config config) {
 		HOST.setConfig(config);
 		if (config != null) {
-			ObjectCache.get("agents").configCache(config);
+			ObjectCache.get(AGENTS).configCache(config);
 			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first,
 			// then the state and transport services, and lastly scheduler.
@@ -138,7 +137,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 		
 		// Check if agent is instantiated already, returning if it is:
-		Agent agent = ObjectCache.get("agents").get(agentId, Agent.class);
+		Agent agent = ObjectCache.get(AGENTS).get(agentId, Agent.class);
 		if (agent != null) {
 			return agent;
 		}
@@ -177,7 +176,7 @@ public final class AgentHost implements AgentHostInterface {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			ObjectCache.get("agents").put(agentId, agent);
+			ObjectCache.get(AGENTS).put(agentId, agent);
 		}
 		
 		return agent;
@@ -205,7 +204,7 @@ public final class AgentHost implements AgentHostInterface {
 		final String proxyId = "proxy_"
 				+ (sender != null ? sender.getId() + "_" : "")
 				+ agentInterface.getCanonicalName().replace(' ', '_');
-		T proxy = ObjectCache.get("agents").get(proxyId, agentInterface);
+		T proxy = ObjectCache.get(AGENTS).get(proxyId, agentInterface);
 		if (proxy != null) {
 			return proxy;
 		}
@@ -214,9 +213,7 @@ public final class AgentHost implements AgentHostInterface {
 		proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					public Object invoke(Object proxy, Method method,
-							Object[] args) throws JSONRPCException,
-							JsonParseException, JsonMappingException,
-							IOException {
+							Object[] args) throws JSONRPCException, IOException {
 						
 						AgentInterface agent = sender;
 						if (agent == null) {
@@ -259,23 +256,19 @@ public final class AgentHost implements AgentHostInterface {
 													.getCanonicalName());
 								}
 							}
-							if (response != null) {
-								
-								if (callbacks != null) {
-									JsonNode id = null;
-									if (response.getId() != null) {
-										id = response.getId();
-									}
-									CallbackInterface callbacks = getCallbackService(proxyId);
-									AsyncCallback<JSONResponse> callback = callbacks
-											.get(id);
-									if (callback != null) {
-										if (response.getError() != null) {
-											callback.onFailure(response
-													.getError());
-										} else {
-											callback.onSuccess(response);
-										}
+							if (response != null && callbacks != null) {
+								JsonNode id = null;
+								if (response.getId() != null) {
+									id = response.getId();
+								}
+								CallbackInterface cbs = getCallbackService(proxyId);
+								AsyncCallback<JSONResponse> callback = cbs
+										.get(id);
+								if (callback != null) {
+									if (response.getError() != null) {
+										callback.onFailure(response.getError());
+									} else {
+										callback.onSuccess(response);
 									}
 								}
 							}
@@ -286,8 +279,8 @@ public final class AgentHost implements AgentHostInterface {
 									args);
 							
 							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-							CallbackInterface callbacks = getCallbackService(proxyId);
-							callbacks.store(request.getId(), callback);
+							CallbackInterface cbs = getCallbackService(proxyId);
+							cbs.store(request.getId(), callback);
 							
 							try {
 								sendAsync(receiverUrl, request, agent, null);
@@ -318,7 +311,7 @@ public final class AgentHost implements AgentHostInterface {
 					}
 				});
 		
-		ObjectCache.get("agents").put(proxyId, proxy);
+		ObjectCache.get(AGENTS).put(proxyId, proxy);
 		
 		return proxy;
 	}
@@ -377,7 +370,7 @@ public final class AgentHost implements AgentHostInterface {
 		
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			ObjectCache.get("agents").put(agentId, agent);
+			ObjectCache.get(AGENTS).put(agentId, agent);
 		}
 		
 		return agent;
@@ -413,7 +406,7 @@ public final class AgentHost implements AgentHostInterface {
 				// get the agent and execute the delete method
 				agent.signalAgent(new AgentSignal<Void>(AgentSignal.DESTROY));
 				agent.signalAgent(new AgentSignal<Void>(AgentSignal.DELETE));
-				ObjectCache.get("agents").delete(agentId);
+				ObjectCache.get(AGENTS).delete(agentId);
 				agent = null;
 			} catch (Exception e) {
 				LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);
@@ -456,7 +449,7 @@ public final class AgentHost implements AgentHostInterface {
 			receiver = getAgent(receiverId);
 			if (receiver == null) {
 				// Check if there might be a proxy in the objectcache:
-				receiver = ObjectCache.get("agents").get(receiverId,
+				receiver = ObjectCache.get(AGENTS).get(receiverId,
 						AgentInterface.class);
 			}
 			if (receiver != null) {
@@ -639,7 +632,7 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public void addAgents(Config config) {
-		Map<String, String> agents = config.get("bootstrap", "agents");
+		Map<String, String> agents = config.get("bootstrap", AGENTS);
 		if (agents != null) {
 			for (Entry<String, String> entry : agents.entrySet()) {
 				String agentId = entry.getKey();

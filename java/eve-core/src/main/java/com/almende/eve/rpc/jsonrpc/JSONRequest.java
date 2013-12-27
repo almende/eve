@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class JSONRequest extends JSONMessage {
+public final class JSONRequest extends JSONMessage {
 	private static final Logger	LOG					= Logger.getLogger(JSONRequest.class
 															.getCanonicalName());
 	private static final long	serialVersionUID	= 1970046457233622444L;
@@ -36,31 +36,31 @@ public class JSONRequest extends JSONMessage {
 		init(request);
 	}
 	
-	public final void init(ObjectNode request) throws JSONRPCException {
+	public void init(ObjectNode request) throws JSONRPCException {
 		if (request == null || request.isNull()) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Request is null");
 		}
-		if (request.has("jsonrpc") && request.get("jsonrpc").isTextual()
-				&& !request.get("jsonrpc").asText().equals("2.0")) {
+		if (request.has(JSONRPC) && request.get(JSONRPC).isTextual()
+				&& !request.get(JSONRPC).asText().equals(VERSION)) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Value of member 'jsonrpc' is not equal to '2.0'");
 		}
-		if (!request.has("method")) {
+		if (!request.has(METHOD)) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'method' missing in request");
 		}
-		if (!(request.get("method").isTextual())) {
+		if (!(request.get(METHOD).isTextual())) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'method' is no String");
 		}
-		if (request.has("params") && !(request.get("params").isObject())) {
+		if (request.has(PARAMS) && !(request.get(PARAMS).isObject())) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'params' is no ObjectNode");
 		}
 		
-		init(request.get("id"), request.get("method").asText(),
-				(ObjectNode) request.get("params"));
+		init(request.get(ID), request.get(METHOD).asText(),
+				(ObjectNode) request.get(PARAMS));
 	}
 	
 	public JSONRequest(String method, ObjectNode params) {
@@ -93,57 +93,56 @@ public class JSONRequest extends JSONMessage {
 		setParams(params);
 	}
 	
-	public final void setId(String id) {
+	public void setId(String id) {
 		if (id == null) {
 			id = new UUID().toString();
 		}
-		req.put("id", id);
+		req.put(ID, id);
 	}
 	
-	public final void setId(JsonNode id) {
+	public void setId(JsonNode id) {
 		if (id == null || id.isNull()) {
 			setId(new UUID().toString());
 		} else {
-			req.put("id", id);
+			req.put(ID, id);
 		}
 	}
 	
 	public JsonNode getId() {
-		return req.get("id");
+		return req.get(ID);
 	}
 	
-	public final void setMethod(String method) {
-		req.put("method", method);
+	public void setMethod(String method) {
+		req.put(METHOD, method);
 	}
 	
 	public String getMethod() {
-		if (req.has("method")) {
-			return req.get("method").asText();
+		if (req.has(METHOD)) {
+			return req.get(METHOD).asText();
 		}
 		return null;
 	}
 	
-	public final void setParams(ObjectNode params) {
+	public void setParams(ObjectNode params) {
 		ObjectNode newParams = JOM.createObjectNode();
 		if (params != null) {
 			newParams.setAll(params);
 		}
-		req.put("params", newParams);
+		req.put(PARAMS, newParams);
 	}
 	
 	public ObjectNode getParams() {
-		return (ObjectNode) req.get("params");
+		return (ObjectNode) req.get(PARAMS);
 	}
 	
 	public void putParam(String name, Object value) {
 		ObjectMapper mapper = JOM.getInstance();
-		req.with("params")
-				.put(name, mapper.convertValue(value, JsonNode.class));
+		req.with(PARAMS).put(name, mapper.convertValue(value, JsonNode.class));
 	}
 	
 	public Object getParam(String name) {
 		ObjectMapper mapper = JOM.getInstance();
-		ObjectNode params = req.with("params");
+		ObjectNode params = req.with(PARAMS);
 		if (params.has(name)) {
 			return mapper.convertValue(params.get(name), Object.class);
 		}
@@ -151,40 +150,40 @@ public class JSONRequest extends JSONMessage {
 	}
 	
 	public Object hasParam(String name) {
-		return req.get("params").has(name);
+		return req.get(PARAMS).has(name);
 	}
 	
 	private void setVersion() {
-		req.put("jsonrpc", "2.0");
+		req.put(JSONRPC, VERSION);
 	}
 	
-	public final void setCallback(String url, String method) {
+	public void setCallback(String url, String method) {
 		ObjectNode callback = JOM.createObjectNode();
-		callback.put("url", url);
-		callback.put("method", method);
-		req.put("callback", callback);
+		callback.put(URL, url);
+		callback.put(METHOD, method);
+		req.put(CALLBACK, callback);
 	}
 	
 	public String getCallbackUrl() {
-		JsonNode callback = req.get("callback");
-		if (callback != null && callback.isObject() && callback.has("url")
-				&& callback.get("url").isTextual()) {
-			return callback.get("url").asText();
+		JsonNode callback = req.get(CALLBACK);
+		if (callback != null && callback.isObject() && callback.has(URL)
+				&& callback.get(URL).isTextual()) {
+			return callback.get(URL).asText();
 		}
 		return null;
 	}
 	
 	public String getCallbackMethod() {
-		JsonNode callback = req.get("callback");
-		if (callback != null && callback.isObject() && callback.has("method")
-				&& callback.get("method").isTextual()) {
-			return callback.get("method").asText();
+		JsonNode callback = req.get(CALLBACK);
+		if (callback != null && callback.isObject() && callback.has(METHOD)
+				&& callback.get(METHOD).isTextual()) {
+			return callback.get(METHOD).asText();
 		}
 		return null;
 	}
 	
 	public boolean hasCallback() {
-		return req.has("callback");
+		return req.has(CALLBACK);
 	}
 	
 	@JsonIgnore

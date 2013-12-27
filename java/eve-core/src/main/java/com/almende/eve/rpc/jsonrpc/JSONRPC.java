@@ -33,8 +33,6 @@ import com.almende.util.NamespaceUtil;
 import com.almende.util.NamespaceUtil.CallTuple;
 import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

@@ -10,11 +10,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class JSONResponse extends JSONMessage {
+public final class JSONResponse extends JSONMessage {
 	private static final long	serialVersionUID	= 12392962249054051L;
-	private ObjectNode			resp	= JOM.createObjectNode();
-	private static final Logger	LOG		= Logger.getLogger(JSONResponse.class
-												.getName());
+	private ObjectNode			resp				= JOM.createObjectNode();
+	private static final Logger	LOG					= Logger.getLogger(JSONResponse.class
+															.getName());
 	
 	public JSONResponse() {
 		init(null, null, null);
@@ -55,23 +55,22 @@ public class JSONResponse extends JSONMessage {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Response is null");
 		}
-		if (response.has("jsonrpc") && response.get("jsonrpc").isTextual()
-				&& !response.get("jsonrpc").asText().equals("2.0")) {
+		if (response.has(JSONRPC) && response.get(JSONRPC).isTextual()
+				&& !response.get(JSONRPC).asText().equals(VERSION)) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Value of member 'jsonrpc' must be '2.0'");
 		}
-		boolean hasError = response.has("error")
-				&& !response.get("error").isNull();
-		if (hasError && !(response.get("error").isObject())) {
+		boolean hasError = response.has(ERROR) && !response.get(ERROR).isNull();
+		if (hasError && !(response.get(ERROR).isObject())) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'error' is no ObjectNode");
 		}
 		
-		JsonNode id = response.get("id");
-		Object result = response.get("result");
+		JsonNode id = response.get(ID);
+		Object result = response.get(RESULT);
 		JSONRPCException error = null;
 		if (hasError) {
-			error = new JSONRPCException((ObjectNode) response.get("error"));
+			error = new JSONRPCException((ObjectNode) response.get(ERROR));
 		}
 		
 		init(id, result, error);
@@ -84,44 +83,44 @@ public class JSONResponse extends JSONMessage {
 		setError(error);
 	}
 	
-	public final void setId(JsonNode id) {
-		resp.put("id", id);
+	public void setId(JsonNode id) {
+		resp.put(ID, id);
 	}
 	
 	public JsonNode getId() {
-		return resp.get("id");
+		return resp.get(ID);
 	}
 	
-	public final void setResult(Object result) {
+	public void setResult(Object result) {
 		if (result != null) {
 			ObjectMapper mapper = JOM.getInstance();
-			resp.put("result", mapper.convertValue(result, JsonNode.class));
+			resp.put(RESULT, mapper.convertValue(result, JsonNode.class));
 			setError(null);
 		} else {
-			if (resp.has("result")) {
-				resp.remove("result");
+			if (resp.has(RESULT)) {
+				resp.remove(RESULT);
 			}
 		}
 	}
 	
 	public JsonNode getResult() {
-		return resp.get("result");
+		return resp.get(RESULT);
 	}
 	
-	public final void setError(JSONRPCException error) {
+	public void setError(JSONRPCException error) {
 		if (error != null) {
-			resp.put("error", error.getObjectNode());
+			resp.put(ERROR, error.getObjectNode());
 			setResult(null);
 		} else {
-			if (resp.has("error")) {
-				resp.remove("error");
+			if (resp.has(ERROR)) {
+				resp.remove(ERROR);
 			}
 		}
 	}
 	
 	public JSONRPCException getError() {
-		if (resp.has("error")) {
-			ObjectNode error = (ObjectNode) resp.get("error");
+		if (resp.has(ERROR)) {
+			ObjectNode error = (ObjectNode) resp.get(ERROR);
 			return new JSONRPCException(error);
 		} else {
 			return null;
@@ -129,7 +128,7 @@ public class JSONResponse extends JSONMessage {
 	}
 	
 	private void setVersion() {
-		resp.put("jsonrpc", "2.0");
+		resp.put(JSONRPC, VERSION);
 	}
 	
 	public ObjectNode getObjectNode() {

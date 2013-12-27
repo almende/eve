@@ -15,7 +15,6 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 public class AgentConnection {
 	private static final Logger	LOG			= Logger.getLogger(AgentConnection.class
@@ -207,10 +206,10 @@ public class AgentConnection {
 			if (resource != null && to != null) {
 				int index = to.indexOf('/');
 				if (index > 0) {
-					String resource = to.substring(index + 1);
-					if (!this.resource.equals(resource)) {
+					String res = to.substring(index + 1);
+					if (!resource.equals(res)) {
 						LOG.warning("Received stanza meant for another agent, disregarding. "
-								+ resource);
+								+ res);
 						return;
 					}
 				}
@@ -226,11 +225,14 @@ public class AgentConnection {
 	
 	public boolean isAvailable(String receiver) {
 		// split url (xmpp:user/resource) into parts
-		if (receiver.startsWith("xmpp:")) receiver = receiver.substring(5,
-				receiver.length());
-		int slash = receiver.indexOf("/");
-		if (slash <= 0) return false;
-		String resource = receiver.substring(slash + 1, receiver.length());
+		if (receiver.startsWith("xmpp:")) {
+			receiver = receiver.substring(5, receiver.length());
+		}
+		int slash = receiver.indexOf('/');
+		if (slash <= 0) {
+			return false;
+		}
+		String res = receiver.substring(slash + 1, receiver.length());
 		String user = receiver.substring(0, slash);
 		
 		Roster roster = this.conn.getRoster();
@@ -243,22 +245,11 @@ public class AgentConnection {
 			conn.sendPacket(subscribe);
 		}
 		
-		Presence p = roster.getPresenceResource(user + "/" + resource);
-		LOG.info("Presence for " + user + "/" + resource + " : " + p.getType());
-		if (p.isAvailable()) return true;
-		
-		/*
-		 * try resubscribe?
-		 * Presence unsubscribe = new Presence(Presence.Type.unsubscribe);
-		 * unsubscribe.setTo( receiver );
-		 * conn.sendPacket(unsubscribe);
-		 * 
-		 * Presence subscribe = new Presence(Presence.Type.subscribe);
-		 * subscribe.setTo( receiver );
-		 * conn.sendPacket(subscribe);
-		 */
-		
+		Presence p = roster.getPresenceResource(user + "/" + res);
+		LOG.info("Presence for " + user + "/" + res + " : " + p.getType());
+		if (p.isAvailable()) {
+			return true;
+		}
 		return false;
 	}
-	
 }
