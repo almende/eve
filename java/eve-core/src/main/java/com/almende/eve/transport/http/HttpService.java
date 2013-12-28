@@ -19,18 +19,16 @@ import org.apache.http.util.EntityUtils;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
 public class HttpService implements TransportService {
-	private static final Logger				LOG			= Logger.getLogger(HttpService.class
-																.getCanonicalName());
-	private String							servletUrl	= null;
-	private AgentHost						host		= null;
-	private List<String>					protocols	= Arrays.asList("http",
-																"https", "web");
+	private static final Logger	LOG			= Logger.getLogger(HttpService.class
+													.getCanonicalName());
+	private String				servletUrl	= null;
+	private AgentHost			host		= null;
+	private List<String>		protocols	= Arrays.asList("http", "https",
+													"web");
 	
 	public HttpService(AgentHost agentHost) {
 		this.host = agentHost;
@@ -123,24 +121,19 @@ public class HttpService implements TransportService {
 			
 			@Override
 			public void run() {
+				HttpPost httpPost = null;
 				try {
+					
 					if (tag != null) {
 						// This is a reply to a synchronous inbound call, get
 						// callback
 						// and use it to send the message
-						CallbackInterface callbacks = host
-								.getCallbackService("HttpTransport");
+						CallbackInterface<Object> callbacks = host.getCallbackService(
+								"HttpTransport", Object.class);
 						if (callbacks != null) {
-							AsyncCallback<JSONResponse> callback = callbacks
-									.get(tag);
-							if (callback != null
-									&& message instanceof JSONResponse) {
-								JSONResponse response = (JSONResponse) message;
-								if (response.getError() != null) {
-									callback.onFailure(response.getError());
-								} else {
-									callback.onSuccess(response);
-								}
+							AsyncCallback<Object> callback = callbacks.get(tag);
+							if (callback != null) {
+								callback.onSuccess(message);
 								return;
 							} else {
 								LOG.warning("Tag set, but no callback found! "
@@ -150,9 +143,8 @@ public class HttpService implements TransportService {
 							LOG.warning("Tag set, but no callbacks found!");
 						}
 					}
-					
+					httpPost = new HttpPost(receiverUrl);
 					// invoke via Apache HttpClient request:
-					HttpPost httpPost = new HttpPost(receiverUrl);
 					httpPost.setEntity(new StringEntity(message.toString()));
 					
 					// Add token for HTTP handshake
@@ -162,20 +154,15 @@ public class HttpService implements TransportService {
 					
 					HttpResponse webResp = ApacheHttpClient.get().execute(
 							httpPost);
-					try {
-						String result = EntityUtils.toString(webResp
-								.getEntity());
-						host.receive(senderUrl, result, receiverUrl, null);
-					} finally {
+					String result = EntityUtils.toString(webResp.getEntity());
+					host.receive(senderUrl, result, receiverUrl, null);
+				} catch (Exception e) {
+					LOG.log(Level.WARNING,
+							"HTTP roundtrip resulted in exception!", e);
+				} finally {
+					if (httpPost != null) {
 						httpPost.reset();
 					}
-					
-				} catch (Exception e) {
-					JSONRPCException jsonError = new JSONRPCException(
-							JSONRPCException.CODE.INTERNAL_ERROR, e
-									.getMessage(), e);
-					JSONResponse response = new JSONResponse(jsonError);
-					host.receive(senderUrl, response, receiverUrl, tag);
 				}
 			}
 		});

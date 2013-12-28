@@ -10,8 +10,6 @@ import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.ObjectCache;
 import com.almende.util.tokens.TokenRet;
@@ -87,11 +85,6 @@ public class ZmqConnection {
 			
 			socket.notifyAll();
 		}
-	}
-	
-	private void sendResponse(Socket socket, final byte[] connId,
-			final JSONResponse response) {
-		sendResponse(socket, connId, response.toString());
 	}
 	
 	private ByteBuffer[] getRequest(Socket socket) {
@@ -173,59 +166,49 @@ public class ZmqConnection {
 		// Receive connID|emptyDelimiter|ZMQ.NORMAL|senderUrl|tokenJson|body
 		// or connID|emptyDelimiter|ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
 		final byte[] connId = msg[0].array();
+		
+		final boolean handShake = Arrays.equals(msg[1].array(), ZMQ.HANDSHAKE);
+		final String senderUrl = new String(msg[2].array());
+		final String body = new String(msg[4].array());
+		
+		TokenRet token = null;
 		try {
-			final boolean handShake = Arrays.equals(msg[1].array(),
-					ZMQ.HANDSHAKE);
-			final String senderUrl = new String(msg[2].array());
-			final String body = new String(msg[4].array());
-			
-			TokenRet token = null;
-			try {
-				token = JOM.getInstance().readValue(msg[3].array(),
-						TokenRet.class);
-			} catch (Exception e) {
-				LOG.log(Level.WARNING, "Failed to parse token structure:"
-						+ new String(msg[3].array()), e);
-				return;
-			}
-			if (handShake) {
-				String res = TokenStore.get(body);
-				sendResponse(socket, connId, res);
-				return;
-			} else {
-				ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
-				String key = senderUrl + ":" + token.getToken();
-				if (!sessionCache.containsKey(key) && AgentHost.hasPrivate(agentId)) {
-					final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
-					final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
-					locSocket.connect(addr);
-					locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
-					locSocket.send(senderUrl, ZMQ.SNDMORE);
-					locSocket.send(token.toString(), ZMQ.SNDMORE);
-					locSocket.send(token.getTime());
-					
-					String result = new String(locSocket.recv());
-					locSocket.setLinger(0);
-					locSocket.close();
-					if (token.getToken().equals(result)) {
-						sessionCache.put(key, true);
-					} else {
-						LOG.warning("Failed to complete handshake!");
-						return;
-					}
+			token = JOM.getInstance().readValue(msg[3].array(), TokenRet.class);
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Failed to parse token structure:"
+					+ new String(msg[3].array()), e);
+			return;
+		}
+		if (handShake) {
+			String res = TokenStore.get(body);
+			sendResponse(socket, connId, res);
+			return;
+		} else {
+			ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
+			String key = senderUrl + ":" + token.getToken();
+			if (!sessionCache.containsKey(key) && AgentHost.hasPrivate(agentId)) {
+				final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
+				final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
+				locSocket.connect(addr);
+				locSocket.send(ZMQ.HANDSHAKE, ZMQ.SNDMORE);
+				locSocket.send(senderUrl, ZMQ.SNDMORE);
+				locSocket.send(token.toString(), ZMQ.SNDMORE);
+				locSocket.send(token.getTime());
+				
+				String result = new String(locSocket.recv());
+				locSocket.setLinger(0);
+				locSocket.close();
+				if (token.getToken().equals(result)) {
+					sessionCache.put(key, true);
+				} else {
+					LOG.warning("Failed to complete handshake!");
+					return;
 				}
 			}
-			
-			if (body != null) {
-				host.receive(agentId, body, senderUrl, null);
-			}
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Failed to handle request", e);
-			// generate JSON error response
-			JSONRPCException jsonError = new JSONRPCException(
-					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
-			JSONResponse response = new JSONResponse(jsonError);
-			sendResponse(socket, connId, response);
+		}
+		
+		if (body != null) {
+			host.receive(agentId, body, senderUrl, null);
 		}
 	}
 	

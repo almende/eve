@@ -80,7 +80,7 @@ public abstract class Agent implements AgentInterface {
 	private Scheduler						scheduler		= null;
 	private ResultMonitorFactoryInterface	monitorFactory	= null;
 	private EventsInterface					eventsFactory	= null;
-	private CallbackInterface				callbacks		= null;
+	private CallbackInterface<JSONResponse>	callbacks		= null;
 	
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
@@ -101,7 +101,8 @@ public abstract class Agent implements AgentInterface {
 			this.state = state;
 			this.monitorFactory = new ResultMonitorFactory(this);
 			this.eventsFactory = new EventsFactory(this);
-			this.callbacks = agentHost.getCallbackService(getId());
+			this.callbacks = agentHost.getCallbackService(getId(),
+					JSONResponse.class);
 		}
 	}
 	

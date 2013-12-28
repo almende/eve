@@ -22,8 +22,6 @@ import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.StreamingUtil;
 import com.almende.util.StringUtil;
@@ -62,7 +60,7 @@ public class AgentServlet extends HttpServlet {
 					+ globalParam + "' or '" + envParam + "' "
 					+ "missing in context configuration web.xml.");
 		}
-		httpTransport = new HttpService(agentHost,servletUrl);
+		httpTransport = new HttpService(agentHost, servletUrl);
 		agentHost.addTransportService(httpTransport);
 	}
 	
@@ -209,8 +207,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			if (AgentHost.hasPrivate(agentId)
-					&& !handleSession(req, resp)) {
+			if (AgentHost.hasPrivate(agentId) && !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				}
@@ -274,73 +271,66 @@ public class AgentServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		JSONResponse jsonResponse = null;
-		String body = null;
-		String agentUrl = null;
-		String agentId = null;
+		
+		// retrieve the agent url and the request body
+		String body = StringUtil.streamToString(req.getInputStream());
+		
+		String agentUrl = req.getRequestURI();
+		String agentId = httpTransport.getAgentId(agentUrl);
+		if (agentId == null || agentId.equals("")) {
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"No agentId found in url.");
+			resp.flushBuffer();
+			return;
+		}
+		Agent agent = null;
 		try {
-			// retrieve the agent url and the request body
-			body = StringUtil.streamToString(req.getInputStream());
-			
-			agentUrl = req.getRequestURI();
-			agentId = httpTransport.getAgentId(agentUrl);
-			if (agentId == null || agentId.equals("")) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-						"No agentId found in url.");
-				return;
-			}
-			Agent agent = agentHost.getAgent(agentId);
-			if (agent == null) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-						"Agent not found at this host.");
-				return;
-			}
-			
-			if (AgentHost.hasPrivate(agentId)
-					&& !handleSession(req, resp)) {
-				if (!resp.isCommitted()) {
-					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-				}
-				return;
-			}
-			
-			// Attach the claimed senderId, or null if not given.
-			String senderUrl = req.getHeader("X-Eve-SenderUrl");
-			if (senderUrl == null || senderUrl.equals("")) {
-				senderUrl = "web://" + req.getRemoteUser() + "@"
-						+ req.getRemoteAddr();
-			}
-			String tag = new UUID().toString();
-			
-			//TODO: this should not depend on JSONResponse...
-			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-			
-			CallbackInterface callbacks = agentHost.getCallbackService("HttpTransport");
-			callbacks.store(tag,callback);
-			//TODO: on JSONResponse the callback will never be called and will timeout. What to do? These don't come in unless the other side is async i.s.o. tagged synced. 
-			
-			agentHost.receive(agentId, body,
-					URI.create(senderUrl),tag);
-			
-			jsonResponse = callback.get();
-		} catch (Exception err) {
-			// generate JSON error response
-			LOG.log(Level.WARNING, "", err);
-			JSONRPCException jsonError = null;
-			if (err instanceof JSONRPCException) {
-				jsonError = (JSONRPCException) err;
-			} else {
-				jsonError = new JSONRPCException(
-						JSONRPCException.CODE.INTERNAL_ERROR, err.getMessage());
-				jsonError.setData(err);
-			}
-			jsonResponse = new JSONResponse(jsonError);
+			agent = agentHost.getAgent(agentId);
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Couldn't get agent:" + agentId, e);
+		}
+		if (agent == null) {
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"Agent not found at this host.");
+			resp.flushBuffer();
+			return;
 		}
 		
-		// return response
-		resp.addHeader("Content-Type", "application/json");
-		resp.getWriter().println(jsonResponse.toString());
-		resp.getWriter().close();
+		if (AgentHost.hasPrivate(agentId) && !handleSession(req, resp)) {
+			if (!resp.isCommitted()) {
+				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			}
+			resp.flushBuffer();
+			return;
+		}
+		
+		// Attach the claimed senderId, or null if not given.
+		String senderUrl = req.getHeader("X-Eve-SenderUrl");
+		if (senderUrl == null || senderUrl.equals("")) {
+			senderUrl = "web://" + req.getRemoteUser() + "@"
+					+ req.getRemoteAddr();
+		}
+		String tag = new UUID().toString();
+		
+		// TODO: this should not depend on JSONResponse...
+		SyncCallback<Object> callback = new SyncCallback<Object>();
+		
+		CallbackInterface<Object> callbacks = agentHost.getCallbackService("HttpTransport",Object.class);
+		callbacks.store(tag, callback);
+		agentHost.receive(agentId, body, URI.create(senderUrl), tag);
+		
+		try {
+			Object message = callback.get();
+			// return response
+			resp.addHeader("Content-Type", "application/json");
+			resp.getWriter().println(message.toString());
+			resp.getWriter().close();
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, "Sync receive raised exception.", e);
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					"Receiver raised exception:" + e.getMessage());
+		}
+		resp.flushBuffer();
 	}
 	
 	/**

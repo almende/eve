@@ -23,7 +23,6 @@ import org.jivesoftware.smack.SmackConfiguration;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.TransportService;
@@ -49,13 +48,13 @@ public class XmppService implements TransportService {
 	protected XmppService() {
 	}
 	
-	//Needed to force Android loading the ReconnectionManager....
+	// Needed to force Android loading the ReconnectionManager....
 	static {
-	    try {
-	        Class.forName("org.jivesoftware.smack.ReconnectionManager");
-	    } catch (ClassNotFoundException ex) {
-	        // problem loading reconnection manager
-	    }
+		try {
+			Class.forName("org.jivesoftware.smack.ReconnectionManager");
+		} catch (ClassNotFoundException ex) {
+			// problem loading reconnection manager
+		}
 	}
 	
 	/**
@@ -105,14 +104,16 @@ public class XmppService implements TransportService {
 		
 		ArrayNode conns = null;
 		if (state.containsKey(CONNKEY)) {
-			conns = (ArrayNode) JOM.getInstance().readTree(state.get(CONNKEY,String.class));
+			conns = (ArrayNode) JOM.getInstance().readTree(
+					state.get(CONNKEY, String.class));
 		}
 		return conns;
 	}
 	
 	/**
 	 * Get the first XMPP url of an agent from its id.
-	 * If the agent exists (is not null) retrieve the current 'isConnected' status and return it.
+	 * If the agent exists (is not null) retrieve the current 'isConnected'
+	 * status and return it.
 	 * 
 	 * @param agentUrl
 	 *            The url of the agent
@@ -121,11 +122,12 @@ public class XmppService implements TransportService {
 	public Boolean isConnected(String agentUrl) {
 		AgentConnection connection = connectionsByUrl.get(agentUrl);
 		
-		if(connection == null){
+		if (connection == null) {
 			return false;
 		}
 		
-		LOG.info("Current connection of agent " + agentUrl + " is: " + connection.isConnected());
+		LOG.info("Current connection of agent " + agentUrl + " is: "
+				+ connection.isConnected());
 		return connection.isConnected();
 	}
 	
@@ -210,7 +212,6 @@ public class XmppService implements TransportService {
 	 * @param password
 	 * @param resource
 	 * @throws IOException
-	 * @throws JSONRPCException
 	 * @throws BadPaddingException
 	 * @throws IllegalBlockSizeException
 	 * @throws NoSuchPaddingException
@@ -221,10 +222,7 @@ public class XmppService implements TransportService {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(String agentId, String username, String password)
-			throws InvalidKeyException, InvalidAlgorithmParameterException,
-			NoSuchAlgorithmException, InvalidKeySpecException,
-			NoSuchPaddingException, IllegalBlockSizeException,
-			BadPaddingException, JSONRPCException, IOException {
+			throws IOException {
 		String resource = null;
 		connect(agentId, username, password, resource);
 	}
@@ -239,25 +237,15 @@ public class XmppService implements TransportService {
 	 * @param resource
 	 *            (optional)
 	 * @throws IOException
-	 * @throws JSONRPCException
-	 * @throws BadPaddingException
-	 * @throws IllegalBlockSizeException
-	 * @throws NoSuchPaddingException
-	 * @throws InvalidKeySpecException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidAlgorithmParameterException
-	 * @throws JsonProcessingException
-	 * @throws InvalidKeyException
-	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(String agentId, String username, String password,
-			String resource) throws IOException{
-		//First store the connection info for later reconnection.
+			String resource) throws IOException {
+		// First store the connection info for later reconnection.
 		try {
 			storeConnection(agentId, username, password, resource);
 		} catch (Exception e) {
-			LOG.log(Level.SEVERE, "Failed to store XMPP Connection.",e);
+			LOG.log(Level.SEVERE, "Failed to store XMPP Connection.", e);
 		}
 		
 		String agentUrl = generateUrl(username, host, resource);
@@ -275,20 +263,20 @@ public class XmppService implements TransportService {
 					+ username);
 		}
 		connection.connect(agentId, host, port, service, username, password,
-					resource);
+				resource);
 		connectionsByUrl.put(agentUrl, connection);
 	}
 	
 	private void storeConnection(String agentId, String username,
-			String password, String resource) throws JSONRPCException,
-			IOException, InvalidKeyException,
-			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
-			InvalidKeySpecException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException {
+			String password, String resource) throws IOException,
+			InvalidKeyException, InvalidAlgorithmParameterException,
+			NoSuchAlgorithmException, InvalidKeySpecException,
+			NoSuchPaddingException, IllegalBlockSizeException,
+			BadPaddingException {
 		
 		State state = agentHost.getStateFactory().get(agentId);
 		
-		String conns = state.get(CONNKEY,String.class);
+		String conns = state.get(CONNKEY, String.class);
 		ArrayNode newConns;
 		if (conns != null) {
 			newConns = (ArrayNode) JOM.getInstance().readTree(conns);
@@ -315,59 +303,59 @@ public class XmppService implements TransportService {
 		}
 	}
 	
-	private void delConnections(String agentId) throws JSONRPCException {
+	private void delConnections(String agentId) {
 		State state = agentHost.getStateFactory().get(agentId);
-		state.remove(CONNKEY);
+		if (state != null){
+			state.remove(CONNKEY);	
+		}
 	}
 	
 	/**
 	 * Disconnect the agent from the connected messaging service(s) (if any)
 	 * 
 	 * @param agentId
-	 * @throws JSONRPCException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws InvalidKeySpecException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws InvalidKeyException 
-	 * @throws IOException 
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeySpecException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws InvalidKeyException
+	 * @throws IOException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public final void disconnect(String agentId) throws JSONRPCException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+	public final void disconnect(String agentId) throws InvalidKeyException,
+			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
+			InvalidKeySpecException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, IOException {
 		
-			ArrayNode conns = getConns(agentId);
-			if (conns != null) {
-				for (JsonNode conn : conns) {
-					ObjectNode params = (ObjectNode) conn;
+		ArrayNode conns = getConns(agentId);
+		if (conns != null) {
+			for (JsonNode conn : conns) {
+				ObjectNode params = (ObjectNode) conn;
+				
+				String encryptedUsername = params.has("username") ? params.get(
+						"username").textValue() : null;
+				String encryptedResource = params.has("resource") ? params.get(
+						"resource").textValue() : null;
+				if (encryptedUsername != null) {
+					String username = EncryptionUtil.decrypt(encryptedUsername);
+					String resource = null;
+					if (encryptedResource != null) {
+						resource = EncryptionUtil.decrypt(encryptedResource);
+					}
 					
-					String encryptedUsername = params.has("username") ? params
-							.get("username").textValue() : null;
-					String encryptedResource = params.has("resource") ? params
-							.get("resource").textValue() : null;
-					if (encryptedUsername != null) {
-						String username = EncryptionUtil
-								.decrypt(encryptedUsername);
-						String resource = null;
-						if (encryptedResource != null) {
-							resource = EncryptionUtil
-									.decrypt(encryptedResource);
-						}
-						
-						String url = generateUrl(username, host, resource);
-						AgentConnection connection = connectionsByUrl.get(url);
-						if (connection != null) {
-							connection.disconnect();
-							connectionsByUrl.remove(url);
-						}
+					String url = generateUrl(username, host, resource);
+					AgentConnection connection = connectionsByUrl.get(url);
+					if (connection != null) {
+						connection.disconnect();
+						connectionsByUrl.remove(url);
 					}
 				}
 			}
-			delConnections(agentId);
+		}
+		delConnections(agentId);
 	}
-	
-
 	
 	/**
 	 * Asynchronously Send a message to an other agent
@@ -378,9 +366,8 @@ public class XmppService implements TransportService {
 	 *            with a JSONResponse
 	 */
 	@Override
-	public void sendAsync(String senderUrl, String receiver,
-			Object message,String tag)
-			throws IOException {
+	public void sendAsync(String senderUrl, String receiver, Object message,
+			String tag) throws IOException {
 		
 		AgentConnection connection = null;
 		
@@ -473,14 +460,10 @@ public class XmppService implements TransportService {
 	public String getKey() {
 		return "xmpp://" + host + ":" + port + "/" + service;
 	}
-
-
-
-	public boolean ping(String senderUrl, String receiver )
-	{
-		AgentConnection connection = this.connectionsByUrl.get(senderUrl );
-		return connection.isAvailable( receiver );
+	
+	public boolean ping(String senderUrl, String receiver) {
+		AgentConnection connection = this.connectionsByUrl.get(senderUrl);
+		return connection.isAvailable(receiver);
 	}
-
-
+	
 }

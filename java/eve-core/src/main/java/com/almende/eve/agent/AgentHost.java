@@ -47,10 +47,10 @@ import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.util.AnnotationUtil;
+import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
-import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,7 +62,7 @@ public final class AgentHost implements AgentHostInterface {
 																															.getSimpleName());
 	private static final AgentHost																HOST				= new AgentHost();
 	private final ConcurrentHashMap<String, TransportService>									transportServices	= new ConcurrentHashMap<String, TransportService>();
-	private final ConcurrentHashMap<String, CallbackInterface>									callbacks			= new ConcurrentHashMap<String, CallbackInterface>();
+	private final ConcurrentHashMap<String, CallbackInterface<?>>								callbacks			= new ConcurrentHashMap<String, CallbackInterface<?>>();
 	private StateFactory																		stateFactory		= null;
 	private SchedulerFactory																	schedulerFactory	= null;
 	private Config																				config				= null;
@@ -133,21 +133,26 @@ public final class AgentHost implements AgentHostInterface {
 		}
 	}
 	
-	public static boolean hasPrivate(String agentId) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		Class<?> clazz = HOST.getAgent(agentId).getClass();
-		AnnotatedClass annotated = AnnotationUtil.get(clazz);
-		for (Annotation anno : annotated.getAnnotations()) {
-			if (anno.annotationType().equals(Access.class)
-					&& ((Access) anno).value() == AccessType.PRIVATE) {
-				return true;
+	public static boolean hasPrivate(String agentId) {
+		try {
+			Class<?> clazz = HOST.getAgent(agentId).getClass();
+			AnnotatedClass annotated = AnnotationUtil.get(clazz);
+			for (Annotation anno : annotated.getAnnotations()) {
+				if (anno.annotationType().equals(Access.class)
+						&& ((Access) anno).value() == AccessType.PRIVATE) {
+					return true;
+				}
+				if (anno.annotationType().equals(Sender.class)) {
+					return true;
+				}
 			}
-			if (anno.annotationType().equals(Sender.class)) {
-				return true;
-			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING,
+					" Couldn't determine private annotations of agent "
+							+ agentId, e);
 		}
 		return false;
 	}
-
 	
 	@Override
 	public Agent getAgent(String agentId) throws JSONRPCException,
@@ -223,7 +228,7 @@ public final class AgentHost implements AgentHostInterface {
 		final String proxyId = "proxy_"
 				+ (sender != null ? sender.getId() + "_" : "")
 				+ agentInterface.getCanonicalName().replace(' ', '_');
-
+		
 		T proxy = ObjectCache.get(AGENTS).get(proxyId, agentInterface);
 		if (proxy != null) {
 			return proxy;
@@ -232,16 +237,17 @@ public final class AgentHost implements AgentHostInterface {
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
 		proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
-					private JSONResponse receive(Object arg) throws JSONRPCException, JsonParseException, JsonMappingException, IOException{
+					private JSONResponse receive(Object arg)
+							throws JSONRPCException, JsonParseException,
+							JsonMappingException, IOException {
 						JSONResponse response = null;
 						if (arg instanceof String) {
 							String message = (String) arg;
 							if (message.startsWith("{")
 									|| message.trim().startsWith("{")) {
 								
-								ObjectNode json = JOM.getInstance()
-										.readValue(message,
-												ObjectNode.class);
+								ObjectNode json = JOM.getInstance().readValue(
+										message, ObjectNode.class);
 								if (JSONRPC.isResponse(json)) {
 									response = new JSONResponse(json);
 								}
@@ -254,14 +260,12 @@ public final class AgentHost implements AgentHostInterface {
 						} else if (arg instanceof JSONResponse) {
 							response = (JSONResponse) arg;
 						} else {
-							LOG.warning("Strange:"
-									+ arg
-									+ " "
-									+ arg.getClass()
-											.getCanonicalName());
+							LOG.warning("Strange:" + arg + " "
+									+ arg.getClass().getCanonicalName());
 						}
 						return response;
 					}
+					
 					public Object invoke(Object proxy, Method method,
 							Object[] args) throws JSONRPCException, IOException {
 						
@@ -286,7 +290,8 @@ public final class AgentHost implements AgentHostInterface {
 								if (response.getId() != null) {
 									id = response.getId();
 								}
-								CallbackInterface cbs = getCallbackService(proxyId);
+								CallbackInterface<JSONResponse> cbs = getCallbackService(
+										proxyId, JSONResponse.class);
 								AsyncCallback<JSONResponse> callback = cbs
 										.get(id);
 								if (callback != null) {
@@ -304,7 +309,8 @@ public final class AgentHost implements AgentHostInterface {
 									args);
 							
 							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-							CallbackInterface cbs = getCallbackService(proxyId);
+							CallbackInterface<JSONResponse> cbs = getCallbackService(
+									proxyId, JSONResponse.class);
 							cbs.store(request.getId(), callback);
 							
 							try {
@@ -869,10 +875,13 @@ public final class AgentHost implements AgentHostInterface {
 		return schedulerFactory.getScheduler(agent);
 	}
 	
-	public synchronized CallbackInterface getCallbackService(String id) {
-		CallbackInterface result = callbacks.get(id);
+	public synchronized <T> CallbackInterface<T> getCallbackService(String id,
+			Class<T> clazz) {
+		//TODO: make this better!
+		TypeUtil<CallbackInterface<T>> type = new TypeUtil<CallbackInterface<T>>(){};
+		CallbackInterface<T> result = type.inject(callbacks.get(id));
 		if (result == null) {
-			result = new CallbackService();
+			result = new CallbackService<T>();
 			callbacks.put(id, result);
 		}
 		return result;

@@ -1,15 +1,15 @@
 package com.almende.eve.agent.callback;
 
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 
-public class CallbackService implements CallbackInterface {
+public class CallbackService<T> implements CallbackInterface<T> {
 	//Contains list of "in-memory callbacks", like AsyncCallbacks
-	private AsyncCallbackQueue<JSONResponse> queue = new AsyncCallbackQueue<JSONResponse>();
+	private AsyncCallbackQueue<T> queue = new AsyncCallbackQueue<T>();
 	
-	public void store(Object id, AsyncCallback<JSONResponse> callback){
+	public void store(Object id, AsyncCallback<T> callback){
 		queue.push(id, "", callback);
 	}
-	public AsyncCallback<JSONResponse> get(Object id){
+	@Override
+	public AsyncCallback<T> get(Object id){
 		return queue.pull(id);
 	}
 	

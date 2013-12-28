@@ -13,6 +13,7 @@ import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
+import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
 
 
@@ -50,15 +51,15 @@ public class RestServlet extends HttpServlet {
 			}
 
 			String tag = new UUID().toString();
-			SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
+			SyncCallback<Object> callback = new SyncCallback<Object>();
 			
-			CallbackInterface callbacks = host.getCallbackService("HttpTransport");
+			CallbackInterface<Object> callbacks = host.getCallbackService("HttpTransport",Object.class);
 			callbacks.store(tag,callback);
 			
 			String senderUrl = null;
 			host.receive(agentId, request, senderUrl, tag);
 
-			JSONResponse response = callback.get();
+			JSONResponse response = TypeUtil.inject(callback.get(),JSONResponse.class);
 			
 			// return response
 			resp.addHeader("Content-Type", "application/json");

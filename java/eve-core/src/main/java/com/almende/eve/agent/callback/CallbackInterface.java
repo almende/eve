@@ -1,9 +1,8 @@
 package com.almende.eve.agent.callback;
 
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
 
-public interface CallbackInterface {
+public interface CallbackInterface<T> {
 	
-	void store(Object id, AsyncCallback<JSONResponse> callback);
-	AsyncCallback<JSONResponse> get(Object id);
+	void store(Object id, AsyncCallback<T> callback);
+	AsyncCallback<T> get(Object id);
 }
