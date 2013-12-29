@@ -45,7 +45,6 @@ import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
-import com.almende.eve.transport.http.HttpService;
 import com.almende.util.AnnotationUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.ClassUtil;
@@ -80,10 +79,6 @@ public final class AgentHost implements AgentHostInterface {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
 	private static final String																	AGENTS				= "agents";
-	
-	private AgentHost() {
-		this.addTransportService(new HttpService(this));
-	}
 	
 	/**
 	 * Get the shared AgentHost instance
