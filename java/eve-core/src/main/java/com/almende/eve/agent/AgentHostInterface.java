@@ -5,10 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.List;
 
+import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.log.EventLogger;
-import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.StateFactory;
@@ -50,7 +49,7 @@ import com.almende.eve.transport.TransportService;
  * 
  * @author jos
  */
-interface AgentHostInterface {
+public interface AgentHostInterface {
 	
 	/**
 	 * Instantiate the services from the given config.
@@ -73,7 +72,7 @@ interface AgentHostInterface {
 	 * neatly shutdown the instantiated state.
 	 * 
 	 * @param agentId
-	 * @return agentInterface
+	 * @return agent
 	 * @throws ClassNotFoundException
 	 * @throws NoSuchMethodException
 	 * @throws InvocationTargetException
@@ -81,25 +80,9 @@ interface AgentHostInterface {
 	 * @throws InstantiationException
 	 * @throws SecurityException
 	 */
-	AgentInterface getAgent(String agentId) throws JSONRPCException,
-			ClassNotFoundException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException;
-	
-	/**
-	 * Create an agent proxy from an java interface
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: createAgentProxy(sender,receiverUrl,agentInterface);"
-	 * @param receiverUrl
-	 *            Url of the receiving agent
-	 * @param agentInterface
-	 *            A java Interface, extending AgentInterface
-	 * @return
-	 */
-	@Deprecated
-	<T extends AgentInterface> T createAgentProxy(final URI receiverUrl,
-			Class<T> agentInterface);
+	Agent getAgent(String agentId) throws ClassNotFoundException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException;
 	
 	/**
 	 * Create an agent proxy from an java interface
@@ -113,22 +96,6 @@ interface AgentHostInterface {
 	 * @return
 	 */
 	<T extends AgentInterface> T createAgentProxy(final AgentInterface sender,
-			final URI receiverUrl, Class<T> agentInterface);
-	
-	/**
-	 * Create an asynchronous agent proxy from an java interface, each call will
-	 * return a future for handling the results.
-	 * 
-	 * @deprecated
-	 *             "Please use authenticated version: createAgentProxy(sender,receiverUrl,agentInterface);"
-	 * @param receiverUrl
-	 *            Url of the receiving agent
-	 * @param agentInterface
-	 *            A java Interface, extending AgentInterface
-	 * @return
-	 */
-	@Deprecated
-	<T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
 			final URI receiverUrl, Class<T> agentInterface);
 	
 	/**
@@ -164,13 +131,12 @@ interface AgentHostInterface {
 	 * @throws InvocationTargetException
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
-	 * @throws JSONRPCException
 	 * @throws IOException
 	 */
 	<T extends Agent> T createAgent(String agentType, String agentId)
-			throws JSONRPCException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, ClassNotFoundException, IOException;
+			throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException,
+			ClassNotFoundException, IOException;
 	
 	/**
 	 * Create an agent.
@@ -181,7 +147,6 @@ interface AgentHostInterface {
 	 * @param agentType
 	 * @param agentId
 	 * @return
-	 * @throws JSONRPCException
 	 * @throws NoSuchMethodException
 	 * @throws InvocationTargetException
 	 * @throws IllegalAccessException
@@ -189,9 +154,8 @@ interface AgentHostInterface {
 	 * @throws IOException
 	 */
 	<T extends Agent> T createAgent(Class<T> agentType, String agentId)
-			throws JSONRPCException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException;
+			throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException;
 	
 	/**
 	 * Create a new agent, using the base AspectAgent class. This agent has a
@@ -204,11 +168,10 @@ interface AgentHostInterface {
 	 * @throws InvocationTargetException
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
-	 * @throws JSONRPCException
 	 * @throws IOException
 	 */
 	<T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
-			String agentId) throws JSONRPCException, InstantiationException,
+			String agentId) throws InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException;
 	
@@ -221,21 +184,18 @@ interface AgentHostInterface {
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 * @throws ClassNotFoundException
-	 * @throws JSONRPCException
 	 */
-	void deleteAgent(String agentId) throws JSONRPCException,
-			ClassNotFoundException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException;
+	void deleteAgent(String agentId) throws ClassNotFoundException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException;
 	
 	/**
 	 * Test if an agent exists
 	 * 
 	 * @param agentId
 	 * @return true if the agent exists
-	 * @throws JSONRPCException
 	 */
-	boolean hasAgent(String agentId) throws JSONRPCException;
+	boolean hasAgent(String agentId);
 	
 	/**
 	 * Get the event logger. The event logger is used to temporary log triggered
@@ -251,19 +211,20 @@ interface AgentHostInterface {
 	 * @param receiverUrl
 	 * @param message
 	 * @param senderUri
-
+	 * @throws IOException 
 	 */
-	void receive(String receiverId, Object message, URI senderUri, String tag);
+	void receive(String receiverId, Object message, URI senderUri, String tag) throws IOException;
+	
 	/**
 	 * Receive a message for an agent.
 	 * 
 	 * @param receiverUrl
 	 * @param message
 	 * @param senderUri
-
+	 * @throws IOException 
 	 */
-	void receive(String receiverId, Object message, String senderUrl, String tag);
-		
+	void receive(String receiverId, Object message, String senderUrl, String tag) throws IOException;
+	
 	/**
 	 * Asynchronously send a message to an agent.
 	 * 
@@ -277,8 +238,8 @@ interface AgentHostInterface {
 	 * @throws IOException
 	 */
 	
-	void sendAsync(URI receiverUrl, Object message, AgentInterface sender, String tag)
-			throws IOException;
+	void sendAsync(URI receiverUrl, Object message, AgentInterface sender,
+			String tag) throws IOException;
 	
 	/**
 	 * Get the agentId from given agentUrl. The url can be any protocol. If the
@@ -295,7 +256,8 @@ interface AgentHostInterface {
 	 * Determines best senderUrl for this agent, match receiverUrl transport
 	 * method if possible. (fallback from HTTPS to HTTP included)
 	 * 
-	 * @param agentId, receiverUrl
+	 * @param agentId
+	 *            , receiverUrl
 	 * @return URI SenderUrl
 	 */
 	URI getSenderUrl(String agentId, URI receiverUrl);
@@ -386,7 +348,7 @@ interface AgentHostInterface {
 	 * 
 	 * @return stateFactory
 	 */
-	StateFactory getStateFactory() throws JSONRPCException;
+	StateFactory getStateFactory();
 	
 	/**
 	 * Load a scheduler factory from a config file
@@ -447,14 +409,6 @@ interface AgentHostInterface {
 	TransportService getTransportService(String protocol);
 	
 	/**
-	 * Describes the RPC methods the given agent provides
-	 * 
-	 * @param agent
-	 * @return
-	 */
-	List<Object> getMethods(Agent agent);
-	
-	/**
 	 * Set a scheduler factory. The scheduler factory is used to
 	 * get/create/delete an agents scheduler.
 	 * 
@@ -469,5 +423,15 @@ interface AgentHostInterface {
 	 * @return scheduler
 	 */
 	Scheduler getScheduler(Agent agent);
+	
+	/**
+	 * Get a callback storage service. This service keeps AsyncCallbacks in a
+	 * global accessible in-memory store.
+	 * 
+	 * @param id
+	 * @param clazz
+	 * @return
+	 */
+	<T> CallbackInterface<T> getCallbackService(String id, Class<T> clazz);
 	
 }

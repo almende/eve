@@ -1,4 +1,4 @@
-package com.almende.eve.agent.proxy;
+package com.almende.eve.agent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

@@ -290,7 +290,7 @@ public class AgentServlet extends HttpServlet {
 			LOG.log(Level.WARNING, "Couldn't get agent:" + agentId, e);
 		}
 		if (agent == null) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+			resp.sendError(HttpServletResponse.SC_NOT_FOUND,
 					"Agent not found at this host.");
 			resp.flushBuffer();
 			return;

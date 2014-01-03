@@ -1,5 +1,6 @@
 package com.almende.eve.transport.zmq;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
@@ -208,7 +209,12 @@ public class ZmqConnection {
 		}
 		
 		if (body != null) {
-			host.receive(agentId, body, senderUrl, null);
+			try {
+				host.receive(agentId, body, senderUrl, null);
+			} catch (IOException e) {
+				LOG.log(Level.WARNING,"Host threw an IOException, probably agent '"+agentId+"' doesn't exist? ",e);
+				return;
+			}
 		}
 	}
 	

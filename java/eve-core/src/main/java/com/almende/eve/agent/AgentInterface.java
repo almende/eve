@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.jsonrpc.JSONAuthorizor;
@@ -67,19 +66,10 @@ public interface AgentInterface extends JSONAuthorizor {
 	State getState();
 	
 	/**
-	 * Get the associated AgentHost of this agent
-	 * 
-	 * @deprecated Use getAgentHost() instead
-	 * 
-	 */
-	@Deprecated
-	AgentHost getAgentFactory();
-	
-	/**
 	 * Get the associated agentHost of this agent
 	 * 
 	 */
-	AgentHost getAgentHost();
+	AgentHostInterface getAgentHost();
 	
 	/**
 	 * Get the scheduler to schedule tasks for the agent to be executed later

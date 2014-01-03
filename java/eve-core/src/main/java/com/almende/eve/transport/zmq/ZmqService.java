@@ -97,11 +97,21 @@ public class ZmqService implements TransportService {
 				} catch (Exception e) {
 					LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
 					
-					agentHost.receive(receiverId,e,senderUrl, null);
+					try {
+						agentHost.receive(receiverId,e,senderUrl, null);
+					} catch (IOException e1) {
+						LOG.log(Level.WARNING,"Couldn't send exception back to sender, IOException",e1);
+					}
 				}
 				socket.setLinger(0);
 				socket.close();
-				agentHost.receive(receiverId,result,senderUrl, null);
+				
+				try {
+					agentHost.receive(receiverId,result,senderUrl, null);
+				} catch (IOException e) {
+					LOG.log(Level.WARNING,"Host threw an IOException, probably agent '"+receiverId+"' doesn't exist? ",e);
+					return;
+				}
 			}
 		});
 	}

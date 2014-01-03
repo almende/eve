@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.proxy.AsyncProxy;
+import com.almende.eve.agent.AsyncProxy;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestAgent;
 import com.almende.test.agents.TestInterface;

@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -59,8 +60,8 @@ public class ManagementAgent extends Agent {
 	 * @throws JSONRPCException 
 	 * @throws IOException 
 	 */
-	public List<String> get(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		Agent agent = getAgentHost().getAgent(id);
+	public List<String> get(@Name("id") String id) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
+		AgentInterface agent = getAgentHost().getAgent(id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
 
@@ -76,8 +77,8 @@ public class ManagementAgent extends Agent {
 	 * @throws JSONRPCException 
 	 * @throws IOException 
 	 */
-	public boolean exists(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		Agent agent = getAgentHost().getAgent(id);
+	public boolean exists(@Name("id") String id) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
+		AgentInterface agent = getAgentHost().getAgent(id);
 		return (agent != null);
 	}
 

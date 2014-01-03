@@ -197,6 +197,7 @@ public class AgentConnection {
 		 * 
 		 * @param packet
 		 */
+		@Override
 		public void processPacket(Packet packet) {
 			Message message = (Message) packet;
 			
@@ -218,7 +219,12 @@ public class AgentConnection {
 			final URI senderUrl = URI.create("xmpp:" + message.getFrom());
 			
 			if (body != null) {
-				host.receive(agentId, body, senderUrl, null);
+				try {
+					host.receive(agentId, body, senderUrl, null);
+				} catch (IOException e) {
+					LOG.log(Level.WARNING,"Host threw an IOException, probably agent '"+agentId+"' doesn't exist? ",e);
+					return;
+				}
 			}
 		}
 	}

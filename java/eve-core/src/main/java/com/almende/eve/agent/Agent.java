@@ -46,7 +46,6 @@ import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
-import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.event.EventsFactory;
 import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactory;
@@ -75,12 +74,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Agent implements AgentInterface {
 	private static final Logger				LOG				= Logger.getLogger(Agent.class
 																	.getCanonicalName());
-	private AgentHost						agentHost		= null;
+	private AgentHostInterface				agentHost		= null;
 	private State							state			= null;
 	private Scheduler						scheduler		= null;
 	private ResultMonitorFactoryInterface	monitorFactory	= null;
 	private EventsInterface					eventsFactory	= null;
 	private CallbackInterface<JSONResponse>	callbacks		= null;
+	private static final RequestParams															EVEREQUESTPARAMS	= new RequestParams();
+	static {
+		EVEREQUESTPARAMS.put(Sender.class, null);
+	}
+	
 	
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
@@ -103,6 +107,13 @@ public abstract class Agent implements AgentInterface {
 			this.eventsFactory = new EventsFactory(this);
 			this.callbacks = agentHost.getCallbackService(getId(),
 					JSONResponse.class);
+			
+			// validate the Eve agent and output as warnings
+			List<String> errors = JSONRPC.validate(this.getClass(), EVEREQUESTPARAMS);
+			for (String error : errors) {
+				LOG.warning("Validation error class: " + this.getClass().getName()
+						+ ", message: " + error);
+			}
 		}
 	}
 	
@@ -130,7 +141,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public void signalAgent(AgentSignal<?> event) throws JSONRPCException,
+	public void signalAgent(AgentSignal<?> event) throws
 			IOException {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
 			sigInvoke((Object[]) event.getData());
@@ -269,16 +280,8 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final AgentHost getAgentHost() {
+	public final AgentHostInterface getAgentHost() {
 		return agentHost;
-		
-	}
-	
-	@Override
-	@Deprecated
-	@Access(AccessType.UNAVAILABLE)
-	public final AgentHost getAgentFactory() {
-		return getAgentHost();
 		
 	}
 	
@@ -307,7 +310,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<Object> getMethods() {
-		return getAgentHost().getMethods(this);
+		return JSONRPC.describe(this, EVEREQUESTPARAMS);
 	}
 	
 	// TODO: only allow ObjectNode as params?
@@ -600,7 +603,7 @@ public abstract class Agent implements AgentInterface {
 		receive(msg, senderUrl, null);
 	}
 	
-	private JSONMessage jsonConvert(final Object msg) throws IOException,
+	public static JSONMessage jsonConvert(final Object msg) throws IOException,
 			JSONRPCException {
 		JSONMessage jsonMsg = null;
 		if (msg instanceof JSONMessage) {
@@ -630,8 +633,7 @@ public abstract class Agent implements AgentInterface {
 					jsonMsg = request;
 				} else {
 					throw new IllegalArgumentException(
-							getId()
-									+ ": Request does not contain a valid JSON-RPC request or response");
+							" Request does not contain a valid JSON-RPC request or response");
 				}
 			}
 		}

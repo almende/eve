@@ -3,10 +3,7 @@ package com.almende.eve.agent;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -22,23 +19,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.ThreadSafe;
-import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.CallbackService;
-import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.log.EventLogger;
-import com.almende.eve.agent.proxy.AsyncProxy;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Sender;
-import com.almende.eve.rpc.jsonrpc.JSONRPC;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException;
-import com.almende.eve.rpc.jsonrpc.JSONRPCException.CODE;
-import com.almende.eve.rpc.jsonrpc.JSONRequest;
-import com.almende.eve.rpc.jsonrpc.JSONResponse;
-import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.State;
@@ -50,10 +37,6 @@ import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class AgentHost implements AgentHostInterface {
 	
@@ -74,10 +57,6 @@ public final class AgentHost implements AgentHostInterface {
 	
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
 	
-	private static final RequestParams															EVEREQUESTPARAMS	= new RequestParams();
-	static {
-		EVEREQUESTPARAMS.put(Sender.class, null);
-	}
 	private static final String																	AGENTS				= "agents";
 	
 	/**
@@ -94,7 +73,6 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	// TODO: prevent duplication of Services
 	public void loadConfig(Config config) {
 		HOST.setConfig(config);
 		if (config != null) {
@@ -150,12 +128,15 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public Agent getAgent(String agentId) throws JSONRPCException,
-			ClassNotFoundException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+	public Agent getAgent(String agentId) throws ClassNotFoundException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException {
 		
 		if (agentId == null) {
+			return null;
+		}
+		
+		if (getStateFactory() == null) {
 			return null;
 		}
 		
@@ -167,11 +148,7 @@ public final class AgentHost implements AgentHostInterface {
 		// No agent found, normal initialization:
 		
 		// load the State
-		State state = null;
-		if (getStateFactory() == null) {
-			return null;
-		}
-		state = getStateFactory().get(agentId);
+		State state = getStateFactory().get(agentId);
 		if (state == null) {
 			// agent does not exist
 			return null;
@@ -181,12 +158,17 @@ public final class AgentHost implements AgentHostInterface {
 		// read the agents class name from state
 		Class<?> agentType = state.getAgentType();
 		if (agentType == null) {
-			throw new JSONRPCException("Cannot instantiate agent. "
+			LOG.warning("Cannot instantiate agent. "
 					+ "Class information missing in the agents state "
 					+ "(agentId='" + agentId + "')");
+			return null;
 		}
 		
 		if (!Agent.class.isAssignableFrom(agentType)) {
+			LOG.warning("Cannot instantiate agent. "
+					+ "Class information does not represent an Agent. "
+					+ "(agentId='" + agentId + "', agentType='" + agentType
+					+ "')");
 			// Found state info not representing an Agent, like e.g. TokenStore
 			// or CookieStore.
 			return null;
@@ -197,6 +179,7 @@ public final class AgentHost implements AgentHostInterface {
 		agent.constr(this, state);
 		agent.signalAgent(new AgentSignal<Void>(AgentSignal.INIT));
 		
+		// If allowed, cache agent:
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
 			ObjectCache.get(AGENTS).put(agentId, agent);
@@ -205,14 +188,6 @@ public final class AgentHost implements AgentHostInterface {
 		return agent;
 	}
 	
-	@Deprecated
-	@Override
-	public <T extends AgentInterface> T createAgentProxy(final URI receiverUrl,
-			Class<T> agentInterface) {
-		return createAgentProxy(null, receiverUrl, agentInterface);
-	}
-	
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends AgentInterface> T createAgentProxy(
 			final AgentInterface sender, final URI receiverUrl,
@@ -228,125 +203,12 @@ public final class AgentHost implements AgentHostInterface {
 		if (proxy != null) {
 			return proxy;
 		}
-		
-		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
-		proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
-				new Class[] { agentInterface }, new InvocationHandler() {
-					private JSONResponse receive(Object arg)
-							throws JSONRPCException, JsonParseException,
-							JsonMappingException, IOException {
-						JSONResponse response = null;
-						if (arg instanceof String) {
-							String message = (String) arg;
-							if (message.startsWith("{")
-									|| message.trim().startsWith("{")) {
-								
-								ObjectNode json = JOM.getInstance().readValue(
-										message, ObjectNode.class);
-								if (JSONRPC.isResponse(json)) {
-									response = new JSONResponse(json);
-								}
-							}
-						} else if (arg instanceof ObjectNode) {
-							ObjectNode json = (ObjectNode) arg;
-							if (JSONRPC.isResponse(json)) {
-								response = new JSONResponse(json);
-							}
-						} else if (arg instanceof JSONResponse) {
-							response = (JSONResponse) arg;
-						} else {
-							LOG.warning("Strange:" + arg + " "
-									+ arg.getClass().getCanonicalName());
-						}
-						return response;
-					}
-					
-					public Object invoke(Object proxy, Method method,
-							Object[] args) throws JSONRPCException, IOException {
-						
-						AgentInterface agent = sender;
-						if (agent == null) {
-							agent = (T) proxy;
-						}
-						
-						// TODO: if method calls for Namespace getter, return
-						// new proxy for subtype. All calls to that proxy need
-						// to add namespace to method name for JSON-RPC.
-						if (method.getName().equals("getId")) {
-							return proxyId;
-						} else if (method.getName().equals("receive")
-								&& args.length > 1) {
-							JSONResponse response = null;
-							if (args[0] != null) {
-								response = receive(args[0]);
-							}
-							if (response != null && callbacks != null) {
-								JsonNode id = null;
-								if (response.getId() != null) {
-									id = response.getId();
-								}
-								CallbackInterface<JSONResponse> cbs = getCallbackService(
-										proxyId, JSONResponse.class);
-								AsyncCallback<JSONResponse> callback = cbs
-										.get(id);
-								if (callback != null) {
-									if (response.getError() != null) {
-										callback.onFailure(response.getError());
-									} else {
-										callback.onSuccess(response);
-									}
-								}
-							}
-							return null;
-						} else {
-							
-							JSONRequest request = JSONRPC.createRequest(method,
-									args);
-							
-							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-							CallbackInterface<JSONResponse> cbs = getCallbackService(
-									proxyId, JSONResponse.class);
-							cbs.store(request.getId(), callback);
-							
-							try {
-								sendAsync(receiverUrl, request, agent, null);
-							} catch (IOException e1) {
-								throw new JSONRPCException(
-										CODE.REMOTE_EXCEPTION, "", e1);
-							}
-							
-							JSONResponse response;
-							try {
-								response = callback.get();
-							} catch (Exception e) {
-								throw new JSONRPCException(
-										CODE.REMOTE_EXCEPTION, "", e);
-							}
-							JSONRPCException err = response.getError();
-							if (err != null) {
-								throw err;
-							} else if (response.getResult() != null
-									&& !method.getReturnType()
-											.equals(Void.TYPE)) {
-								return TypeUtil.inject(response.getResult(),
-										method.getGenericReturnType());
-							} else {
-								return null;
-							}
-						}
-					}
-				});
+		AgentProxyFactory pf = new AgentProxyFactory(this);
+		proxy = pf.genProxy(sender, receiverUrl, agentInterface, proxyId);
 		
 		ObjectCache.get(AGENTS).put(proxyId, proxy);
 		
 		return proxy;
-	}
-	
-	@Deprecated
-	@Override
-	public <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
-			final URI receiverUrl, Class<T> agentInterface) {
-		return createAsyncAgentProxy(null, receiverUrl, agentInterface);
 	}
 	
 	@Override
@@ -360,24 +222,16 @@ public final class AgentHost implements AgentHostInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Agent> T createAgent(String agentType, String agentId)
-			throws JSONRPCException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, ClassNotFoundException, IOException {
+			throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException,
+			ClassNotFoundException, IOException {
 		return (T) createAgent((Class<T>) Class.forName(agentType), agentId);
 	}
 	
 	@Override
 	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
-			throws JSONRPCException, InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
-		
-		// validate the Eve agent and output as warnings
-		List<String> errors = JSONRPC.validate(agentType, EVEREQUESTPARAMS);
-		for (String error : errors) {
-			LOG.warning("Validation error class: " + agentType.getName()
-					+ ", message: " + error);
-		}
+			throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException {
 		
 		// create the state
 		State state = getStateFactory().create(agentId);
@@ -390,6 +244,7 @@ public final class AgentHost implements AgentHostInterface {
 		agent.signalAgent(new AgentSignal<Void>(AgentSignal.CREATE));
 		agent.signalAgent(new AgentSignal<Void>(AgentSignal.INIT));
 		
+		// Cache agent if allowed
 		if (agentType.isAnnotationPresent(ThreadSafe.class)
 				&& agentType.getAnnotation(ThreadSafe.class).value()) {
 			ObjectCache.get(AGENTS).put(agentId, agent);
@@ -400,7 +255,7 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
-			String agentId) throws JSONRPCException, InstantiationException,
+			String agentId) throws InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException {
 		@SuppressWarnings("unchecked")
@@ -440,7 +295,7 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public boolean hasAgent(String agentId) throws JSONRPCException {
+	public boolean hasAgent(String agentId) {
 		return getStateFactory().exists(agentId);
 	}
 	
@@ -451,7 +306,7 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public void receive(String receiverId, Object message, String senderUrl,
-			String tag) {
+			String tag) throws IOException {
 		URI senderUri = null;
 		if (senderUrl != null) {
 			try {
@@ -465,29 +320,21 @@ public final class AgentHost implements AgentHostInterface {
 	
 	@Override
 	public void receive(String receiverId, Object message, URI senderUri,
-			String tag) {
+			String tag) throws IOException {
 		AgentInterface receiver = null;
 		try {
 			receiver = getAgent(receiverId);
-			if (receiver == null) {
-				// Check if there might be a proxy in the objectcache:
-				receiver = ObjectCache.get(AGENTS).get(receiverId,
-						AgentInterface.class);
-			}
-			if (receiver != null) {
-				receiver.receive(message, senderUri, tag);
-			}
 		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-			if (senderUri != null) {
-				try {
-					sendAsync(senderUri, new JSONRPCException(
-							CODE.REMOTE_EXCEPTION, "", e), receiver, tag);
-				} catch (Exception e1) {
-					LOG.log(Level.WARNING,
-							"Couldn't send exception to remote agent!", e1);
-				}
-			}
+			LOG.log(Level.WARNING, "Couldn't getAgent("+receiverId+")", e);
+			throw new IOException(e);
+		}
+		if (receiver == null) {
+			// Check if there might be a proxy in the objectcache:
+			receiver = ObjectCache.get(AGENTS).get(receiverId,
+					AgentInterface.class);
+		}
+		if (receiver != null) {
+			receiver.receive(message, senderUri, tag);
 		}
 	}
 	
@@ -522,6 +369,7 @@ public final class AgentHost implements AgentHostInterface {
 		}
 	}
 	
+	// TODO: change to URI en create a protocol->transport map in agentHost
 	@Override
 	public String getAgentId(String agentUrl) {
 		if (agentUrl.startsWith("local:")) {
@@ -558,16 +406,6 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public void setConfig(Config config) {
-		this.config = config;
-	}
-	
-	@Override
-	public Config getConfig() {
-		return config;
-	}
-	
-	@Override
 	public <T> T getRef(String agentId, TypedKey<T> key) {
 		ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
 				.get(agentId);
@@ -589,16 +427,6 @@ public final class AgentHost implements AgentHostInterface {
 			objects.put(key, new WeakReference<Object>(value));
 			refStore.put(agentId, objects);
 		}
-	}
-	
-	@Override
-	public boolean isDoesShortcut() {
-		return doesShortcut;
-	}
-	
-	@Override
-	public void setDoesShortcut(boolean doesShortcut) {
-		this.doesShortcut = doesShortcut;
 	}
 	
 	public StateFactory getStateFactoryFromConfig(Config config,
@@ -743,14 +571,6 @@ public final class AgentHost implements AgentHostInterface {
 		// read global service params
 		List<Map<String, Object>> allTransportParams = config
 				.get("transport_services");
-		if (allTransportParams == null) {
-			// TODO: cleanup some day. deprecated since 2013-01-17
-			allTransportParams = config.get("services");
-			if (allTransportParams != null) {
-				LOG.warning("Property 'services' is deprecated. Use 'transport_services' instead.");
-			}
-		}
-		
 		if (allTransportParams != null) {
 			int index = 0;
 			for (Map<String, Object> transportParams : allTransportParams) {
@@ -848,11 +668,6 @@ public final class AgentHost implements AgentHostInterface {
 	}
 	
 	@Override
-	public List<Object> getMethods(Agent agent) {
-		return JSONRPC.describe(agent, EVEREQUESTPARAMS);
-	}
-	
-	@Override
 	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
 		if (this.schedulerFactory != null) {
 			LOG.warning("Replacing earlier schedulerFactory.");
@@ -872,8 +687,9 @@ public final class AgentHost implements AgentHostInterface {
 	
 	public synchronized <T> CallbackInterface<T> getCallbackService(String id,
 			Class<T> clazz) {
-		//TODO: make this better!
-		TypeUtil<CallbackInterface<T>> type = new TypeUtil<CallbackInterface<T>>(){};
+		// TODO: make this better!
+		TypeUtil<CallbackInterface<T>> type = new TypeUtil<CallbackInterface<T>>() {
+		};
 		CallbackInterface<T> result = type.inject(callbacks.get(id));
 		if (result == null) {
 			result = new CallbackService<T>();
@@ -882,4 +698,23 @@ public final class AgentHost implements AgentHostInterface {
 		return result;
 	}
 	
+	@Override
+	public void setConfig(Config config) {
+		this.config = config;
+	}
+	
+	@Override
+	public Config getConfig() {
+		return config;
+	}
+	
+	@Override
+	public boolean isDoesShortcut() {
+		return doesShortcut;
+	}
+	
+	@Override
+	public void setDoesShortcut(boolean doesShortcut) {
+		this.doesShortcut = doesShortcut;
+	}
 }
