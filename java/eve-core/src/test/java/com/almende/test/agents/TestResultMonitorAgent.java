@@ -8,10 +8,11 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
-import com.almende.eve.monitor.Cache;
-import com.almende.eve.monitor.Poll;
-import com.almende.eve.monitor.Push;
-import com.almende.eve.monitor.ResultMonitor;
+import com.almende.eve.monitor.CacheInterface;
+import com.almende.eve.monitor.impl.Cache;
+import com.almende.eve.monitor.impl.Poll;
+import com.almende.eve.monitor.impl.Push;
+import com.almende.eve.monitor.impl.ResultMonitorImpl;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -40,12 +41,12 @@ public class TestResultMonitorAgent extends Agent {
 		
 		if (monitorID != null) getState().put("PollKey", monitorID);
 		
-		Cache testCache = new Cache();
+		CacheInterface testCache = new Cache();
 		monitorID = getResultMonitorFactory().create("Push",URI.create("local:bob"), "getData", JOM.createObjectNode(),
 				null, new Push().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("PushKey", monitorID);
 		
-		monitorID = new ResultMonitor("LazyPush", getId(),URI.create("local:bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
+		monitorID = new ResultMonitorImpl("LazyPush", getId(),URI.create("local:bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
 		monitorID = getResultMonitorFactory().create("LazyPoll",URI.create("local:bob"), "getData", JOM.createObjectNode(),

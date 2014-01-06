@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -22,13 +22,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class EventsFactory implements EventsInterface {
-	private Agent													myAgent			= null;
+	private AgentInterface											myAgent			= null;
 	private static final TypedKey<HashMap<String, List<Callback>>>	SUBSCRIPTIONS	= new TypedKey<HashMap<String, List<Callback>>>(
 																							"subscriptions") {
 																					};
 	private static final String										EVENT			= "event";
 	
-	public EventsFactory(Agent agent) {
+	public EventsFactory(AgentInterface agent) {
 		this.myAgent = agent;
 	}
 	
@@ -104,8 +104,7 @@ public class EventsFactory implements EventsInterface {
 	 * @throws Exception
 	 */
 	public String subscribe(URI url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws IOException,
-			JSONRPCException {
+			ObjectNode callbackParams) throws IOException, JSONRPCException {
 		String method = "event.createSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put(EVENT, event);
@@ -127,8 +126,8 @@ public class EventsFactory implements EventsInterface {
 	 * @throws JSONRPCException
 	 * @throws ProtocolException
 	 */
-	public void unsubscribe(URI url, String subscriptionId)
-			throws IOException, JSONRPCException {
+	public void unsubscribe(URI url, String subscriptionId) throws IOException,
+			JSONRPCException {
 		String method = "event.deleteSubscription";
 		ObjectNode params = JOM.createObjectNode();
 		params.put("subscriptionId", subscriptionId);
@@ -186,7 +185,7 @@ public class EventsFactory implements EventsInterface {
 		if (event.equals("*")) {
 			throw new IllegalArgumentException("Cannot trigger * event");
 		}
-
+		
 		// retrieve subscriptions from the event
 		List<Callback> valueEvent = getSubscriptions(event);
 		subscriptions.addAll(valueEvent);

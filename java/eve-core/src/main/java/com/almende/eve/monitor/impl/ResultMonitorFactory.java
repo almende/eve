@@ -1,4 +1,4 @@
-package com.almende.eve.monitor;
+package com.almende.eve.monitor.impl;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -8,8 +8,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.agent.annotation.EventTriggered;
+import com.almende.eve.monitor.ResultMonitor;
+import com.almende.eve.monitor.ResultMonitorConfigType;
+import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -34,13 +37,13 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	private static final Logger										LOG			= Logger.getLogger(ResultMonitorFactory.class
 																						.getCanonicalName());
-	private Agent													myAgent		= null;
+	private AgentInterface											myAgent		= null;
 	
 	private static final TypedKey<HashMap<String, ResultMonitor>>	MONITORS	= new TypedKey<HashMap<String, ResultMonitor>>(
 																						"_monitors") {
 																				};
 	
-	public ResultMonitorFactory(Agent agent) {
+	public ResultMonitorFactory(AgentInterface agent) {
 		this.myAgent = agent;
 	}
 	
@@ -68,7 +71,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			old.cancel();
 		}
 		
-		ResultMonitor monitor = new ResultMonitor(monitorId, myAgent.getId(),
+		ResultMonitor monitor = new ResultMonitorImpl(monitorId, myAgent.getId(),
 				url, method, params, callbackMethod);
 		for (ResultMonitorConfigType config : confs) {
 			monitor.add(config);
@@ -154,8 +157,8 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			throws JSONRPCException, IOException {
 		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
-			if (monitor.getUrl() == null || monitor.getMethod() == null){
-				LOG.warning("Monitor data invalid:"+monitor);
+			if (monitor.getUrl() == null || monitor.getMethod() == null) {
+				LOG.warning("Monitor data invalid:" + monitor);
 			}
 			Object result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
 					JOM.getInstance().readTree(monitor.getParams()),
@@ -173,7 +176,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
-	//TODO: doesn't work!
+	// TODO: doesn't work!
 	private JsonNode	lastRes	= null;
 	
 	@Access(AccessType.SELF)
@@ -227,8 +230,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			@Name("callbackParams") ObjectNode callbackParams)
 			throws JSONRPCException {
 		
-		
-		//TODO: THis is unclean!
+		// TODO: THis is unclean!
 		String[] ids = pushId.split("_");
 		
 		if (ids.length != 2) {

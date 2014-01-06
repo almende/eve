@@ -1,7 +1,6 @@
 package com.almende.eve.agent;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ProtocolException;
@@ -23,17 +22,16 @@ import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.CallbackService;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.annotation.Access;
-import com.almende.eve.rpc.annotation.AccessType;
-import com.almende.eve.rpc.annotation.Sender;
+import com.almende.eve.event.EventsFactory;
+import com.almende.eve.event.EventsInterface;
+import com.almende.eve.monitor.ResultMonitorFactoryInterface;
+import com.almende.eve.monitor.impl.ResultMonitorFactory;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
-import com.almende.util.AnnotationUtil;
-import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
@@ -68,7 +66,8 @@ public final class AgentHostDefImpl implements AgentHost {
 		return HOST;
 	}
 	
-	public static ExecutorService getPool() {
+	@Override
+	public ExecutorService getPool() {
 		return POOL;
 	}
 	
@@ -104,27 +103,6 @@ public final class AgentHostDefImpl implements AgentHost {
 				}
 			}
 		}
-	}
-	
-	public static boolean hasPrivate(String agentId) {
-		try {
-			Class<?> clazz = HOST.getAgent(agentId).getClass();
-			AnnotatedClass annotated = AnnotationUtil.get(clazz);
-			for (Annotation anno : annotated.getAnnotations()) {
-				if (anno.annotationType().equals(Access.class)
-						&& ((Access) anno).value() == AccessType.PRIVATE) {
-					return true;
-				}
-				if (anno.annotationType().equals(Sender.class)) {
-					return true;
-				}
-			}
-		} catch (Exception e) {
-			LOG.log(Level.WARNING,
-					" Couldn't determine private annotations of agent "
-							+ agentId, e);
-		}
-		return false;
 	}
 	
 	@Override
@@ -429,6 +407,7 @@ public final class AgentHostDefImpl implements AgentHost {
 		}
 	}
 	
+	@Override
 	public StateFactory getStateFactoryFromConfig(Config config,
 			String configName) {
 		StateFactory result = null;
@@ -717,5 +696,16 @@ public final class AgentHostDefImpl implements AgentHost {
 	@Override
 	public void setDoesShortcut(boolean doesShortcut) {
 		this.doesShortcut = doesShortcut;
+	}
+	
+	@Override
+	public ResultMonitorFactoryInterface getResultMonitorFactory(
+			AgentInterface agent) {
+		return new ResultMonitorFactory(agent);
+	}
+	
+	@Override
+	public EventsInterface getEventsFactory(AgentInterface agent) {
+		return new EventsFactory(agent);
 	}
 }

@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 import org.zeromq.ZMQ.Socket;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
@@ -19,10 +19,9 @@ public class ZmqService implements TransportService {
 	private static final Logger				LOG				= Logger.getLogger(ZmqService.class
 																	.getCanonicalName());
 	
-	private AgentHostDefImpl						agentHost		= null;
+	private AgentHost						host			= null;
 	private String							baseUrl			= "";
 	private HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
-	
 	
 	protected ZmqService() {
 	}
@@ -37,8 +36,8 @@ public class ZmqService implements TransportService {
 	 *            {String} baseUrl
 	 *            {Integer} basePort
 	 */
-	public ZmqService(AgentHostDefImpl agentHost, Map<String, Object> params) {
-		this.agentHost = agentHost;
+	public ZmqService(AgentHost agentHost, Map<String, Object> params) {
+		this.host = agentHost;
 		
 		if (params != null) {
 			baseUrl = (String) params.get("baseUrl");
@@ -77,9 +76,10 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public void sendAsync(final String senderUrl, final String receiverUrl, final Object message, String tag) {
-		final String receiverId=getAgentId(receiverUrl);
-		AgentHostDefImpl.getPool().execute(new Runnable() {
+	public void sendAsync(final String senderUrl, final String receiverUrl,
+			final Object message, String tag) {
+		final String receiverId = getAgentId(receiverUrl);
+		host.getPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				String result = null;
@@ -98,18 +98,22 @@ public class ZmqService implements TransportService {
 					LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
 					
 					try {
-						agentHost.receive(receiverId,e,senderUrl, null);
+						host.receive(receiverId, e, senderUrl, null);
 					} catch (IOException e1) {
-						LOG.log(Level.WARNING,"Couldn't send exception back to sender, IOException",e1);
+						LOG.log(Level.WARNING,
+								"Couldn't send exception back to sender, IOException",
+								e1);
 					}
 				}
 				socket.setLinger(0);
 				socket.close();
 				
 				try {
-					agentHost.receive(receiverId,result,senderUrl, null);
+					host.receive(receiverId, result, senderUrl, null);
 				} catch (IOException e) {
-					LOG.log(Level.WARNING,"Host threw an IOException, probably agent '"+receiverId+"' doesn't exist? ",e);
+					LOG.log(Level.WARNING,
+							"Host threw an IOException, probably agent '"
+									+ receiverId + "' doesn't exist? ", e);
 					return;
 				}
 			}
@@ -155,7 +159,7 @@ public class ZmqService implements TransportService {
 				socket.getSocket().bind(url);
 				socket.setAgentUrl(url);
 				socket.setAgentId(agentId);
-				socket.setHost(agentHost);
+				socket.setHost(host);
 				socket.listen();
 			}
 		} catch (Exception e) {

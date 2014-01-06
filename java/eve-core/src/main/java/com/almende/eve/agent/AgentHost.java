@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
+import com.almende.eve.event.EventsInterface;
+import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
 import com.almende.eve.state.StateFactory;
@@ -211,9 +214,10 @@ public interface AgentHost {
 	 * @param receiverUrl
 	 * @param message
 	 * @param senderUri
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	void receive(String receiverId, Object message, URI senderUri, String tag) throws IOException;
+	void receive(String receiverId, Object message, URI senderUri, String tag)
+			throws IOException;
 	
 	/**
 	 * Receive a message for an agent.
@@ -221,9 +225,10 @@ public interface AgentHost {
 	 * @param receiverUrl
 	 * @param message
 	 * @param senderUri
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	void receive(String receiverId, Object message, String senderUrl, String tag) throws IOException;
+	void receive(String receiverId, Object message, String senderUrl, String tag)
+			throws IOException;
 	
 	/**
 	 * Asynchronously send a message to an agent.
@@ -433,5 +438,13 @@ public interface AgentHost {
 	 * @return
 	 */
 	<T> CallbackInterface<T> getCallbackService(String id, Class<T> clazz);
+	
+	ResultMonitorFactoryInterface getResultMonitorFactory(AgentInterface agent);
+	
+	EventsInterface getEventsFactory(AgentInterface agent);
+	
+	ExecutorService getPool();
+	
+	StateFactory getStateFactoryFromConfig(Config config, String configName);
 	
 }

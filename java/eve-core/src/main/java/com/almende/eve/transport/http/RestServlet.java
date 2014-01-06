@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
@@ -20,7 +21,7 @@ import com.almende.util.uuid.UUID;
 @SuppressWarnings("serial")
 public class RestServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	private AgentHostDefImpl host = null;
+	private AgentHost host = null;
 	
 	@Override
 	public void init() {

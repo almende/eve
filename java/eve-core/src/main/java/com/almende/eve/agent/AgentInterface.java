@@ -394,4 +394,6 @@ public interface AgentInterface extends JSONAuthorizor {
 			throws IOException;
 
 	void receive(Object msg, URI senderUrl, String tag);
+	
+	boolean hasPrivate();
 }

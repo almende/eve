@@ -14,12 +14,12 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 
 public class AgentConnection {
 	private static final Logger	LOG			= Logger.getLogger(AgentConnection.class
 													.getCanonicalName());
-	private AgentHostDefImpl			agentHost	= null;
+	private AgentHost			agentHost	= null;
 	private String				agentId		= null;
 	private String				username	= null;
 	private String				host		= null;
@@ -29,7 +29,7 @@ public class AgentConnection {
 	private Integer				port		= 5222;
 	private XMPPConnection		conn		= null;
 	
-	public AgentConnection(AgentHostDefImpl agentHost) {
+	public AgentConnection(AgentHost agentHost) {
 		this.agentHost = agentHost;
 	}
 	
@@ -179,11 +179,11 @@ public class AgentConnection {
 	 * reply the result.
 	 */
 	private static class JSONRPCListener implements PacketListener {
-		private AgentHostDefImpl	host		= null;
+		private AgentHost	host		= null;
 		private String		agentId		= null;
 		private String		resource	= null;
 		
-		public JSONRPCListener(AgentHostDefImpl agentHost, String agentId,
+		public JSONRPCListener(AgentHost agentHost, String agentId,
 				String resource) {
 			this.host = agentHost;
 			this.agentId = agentId;

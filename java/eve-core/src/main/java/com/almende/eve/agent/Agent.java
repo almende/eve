@@ -33,6 +33,7 @@
 package com.almende.eve.agent;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
@@ -46,9 +47,7 @@ import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
-import com.almende.eve.event.EventsFactory;
 import com.almende.eve.event.EventsInterface;
-import com.almende.eve.monitor.ResultMonitorFactory;
 import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.RequestParams;
 import com.almende.eve.rpc.annotation.Access;
@@ -65,26 +64,27 @@ import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
+import com.almende.util.AnnotationUtil;
 import com.almende.util.TypeUtil;
+import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Access(AccessType.UNAVAILABLE)
 public abstract class Agent implements AgentInterface {
-	private static final Logger				LOG				= Logger.getLogger(Agent.class
-																	.getCanonicalName());
-	private AgentHost				agentHost		= null;
-	private State							state			= null;
-	private Scheduler						scheduler		= null;
-	private ResultMonitorFactoryInterface	monitorFactory	= null;
-	private EventsInterface					eventsFactory	= null;
-	private CallbackInterface<JSONResponse>	callbacks		= null;
-	private static final RequestParams															EVEREQUESTPARAMS	= new RequestParams();
+	private static final Logger				LOG					= Logger.getLogger(Agent.class
+																		.getCanonicalName());
+	private AgentHost						host				= null;
+	private State							state				= null;
+	private Scheduler						scheduler			= null;
+	private ResultMonitorFactoryInterface	monitorFactory		= null;
+	private EventsInterface					eventsFactory		= null;
+	private CallbackInterface<JSONResponse>	callbacks			= null;
+	private static final RequestParams		EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
-	
 	
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
@@ -99,22 +99,45 @@ public abstract class Agent implements AgentInterface {
 	public Agent() {
 	}
 	
-	public void constr(AgentHostDefImpl agentHost, State state) {
+	public void constr(AgentHost agentHost, State state) {
 		if (this.state == null) {
-			this.agentHost = agentHost;
+			this.host = agentHost;
 			this.state = state;
-			this.monitorFactory = new ResultMonitorFactory(this);
-			this.eventsFactory = new EventsFactory(this);
+			this.monitorFactory = agentHost.getResultMonitorFactory(this);
+			this.eventsFactory = agentHost.getEventsFactory(this);
 			this.callbacks = agentHost.getCallbackService(getId(),
 					JSONResponse.class);
 			
 			// validate the Eve agent and output as warnings
-			List<String> errors = JSONRPC.validate(this.getClass(), EVEREQUESTPARAMS);
+			List<String> errors = JSONRPC.validate(this.getClass(),
+					EVEREQUESTPARAMS);
 			for (String error : errors) {
-				LOG.warning("Validation error class: " + this.getClass().getName()
-						+ ", message: " + error);
+				LOG.warning("Validation error class: "
+						+ this.getClass().getName() + ", message: " + error);
 			}
 		}
+	}
+	
+	@Override
+	public boolean hasPrivate() {
+		try {
+			Class<?> clazz = this.getClass();
+			AnnotatedClass annotated = AnnotationUtil.get(clazz);
+			for (Annotation anno : annotated.getAnnotations()) {
+				if (anno.annotationType().equals(Access.class)
+						&& ((Access) anno).value() == AccessType.PRIVATE) {
+					return true;
+				}
+				if (anno.annotationType().equals(Sender.class)) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING,
+					" Couldn't determine private annotations of agent "
+							+ getId(), e);
+		}
+		return false;
 	}
 	
 	@Override
@@ -141,8 +164,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public void signalAgent(AgentSignal<?> event) throws
-			IOException {
+	public void signalAgent(AgentSignal<?> event) throws IOException {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
 			sigInvoke((Object[]) event.getData());
 		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
@@ -157,7 +179,7 @@ public abstract class Agent implements AgentInterface {
 			sigDestroy();
 		} else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
 			// init scheduler tasks
-			this.scheduler = agentHost.getScheduler(this);
+			this.scheduler = host.getScheduler(this);
 		} else if (AgentSignal.ADDTRANSPORTSERVICE.equals(event.getEvent())) {
 			TransportService service = (TransportService) event.getData();
 			service.reconnect(getId());
@@ -173,7 +195,7 @@ public abstract class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigCreate() {
-		for (TransportService service : agentHost.getTransportServices()) {
+		for (TransportService service : host.getTransportServices()) {
 			try {
 				service.reconnect(getId());
 			} catch (Exception e) {
@@ -235,7 +257,7 @@ public abstract class Agent implements AgentInterface {
 		
 		// cancel all scheduled tasks.
 		if (scheduler == null) {
-			this.scheduler = agentHost.getScheduler(this);
+			this.scheduler = host.getScheduler(this);
 		}
 		if (scheduler != null) {
 			for (String taskId : scheduler.getTasks()) {
@@ -273,7 +295,7 @@ public abstract class Agent implements AgentInterface {
 	@Namespace("scheduler")
 	public final Scheduler getScheduler() {
 		if (scheduler == null) {
-			this.scheduler = agentHost.getScheduler(this);
+			this.scheduler = host.getScheduler(this);
 		}
 		return scheduler;
 	}
@@ -281,7 +303,7 @@ public abstract class Agent implements AgentInterface {
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final AgentHost getAgentHost() {
-		return agentHost;
+		return host;
 		
 	}
 	
@@ -551,9 +573,9 @@ public abstract class Agent implements AgentInterface {
 	@Access(AccessType.PUBLIC)
 	public List<String> getUrls() {
 		List<String> urls = new ArrayList<String>();
-		if (agentHost != null) {
+		if (host != null) {
 			String agentId = getId();
-			for (TransportService service : agentHost.getTransportServices()) {
+			for (TransportService service : host.getTransportServices()) {
 				String url = service.getAgentUrl(agentId);
 				if (url != null) {
 					urls.add(url);
@@ -568,12 +590,12 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	public <T> T getRef(TypedKey<T> key) {
-		return agentHost.getRef(getId(), key);
+		return host.getRef(getId(), key);
 	}
 	
 	@Override
 	public <T> void putRef(TypedKey<T> key, T value) {
-		agentHost.putRef(getId(), key, value);
+		host.putRef(getId(), key, value);
 	}
 	
 	@Override
@@ -655,7 +677,7 @@ public abstract class Agent implements AgentInterface {
 					
 					final JSONRequest request = (JSONRequest) jsonMsg;
 					final AgentInterface me = this;
-					AgentHostDefImpl.getPool().execute(new Runnable() {
+					host.getPool().execute(new Runnable() {
 						@Override
 						public void run() {
 							JSONResponse response = JSONRPC.invoke(me, request,
@@ -675,7 +697,7 @@ public abstract class Agent implements AgentInterface {
 					final AsyncCallback<JSONResponse> callback = callbacks
 							.get(id);
 					if (callback != null) {
-						AgentHostDefImpl.getPool().execute(new Runnable() {
+						host.getPool().execute(new Runnable() {
 							@Override
 							public void run() {
 								if (response.getError() != null) {
@@ -725,12 +747,12 @@ public abstract class Agent implements AgentInterface {
 			if (callback != null && callbacks != null) {
 				callbacks.store(request.getId(), callback);
 			}
-			agentHost.sendAsync(receiverUrl, msg, this, tag);
+			host.sendAsync(receiverUrl, msg, this, tag);
 		} else if (msg instanceof JSONRPCException) {
 			JSONResponse response = new JSONResponse((JSONRPCException) msg);
-			agentHost.sendAsync(receiverUrl, response, this, tag);
+			host.sendAsync(receiverUrl, response, this, tag);
 		} else {
-			agentHost.sendAsync(receiverUrl, msg, this, tag);
+			host.sendAsync(receiverUrl, msg, this, tag);
 		}
 	}
 }

@@ -16,6 +16,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
 import com.almende.eve.agent.Agent;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.AgentSignal;
 import com.almende.eve.agent.callback.CallbackInterface;
@@ -35,7 +36,7 @@ public class AgentServlet extends HttpServlet {
 													.getSimpleName());
 	
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
-	private static AgentHostDefImpl	agentHost;
+	private static AgentHost	host;
 	private static HttpService	httpTransport;
 	
 	@Override
@@ -44,7 +45,7 @@ public class AgentServlet extends HttpServlet {
 			LOG.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		agentHost = AgentHostDefImpl.getInstance();
+		host = AgentHostDefImpl.getInstance();
 		
 		String environment = Config.getEnvironment();
 		String envParam = "environment." + environment + ".servlet_url";
@@ -60,8 +61,8 @@ public class AgentServlet extends HttpServlet {
 					+ globalParam + "' or '" + envParam + "' "
 					+ "missing in context configuration web.xml.");
 		}
-		httpTransport = new HttpService(agentHost, servletUrl);
-		agentHost.addTransportService(httpTransport);
+		httpTransport = new HttpService(host, servletUrl);
+		host.addTransportService(httpTransport);
 	}
 	
 	enum Handshake {
@@ -192,7 +193,7 @@ public class AgentServlet extends HttpServlet {
 		
 		// check if the agent exists
 		try {
-			if (!agentHost.hasAgent(agentId)) {
+			if (!host.hasAgent(agentId)) {
 				resp.sendError(HttpServletResponse.SC_NOT_FOUND,
 						"Agent with id '" + agentId + "' not found.");
 				return;
@@ -207,7 +208,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			if (AgentHostDefImpl.hasPrivate(agentId) && !handleSession(req, resp)) {
+			if (host.getAgent(agentId).hasPrivate() && !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				}
@@ -241,7 +242,7 @@ public class AgentServlet extends HttpServlet {
 			}
 			
 			try {
-				List<Log> logs = agentHost.getEventLogger().getLogs(agentId,
+				List<Log> logs = host.getEventLogger().getLogs(agentId,
 						since);
 				resp.addHeader("Content-type", "application/json");
 				JOM.getInstance().writer().writeValue(resp.getWriter(), logs);
@@ -285,7 +286,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		Agent agent = null;
 		try {
-			agent = agentHost.getAgent(agentId);
+			agent = host.getAgent(agentId);
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't get agent:" + agentId, e);
 		}
@@ -296,7 +297,7 @@ public class AgentServlet extends HttpServlet {
 			return;
 		}
 		
-		if (AgentHostDefImpl.hasPrivate(agentId) && !handleSession(req, resp)) {
+		if (agent.hasPrivate() && !handleSession(req, resp)) {
 			if (!resp.isCommitted()) {
 				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 			}
@@ -315,9 +316,9 @@ public class AgentServlet extends HttpServlet {
 		// TODO: this should not depend on JSONResponse...
 		SyncCallback<Object> callback = new SyncCallback<Object>();
 		
-		CallbackInterface<Object> callbacks = agentHost.getCallbackService("HttpTransport",Object.class);
+		CallbackInterface<Object> callbacks = host.getCallbackService("HttpTransport",Object.class);
 		callbacks.store(tag, callback);
-		agentHost.receive(agentId, body, URI.create(senderUrl), tag);
+		host.receive(agentId, body, URI.create(senderUrl), tag);
 		
 		try {
 			Object message = callback.get();
@@ -369,7 +370,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			Agent agent = agentHost.createAgent(agentType, agentId);
+			Agent agent = host.createAgent(agentType, agentId);
 			for (String url : agent.getUrls()) {
 				resp.getWriter().println(url);
 			}
@@ -401,7 +402,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			agentHost.deleteAgent(agentId);
+			host.deleteAgent(agentId);
 			resp.getWriter().write("Agent " + agentId + " deleted");
 		} catch (Exception e) {
 			throw new ServletException(e);

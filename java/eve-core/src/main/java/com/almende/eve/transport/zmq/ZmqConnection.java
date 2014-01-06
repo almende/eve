@@ -1,6 +1,7 @@
 package com.almende.eve.transport.zmq;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.ObjectCache;
 import com.almende.util.tokens.TokenRet;
@@ -23,7 +24,7 @@ public class ZmqConnection {
 	private final Socket		socket;
 	private final String		SIGADDR;
 	private String				zmqUrl	= null;
-	private AgentHostDefImpl			host	= null;
+	private AgentHost			host	= null;
 	private String				agentId	= null;
 	
 	public ZmqConnection(Socket socket) {
@@ -43,11 +44,11 @@ public class ZmqConnection {
 		this.zmqUrl = zmqUrl;
 	}
 	
-	public AgentHostDefImpl getHost() {
+	public AgentHost getHost() {
 		return host;
 	}
 	
-	public void setHost(AgentHostDefImpl host) {
+	public void setHost(AgentHost host) {
 		this.host = host;
 	}
 	
@@ -114,7 +115,7 @@ public class ZmqConnection {
 	 * @param packet
 	 */
 	public void listen() {
-		AgentHostDefImpl.getPool().execute(new Runnable() {
+		host.getPool().execute(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -150,7 +151,12 @@ public class ZmqConnection {
 							new Thread(new Runnable() {
 								@Override
 								public void run() {
-									handleMsg(msg);
+									try {
+										handleMsg(msg);
+									} catch (Exception e) {
+										LOG.log(Level.WARNING, "Caught error:",
+												e);
+									}
 								}
 							}).start();
 						}
@@ -162,7 +168,10 @@ public class ZmqConnection {
 		});
 	}
 	
-	private void handleMsg(final ByteBuffer[] msg) {
+	private void handleMsg(final ByteBuffer[] msg)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
 		
 		// Receive connID|emptyDelimiter|ZMQ.NORMAL|senderUrl|tokenJson|body
 		// or connID|emptyDelimiter|ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
@@ -187,7 +196,8 @@ public class ZmqConnection {
 		} else {
 			ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
 			String key = senderUrl + ":" + token.getToken();
-			if (!sessionCache.containsKey(key) && AgentHostDefImpl.hasPrivate(agentId)) {
+			if (!sessionCache.containsKey(key)
+					&& host.getAgent(agentId).hasPrivate()) {
 				final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
 				final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
 				locSocket.connect(addr);
@@ -212,7 +222,9 @@ public class ZmqConnection {
 			try {
 				host.receive(agentId, body, senderUrl, null);
 			} catch (IOException e) {
-				LOG.log(Level.WARNING,"Host threw an IOException, probably agent '"+agentId+"' doesn't exist? ",e);
+				LOG.log(Level.WARNING,
+						"Host threw an IOException, probably agent '" + agentId
+								+ "' doesn't exist? ", e);
 				return;
 			}
 		}
