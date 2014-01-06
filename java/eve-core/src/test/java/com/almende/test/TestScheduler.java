@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.eve.scheduler.RunnableSchedulerFactory;
 import com.almende.eve.scheduler.Scheduler;
@@ -18,30 +18,29 @@ import com.almende.test.agents.TestSchedulerAgent;
 public class TestScheduler extends TestCase {
 	static final Logger	log	= Logger.getLogger("testScheduler");
 	
-	
 	@Test
 	public void testSingleShot() throws Exception {
-		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		host.addTransportService(new HttpService(host));
 		host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
-
+		
 		if (host.hasAgent("SingleShot")) {
 			log.severe("Removing old agent");
 			host.deleteAgent("SingleShot");
 			log.severe("Removed old agent");
 		}
 		log.severe("Setup new Agent");
-		TestSchedulerAgent test = host.createAgent(TestSchedulerAgent.class, "SingleShot");
+		TestSchedulerAgent test = host.createAgent(TestSchedulerAgent.class,
+				"SingleShot");
 		log.severe("Running test");
 		
-		test.setTest("SingleShot",5000,false,false);
+		test.setTest("SingleShot", 5000, false, false);
 		log.severe("Sleep");
 		
 		Thread.sleep(2000);
-		test.setTest("SingleShot",5000,false,false);
+		test.setTest("SingleShot", 5000, false, false);
 		log.severe("More Sleep");
-		
 		
 		Thread.sleep(10000);
 		host.deleteAgent("SingleShot");
@@ -58,10 +57,10 @@ public class TestScheduler extends TestCase {
 	}
 	
 	public void schedule(boolean clock) throws Exception {
-		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		host.addTransportService(new HttpService(host));
-
+		
 		if (clock) {
 			host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
 		} else {

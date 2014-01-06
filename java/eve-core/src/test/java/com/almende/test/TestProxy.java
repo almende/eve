@@ -9,7 +9,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AsyncProxy;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestAgent;
@@ -21,18 +21,18 @@ public class TestProxy extends TestCase {
 	@Test
 	public void testProxy() throws Exception {
 		//Create TestAgent according to TestInterface
-		AgentHostDefImpl factory = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
-		factory.setStateFactory(stateFactory);
+		host.setStateFactory(stateFactory);
 		
-		if (factory.hasAgent("TestAgent")){
-			factory.deleteAgent("TestAgent");
+		if (host.hasAgent("TestAgent")){
+			host.deleteAgent("TestAgent");
 		}
 		@SuppressWarnings("unused")
-		TestAgent agent = factory.createAgent(TestAgent.class, "TestAgent");
+		TestAgent agent = host.createAgent(TestAgent.class, "TestAgent");
 		
 		//generate sync proxy from TestInterface
-		TestInterface proxy = factory.createAgentProxy(null, URI.create("local:TestAgent"), TestInterface.class);
+		TestInterface proxy = host.createAgentProxy(null, URI.create("local:TestAgent"), TestInterface.class);
 		assertEquals("Hello world, you said: nice weather, isn't it?",proxy.helloWorld("nice weather, isn't it?"));
 		assertEquals(15,proxy.testPrimitive(5,10));
 		proxy.testVoid();
@@ -42,7 +42,7 @@ public class TestProxy extends TestCase {
 		assertEquals("Ludo", result.get("result").get(0).getName());
 		
 		//Generate asyncproxy from TestInterface
-		AsyncProxy<TestInterface> aProxy = factory.createAsyncAgentProxy(null,URI.create("local:TestAgent"), TestInterface.class);
+		AsyncProxy<TestInterface> aProxy = host.createAsyncAgentProxy(null,URI.create("local:TestAgent"), TestInterface.class);
 		Future<?> res = aProxy.call("helloWorld","hi");
 		assertEquals("Hello world, you said: hi",res.get());
 		Future<?> voidRes = aProxy.call("testVoid");

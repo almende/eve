@@ -52,21 +52,32 @@ import com.almende.eve.transport.TransportService;
  * 
  * @author jos
  */
-public interface AgentHost {
+public abstract class AgentHost {
+	
+	protected static final AgentHost	HOST	= new AgentHostDefImpl();
+	
+	/**
+	 * Get the shared AgentHost instance
+	 * 
+	 * @return factory Returns the host instance
+	 */
+	public static AgentHost getInstance() {
+		return HOST;
+	}
 	
 	/**
 	 * Instantiate the services from the given config.
 	 * 
 	 * @param config
 	 */
-	void loadConfig(Config config);
+	public abstract void loadConfig(Config config);
 	
 	/**
 	 * Signal all agents about AgentHost event.
 	 * 
 	 * @param event
 	 */
-	void signalAgents(AgentSignal<?> event);
+	public abstract void signalAgents(AgentSignal<?> event);
 	
 	/**
 	 * Get an agent by its id. Returns null if the agent does not exist
@@ -83,9 +94,10 @@ public interface AgentHost {
 	 * @throws InstantiationException
 	 * @throws SecurityException
 	 */
-	Agent getAgent(String agentId) throws ClassNotFoundException,
-			InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException, IOException;
+	public abstract Agent getAgent(String agentId)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException;
 	
 	/**
 	 * Create an agent proxy from an java interface
@@ -98,8 +110,9 @@ public interface AgentHost {
 	 *            A java Interface, extending AgentInterface
 	 * @return
 	 */
-	<T extends AgentInterface> T createAgentProxy(final AgentInterface sender,
-			final URI receiverUrl, Class<T> agentInterface);
+	public abstract <T extends AgentInterface> T createAgentProxy(
+			final AgentInterface sender, final URI receiverUrl,
+			Class<T> agentInterface);
 	
 	/**
 	 * Create an asynchronous agent proxy from an java interface, each call will
@@ -115,7 +128,7 @@ public interface AgentHost {
 	 *            A java Interface, extending AgentInterface
 	 * @return
 	 */
-	<T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
+	public abstract <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
 			final AgentInterface sender, final URI receiverUrl,
 			Class<T> agentInterface);
 	
@@ -136,10 +149,10 @@ public interface AgentHost {
 	 * @throws InstantiationException
 	 * @throws IOException
 	 */
-	<T extends Agent> T createAgent(String agentType, String agentId)
-			throws InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException,
-			ClassNotFoundException, IOException;
+	public abstract <T extends Agent> T createAgent(String agentType,
+			String agentId) throws InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, ClassNotFoundException, IOException;
 	
 	/**
 	 * Create an agent.
@@ -156,9 +169,10 @@ public interface AgentHost {
 	 * @throws InstantiationException
 	 * @throws IOException
 	 */
-	<T extends Agent> T createAgent(Class<T> agentType, String agentId)
-			throws InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException, IOException;
+	public abstract <T extends Agent> T createAgent(Class<T> agentType,
+			String agentId) throws InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException;
 	
 	/**
 	 * Create a new agent, using the base AspectAgent class. This agent has a
@@ -173,10 +187,10 @@ public interface AgentHost {
 	 * @throws InstantiationException
 	 * @throws IOException
 	 */
-	<T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
-			String agentId) throws InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException;
+	public abstract <T> AspectAgent<T> createAspectAgent(
+			Class<? extends T> aspect, String agentId)
+			throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException;
 	
 	/**
 	 * Delete an agent
@@ -188,9 +202,10 @@ public interface AgentHost {
 	 * @throws InstantiationException
 	 * @throws ClassNotFoundException
 	 */
-	void deleteAgent(String agentId) throws ClassNotFoundException,
-			InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException;
+	public abstract void deleteAgent(String agentId)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException;
 	
 	/**
 	 * Test if an agent exists
@@ -198,7 +213,7 @@ public interface AgentHost {
 	 * @param agentId
 	 * @return true if the agent exists
 	 */
-	boolean hasAgent(String agentId);
+	public abstract boolean hasAgent(String agentId);
 	
 	/**
 	 * Get the event logger. The event logger is used to temporary log triggered
@@ -206,7 +221,7 @@ public interface AgentHost {
 	 * 
 	 * @return eventLogger
 	 */
-	EventLogger getEventLogger();
+	public abstract EventLogger getEventLogger();
 	
 	/**
 	 * Receive a message for an agent.
@@ -216,8 +231,8 @@ public interface AgentHost {
 	 * @param senderUri
 	 * @throws IOException
 	 */
-	void receive(String receiverId, Object message, URI senderUri, String tag)
-			throws IOException;
+	public abstract void receive(String receiverId, Object message,
+			URI senderUri, String tag) throws IOException;
 	
 	/**
 	 * Receive a message for an agent.
@@ -227,8 +242,8 @@ public interface AgentHost {
 	 * @param senderUri
 	 * @throws IOException
 	 */
-	void receive(String receiverId, Object message, String senderUrl, String tag)
-			throws IOException;
+	public abstract void receive(String receiverId, Object message,
+			String senderUrl, String tag) throws IOException;
 	
 	/**
 	 * Asynchronously send a message to an agent.
@@ -243,8 +258,8 @@ public interface AgentHost {
 	 * @throws IOException
 	 */
 	
-	void sendAsync(URI receiverUrl, Object message, AgentInterface sender,
-			String tag) throws IOException;
+	public abstract void sendAsync(URI receiverUrl, Object message,
+			AgentInterface sender, String tag) throws IOException;
 	
 	/**
 	 * Get the agentId from given agentUrl. The url can be any protocol. If the
@@ -255,7 +270,7 @@ public interface AgentHost {
 	 * @param agentUrl
 	 * @return agentId
 	 */
-	String getAgentId(String agentUrl);
+	public abstract String getAgentId(String agentUrl);
 	
 	/**
 	 * Determines best senderUrl for this agent, match receiverUrl transport
@@ -265,21 +280,21 @@ public interface AgentHost {
 	 *            , receiverUrl
 	 * @return URI SenderUrl
 	 */
-	URI getSenderUrl(String agentId, URI receiverUrl);
+	public abstract URI getSenderUrl(String agentId, URI receiverUrl);
 	
 	/**
 	 * Get the loaded config file
 	 * 
 	 * @return config A configuration file
 	 */
-	void setConfig(Config config);
+	public abstract void setConfig(Config config);
 	
 	/**
 	 * Get the loaded config file
 	 * 
 	 * @return config A configuration file
 	 */
-	Config getConfig();
+	public abstract Config getConfig();
 	
 	/**
 	 * Utility method to keep reference of in-memory objects from the agent. The
@@ -290,7 +305,7 @@ public interface AgentHost {
 	 * @param key
 	 * @param value
 	 */
-	<T> void putRef(String agentId, TypedKey<T> key, T value);
+	public abstract <T> void putRef(String agentId, TypedKey<T> key, T value);
 	
 	/**
 	 * Utility method to get back references to in-memory objects from the
@@ -303,7 +318,7 @@ public interface AgentHost {
 	 * @param key
 	 * @return
 	 */
-	<T> T getRef(String agentId, TypedKey<T> key);
+	public abstract <T> T getRef(String agentId, TypedKey<T> key);
 	
 	/**
 	 * Can transport services do a local invokation if the URL designates a
@@ -311,7 +326,7 @@ public interface AgentHost {
 	 * 
 	 * @return
 	 */
-	boolean isDoesShortcut();
+	public abstract boolean isDoesShortcut();
 	
 	/**
 	 * If true, transport services can do a local invokation if the URL
@@ -320,14 +335,14 @@ public interface AgentHost {
 	 * @default true
 	 * @return
 	 */
-	void setDoesShortcut(boolean doesShortcut);
+	public abstract void setDoesShortcut(boolean doesShortcut);
 	
 	/**
 	 * Load a state factory from config
 	 * 
 	 * @param config
 	 */
-	void setStateFactory(Config config);
+	public abstract void setStateFactory(Config config);
 	
 	/**
 	 * Create agents from a config (only when they do not yet exist). Agents
@@ -338,7 +353,7 @@ public interface AgentHost {
 	 * @param config
 	 */
 	// TODO: private?
-	void addAgents(Config config);
+	public abstract void addAgents(Config config);
 	
 	/**
 	 * Set a state factory. The state factory is used to get/create/delete an
@@ -346,14 +361,14 @@ public interface AgentHost {
 	 * 
 	 * @param stateFactory
 	 */
-	void setStateFactory(StateFactory stateFactory);
+	public abstract void setStateFactory(StateFactory stateFactory);
 	
 	/**
 	 * Get the configured state factory.
 	 * 
 	 * @return stateFactory
 	 */
-	StateFactory getStateFactory();
+	public abstract StateFactory getStateFactory();
 	
 	/**
 	 * Load a scheduler factory from a config file
@@ -361,7 +376,7 @@ public interface AgentHost {
 	 * @param config
 	 */
 	// TODO: private?
-	void setSchedulerFactory(Config config);
+	public abstract void setSchedulerFactory(Config config);
 	
 	/**
 	 * Load transport services for incoming and outgoing messages from a config
@@ -370,28 +385,29 @@ public interface AgentHost {
 	 * @param config
 	 */
 	// TODO: Private?
-	void addTransportServices(Config config);
+	public abstract void addTransportServices(Config config);
 	
 	/**
 	 * Add a new transport service
 	 * 
 	 * @param transportService
 	 */
-	void addTransportService(TransportService transportService);
+	public abstract void addTransportService(TransportService transportService);
 	
 	/**
 	 * Remove a registered a transport service
 	 * 
 	 * @param transportService
 	 */
-	void removeTransportService(TransportService transportService);
+	public abstract void removeTransportService(
+			TransportService transportService);
 	
 	/**
 	 * Get all registered transport services
 	 * 
 	 * @return transportService
 	 */
-	List<TransportService> getTransportServices();
+	public abstract List<TransportService> getTransportServices();
 	
 	/**
 	 * Get all registered transport services which can handle given protocol
@@ -400,7 +416,7 @@ public interface AgentHost {
 	 *            A protocol, for example "http" or "xmpp"
 	 * @return transportService
 	 */
-	List<TransportService> getTransportServices(String protocol);
+	public abstract List<TransportService> getTransportServices(String protocol);
 	
 	/**
 	 * Get the first registered transport service which supports given protocol.
@@ -411,7 +427,7 @@ public interface AgentHost {
 	 *            A protocol, for example "http" or "xmpp"
 	 * @return service
 	 */
-	TransportService getTransportService(String protocol);
+	public abstract TransportService getTransportService(String protocol);
 	
 	/**
 	 * Set a scheduler factory. The scheduler factory is used to
@@ -419,7 +435,7 @@ public interface AgentHost {
 	 * 
 	 * @param schedulerFactory
 	 */
-	void setSchedulerFactory(SchedulerFactory schedulerFactory);
+	public abstract void setSchedulerFactory(SchedulerFactory schedulerFactory);
 	
 	/**
 	 * create a scheduler for an agent
@@ -427,7 +443,7 @@ public interface AgentHost {
 	 * @param agentId
 	 * @return scheduler
 	 */
-	Scheduler getScheduler(Agent agent);
+	public abstract Scheduler getScheduler(Agent agent);
 	
 	/**
 	 * Get a callback storage service. This service keeps AsyncCallbacks in a
@@ -437,14 +453,17 @@ public interface AgentHost {
 	 * @param clazz
 	 * @return
 	 */
-	<T> CallbackInterface<T> getCallbackService(String id, Class<T> clazz);
+	public abstract <T> CallbackInterface<T> getCallbackService(String id,
+			Class<T> clazz);
 	
-	ResultMonitorFactoryInterface getResultMonitorFactory(AgentInterface agent);
+	public abstract ResultMonitorFactoryInterface getResultMonitorFactory(
+			AgentInterface agent);
 	
-	EventsInterface getEventsFactory(AgentInterface agent);
+	public abstract EventsInterface getEventsFactory(AgentInterface agent);
 	
-	ExecutorService getPool();
+	public abstract ExecutorService getPool();
 	
-	StateFactory getStateFactoryFromConfig(Config config, String configName);
+	public abstract StateFactory getStateFactoryFromConfig(Config config,
+			String configName);
 	
 }

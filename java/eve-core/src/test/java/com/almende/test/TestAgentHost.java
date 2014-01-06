@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.Test2Agent;
 import com.almende.test.agents.Test2AgentInterface;
@@ -20,7 +20,7 @@ public class TestAgentHost extends TestCase {
 		final String TESTAGENT = "hostTestAgent";
 		
 		log.warning(this.getClass().getName() + ":"+this.getClass().getClassLoader().hashCode());
-		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		host.setStateFactory(stateFactory);
 

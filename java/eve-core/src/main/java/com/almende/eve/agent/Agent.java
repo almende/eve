@@ -338,8 +338,6 @@ public abstract class Agent implements AgentInterface {
 	// TODO: only allow ObjectNode as params?
 	private JSONResponse locSend(URI url, String method, Object params)
 			throws IOException, JSONRPCException {
-		// TODO: implement support for adding custom http headers (for
-		// authorization for example)
 		
 		ObjectNode jsonParams;
 		if (params instanceof ObjectNode) {
@@ -742,17 +740,14 @@ public abstract class Agent implements AgentInterface {
 	public void send(Object msg, URI receiverUrl,
 			AsyncCallback<JSONResponse> callback, String tag)
 			throws IOException {
-		if (msg instanceof JSONRequest) {
-			JSONRequest request = (JSONRequest) msg;
-			if (callback != null && callbacks != null) {
-				callbacks.store(request.getId(), callback);
-			}
-			host.sendAsync(receiverUrl, msg, this, tag);
-		} else if (msg instanceof JSONRPCException) {
-			JSONResponse response = new JSONResponse((JSONRPCException) msg);
-			host.sendAsync(receiverUrl, response, this, tag);
-		} else {
-			host.sendAsync(receiverUrl, msg, this, tag);
+		if (msg instanceof JSONMessage && callback != null && callbacks != null) {
+			callbacks.store(((JSONMessage)msg).getId(), callback);
 		}
+		//TODO; shouldn't this already been done?
+		if (msg instanceof JSONRPCException) {
+			LOG.log(Level.WARNING,"Send has been called to send an JSONRPCException i.s.o. a JSONMessage...");
+			msg = new JSONResponse((JSONRPCException) msg);
+		}
+		host.sendAsync(receiverUrl, msg, this, tag);
 	}
 }

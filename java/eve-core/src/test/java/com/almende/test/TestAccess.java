@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestAccessAgent;
@@ -15,7 +15,7 @@ public class TestAccess extends TestCase {
 
 	@Test
 	public void testAccess() throws Exception {
-		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		host.setStateFactory(stateFactory);
 		host.addTransportService(new HttpService(host,"http://localhost:8080/agents"));

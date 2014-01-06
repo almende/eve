@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.eve.state.MemoryStateFactory;
@@ -24,7 +24,7 @@ public class Goldemo {
 			JSONRPCException, ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
-		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		host.setDoesShortcut(false);
 		
 		// host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
@@ -142,7 +142,7 @@ public class Goldemo {
 		System.exit(0);
 	}
 	
-	public static void createAgent(AgentHostDefImpl host, int N, int M, int cN,
+	public static void createAgent(AgentHost host, int N, int M, int cN,
 			int cM, boolean state) throws JSONRPCException,
 			InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, IOException {

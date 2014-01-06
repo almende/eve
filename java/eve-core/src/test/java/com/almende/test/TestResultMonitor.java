@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.RunnableSchedulerFactory;
@@ -17,18 +17,18 @@ public class TestResultMonitor extends TestCase {
 	
 	@Test
 	public void test() throws Exception {
-		AgentHostDefImpl factory = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents_resultmonitor", true);
-		factory.setStateFactory(stateFactory);
+		host.setStateFactory(stateFactory);
 		//factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
-		factory.setSchedulerFactory(new RunnableSchedulerFactory(factory, ""));
+		host.setSchedulerFactory(new RunnableSchedulerFactory(host, ""));
 		
-		if (factory.hasAgent("alice")) factory.deleteAgent("alice");
-		if (factory.hasAgent("bob")) factory.deleteAgent("bob");
+		if (host.hasAgent("alice")) host.deleteAgent("alice");
+		if (host.hasAgent("bob")) host.deleteAgent("bob");
 		
-		TestResultMonitorAgent alice = factory.createAgent(
+		TestResultMonitorAgent alice = host.createAgent(
 				TestResultMonitorAgent.class, "alice");
-		TestResultMonitorAgent bob = factory.createAgent(TestResultMonitorAgent.class,
+		TestResultMonitorAgent bob = host.createAgent(TestResultMonitorAgent.class,
 				"bob");
 		
 		alice.prepare();
@@ -48,8 +48,8 @@ public class TestResultMonitor extends TestCase {
 		
 		alice.tear_down();
 		
-		factory.deleteAgent("alice");
-		factory.deleteAgent("bob");
+		host.deleteAgent("alice");
+		host.deleteAgent("bob");
 	}
 	
 }

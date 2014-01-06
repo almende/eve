@@ -36,11 +36,10 @@ import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
 
-public final class AgentHostDefImpl implements AgentHost {
+public final class AgentHostDefImpl extends AgentHost {
 	
 	private static final Logger																	LOG					= Logger.getLogger(AgentHostDefImpl.class
 																															.getSimpleName());
-	private static final AgentHostDefImpl														HOST				= new AgentHostDefImpl();
 	private final ConcurrentHashMap<String, TransportService>									transportServices	= new ConcurrentHashMap<String, TransportService>();
 	private final ConcurrentHashMap<String, CallbackInterface<?>>								callbacks			= new ConcurrentHashMap<String, CallbackInterface<?>>();
 	private StateFactory																		stateFactory		= null;
@@ -57,14 +56,6 @@ public final class AgentHostDefImpl implements AgentHost {
 	
 	private static final String																	AGENTS				= "agents";
 	
-	/**
-	 * Get the shared AgentHost instance
-	 * 
-	 * @return factory Returns the host instance
-	 */
-	public static AgentHostDefImpl getInstance() {
-		return HOST;
-	}
 	
 	@Override
 	public ExecutorService getPool() {

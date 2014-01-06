@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -19,12 +19,11 @@ import com.google.appengine.api.xmpp.XMPPServiceFactory;
 
 @SuppressWarnings("serial")
 public class GaeXmppServlet extends HttpServlet {
-	protected AgentHostDefImpl			agentFactory	= null;
-	protected GaeXmppService	xmppService		= null;
+	protected AgentHost			host		= null;
+	protected GaeXmppService	xmppService	= null;
 	
-	private Logger				logger			= Logger.getLogger(this
-														.getClass()
-														.getSimpleName());
+	private Logger				logger		= Logger.getLogger(this.getClass()
+													.getSimpleName());
 	
 	/**
 	 * Handle a post request containing an xmpp chat message
@@ -55,7 +54,7 @@ public class GaeXmppServlet extends HttpServlet {
 						+ from.getId());
 				
 				// invoke the agent
-				agentFactory.receive(agentId, body, from.getId(), null);
+				host.receive(agentId, body, from.getId(), null);
 				
 			} catch (Exception err) {
 				// generate JSON error response
@@ -88,10 +87,10 @@ public class GaeXmppServlet extends HttpServlet {
 	 */
 	private void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace
-		agentFactory = AgentHostDefImpl.getInstance();
+		host = AgentHost.getInstance();
 		
 		// if the agent factory is not configured, load it from config
-		if (agentFactory.getConfig() == null) {
+		if (host.getConfig() == null) {
 			String filename = getInitParameter("config");
 			if (filename == null) {
 				filename = "eve.yaml";
@@ -103,8 +102,8 @@ public class GaeXmppServlet extends HttpServlet {
 					+ getServletContext().getRealPath(fullname) + "'...");
 			Config config = new Config(getServletContext().getResourceAsStream(
 					fullname));
-			agentFactory = AgentHostDefImpl.getInstance();
-			agentFactory.loadConfig(config);
+			host = AgentHost.getInstance();
+			host.loadConfig(config);
 		}
 	}
 	
@@ -114,12 +113,12 @@ public class GaeXmppServlet extends HttpServlet {
 	 * @throws Exception
 	 */
 	private void initTransportService() throws Exception {
-		if (agentFactory == null) {
+		if (host == null) {
 			throw new Exception(
 					"Cannot initialize GaeXmppService: no AgentFactory initialized.");
 		}
 		
 		xmppService = new GaeXmppService();
-		agentFactory.addTransportService(xmppService);
+		host.addTransportService(xmppService);
 	}
 }

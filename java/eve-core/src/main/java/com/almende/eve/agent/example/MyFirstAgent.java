@@ -3,7 +3,7 @@ package com.almende.eve.agent.example;
 import java.io.IOException;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -32,7 +32,7 @@ public class MyFirstAgent extends Agent {
 	 * Through this method the agent calls itself and prints the result to the
 	 * console.
 	 * 
-	 * @throws ProtocolException
+	 * @throws IOException
 	 * @throws JSONRPCException
 	 */
 	public void callMyself() throws IOException, JSONRPCException {
@@ -49,7 +49,7 @@ public class MyFirstAgent extends Agent {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
+		AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new MemoryStateFactory());
 		try {
 			
