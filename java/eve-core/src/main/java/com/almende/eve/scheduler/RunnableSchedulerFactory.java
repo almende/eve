@@ -22,7 +22,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -38,7 +38,7 @@ import com.almende.util.TypeUtil;
 public class RunnableSchedulerFactory implements SchedulerFactory {
 	private State									state		= null;
 	private String									stateId		= null;
-	private AgentHost								host		= null;
+	private AgentHostDefImpl								host		= null;
 	private long									count		= 0;
 	private final ScheduledExecutorService			scheduler	= Executors
 																		.newScheduledThreadPool(8);
@@ -52,15 +52,15 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	/**
 	 * This constructor is called when constructed by the AgentHost
 	 * 
-	 * @param AgentHost
+	 * @param AgentHostDefImpl
 	 * @param params
 	 */
-	public RunnableSchedulerFactory(AgentHost agentHost,
+	public RunnableSchedulerFactory(AgentHostDefImpl agentHost,
 			Map<String, Object> params) {
 		this(agentHost, (params != null) ? (String) params.get("id") : null);
 	}
 	
-	public RunnableSchedulerFactory(AgentHost agentHost, String id) {
+	public RunnableSchedulerFactory(AgentHostDefImpl agentHost, String id) {
 		this.host = agentHost;
 		this.stateId = id;
 		

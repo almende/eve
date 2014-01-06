@@ -3,7 +3,7 @@ package com.almende.eve.agent.example;
 import java.io.IOException;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -49,7 +49,7 @@ public class MyFirstAgent extends Agent {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		AgentHost host = AgentHost.getInstance();
+		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
 		host.setStateFactory(new MemoryStateFactory());
 		try {
 			

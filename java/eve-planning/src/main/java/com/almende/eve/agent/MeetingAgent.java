@@ -1494,7 +1494,7 @@ public class MeetingAgent extends Agent {
 	 * @return
 	 */
 	private String getFirstUrl(@Name("protocol") String protocol) {
-		AgentHostInterface agentHost = getAgentHost();
+		AgentHost agentHost = getAgentHost();
 		if (agentHost != null) {
 			String agentId = getId();
 			for (TransportService service : agentHost.getTransportServices(protocol)) {

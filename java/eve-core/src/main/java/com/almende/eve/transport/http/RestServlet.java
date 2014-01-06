@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -20,15 +20,15 @@ import com.almende.util.uuid.UUID;
 @SuppressWarnings("serial")
 public class RestServlet extends HttpServlet {
 	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	private AgentHost host = null;
+	private AgentHostDefImpl host = null;
 	
 	@Override
 	public void init() {
-		if (AgentHost.getInstance().getStateFactory() == null){
+		if (AgentHostDefImpl.getInstance().getStateFactory() == null){
 			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		host = AgentHost.getInstance();
+		host = AgentHostDefImpl.getInstance();
 	}
 	
 	@Override

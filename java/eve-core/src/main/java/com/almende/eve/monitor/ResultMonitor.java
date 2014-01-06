@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -53,7 +53,7 @@ public class ResultMonitor implements Serializable {
 	
 	public final void loadAgent() {
 		if (myAgent == null) {
-			AgentHost factory = AgentHost.getInstance();
+			AgentHostDefImpl factory = AgentHostDefImpl.getInstance();
 			
 			try {
 				myAgent = factory.getAgent(agentId);

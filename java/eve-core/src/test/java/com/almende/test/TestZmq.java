@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -105,7 +105,7 @@ public class TestZmq extends TestCase {
 	
 	@Test
 	public void testZmq() throws Exception {
-		AgentHost host = AgentHost.getInstance();
+		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
 		host.setDoesShortcut(false);
 		host.setStateFactory(new MemoryStateFactory());
 		Map<String, Object> params = new HashMap<String, Object>();

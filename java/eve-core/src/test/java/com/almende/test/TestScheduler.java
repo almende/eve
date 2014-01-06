@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.eve.scheduler.RunnableSchedulerFactory;
 import com.almende.eve.scheduler.Scheduler;
@@ -21,7 +21,7 @@ public class TestScheduler extends TestCase {
 	
 	@Test
 	public void testSingleShot() throws Exception {
-		AgentHost host = AgentHost.getInstance();
+		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		host.addTransportService(new HttpService(host));
 		host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
@@ -58,7 +58,7 @@ public class TestScheduler extends TestCase {
 	}
 	
 	public void schedule(boolean clock) throws Exception {
-		AgentHost host = AgentHost.getInstance();
+		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		host.addTransportService(new HttpService(host));
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.ObjectCache;
 import com.almende.util.tokens.TokenRet;
@@ -23,7 +23,7 @@ public class ZmqConnection {
 	private final Socket		socket;
 	private final String		SIGADDR;
 	private String				zmqUrl	= null;
-	private AgentHost			host	= null;
+	private AgentHostDefImpl			host	= null;
 	private String				agentId	= null;
 	
 	public ZmqConnection(Socket socket) {
@@ -43,11 +43,11 @@ public class ZmqConnection {
 		this.zmqUrl = zmqUrl;
 	}
 	
-	public AgentHost getHost() {
+	public AgentHostDefImpl getHost() {
 		return host;
 	}
 	
-	public void setHost(AgentHost host) {
+	public void setHost(AgentHostDefImpl host) {
 		this.host = host;
 	}
 	
@@ -114,7 +114,7 @@ public class ZmqConnection {
 	 * @param packet
 	 */
 	public void listen() {
-		AgentHost.getPool().execute(new Runnable() {
+		AgentHostDefImpl.getPool().execute(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -187,7 +187,7 @@ public class ZmqConnection {
 		} else {
 			ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
 			String key = senderUrl + ":" + token.getToken();
-			if (!sessionCache.containsKey(key) && AgentHost.hasPrivate(agentId)) {
+			if (!sessionCache.containsKey(key) && AgentHostDefImpl.hasPrivate(agentId)) {
 				final String addr = senderUrl.replaceFirst("zmq:/?/?", "");
 				final Socket locSocket = ZMQ.getSocket(ZMQ.REQ);
 				locSocket.connect(addr);

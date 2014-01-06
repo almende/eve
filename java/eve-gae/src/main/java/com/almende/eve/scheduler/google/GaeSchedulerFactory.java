@@ -11,7 +11,7 @@ import java.util.Set;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -28,7 +28,7 @@ import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class GaeSchedulerFactory implements SchedulerFactory {
-	private AgentHost agentFactory = null;
+	private AgentHostDefImpl agentFactory = null;
 
 	// private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 
@@ -37,7 +37,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	 * @param agentFactory
 	 * @param params
 	 */
-	public GaeSchedulerFactory (AgentHost agentFactory, 
+	public GaeSchedulerFactory (AgentHostDefImpl agentFactory, 
 			Map<String, Object> params) {
 		this.agentFactory = agentFactory;
 		TwigUtil.register(GaeTask.class);

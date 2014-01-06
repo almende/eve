@@ -20,7 +20,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import org.jivesoftware.smack.SmackConfiguration;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class XmppService implements TransportService {
 	private static final String				CONNKEY				= "_XMPP_Connections";
-	private AgentHost						agentHost			= null;
+	private AgentHostDefImpl						agentHost			= null;
 	private String							host				= null;
 	private Integer							port				= null;
 	private String							service				= null;
@@ -69,7 +69,7 @@ public class XmppService implements TransportService {
 	 *            {String} serviceName
 	 *            {String} id
 	 */
-	public XmppService(AgentHost agentHost, Map<String, Object> params) {
+	public XmppService(AgentHostDefImpl agentHost, Map<String, Object> params) {
 		this.agentHost = agentHost;
 		
 		if (params != null) {
@@ -89,7 +89,7 @@ public class XmppService implements TransportService {
 	 * @param service
 	 *            service name
 	 */
-	public XmppService(AgentHost agentHost, String host, Integer port,
+	public XmppService(AgentHostDefImpl agentHost, String host, Integer port,
 			String service) {
 		this.agentHost = agentHost;
 		this.host = host;

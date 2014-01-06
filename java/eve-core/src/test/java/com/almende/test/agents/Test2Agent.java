@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostInterface;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -581,7 +581,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	public void xmppConnect(@Name("username") String username,
 			@Name("password") String password) throws Exception {
-		AgentHostInterface host = getAgentHost();
+		AgentHost host = getAgentHost();
 		
 		XmppService service = (XmppService) host.getTransportService("xmpp");
 		if (service != null) {
@@ -592,7 +592,7 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	public void xmppDisconnect() throws Exception {
-		AgentHostInterface host = getAgentHost();
+		AgentHost host = getAgentHost();
 		XmppService service = (XmppService) host.getTransportService("xmpp");
 		if (service != null) {
 			service.disconnect(getId());

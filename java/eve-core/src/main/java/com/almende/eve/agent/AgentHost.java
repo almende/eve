@@ -1,720 +1,437 @@
 package com.almende.eve.agent;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
-import java.net.ProtocolException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import com.almende.eve.agent.annotation.ThreadSafe;
 import com.almende.eve.agent.callback.CallbackInterface;
-import com.almende.eve.agent.callback.CallbackService;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
-import com.almende.eve.rpc.annotation.Access;
-import com.almende.eve.rpc.annotation.AccessType;
-import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.scheduler.Scheduler;
 import com.almende.eve.scheduler.SchedulerFactory;
-import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
-import com.almende.util.AnnotationUtil;
-import com.almende.util.AnnotationUtil.AnnotatedClass;
-import com.almende.util.ClassUtil;
-import com.almende.util.ObjectCache;
-import com.almende.util.TypeUtil;
 
-public final class AgentHost implements AgentHostInterface {
-	
-	private static final Logger																	LOG					= Logger.getLogger(AgentHost.class
-																															.getSimpleName());
-	private static final AgentHost																HOST				= new AgentHost();
-	private final ConcurrentHashMap<String, TransportService>									transportServices	= new ConcurrentHashMap<String, TransportService>();
-	private final ConcurrentHashMap<String, CallbackInterface<?>>								callbacks			= new ConcurrentHashMap<String, CallbackInterface<?>>();
-	private StateFactory																		stateFactory		= null;
-	private SchedulerFactory																	schedulerFactory	= null;
-	private Config																				config				= null;
-	private final EventLogger																	eventLogger			= new EventLogger(
-																															this);
-	private boolean																				doesShortcut		= true;
-	
-	private static final ExecutorService														POOL				= Executors
-																															.newCachedThreadPool();
-	
-	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
-	
-	private static final String																	AGENTS				= "agents";
+/**
+ * The AgentHost is a factory to instantiate and invoke Eve Agents within the
+ * configured state. The AgentHost can invoke local as well as remote agents.
+ * 
+ * An AgentHost must be instantiated with a valid Eve configuration file.
+ * This configuration is needed to load the configured agent classes and
+ * instantiate a state for each agent.
+ * 
+ * Example usage: // generic constructor Config config = new Config("eve.yaml");
+ * AgentHost factory = new AgentHost(config);
+ * 
+ * // construct in servlet InputStream is =
+ * getServletContext().getResourceAsStream("/WEB-INF/eve.yaml"); Config config =
+ * new Config(is); AgentHost factory = new AgentHost(config);
+ * 
+ * // create or get a shared instance of the AgentHost AgentHost factory =
+ * AgentHost.createInstance(namespace, config); AgentHost factory =
+ * AgentHost.getInstance(namespace);
+ * 
+ * // invoke a local agent by its id response = factory.invoke(agentId,
+ * request);
+ * 
+ * // invoke a local or remote agent by its url response =
+ * factory.send(senderId, receiverUrl, request);
+ * 
+ * // create a new agent Agent agent = factory.createAgent(agentType, agentId);
+ * String desc = agent.getDescription(); // use the agent agent.destroy(); //
+ * neatly shutdown the agents state
+ * 
+ * // instantiate an existing agent Agent agent = factory.getAgent(agentId);
+ * String desc = agent.getDescription(); // use the agent agent.destroy(); //
+ * neatly shutdown the agents state
+ * 
+ * @author jos
+ */
+public interface AgentHost {
 	
 	/**
-	 * Get the shared AgentHost instance
+	 * Instantiate the services from the given config.
 	 * 
-	 * @return factory Returns the host instance
+	 * @param config
 	 */
-	public static AgentHost getInstance() {
-		return HOST;
-	}
+	void loadConfig(Config config);
 	
-	public static ExecutorService getPool() {
-		return POOL;
-	}
+	/**
+	 * Signal all agents about AgentHost event.
+	 * 
+	 * @param event
+	 */
+	void signalAgents(AgentSignal<?> event);
 	
-	@Override
-	public void loadConfig(Config config) {
-		HOST.setConfig(config);
-		if (config != null) {
-			ObjectCache.get(AGENTS).configCache(config);
-			// initialize all factories for state, transport, and scheduler
-			// important to initialize in the correct order: cache first,
-			// then the state and transport services, and lastly scheduler.
-			HOST.setStateFactory(config);
-			HOST.addTransportServices(config);
-			HOST.setSchedulerFactory(config);
-			HOST.addAgents(config);
-		}
-	}
-	
-	@Override
-	public void signalAgents(AgentSignal<?> event) {
-		if (stateFactory != null) {
-			Iterator<String> iter = stateFactory.getAllAgentIds();
-			if (iter != null) {
-				while (iter.hasNext()) {
-					try {
-						Agent agent = getAgent(iter.next());
-						if (agent != null) {
-							agent.signalAgent(event);
-						}
-					} catch (Exception e) {
-						LOG.log(Level.WARNING, "Couldn't signal agent.", e);
-					}
-				}
-			}
-		}
-	}
-	
-	public static boolean hasPrivate(String agentId) {
-		try {
-			Class<?> clazz = HOST.getAgent(agentId).getClass();
-			AnnotatedClass annotated = AnnotationUtil.get(clazz);
-			for (Annotation anno : annotated.getAnnotations()) {
-				if (anno.annotationType().equals(Access.class)
-						&& ((Access) anno).value() == AccessType.PRIVATE) {
-					return true;
-				}
-				if (anno.annotationType().equals(Sender.class)) {
-					return true;
-				}
-			}
-		} catch (Exception e) {
-			LOG.log(Level.WARNING,
-					" Couldn't determine private annotations of agent "
-							+ agentId, e);
-		}
-		return false;
-	}
-	
-	@Override
-	public Agent getAgent(String agentId) throws ClassNotFoundException,
+	/**
+	 * Get an agent by its id. Returns null if the agent does not exist
+	 * 
+	 * Before deleting the agent, the method agent.destroy() must be executed to
+	 * neatly shutdown the instantiated state.
+	 * 
+	 * @param agentId
+	 * @return agent
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws SecurityException
+	 */
+	Agent getAgent(String agentId) throws ClassNotFoundException,
 			InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException, IOException {
-		
-		if (agentId == null) {
-			return null;
-		}
-		
-		if (getStateFactory() == null) {
-			return null;
-		}
-		
-		// Check if agent is instantiated already, returning if it is:
-		Agent agent = ObjectCache.get(AGENTS).get(agentId, Agent.class);
-		if (agent != null) {
-			return agent;
-		}
-		// No agent found, normal initialization:
-		
-		// load the State
-		State state = getStateFactory().get(agentId);
-		if (state == null) {
-			// agent does not exist
-			return null;
-		}
-		state.init();
-		
-		// read the agents class name from state
-		Class<?> agentType = state.getAgentType();
-		if (agentType == null) {
-			LOG.warning("Cannot instantiate agent. "
-					+ "Class information missing in the agents state "
-					+ "(agentId='" + agentId + "')");
-			return null;
-		}
-		
-		if (!Agent.class.isAssignableFrom(agentType)) {
-			LOG.warning("Cannot instantiate agent. "
-					+ "Class information does not represent an Agent. "
-					+ "(agentId='" + agentId + "', agentType='" + agentType
-					+ "')");
-			// Found state info not representing an Agent, like e.g. TokenStore
-			// or CookieStore.
-			return null;
-		}
-		
-		// instantiate the agent
-		agent = (Agent) agentType.getConstructor().newInstance();
-		agent.constr(this, state);
-		agent.signalAgent(new AgentSignal<Void>(AgentSignal.INIT));
-		
-		// If allowed, cache agent:
-		if (agentType.isAnnotationPresent(ThreadSafe.class)
-				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			ObjectCache.get(AGENTS).put(agentId, agent);
-		}
-		
-		return agent;
-	}
+			InvocationTargetException, NoSuchMethodException, IOException;
 	
-	@Override
-	public <T extends AgentInterface> T createAgentProxy(
+	/**
+	 * Create an agent proxy from an java interface
+	 * 
+	 * @param sender
+	 *            Sender Agent, used to authentication purposes.
+	 * @param receiverUrl
+	 *            Url of the receiving agent
+	 * @param agentInterface
+	 *            A java Interface, extending AgentInterface
+	 * @return
+	 */
+	<T extends AgentInterface> T createAgentProxy(final AgentInterface sender,
+			final URI receiverUrl, Class<T> agentInterface);
+	
+	/**
+	 * Create an asynchronous agent proxy from an java interface, each call will
+	 * return a future for handling the results.
+	 * 
+	 * @param senderId
+	 *            Internal id of the sender agent. Not required for all
+	 *            transport services (for example not for outgoing HTTP
+	 *            requests)
+	 * @param receiverUrl
+	 *            Url of the receiving agent
+	 * @param agentInterface
+	 *            A java Interface, extending AgentInterface
+	 * @return
+	 */
+	<T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
 			final AgentInterface sender, final URI receiverUrl,
-			Class<T> agentInterface) {
-		
-		// TODO: In the new model the proxy agents need to have an adres as
-		// well! This will enforce usage of the agentCache!
-		final String proxyId = "proxy_"
-				+ (sender != null ? sender.getId() + "_" : "")
-				+ agentInterface.getCanonicalName().replace(' ', '_');
-		
-		T proxy = ObjectCache.get(AGENTS).get(proxyId, agentInterface);
-		if (proxy != null) {
-			return proxy;
-		}
-		AgentProxyFactory pf = new AgentProxyFactory(this);
-		proxy = pf.genProxy(sender, receiverUrl, agentInterface, proxyId);
-		
-		ObjectCache.get(AGENTS).put(proxyId, proxy);
-		
-		return proxy;
-	}
+			Class<T> agentInterface);
 	
-	@Override
-	public <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
-			final AgentInterface sender, final URI receiverUrl,
-			Class<T> agentInterface) {
-		return new AsyncProxy<T>(createAgentProxy(sender, receiverUrl,
-				agentInterface));
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T extends Agent> T createAgent(String agentType, String agentId)
+	/**
+	 * Create an agent.
+	 * 
+	 * Before deleting the agent, the method agent.destroy() must be executed to
+	 * neatly shutdown the instantiated state.
+	 * 
+	 * @param agentType
+	 *            full class path
+	 * @param agentId
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws IOException
+	 */
+	<T extends Agent> T createAgent(String agentType, String agentId)
 			throws InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException,
-			ClassNotFoundException, IOException {
-		return (T) createAgent((Class<T>) Class.forName(agentType), agentId);
-	}
+			ClassNotFoundException, IOException;
 	
-	@Override
-	public <T extends Agent> T createAgent(Class<T> agentType, String agentId)
+	/**
+	 * Create an agent.
+	 * 
+	 * Before deleting the agent, the method agent.destroy() must be executed to
+	 * neatly shutdown the instantiated state.
+	 * 
+	 * @param agentType
+	 * @param agentId
+	 * @return
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws IOException
+	 */
+	<T extends Agent> T createAgent(Class<T> agentType, String agentId)
 			throws InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException, IOException {
-		
-		// create the state
-		State state = getStateFactory().create(agentId);
-		state.setAgentType(agentType);
-		state.init();
-		
-		// instantiate the agent
-		T agent = (T) agentType.getConstructor().newInstance();
-		agent.constr(this, state);
-		agent.signalAgent(new AgentSignal<Void>(AgentSignal.CREATE));
-		agent.signalAgent(new AgentSignal<Void>(AgentSignal.INIT));
-		
-		// Cache agent if allowed
-		if (agentType.isAnnotationPresent(ThreadSafe.class)
-				&& agentType.getAnnotation(ThreadSafe.class).value()) {
-			ObjectCache.get(AGENTS).put(agentId, agent);
-		}
-		
-		return agent;
-	}
+			InvocationTargetException, NoSuchMethodException, IOException;
 	
-	@Override
-	public <T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
+	/**
+	 * Create a new agent, using the base AspectAgent class. This agent has a
+	 * namespace "sub", to which the given class's methods are added.
+	 * 
+	 * @param aspect
+	 * @param agentId
+	 * @return
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws IOException
+	 */
+	<T> AspectAgent<T> createAspectAgent(Class<? extends T> aspect,
 			String agentId) throws InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
-		@SuppressWarnings("unchecked")
-		AspectAgent<T> result = createAgent(AspectAgent.class, agentId);
-		result.init(aspect);
-		return result;
-	}
+			NoSuchMethodException, IOException;
 	
-	@Override
-	public void deleteAgent(String agentId) {
-		if (agentId == null) {
-			return;
-		}
-		Agent agent = null;
-		try {
-			agent = getAgent(agentId);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't get agent to delete.", e);
-		}
-		if (agent != null) {
-			if (getScheduler(agent) != null) {
-				schedulerFactory.destroyScheduler(agentId);
-			}
-			try {
-				// get the agent and execute the delete method
-				agent.signalAgent(new AgentSignal<Void>(AgentSignal.DESTROY));
-				agent.signalAgent(new AgentSignal<Void>(AgentSignal.DELETE));
-				ObjectCache.get(AGENTS).delete(agentId);
-				agent = null;
-			} catch (Exception e) {
-				LOG.log(Level.WARNING, "Error deleting agent:" + agentId, e);
-			}
-		}
-		// delete the state, even if the agent.destroy or agent.delete
-		// failed.
-		getStateFactory().delete(agentId);
-	}
+	/**
+	 * Delete an agent
+	 * 
+	 * @param agentId
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
+	 */
+	void deleteAgent(String agentId) throws ClassNotFoundException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException;
 	
-	@Override
-	public boolean hasAgent(String agentId) {
-		return getStateFactory().exists(agentId);
-	}
+	/**
+	 * Test if an agent exists
+	 * 
+	 * @param agentId
+	 * @return true if the agent exists
+	 */
+	boolean hasAgent(String agentId);
 	
-	@Override
-	public EventLogger getEventLogger() {
-		return eventLogger;
-	}
+	/**
+	 * Get the event logger. The event logger is used to temporary log triggered
+	 * events, and display them on the agents web interface.
+	 * 
+	 * @return eventLogger
+	 */
+	EventLogger getEventLogger();
 	
-	@Override
-	public void receive(String receiverId, Object message, String senderUrl,
-			String tag) throws IOException {
-		URI senderUri = null;
-		if (senderUrl != null) {
-			try {
-				senderUri = URI.create(senderUrl);
-			} catch (Exception e) {
-				LOG.warning("Incorrect senderUrl given:" + senderUrl);
-			}
-		}
-		receive(receiverId, message, senderUri, tag);
-	}
+	/**
+	 * Receive a message for an agent.
+	 * 
+	 * @param receiverUrl
+	 * @param message
+	 * @param senderUri
+	 * @throws IOException 
+	 */
+	void receive(String receiverId, Object message, URI senderUri, String tag) throws IOException;
 	
-	@Override
-	public void receive(String receiverId, Object message, URI senderUri,
-			String tag) throws IOException {
-		AgentInterface receiver = null;
-		try {
-			receiver = getAgent(receiverId);
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "Couldn't getAgent("+receiverId+")", e);
-			throw new IOException(e);
-		}
-		if (receiver == null) {
-			// Check if there might be a proxy in the objectcache:
-			receiver = ObjectCache.get(AGENTS).get(receiverId,
-					AgentInterface.class);
-		}
-		if (receiver != null) {
-			receiver.receive(message, senderUri, tag);
-		}
-	}
+	/**
+	 * Receive a message for an agent.
+	 * 
+	 * @param receiverUrl
+	 * @param message
+	 * @param senderUri
+	 * @throws IOException 
+	 */
+	void receive(String receiverId, Object message, String senderUrl, String tag) throws IOException;
 	
-	@Override
-	public void sendAsync(final URI receiverUrl, final Object message,
-			final AgentInterface sender, final String tag) throws IOException {
-		final String receiverId = getAgentId(receiverUrl.toASCIIString());
-		String protocol = receiverUrl.getScheme();
-		if (("local".equals(protocol)) || (doesShortcut && receiverId != null)) {
-			// local shortcut
-			URI senderUri = null;
-			if (sender != null) {
-				senderUri = getSenderUrl(sender.getId(), receiverUrl);
-			}
-			receive(receiverId, message, senderUri, tag);
-		} else {
-			TransportService service = null;
-			String senderUrl = null;
-			if (sender != null) {
-				URI senderUri = getSenderUrl(sender.getId(), receiverUrl);
-				senderUrl = senderUri.toASCIIString();
-			}
-			service = getTransportService(protocol);
-			if (service != null) {
-				service.sendAsync(senderUrl, receiverUrl.toASCIIString(),
-						message, tag);
-			} else {
-				throw new ProtocolException(
-						"No transport service configured for protocol '"
-								+ protocol + "'.");
-			}
-		}
-	}
+	/**
+	 * Asynchronously send a message to an agent.
+	 * 
+	 * @param sender
+	 *            Internal id of the sender agent. Not required for all
+	 *            transport services (for example not for outgoing HTTP
+	 *            requests)
+	 * @param receiverUrl
+	 * @param message
+	 * @param sender
+	 * @throws IOException
+	 */
 	
-	// TODO: change to URI en create a protocol->transport map in agentHost
-	@Override
-	public String getAgentId(String agentUrl) {
-		if (agentUrl.startsWith("local:")) {
-			return agentUrl.replaceFirst("local:/?/?", "");
-		}
-		for (TransportService service : transportServices.values()) {
-			String agentId = service.getAgentId(agentUrl);
-			if (agentId != null) {
-				return agentId;
-			}
-		}
-		return null;
-	}
+	void sendAsync(URI receiverUrl, Object message, AgentInterface sender,
+			String tag) throws IOException;
 	
-	@Override
-	public URI getSenderUrl(String agentId, URI receiverUrl) {
-		if (receiverUrl.getScheme().equals("local")) {
-			return URI.create("local:" + agentId);
-		}
-		for (TransportService service : transportServices.values()) {
-			List<String> protocols = service.getProtocols();
-			for (String protocol : protocols) {
-				if (receiverUrl.getScheme().equals(protocol)) {
-					String senderUrl = service.getAgentUrl(agentId);
-					if (senderUrl != null) {
-						return URI.create(senderUrl);
-					}
-				}
-			}
-		}
-		LOG.warning("Couldn't find sender URL for:" + agentId + " | "
-				+ receiverUrl.toASCIIString());
-		return null;
-	}
+	/**
+	 * Get the agentId from given agentUrl. The url can be any protocol. If the
+	 * url matches any of the registered transport services, an agentId is
+	 * returned. This means that the url represents a local agent. It is
+	 * possible that no agent with this id exists.
+	 * 
+	 * @param agentUrl
+	 * @return agentId
+	 */
+	String getAgentId(String agentUrl);
 	
-	@Override
-	public <T> T getRef(String agentId, TypedKey<T> key) {
-		ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
-				.get(agentId);
-		if (objects != null) {
-			return TypeUtil.inject(objects.get(key).get(), key.getType());
-		}
-		
-		return null;
-	}
+	/**
+	 * Determines best senderUrl for this agent, match receiverUrl transport
+	 * method if possible. (fallback from HTTPS to HTTP included)
+	 * 
+	 * @param agentId
+	 *            , receiverUrl
+	 * @return URI SenderUrl
+	 */
+	URI getSenderUrl(String agentId, URI receiverUrl);
 	
-	@Override
-	public <T> void putRef(String agentId, TypedKey<T> key, T value) {
-		synchronized (refStore) {
-			ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
-					.get(agentId);
-			if (objects == null) {
-				objects = new ConcurrentHashMap<TypedKey<?>, WeakReference<?>>();
-			}
-			objects.put(key, new WeakReference<Object>(value));
-			refStore.put(agentId, objects);
-		}
-	}
+	/**
+	 * Get the loaded config file
+	 * 
+	 * @return config A configuration file
+	 */
+	void setConfig(Config config);
 	
-	public StateFactory getStateFactoryFromConfig(Config config,
-			String configName) {
-		StateFactory result = null;
-		// get the class name from the config file
-		// first read from the environment specific configuration,
-		// if not found read from the global configuration
-		
-		String className = config.get(configName, "class");
-		if (className == null) {
-			if (!configName.equals("state")) {
-				// Provide fallback to state if other type doesn't exist;
-				configName = "state";
-				className = config.get(configName, "class");
-			}
-			if (className == null) {
-				throw new IllegalArgumentException("Config parameter '"
-						+ config + ".class' missing in Eve configuration.");
-			}
-		}
-		
-		try {
-			// get the class
-			Class<?> stateClass = Class.forName(className);
-			if (!ClassUtil.hasInterface(stateClass, StateFactory.class)) {
-				throw new IllegalArgumentException("State factory class "
-						+ stateClass.getName() + " must extend "
-						+ State.class.getName());
-			}
-			
-			// instantiate the state factory
-			Map<String, Object> params = config.get(configName);
-			result = (StateFactory) stateClass.getConstructor(Map.class)
-					.newInstance(params);
-			
-			LOG.info("Initialized state factory: " + result.toString());
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-		return result;
-	}
+	/**
+	 * Get the loaded config file
+	 * 
+	 * @return config A configuration file
+	 */
+	Config getConfig();
 	
-	@Override
-	public void setStateFactory(Config config) {
-		if (this.stateFactory != null) {
-			LOG.warning("Not loading statefactory from config, there is already a statefactory available.");
-			return;
-		}
-		
-		setStateFactory(getStateFactoryFromConfig(config, "state"));
-	}
+	/**
+	 * Utility method to keep reference of in-memory objects from the agent. The
+	 * references are stored as WeakReferences, so the life-cycle of the
+	 * referenced objects will not be influenced by storing them.
+	 * 
+	 * @param agentId
+	 * @param key
+	 * @param value
+	 */
+	<T> void putRef(String agentId, TypedKey<T> key, T value);
 	
-	@Override
-	public void addAgents(Config config) {
-		Map<String, String> agents = config.get("bootstrap", AGENTS);
-		if (agents != null) {
-			for (Entry<String, String> entry : agents.entrySet()) {
-				String agentId = entry.getKey();
-				String agentType = entry.getValue();
-				try {
-					Agent agent = getAgent(agentId);
-					if (agent == null) {
-						// agent does not yet exist. create it
-						agent = createAgent(agentType, agentId);
-						LOG.info("Bootstrap created agent id=" + agentId
-								+ ", type=" + agentType);
-					}
-				} catch (Exception e) {
-					LOG.log(Level.WARNING, "", e);
-				}
-			}
-		}
-	}
+	/**
+	 * Utility method to get back references to in-memory objects from the
+	 * agent. The references are stored as WeakReferences, so the life-cycle of
+	 * the referenced objects will not be influenced by storing them. However,
+	 * the return value of this method is the hard-reference again.
+	 * If the object has been garbage collected, this method will return null.
+	 * 
+	 * @param agentId
+	 * @param key
+	 * @return
+	 */
+	<T> T getRef(String agentId, TypedKey<T> key);
 	
-	@Override
-	public void setStateFactory(StateFactory stateFactory) {
-		if (this.stateFactory != null) {
-			LOG.warning("Not setting new stateFactory, there is already a factory initialized.");
-			return;
-		}
-		this.stateFactory = stateFactory;
-		HOST.signalAgents(new AgentSignal<StateFactory>(
-				AgentSignal.SETSTATEFACTORY, stateFactory));
-		
-	}
+	/**
+	 * Can transport services do a local invokation if the URL designates a
+	 * local agent?
+	 * 
+	 * @return
+	 */
+	boolean isDoesShortcut();
 	
-	@Override
-	public StateFactory getStateFactory() {
-		if (stateFactory == null) {
-			LOG.warning("No state factory initialized.");
-		}
-		return stateFactory;
-	}
+	/**
+	 * If true, transport services can do a local invokation if the URL
+	 * designates a local agent.
+	 * 
+	 * @default true
+	 * @return
+	 */
+	void setDoesShortcut(boolean doesShortcut);
 	
-	@Override
-	public void setSchedulerFactory(Config config) {
-		// get the class name from the config file
-		// first read from the environment specific configuration,
-		// if not found read from the global configuration
-		String className = config.get("scheduler", "class");
-		if (className == null) {
-			throw new IllegalArgumentException(
-					"Config parameter 'scheduler.class' missing in Eve configuration.");
-		}
-		
-		// read all scheduler params (will be fed to the scheduler factory
-		// on construction)
-		Map<String, Object> params = config.get("scheduler");
-		
-		try {
-			// get the class
-			Class<?> schedulerClass = Class.forName(className);
-			if (!ClassUtil.hasInterface(schedulerClass, SchedulerFactory.class)) {
-				throw new IllegalArgumentException("Scheduler class "
-						+ schedulerClass.getName() + " must implement "
-						+ SchedulerFactory.class.getName());
-			}
-			
-			// initialize the scheduler factory
-			SchedulerFactory sf = (SchedulerFactory) schedulerClass
-					.getConstructor(AgentHost.class, Map.class).newInstance(
-							this, params);
-			
-			setSchedulerFactory(sf);
-			
-			LOG.info("Initialized scheduler factory: "
-					+ sf.getClass().getName());
-		} catch (Exception e) {
-			LOG.log(Level.WARNING, "", e);
-		}
-	}
+	/**
+	 * Load a state factory from config
+	 * 
+	 * @param config
+	 */
+	void setStateFactory(Config config);
 	
-	@Override
-	public void addTransportServices(Config config) {
-		if (config == null) {
-			Exception e = new Exception("Configuration uninitialized");
-			LOG.log(Level.WARNING, "", e);
-			return;
-		}
-		
-		// read global service params
-		List<Map<String, Object>> allTransportParams = config
-				.get("transport_services");
-		if (allTransportParams != null) {
-			int index = 0;
-			for (Map<String, Object> transportParams : allTransportParams) {
-				String className = (String) transportParams.get("class");
-				try {
-					if (className != null) {
-						
-						// Recognize known classes by their short name,
-						// and replace the short name for the full class path
-						className = Config.map(className);
-						// get class
-						Class<?> transportClass = Class.forName(className);
-						if (!ClassUtil.hasInterface(transportClass,
-								TransportService.class)) {
-							throw new IllegalArgumentException(
-									"TransportService class "
-											+ transportClass.getName()
-											+ " must implement "
-											+ TransportService.class.getName());
-						}
-						
-						// initialize the transport service
-						TransportService transport = (TransportService) transportClass
-								.getConstructor(AgentHost.class, Map.class)
-								.newInstance(this, transportParams);
-						
-						// register the service with the agent factory
-						addTransportService(transport);
-					} else {
-						LOG.warning("Cannot load transport service at index "
-								+ index + ": no class defined.");
-					}
-				} catch (Exception e) {
-					LOG.log(Level.WARNING, "Cannot load service at index "
-							+ index, e);
-				}
-				index++;
-			}
-		}
-	}
+	/**
+	 * Create agents from a config (only when they do not yet exist). Agents
+	 * will be read from the configuration path bootstrap.agents, which must
+	 * contain a map where the keys are agentId's and the values are the agent
+	 * types (full java class path).
+	 * 
+	 * @param config
+	 */
+	// TODO: private?
+	void addAgents(Config config);
 	
-	@Override
-	public void addTransportService(TransportService transportService) {
-		if (!transportServices.contains(transportService.getKey())) {
-			transportServices.put(transportService.getKey(), transportService);
-			LOG.info("Registered transport service: "
-					+ transportService.toString());
-			if (HOST != null) {
-				HOST.signalAgents(new AgentSignal<TransportService>(
-						AgentSignal.ADDTRANSPORTSERVICE, transportService));
-			}
-		} else {
-			LOG.warning("Not adding transport service, as it already exists.");
-		}
-	}
+	/**
+	 * Set a state factory. The state factory is used to get/create/delete an
+	 * agents state.
+	 * 
+	 * @param stateFactory
+	 */
+	void setStateFactory(StateFactory stateFactory);
 	
-	@Override
-	public void removeTransportService(TransportService transportService) {
-		transportServices.remove(transportService);
-		LOG.info("Unregistered transport service "
-				+ transportService.toString());
-		HOST.signalAgents(new AgentSignal<TransportService>(
-				AgentSignal.DELTRANSPORTSERVICE, transportService));
-		
-	}
+	/**
+	 * Get the configured state factory.
+	 * 
+	 * @return stateFactory
+	 */
+	StateFactory getStateFactory();
 	
-	@Override
-	public List<TransportService> getTransportServices() {
-		// TODO: check efficiency of this method, is there something simpler?
-		return Collections.list(Collections.enumeration(transportServices
-				.values()));
-	}
+	/**
+	 * Load a scheduler factory from a config file
+	 * 
+	 * @param config
+	 */
+	// TODO: private?
+	void setSchedulerFactory(Config config);
 	
-	@Override
-	public List<TransportService> getTransportServices(String protocol) {
-		List<TransportService> filteredServices = new ArrayList<TransportService>();
-		
-		for (TransportService service : transportServices.values()) {
-			List<String> protocols = service.getProtocols();
-			if (protocols.contains(protocol)) {
-				filteredServices.add(service);
-			}
-		}
-		
-		return filteredServices;
-	}
+	/**
+	 * Load transport services for incoming and outgoing messages from a config
+	 * (for example http and xmpp services).
+	 * 
+	 * @param config
+	 */
+	// TODO: Private?
+	void addTransportServices(Config config);
 	
-	@Override
-	public TransportService getTransportService(String protocol) {
-		List<TransportService> services = getTransportServices(protocol);
-		if (services.size() > 0) {
-			return services.get(0);
-		}
-		return null;
-	}
+	/**
+	 * Add a new transport service
+	 * 
+	 * @param transportService
+	 */
+	void addTransportService(TransportService transportService);
 	
-	@Override
-	public void setSchedulerFactory(SchedulerFactory schedulerFactory) {
-		if (this.schedulerFactory != null) {
-			LOG.warning("Replacing earlier schedulerFactory.");
-		}
-		this.schedulerFactory = schedulerFactory;
-		HOST.signalAgents(new AgentSignal<SchedulerFactory>(
-				AgentSignal.SETSCHEDULERFACTORY, schedulerFactory));
-	}
+	/**
+	 * Remove a registered a transport service
+	 * 
+	 * @param transportService
+	 */
+	void removeTransportService(TransportService transportService);
 	
-	@Override
-	public Scheduler getScheduler(Agent agent) {
-		if (schedulerFactory == null) {
-			return null;
-		}
-		return schedulerFactory.getScheduler(agent);
-	}
+	/**
+	 * Get all registered transport services
+	 * 
+	 * @return transportService
+	 */
+	List<TransportService> getTransportServices();
 	
-	public synchronized <T> CallbackInterface<T> getCallbackService(String id,
-			Class<T> clazz) {
-		// TODO: make this better!
-		TypeUtil<CallbackInterface<T>> type = new TypeUtil<CallbackInterface<T>>() {
-		};
-		CallbackInterface<T> result = type.inject(callbacks.get(id));
-		if (result == null) {
-			result = new CallbackService<T>();
-			callbacks.put(id, result);
-		}
-		return result;
-	}
+	/**
+	 * Get all registered transport services which can handle given protocol
+	 * 
+	 * @param protocol
+	 *            A protocol, for example "http" or "xmpp"
+	 * @return transportService
+	 */
+	List<TransportService> getTransportServices(String protocol);
 	
-	@Override
-	public void setConfig(Config config) {
-		this.config = config;
-	}
+	/**
+	 * Get the first registered transport service which supports given protocol.
+	 * Returns null when none of the registered transport services can handle
+	 * the protocol.
+	 * 
+	 * @param protocol
+	 *            A protocol, for example "http" or "xmpp"
+	 * @return service
+	 */
+	TransportService getTransportService(String protocol);
 	
-	@Override
-	public Config getConfig() {
-		return config;
-	}
+	/**
+	 * Set a scheduler factory. The scheduler factory is used to
+	 * get/create/delete an agents scheduler.
+	 * 
+	 * @param schedulerFactory
+	 */
+	void setSchedulerFactory(SchedulerFactory schedulerFactory);
 	
-	@Override
-	public boolean isDoesShortcut() {
-		return doesShortcut;
-	}
+	/**
+	 * create a scheduler for an agent
+	 * 
+	 * @param agentId
+	 * @return scheduler
+	 */
+	Scheduler getScheduler(Agent agent);
 	
-	@Override
-	public void setDoesShortcut(boolean doesShortcut) {
-		this.doesShortcut = doesShortcut;
-	}
+	/**
+	 * Get a callback storage service. This service keeps AsyncCallbacks in a
+	 * global accessible in-memory store.
+	 * 
+	 * @param id
+	 * @param clazz
+	 * @return
+	 */
+	<T> CallbackInterface<T> getCallbackService(String id, Class<T> clazz);
+	
 }

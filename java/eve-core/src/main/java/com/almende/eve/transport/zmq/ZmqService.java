@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 import org.zeromq.ZMQ.Socket;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
@@ -19,7 +19,7 @@ public class ZmqService implements TransportService {
 	private static final Logger				LOG				= Logger.getLogger(ZmqService.class
 																	.getCanonicalName());
 	
-	private AgentHost						agentHost		= null;
+	private AgentHostDefImpl						agentHost		= null;
 	private String							baseUrl			= "";
 	private HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
 	
@@ -37,7 +37,7 @@ public class ZmqService implements TransportService {
 	 *            {String} baseUrl
 	 *            {Integer} basePort
 	 */
-	public ZmqService(AgentHost agentHost, Map<String, Object> params) {
+	public ZmqService(AgentHostDefImpl agentHost, Map<String, Object> params) {
 		this.agentHost = agentHost;
 		
 		if (params != null) {
@@ -79,7 +79,7 @@ public class ZmqService implements TransportService {
 	@Override
 	public void sendAsync(final String senderUrl, final String receiverUrl, final Object message, String tag) {
 		final String receiverId=getAgentId(receiverUrl);
-		AgentHost.getPool().execute(new Runnable() {
+		AgentHostDefImpl.getPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				String result = null;

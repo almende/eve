@@ -6,18 +6,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
 public class EventLogger {
 	private static final Logger	LOG			= Logger.getLogger(EventLogger.class
 													.getCanonicalName());
-	private AgentHost			agentHost	= null;
+	private AgentHostDefImpl			agentHost	= null;
 	
 	protected EventLogger() {
 	}
 	
-	public EventLogger(AgentHost agentHost) {
+	public EventLogger(AgentHostDefImpl agentHost) {
 		this.agentHost = agentHost;
 	}
 	

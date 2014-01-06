@@ -3,7 +3,7 @@ package com.almende.eve.ggdemo;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.scheduler.ClockSchedulerFactory;
 import com.almende.eve.state.MemoryStateFactory;
@@ -25,7 +25,7 @@ public class GGDemo {
 			InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, IOException,
 			ClassNotFoundException, InterruptedException {
-		AgentHost host = AgentHost.getInstance();
+		AgentHostDefImpl host = AgentHostDefImpl.getInstance();
 		host.setStateFactory(new MemoryStateFactory());
 		host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
 		if (args.length < 4) {

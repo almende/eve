@@ -9,7 +9,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.AsyncProxy;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestAgent;
@@ -21,7 +21,7 @@ public class TestProxy extends TestCase {
 	@Test
 	public void testProxy() throws Exception {
 		//Create TestAgent according to TestInterface
-		AgentHost factory = AgentHost.getInstance();
+		AgentHostDefImpl factory = AgentHostDefImpl.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		factory.setStateFactory(stateFactory);
 		

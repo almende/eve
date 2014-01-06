@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.AspectAgent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -15,7 +15,7 @@ public class TestAspects extends TestCase {
 	@Test
 	public void testAspect() throws Exception {
 		final String TEST_AGENT = "AspectAgent"; 
-		AgentHost factory = AgentHost.getInstance();
+		AgentHostDefImpl factory = AgentHostDefImpl.getInstance();
 		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		factory.setStateFactory(stateFactory);
 		

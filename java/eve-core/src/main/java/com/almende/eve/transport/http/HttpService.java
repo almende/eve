@@ -16,7 +16,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.callback.AsyncCallback;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.transport.TransportService;
@@ -26,11 +26,11 @@ public class HttpService implements TransportService {
 	private static final Logger	LOG			= Logger.getLogger(HttpService.class
 													.getCanonicalName());
 	private String				servletUrl	= null;
-	private AgentHost			host		= null;
+	private AgentHostDefImpl			host		= null;
 	private List<String>		protocols	= Arrays.asList("http", "https",
 													"web");
 	
-	public HttpService(AgentHost agentHost) {
+	public HttpService(AgentHostDefImpl agentHost) {
 		this.host = agentHost;
 	}
 	
@@ -42,7 +42,7 @@ public class HttpService implements TransportService {
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(AgentHost agentHost, Map<String, Object> params) {
+	public HttpService(AgentHostDefImpl agentHost, Map<String, Object> params) {
 		this.host = agentHost;
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
@@ -57,7 +57,7 @@ public class HttpService implements TransportService {
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(AgentHost agentHost, String servlet_url) {
+	public HttpService(AgentHostDefImpl agentHost, String servlet_url) {
 		this.host = agentHost;
 		setServletUrl(servlet_url);
 	}
@@ -117,7 +117,7 @@ public class HttpService implements TransportService {
 	public void sendAsync(final String senderUrl, final String receiverUrl,
 			final Object message, final String tag) throws IOException {
 		
-		AgentHost.getPool().execute(new Runnable() {
+		AgentHostDefImpl.getPool().execute(new Runnable() {
 			
 			@Override
 			public void run() {

@@ -6,25 +6,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 
 public class ClockSchedulerFactory implements SchedulerFactory {
 	private static final Logger		LOG			= Logger.getLogger(ClockSchedulerFactory.class
 														.getCanonicalName());
 	private Map<String, Scheduler>	schedulers	= new HashMap<String, Scheduler>();
-	private AgentHost				agentHost	= null;
+	private AgentHostDefImpl				agentHost	= null;
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
 	 * 
-	 * @param AgentHost
+	 * @param AgentHostDefImpl
 	 * @param params
 	 */
-	public ClockSchedulerFactory(AgentHost agentHost, Map<String, Object> params) {
+	public ClockSchedulerFactory(AgentHostDefImpl agentHost, Map<String, Object> params) {
 		this(agentHost, "");
 	}
 	
-	public ClockSchedulerFactory(AgentHost agentHost, String id) {
+	public ClockSchedulerFactory(AgentHostDefImpl agentHost, String id) {
 		this.agentHost = agentHost;
 	}
 	

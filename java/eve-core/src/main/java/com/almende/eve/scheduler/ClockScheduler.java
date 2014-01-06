@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
@@ -31,7 +31,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 																			};
 	private static final int									MAXCOUNT	= 100;
 	
-	public ClockScheduler(Agent myAgent, AgentHost factory) {
+	public ClockScheduler(Agent myAgent, AgentHostDefImpl factory) {
 		if (myAgent == null) {
 			throw new IllegalArgumentException("MyAgent should not be null!");
 		}

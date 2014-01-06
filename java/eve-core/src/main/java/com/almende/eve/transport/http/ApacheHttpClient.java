@@ -31,7 +31,7 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 
@@ -111,7 +111,7 @@ public final class ApacheHttpClient {
 		private State		myState		= null;
 		
 		MyCookieStore() throws IOException {
-			AgentHost host = AgentHost.getInstance();
+			AgentHostDefImpl host = AgentHostDefImpl.getInstance();
 			StateFactory factory = null;
 			if (host.getConfig() != null) {
 				factory = host.getStateFactoryFromConfig(host.getConfig(),

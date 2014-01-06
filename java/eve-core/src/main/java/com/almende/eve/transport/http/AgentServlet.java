@@ -16,7 +16,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.AgentSignal;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
@@ -35,16 +35,16 @@ public class AgentServlet extends HttpServlet {
 													.getSimpleName());
 	
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
-	private static AgentHost	agentHost;
+	private static AgentHostDefImpl	agentHost;
 	private static HttpService	httpTransport;
 	
 	@Override
 	public void init() {
-		if (AgentHost.getInstance().getStateFactory() == null) {
+		if (AgentHostDefImpl.getInstance().getStateFactory() == null) {
 			LOG.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		agentHost = AgentHost.getInstance();
+		agentHost = AgentHostDefImpl.getInstance();
 		
 		String environment = Config.getEnvironment();
 		String envParam = "environment." + environment + ".servlet_url";
@@ -207,7 +207,7 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			if (AgentHost.hasPrivate(agentId) && !handleSession(req, resp)) {
+			if (AgentHostDefImpl.hasPrivate(agentId) && !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				}
@@ -296,7 +296,7 @@ public class AgentServlet extends HttpServlet {
 			return;
 		}
 		
-		if (AgentHost.hasPrivate(agentId) && !handleSession(req, resp)) {
+		if (AgentHostDefImpl.hasPrivate(agentId) && !handleSession(req, resp)) {
 			if (!resp.isCommitted()) {
 				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 			}

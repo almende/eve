@@ -74,7 +74,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public abstract class Agent implements AgentInterface {
 	private static final Logger				LOG				= Logger.getLogger(Agent.class
 																	.getCanonicalName());
-	private AgentHostInterface				agentHost		= null;
+	private AgentHost				agentHost		= null;
 	private State							state			= null;
 	private Scheduler						scheduler		= null;
 	private ResultMonitorFactoryInterface	monitorFactory	= null;
@@ -99,7 +99,7 @@ public abstract class Agent implements AgentInterface {
 	public Agent() {
 	}
 	
-	public void constr(AgentHost agentHost, State state) {
+	public void constr(AgentHostDefImpl agentHost, State state) {
 		if (this.state == null) {
 			this.agentHost = agentHost;
 			this.state = state;
@@ -280,7 +280,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final AgentHostInterface getAgentHost() {
+	public final AgentHost getAgentHost() {
 		return agentHost;
 		
 	}
@@ -655,7 +655,7 @@ public abstract class Agent implements AgentInterface {
 					
 					final JSONRequest request = (JSONRequest) jsonMsg;
 					final AgentInterface me = this;
-					AgentHost.getPool().execute(new Runnable() {
+					AgentHostDefImpl.getPool().execute(new Runnable() {
 						@Override
 						public void run() {
 							JSONResponse response = JSONRPC.invoke(me, request,
@@ -675,7 +675,7 @@ public abstract class Agent implements AgentInterface {
 					final AsyncCallback<JSONResponse> callback = callbacks
 							.get(id);
 					if (callback != null) {
-						AgentHost.getPool().execute(new Runnable() {
+						AgentHostDefImpl.getPool().execute(new Runnable() {
 							@Override
 							public void run() {
 								if (response.getError() != null) {

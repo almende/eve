@@ -19,9 +19,9 @@ import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class AgentProxyFactory {
-	private AgentHostInterface			host	= null;
+	private AgentHost			host	= null;
 	
-	public AgentProxyFactory(AgentHostInterface host) {
+	public AgentProxyFactory(AgentHost host) {
 		this.host = host;
 	}
 	

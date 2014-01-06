@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONResponse;
@@ -19,7 +19,7 @@ import com.google.appengine.api.xmpp.XMPPServiceFactory;
 
 @SuppressWarnings("serial")
 public class GaeXmppServlet extends HttpServlet {
-	protected AgentHost			agentFactory	= null;
+	protected AgentHostDefImpl			agentFactory	= null;
 	protected GaeXmppService	xmppService		= null;
 	
 	private Logger				logger			= Logger.getLogger(this
@@ -88,7 +88,7 @@ public class GaeXmppServlet extends HttpServlet {
 	 */
 	private void initAgentFactory() throws Exception {
 		// TODO: be able to choose a different namespace
-		agentFactory = AgentHost.getInstance();
+		agentFactory = AgentHostDefImpl.getInstance();
 		
 		// if the agent factory is not configured, load it from config
 		if (agentFactory.getConfig() == null) {
@@ -103,7 +103,7 @@ public class GaeXmppServlet extends HttpServlet {
 					+ getServletContext().getRealPath(fullname) + "'...");
 			Config config = new Config(getServletContext().getResourceAsStream(
 					fullname));
-			agentFactory = AgentHost.getInstance();
+			agentFactory = AgentHostDefImpl.getInstance();
 			agentFactory.loadConfig(config);
 		}
 	}

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostInterface;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -35,7 +35,7 @@ public class DemoAgent extends Agent {
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException, ClassNotFoundException {
-		AgentHostInterface host = getAgentHost();
+		AgentHost host = getAgentHost();
 		ArrayList<String> agents = getState().get("agents",
 				new TypeUtil<ArrayList<String>>() {
 				});
@@ -129,7 +129,7 @@ public class DemoAgent extends Agent {
 		return result;
 	}
 	
-	private void genFully(AgentHostInterface host, int agentCount, int stepSize, String agentType)
+	private void genFully(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException, ClassNotFoundException {
@@ -150,7 +150,7 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genCircle(AgentHostInterface host, int agentCount, int stepSize, String agentType)
+	private void genCircle(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException, ClassNotFoundException {
@@ -167,7 +167,7 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genLine(AgentHostInterface host, int agentCount, int stepSize, String agentType)
+	private void genLine(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException, ClassNotFoundException {
@@ -188,7 +188,7 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genStar(AgentHostInterface host, int agentCount, int stepSize, String agentType)
+	private void genStar(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException, ClassNotFoundException {
@@ -210,7 +210,7 @@ public class DemoAgent extends Agent {
 		getState().put("agents", agents);
 	}
 	
-	private void genBinaryTree(AgentHostInterface host, int agentCount, int stepSize, String agentType)
+	private void genBinaryTree(AgentHost host, int agentCount, int stepSize, String agentType)
 			throws JSONRPCException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, IOException, ClassNotFoundException {
