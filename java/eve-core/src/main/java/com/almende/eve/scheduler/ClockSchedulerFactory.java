@@ -5,14 +5,14 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentInterface;
 
 public class ClockSchedulerFactory implements SchedulerFactory {
 	private static final Logger		LOG			= Logger.getLogger(ClockSchedulerFactory.class
 														.getCanonicalName());
 	private Map<String, Scheduler>	schedulers	= new HashMap<String, Scheduler>();
-	private AgentHostDefImpl				agentHost	= null;
+	private AgentHost				host		= null;
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
@@ -20,23 +20,23 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	 * @param AgentHostDefImpl
 	 * @param params
 	 */
-	public ClockSchedulerFactory(AgentHostDefImpl agentHost, Map<String, Object> params) {
-		this(agentHost, "");
+	public ClockSchedulerFactory(AgentHost host, Map<String, Object> params) {
+		this(host, "");
 	}
 	
-	public ClockSchedulerFactory(AgentHostDefImpl agentHost, String id) {
-		this.agentHost = agentHost;
+	public ClockSchedulerFactory(AgentHost host, String id) {
+		this.host = host;
 	}
 	
 	@Override
-	public Scheduler getScheduler(Agent agent) {
+	public Scheduler getScheduler(AgentInterface agent) {
 		ClockScheduler scheduler = null;
 		synchronized (schedulers) {
 			if (schedulers.containsKey(agent.getId())) {
 				scheduler = (ClockScheduler) schedulers.get(agent.getId());
 			} else {
 				try {
-					scheduler = new ClockScheduler(agent, agentHost);
+					scheduler = new ClockScheduler(agent, host);
 					schedulers.put(agent.getId(), scheduler);
 				} catch (Exception e) {
 					LOG.log(Level.SEVERE, "Couldn't init new scheduler", e);

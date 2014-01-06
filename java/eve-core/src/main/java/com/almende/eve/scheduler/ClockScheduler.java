@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 
-import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.scheduler.clock.Clock;
@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ClockScheduler extends AbstractScheduler implements Runnable {
 	private static final Logger									LOG			= Logger.getLogger("ClockScheduler");
-	private final Agent											myAgent;
+	private final AgentInterface								myAgent;
 	private final Clock											myClock;
 	private final ClockScheduler								_this		= this;
 	private static final TypedKey<TreeMap<String, TaskEntry>>	TYPEDKEY	= new TypedKey<TreeMap<String, TaskEntry>>(
@@ -31,7 +31,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 																			};
 	private static final int									MAXCOUNT	= 100;
 	
-	public ClockScheduler(Agent myAgent, AgentHostDefImpl factory) {
+	public ClockScheduler(AgentInterface myAgent, AgentHost host) {
 		if (myAgent == null) {
 			throw new IllegalArgumentException("MyAgent should not be null!");
 		}
@@ -139,7 +139,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		_this.putTask(task, true);
 		
 		try {
-			//TODO: fix sequential calls, needs callback and guaranteed replies, also in the case of void? (This holds for all methods?)
+			// TODO: fix sequential calls, needs callback and guaranteed
+			// replies, also in the case of void? (This holds for all methods?)
 			String receiverUrl = "local:" + myAgent.getId();
 			// Next call is always short/asynchronous
 			myAgent.send(task.getRequest(), URI.create(receiverUrl), null);

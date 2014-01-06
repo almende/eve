@@ -10,8 +10,8 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 
-import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -28,18 +28,18 @@ import com.google.code.twig.ObjectDatastore;
 import com.google.code.twig.annotation.AnnotationObjectDatastore;
 
 public class GaeSchedulerFactory implements SchedulerFactory {
-	private AgentHostDefImpl agentFactory = null;
+	private AgentHost host = null;
 
 	// private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 
 	/**
 	 * This constructor is called when constructed by the AgentFactory
-	 * @param agentFactory
+	 * @param host
 	 * @param params
 	 */
-	public GaeSchedulerFactory (AgentHostDefImpl agentFactory, 
+	public GaeSchedulerFactory (AgentHost host, 
 			Map<String, Object> params) {
-		this.agentFactory = agentFactory;
+		this.host = host;
 		TwigUtil.register(GaeTask.class);
 	}
 	
@@ -50,7 +50,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 	 * @param agentId
 	 * @return scheduler
 	 */
-	public AppEngineScheduler getScheduler(Agent agent) {
+	public AppEngineScheduler getScheduler(AgentInterface agent) {
 		return new AppEngineScheduler(agent.getId());
 	}
 
@@ -101,7 +101,7 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 				//       -> Scheduler should be configured with the servlet_url 
 				//          that it should use specified?
 				TransportService service = null;
-				for (TransportService s : agentFactory.getTransportServices("http")) {
+				for (TransportService s : host.getTransportServices("http")) {
 					if (s.getAgentUrl(agentId) != null) {
 						service = s;
 						break;

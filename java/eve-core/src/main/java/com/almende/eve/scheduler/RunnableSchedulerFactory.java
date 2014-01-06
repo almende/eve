@@ -21,14 +21,13 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
-import com.almende.eve.agent.Agent;
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
+import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.util.TypeUtil;
-
 /**
  * Documentation on Scheduling:
  * http://docs.oracle.com/javase/1.5.0/docs/api/java
@@ -38,7 +37,7 @@ import com.almende.util.TypeUtil;
 public class RunnableSchedulerFactory implements SchedulerFactory {
 	private State									state		= null;
 	private String									stateId		= null;
-	private AgentHostDefImpl								host		= null;
+	private AgentHost								host		= null;
 	private long									count		= 0;
 	private final ScheduledExecutorService			scheduler	= Executors
 																		.newScheduledThreadPool(8);
@@ -55,13 +54,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * @param AgentHostDefImpl
 	 * @param params
 	 */
-	public RunnableSchedulerFactory(AgentHostDefImpl agentHost,
+	public RunnableSchedulerFactory(AgentHost host,
 			Map<String, Object> params) {
-		this(agentHost, (params != null) ? (String) params.get("id") : null);
+		this(host, (params != null) ? (String) params.get("id") : null);
 	}
 	
-	public RunnableSchedulerFactory(AgentHostDefImpl agentHost, String id) {
-		this.host = agentHost;
+	public RunnableSchedulerFactory(AgentHost host, String id) {
+		this.host = host;
 		this.stateId = id;
 		
 		init();
@@ -108,7 +107,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * @param agentId
 	 */
 	@Override
-	public Scheduler getScheduler(Agent agent) {
+	public Scheduler getScheduler(AgentInterface agent) {
 		return new RunnableScheduler(agent.getId());
 	}
 	
@@ -176,8 +175,6 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 *            JSONRequest), and timestamp (ISOdate)
 		 * @throws IOException
 		 * @throws JSONRPCException
-		 * @throws JsonMappingException
-		 * @throws JsonParseException
 		 */
 		Task(Map<String, String> params) throws JSONRPCException, IOException {
 			// TODO: throw exceptions when agentId, request are null or
@@ -217,8 +214,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			// persist the task, must be before schedule, because otherwise it
 			// will report as cancelled!
 			store();
-			//TODO: Double threading with send method!
-			//TODO: fix sequential calls
+			// TODO: Double threading with send method!
+			// TODO: fix sequential calls
 			future = scheduler.schedule(new Runnable() {
 				@Override
 				public void run() {
@@ -231,7 +228,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						}
 						
 						String receiverUrl = "local:" + agentId;
-						Agent sender = host.getAgent(agentId);
+						AgentInterface sender = host.getAgent(agentId);
 						if (sender == null) {
 							throw new IllegalStateException(
 									"Sending agent is missing:" + agentId);
