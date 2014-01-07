@@ -134,10 +134,6 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 		
 		if (!Agent.class.isAssignableFrom(agentType)) {
-			LOG.warning("Cannot instantiate agent. "
-					+ "Class information does not represent an Agent. "
-					+ "(agentId='" + agentId + "', agentType='" + agentType
-					+ "')");
 			// Found state info not representing an Agent, like e.g. TokenStore
 			// or CookieStore.
 			return null;
@@ -518,7 +514,7 @@ public final class AgentHostDefImpl extends AgentHost {
 			
 			// initialize the scheduler factory
 			SchedulerFactory sf = (SchedulerFactory) schedulerClass
-					.getConstructor(AgentHostDefImpl.class, Map.class)
+					.getConstructor(AgentHost.class, Map.class)
 					.newInstance(this, params);
 			
 			setSchedulerFactory(sf);
@@ -564,7 +560,7 @@ public final class AgentHostDefImpl extends AgentHost {
 						
 						// initialize the transport service
 						TransportService transport = (TransportService) transportClass
-								.getConstructor(AgentHostDefImpl.class,
+								.getConstructor(AgentHost.class,
 										Map.class).newInstance(this,
 										transportParams);
 						
