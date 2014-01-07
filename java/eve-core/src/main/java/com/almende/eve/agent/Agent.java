@@ -164,11 +164,18 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public void signalAgent(AgentSignal<?> event) throws IOException {
+	// TODO: simplify this method!
+	public void signalAgent(AgentSignal<?> event) {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
 			sigInvoke((Object[]) event.getData());
 		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
 			sigRespond((JSONResponse) event.getData());
+		} else if (AgentSignal.RESPONSE.equals(event.getEvent())) {
+			sigResponse((JSONResponse) event.getData());
+		} else if (AgentSignal.SEND.equals(event.getEvent())) {
+			sigSend((JSONMessage) event.getData());
+		} else if (AgentSignal.EXCEPTION.equals(event.getEvent())) {
+			sigException((JSONResponse) event.getData());
 		} else if (AgentSignal.CREATE.equals(event.getEvent())) {
 			sigCreate();
 		} else if (AgentSignal.INIT.equals(event.getEvent())) {
@@ -182,7 +189,12 @@ public abstract class Agent implements AgentInterface {
 			this.scheduler = host.getScheduler(this);
 		} else if (AgentSignal.ADDTRANSPORTSERVICE.equals(event.getEvent())) {
 			TransportService service = (TransportService) event.getData();
-			service.reconnect(getId());
+			try {
+				service.reconnect(getId());
+			} catch (IOException e) {
+				LOG.log(Level.WARNING,
+						"Failed to reconnect agent on new transport.", e);
+			}
 		}
 	}
 	
@@ -223,6 +235,34 @@ public abstract class Agent implements AgentInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigRespond(JSONResponse response) {
+	}
+	
+	/**
+	 * This method is called when handling any outgoing RPC messages.
+	 * It can be overridden and used to perform some action when the agent
+	 * is sending a message.
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void sigSend(JSONMessage message) {
+	}
+	
+	/**
+	 * This method is called when an agent encounters any exception handling RPC
+	 * messages.
+	 * It can be overridden and used to perform some action when the agent
+	 * encounters an exception.
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void sigException(JSONResponse response) {
+	}
+	
+	/**
+	 * This method is called when handling an incoming RPC response.
+	 * It can be overridden and used to perform some action when the agent
+	 * has received a response.
+	 */
+	@Access(AccessType.UNAVAILABLE)
+	protected void sigResponse(JSONResponse response) {
 	}
 	
 	/**
@@ -678,8 +718,17 @@ public abstract class Agent implements AgentInterface {
 					host.getPool().execute(new Runnable() {
 						@Override
 						public void run() {
+							Object[] signalData = new Object[2];
+							signalData[0] = request;
+							signalData[1] = params;
+							signalAgent(new AgentSignal<Object[]>(
+									AgentSignal.INVOKE, signalData));
+							
 							JSONResponse response = JSONRPC.invoke(me, request,
 									params, me);
+							
+							signalAgent(new AgentSignal<JSONResponse>(
+									AgentSignal.RESPOND, response));
 							try {
 								send(response, senderUrl, null, tag);
 							} catch (IOException e) {
@@ -698,6 +747,8 @@ public abstract class Agent implements AgentInterface {
 						host.getPool().execute(new Runnable() {
 							@Override
 							public void run() {
+								signalAgent(new AgentSignal<JSONResponse>(
+										AgentSignal.RESPONSE, response));
 								if (response.getError() != null) {
 									callback.onFailure(response.getError());
 								} else {
@@ -719,6 +770,8 @@ public abstract class Agent implements AgentInterface {
 					JSONRPCException.CODE.INTERNAL_ERROR, e.getMessage(), e);
 			JSONResponse response = new JSONResponse(jsonError);
 			response.setId(id);
+			signalAgent(new AgentSignal<JSONResponse>(AgentSignal.EXCEPTION,
+					response));
 			try {
 				send(response, senderUrl, null, tag);
 			} catch (Exception e1) {
@@ -740,13 +793,19 @@ public abstract class Agent implements AgentInterface {
 	public void send(final Object msg, final URI receiverUrl,
 			final AsyncCallback<JSONResponse> callback, final String tag)
 			throws IOException {
-		if (msg instanceof JSONMessage && callback != null && callbacks != null) {
-			callbacks.store(((JSONMessage)msg).getId(), callback);
+		if (msg instanceof JSONMessage) {
+			signalAgent(new AgentSignal<JSONMessage>(AgentSignal.SEND,
+					(JSONMessage) msg));
+			if (callback != null && callbacks != null) {
+				callbacks.store(((JSONMessage) msg).getId(), callback);
+			}
 		}
-		//This should already been done!
+		// This should already been done!
 		if (msg instanceof JSONRPCException) {
-			LOG.log(Level.WARNING,"Send has been called to send an JSONRPCException i.s.o. a JSONMessage...");
-			host.sendAsync(receiverUrl, new JSONResponse((JSONRPCException) msg), this, tag);
+			LOG.log(Level.WARNING,
+					"Send has been called to send an JSONRPCException i.s.o. a JSONMessage...");
+			host.sendAsync(receiverUrl,
+					new JSONResponse((JSONRPCException) msg), this, tag);
 			return;
 		}
 		host.sendAsync(receiverUrl, msg, this, tag);
