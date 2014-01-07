@@ -737,16 +737,17 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	@Override
-	public void send(Object msg, URI receiverUrl,
-			AsyncCallback<JSONResponse> callback, String tag)
+	public void send(final Object msg, final URI receiverUrl,
+			final AsyncCallback<JSONResponse> callback, final String tag)
 			throws IOException {
 		if (msg instanceof JSONMessage && callback != null && callbacks != null) {
 			callbacks.store(((JSONMessage)msg).getId(), callback);
 		}
-		//TODO; shouldn't this already been done?
+		//This should already been done!
 		if (msg instanceof JSONRPCException) {
 			LOG.log(Level.WARNING,"Send has been called to send an JSONRPCException i.s.o. a JSONMessage...");
-			msg = new JSONResponse((JSONRPCException) msg);
+			host.sendAsync(receiverUrl, new JSONResponse((JSONRPCException) msg), this, tag);
+			return;
 		}
 		host.sendAsync(receiverUrl, msg, this, tag);
 	}
