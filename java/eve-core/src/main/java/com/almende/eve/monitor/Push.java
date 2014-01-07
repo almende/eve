@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
-public interface PushInterface extends ResultMonitorConfigType {
+public interface Push extends ResultMonitorConfigType {
 
 	void setInterval(int interval);
 
@@ -25,12 +25,12 @@ public interface PushInterface extends ResultMonitorConfigType {
 	void init(ResultMonitor monitor, AgentInterface agent) throws IOException,
 			JSONRPCException;
 
-	PushInterface onChange();
+	Push onChange();
 
-	PushInterface onEvent(String event);
+	Push onEvent(String event);
 
-	PushInterface onEvent();
+	Push onEvent();
 
-	PushInterface onInterval(int interval);
+	Push onInterval(int interval);
 	
 }

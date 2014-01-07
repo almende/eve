@@ -2,7 +2,7 @@ package com.almende.eve.monitor;
 
 import com.almende.eve.agent.AgentInterface;
 
-public interface PollInterface extends ResultMonitorConfigType {
+public interface Poll extends ResultMonitorConfigType {
 	
 	void setTaskId(String taskId);
 	
@@ -16,6 +16,6 @@ public interface PollInterface extends ResultMonitorConfigType {
 	
 	void cancel(ResultMonitor monitor, AgentInterface agent);
 	
-	PollInterface onInterval(int interval);
+	Poll onInterval(int interval);
 	
 }

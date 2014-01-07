@@ -48,11 +48,12 @@ public interface ResultMonitorFactoryInterface {
 	 * 
 	 * @param result
 	 * @param monitorId
-	 * @throws JSONRPCException 
+	 * @throws JSONRPCException
 	 */
 	void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId,
-			@Name("callbackParams") ObjectNode callbackParams) throws JSONRPCException;
+			@Name("callbackParams") ObjectNode callbackParams)
+			throws JSONRPCException;
 	
 	/**
 	 * Register a Push request as part of the monitoring framework. The sender
@@ -105,9 +106,15 @@ public interface ResultMonitorFactoryInterface {
 	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
-	 * available,
-	 * this will return the cached value if the maxAge filter allows this.
-	 * Otherwise it will run the actual RPC call (similar to "send");
+	 * available, this will return the cached value if the filter allows this.<br>
+	 * <br>
+	 * Otherwise it will run the actual RPC call (similar to "send");<br>
+	 * <br>
+	 * When using the default cache, filter params should contain an numeric
+	 * maxAge field in miliseconds:<br>
+	 * { "maxAge":1000 } -- maximally 1 second old data may be returned from
+	 * cache.<br>
+	 * <br>
 	 * 
 	 * @param monitorId
 	 * @param filterParms
@@ -115,7 +122,6 @@ public interface ResultMonitorFactoryInterface {
 	 * @return
 	 * @throws JSONRPCException
 	 * @throws IOException
-	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filterParms,
@@ -123,9 +129,15 @@ public interface ResultMonitorFactoryInterface {
 	
 	/**
 	 * Gets an actual return value of this monitor subscription. If a cache is
-	 * available,
-	 * this will return the cached value if the maxAge filter allows this.
-	 * Otherwise it will run the actual RPC call (similar to "send");
+	 * available, this will return the cached value if the filter allows this.<br>
+	 * <br>
+	 * Otherwise it will run the actual RPC call (similar to "send");<br>
+	 * <br>
+	 * When using the default cache, filter params should contain an numeric
+	 * maxAge field in miliseconds:<br>
+	 * { "maxAge":1000 } -- maximally 1 second old data may be returned from
+	 * cache.<br>
+	 * <br>
 	 * 
 	 * @param monitorId
 	 * @param filterParms
@@ -133,24 +145,48 @@ public interface ResultMonitorFactoryInterface {
 	 * @return
 	 * @throws JSONRPCException
 	 * @throws IOException
-	 * @throws Exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException;
 	
+	/**
+	 * Store/update a monitor
+	 * 
+	 * @param monitor
+	 * @return
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	String store(ResultMonitor monitor);
 	
+	/**
+	 * Delete a monitor by its id
+	 * 
+	 * @param monitorId
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	void delete(String monitorId);
 	
+	/**
+	 * Cancel all running monitors
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	void cancelAll();
 	
+	/**
+	 * Find an existing monitor by its id
+	 * 
+	 * @param monitorId
+	 * @return
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	ResultMonitor getMonitorById(String monitorId);
 	
+	/**
+	 * Return a map of all existing monitors
+	 * 
+	 * @return
+	 */
 	@Access(AccessType.PUBLIC)
 	Map<String, ResultMonitor> getMonitors();
 }

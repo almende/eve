@@ -47,21 +47,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		this.myAgent = agent;
 	}
 	
-	/**
-	 * Sets up a monitored RPC call subscription. Conveniency method, which can
-	 * also be expressed as:
-	 * new ResultMonitor(monitorId, getId(),
-	 * url,method,params).add(ResultMonitorConfigType
-	 * config).add(ResultMonitorConfigType config).store();
-	 * 
-	 * @param monitorId
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @param callbackMethod
-	 * @param confs
-	 * @return
-	 */
+	@Override
 	public String create(String monitorId, URI url, String method,
 			ObjectNode params, String callbackMethod,
 			ResultMonitorConfigType... confs) {
@@ -79,38 +65,15 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		return store(monitor);
 	}
 	
-	/**
-	 * Gets an actual return value of this monitor subscription. If a cache is
-	 * available,
-	 * this will return the cached value if the maxAge filter allows this.
-	 * Otherwise it will run the actual RPC call (similar to "send");
-	 * 
-	 * @param monitorId
-	 * @param filterParms
-	 * @param returnType
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws IOException
-	 */
+
+	@Override
 	public <T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException {
 		return getResult(monitorId, filterParms, JOM.getTypeFactory()
 				.constructSimpleType(returnType, new JavaType[0]));
 	}
 	
-	/**
-	 * Gets an actual return value of this monitor subscription. If a cache is
-	 * available,
-	 * this will return the cached value if the maxAge filter allows this.
-	 * Otherwise it will run the actual RPC call (similar to "send");
-	 * 
-	 * @param monitorId
-	 * @param filterParms
-	 * @param returnType
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws IOException
-	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getResult(String monitorId, ObjectNode filterParms,
 			JavaType returnType) throws JSONRPCException, IOException {
@@ -119,7 +82,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		if (monitor != null) {
 			if (monitor.hasCache() && monitor.getCache() != null
 					&& monitor.getCache().filter(filterParms)) {
-				result = (T) monitor.getCache().get();
+				result = (T) monitor.getCache().getValue();
 			}
 			if (result == null) {
 				result = myAgent.send(monitor.getUrl(), monitor.getMethod(),
@@ -136,11 +99,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		
 	}
 	
-	/**
-	 * Cancels a running monitor subscription.
-	 * 
-	 * @param monitorId
-	 */
+	@Override
 	public void cancel(String monitorId) {
 		ResultMonitor monitor = getMonitorById(monitorId);
 		if (monitor != null) {
@@ -153,6 +112,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.SELF)
+	@Override
 	public final void doPoll(@Name("monitorId") String monitorId)
 			throws JSONRPCException, IOException {
 		ResultMonitor monitor = getMonitorById(monitorId);
@@ -180,6 +140,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	private JsonNode	lastRes	= null;
 	
 	@Access(AccessType.SELF)
+	@Override
 	public final void doPush(@Name("pushKey") String pushKey,
 			@Optional @Name("params") ObjectNode triggerParams)
 			throws JSONRPCException, IOException {
@@ -225,6 +186,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
+	@Override
 	public final void callbackPush(@Name("result") Object result,
 			@Name("pushId") String pushId,
 			@Name("callbackParams") ObjectNode callbackParams)
@@ -267,6 +229,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
+	@Override
 	public final void registerPush(@Name("pushId") String id,
 			@Name("config") ObjectNode pushParams, @Sender String senderUrl) {
 		String pushKey = "_push_" + senderUrl + "_" + id;
@@ -340,6 +303,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
+	@Override
 	public final void unregisterPush(@Name("pushId") String id,
 			@Sender String senderUrl) throws IOException {
 		ObjectNode config = null;
@@ -367,6 +331,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	@Override
 	public String store(ResultMonitor monitor) {
 		try {
 			Map<String, ResultMonitor> monitors = myAgent.getState().get(
@@ -388,6 +353,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		return monitor.getId();
 	}
 	
+	@Override
 	public void delete(String monitorId) {
 		
 		try {
@@ -410,6 +376,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	@Override
 	public ResultMonitor getMonitorById(String monitorId) {
 		try {
 			Map<String, ResultMonitor> monitors = myAgent.getState().get(
@@ -429,6 +396,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		return null;
 	}
 	
+	@Override
 	public void cancelAll() {
 		for (ResultMonitor monitor : getMonitors().values()) {
 			delete(monitor.getId());
@@ -436,6 +404,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	@Access(AccessType.PUBLIC)
+	@Override
 	public Map<String, ResultMonitor> getMonitors() {
 		
 		try {

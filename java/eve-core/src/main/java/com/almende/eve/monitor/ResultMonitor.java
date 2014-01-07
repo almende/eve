@@ -13,7 +13,7 @@ public interface ResultMonitor {
 
 	boolean hasCache();
 
-	CacheInterface getCache();
+	Cache getCache();
 
 	URI getUrl();
 
@@ -27,11 +27,11 @@ public interface ResultMonitor {
 
 	String store();
 
-	void addCache(CacheInterface config);
+	void addCache(Cache config);
 
-	void addPoll(PollInterface config);
+	void addPoll(Poll config);
 
-	void addPush(PushInterface config);
+	void addPush(Push config);
 
 	void setId(String id);
 
@@ -47,13 +47,13 @@ public interface ResultMonitor {
 
 	void setCallbackMethod(String callbackMethod);
 
-	List<PollInterface> getPolls();
+	List<Poll> getPolls();
 
-	void setPolls(List<PollInterface> polls);
+	void setPolls(List<Poll> polls);
 
-	List<PushInterface> getPushes();
+	List<Push> getPushes();
 
-	void setPushes(List<PushInterface> pushes);
+	void setPushes(List<Push> pushes);
 
 	String getCacheType();
 

@@ -3,29 +3,29 @@ package com.almende.eve.monitor.impl;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentInterface;
-import com.almende.eve.monitor.PollInterface;
+import com.almende.eve.monitor.Poll;
 import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Poll implements PollInterface {
+public class DefaultPoll implements Poll {
 	private static final long	serialVersionUID	= 1521097261949700084L;
-	private static final Logger	LOG					= Logger.getLogger(Poll.class
+	private static final Logger	LOG					= Logger.getLogger(DefaultPoll.class
 															.getCanonicalName());
 	
 	private int					interval;
 	private String				taskId				= null;
 	
-	public Poll(int interval) {
+	public DefaultPoll(int interval) {
 		this.interval = interval;
 	};
 	
-	public Poll() {
+	public DefaultPoll() {
 	}
 	
 	@Override
-	public PollInterface onInterval(int interval) {
+	public Poll onInterval(int interval) {
 		this.interval = interval;
 		return this;
 	}

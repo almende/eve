@@ -12,9 +12,9 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.AgentInterface;
-import com.almende.eve.monitor.CacheInterface;
-import com.almende.eve.monitor.PollInterface;
-import com.almende.eve.monitor.PushInterface;
+import com.almende.eve.monitor.Cache;
+import com.almende.eve.monitor.Poll;
+import com.almende.eve.monitor.Push;
 import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.monitor.ResultMonitorConfigType;
 import com.almende.eve.monitor.ResultMonitorFactoryInterface;
@@ -34,11 +34,11 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 	private String								method;
 	private String								params;
 	private String								callbackMethod;
-	private List<PollInterface>							polls				= new ArrayList<PollInterface>();
-	private List<PushInterface>							pushes				= new ArrayList<PushInterface>();
+	private List<Poll>							polls				= new ArrayList<Poll>();
+	private List<Push>							pushes				= new ArrayList<Push>();
 	private String								cacheType;
 	
-	private static transient Map<String, CacheInterface>	caches				= new HashMap<String, CacheInterface>();
+	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
 	private transient AgentInterface			myAgent				= null;
 	
 	public ResultMonitorImpl() {
@@ -82,7 +82,7 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 		loadAgent();
 		if (!caches.containsKey(id) && cacheType != null) {
 			try {
-				addCache((CacheInterface) Class.forName(cacheType).newInstance());
+				addCache((Cache) Class.forName(cacheType).newInstance());
 			} catch (Exception e) {
 				LOG.warning("Couldn't load cache for monitor:" + id + " "
 						+ e.getLocalizedMessage());
@@ -92,14 +92,14 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 	
 	@Override
 	public ResultMonitor add(ResultMonitorConfigType config) {
-		if (config instanceof CacheInterface) {
-			this.addCache((CacheInterface) config);
+		if (config instanceof Cache) {
+			this.addCache((Cache) config);
 		}
-		if (config instanceof PollInterface) {
-			this.addPoll((PollInterface) config);
+		if (config instanceof Poll) {
+			this.addPoll((Poll) config);
 		}
-		if (config instanceof PushInterface) {
-			this.addPush((PushInterface) config);
+		if (config instanceof Push) {
+			this.addPush((Push) config);
 		}
 		return this;
 	}
@@ -110,7 +110,7 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 	}
 	
 	@Override
-	public void addCache(CacheInterface config) {
+	public void addCache(Cache config) {
 		cacheType = config.getClass().getName();
 		synchronized (caches) {
 			caches.put(id, config);
@@ -119,20 +119,20 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 	
 	@Override
 	@JsonIgnore
-	public CacheInterface getCache() {
+	public Cache getCache() {
 		synchronized (caches) {
 			return caches.get(id);
 		}
 	}
 	
 	@Override
-	public void addPoll(PollInterface config) {
+	public void addPoll(Poll config) {
 		loadAgent();
 		config.init(this, myAgent);
 	}
 	
 	@Override
-	public void addPush(final PushInterface config) {
+	public void addPush(final Push config) {
 		loadAgent();
 		try {
 			config.init(this, myAgent);
@@ -144,10 +144,10 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 	@Override
 	public void cancel() {
 		LOG.info("Canceling monitor:" + this.id);
-		for (PollInterface poll : getPolls()) {
+		for (Poll poll : getPolls()) {
 			poll.cancel(this, myAgent);
 		}
-		for (PushInterface push : getPushes()) {
+		for (Push push : getPushes()) {
 			try {
 				push.cancel(this, myAgent);
 			} catch (Exception e) {
@@ -231,22 +231,22 @@ public class ResultMonitorImpl implements ResultMonitor, Serializable {
 	}
 	
 	@Override
-	public List<PollInterface> getPolls() {
+	public List<Poll> getPolls() {
 		return polls;
 	}
 	
 	@Override
-	public void setPolls(List<PollInterface> polls) {
+	public void setPolls(List<Poll> polls) {
 		this.polls = polls;
 	}
 	
 	@Override
-	public List<PushInterface> getPushes() {
+	public List<Push> getPushes() {
 		return pushes;
 	}
 	
 	@Override
-	public void setPushes(List<PushInterface> pushes) {
+	public void setPushes(List<Push> pushes) {
 		this.pushes = pushes;
 	}
 	

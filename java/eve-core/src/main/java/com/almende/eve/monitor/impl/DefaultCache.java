@@ -2,15 +2,20 @@ package com.almende.eve.monitor.impl;
 
 import org.joda.time.DateTime;
 
-import com.almende.eve.monitor.CacheInterface;
+import com.almende.eve.monitor.Cache;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Cache implements CacheInterface {
+public class DefaultCache implements Cache {
 	private static final long	serialVersionUID	= 2159298023743341010L;
 	private DateTime	stored	= null;
 	private Object		value	= null;
 	
 	@Override
+	/**
+	 *  Default implementation supports filtering on value age:
+	 *  
+	 *  { "maxAge":1000 }  - example: Max age is one second.
+	 */
 	public boolean filter(ObjectNode params) {
 		if (!params.has("maxAge") || !params.get("maxAge").isInt()
 				|| stored == null) {
@@ -26,11 +31,6 @@ public class Cache implements CacheInterface {
 	}
 	
 	@Override
-	public Object get() {
-		return value;
-	}
-	
-	@Override
 	public DateTime getStored() {
 		return stored;
 	}
@@ -41,6 +41,9 @@ public class Cache implements CacheInterface {
 	}
 	
 	@Override
+	/**
+	 * Default implementation returns null when no value is known.
+	 */
 	public Object getValue() {
 		return value;
 	}

@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentInterface;
-import com.almende.eve.monitor.PushInterface;
+import com.almende.eve.monitor.Push;
 import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class Push implements PushInterface {
+public class DefaultPush implements Push {
 	private static final long	serialVersionUID	= -6113822981521869299L;
-	private static final Logger	LOG					= Logger.getLogger(PushInterface.class
+	private static final Logger	LOG					= Logger.getLogger(Push.class
 															.getCanonicalName());
 	private String				pushId				= null;
 	private int					interval			= -1;
@@ -21,37 +21,37 @@ public class Push implements PushInterface {
 	private boolean				onChange			= false;
 	private String				event				= "";
 	
-	public Push(int interval, boolean onEvent) {
+	public DefaultPush(int interval, boolean onEvent) {
 		this.pushId = new UUID().toString();
 		this.interval = interval;
 		this.onEvent = onEvent;
 	}
 	
-	public Push() {
+	public DefaultPush() {
 		this.pushId = new UUID().toString();
 	}
 	
 	@Override
-	public PushInterface onInterval(int interval) {
+	public Push onInterval(int interval) {
 		this.interval = interval;
 		return this;
 	}
 	
 	@Override
-	public PushInterface onEvent() {
+	public Push onEvent() {
 		this.onEvent = true;
 		return this;
 	}
 	
 	@Override
-	public PushInterface onEvent(String event) {
+	public Push onEvent(String event) {
 		this.onEvent = true;
 		this.event = event;
 		return this;
 	}
 	
 	@Override
-	public PushInterface onChange() {
+	public Push onChange() {
 		this.onChange = true;
 		return this;
 	}

@@ -8,10 +8,10 @@ import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
-import com.almende.eve.monitor.CacheInterface;
-import com.almende.eve.monitor.impl.Cache;
-import com.almende.eve.monitor.impl.Poll;
-import com.almende.eve.monitor.impl.Push;
+import com.almende.eve.monitor.Cache;
+import com.almende.eve.monitor.impl.DefaultCache;
+import com.almende.eve.monitor.impl.DefaultPoll;
+import com.almende.eve.monitor.impl.DefaultPush;
 import com.almende.eve.monitor.impl.ResultMonitorImpl;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -36,34 +36,43 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void prepare() {
-		String monitorID = getResultMonitorFactory().create("Poll", URI.create("local:bob"), "getData",
-				JOM.createObjectNode(), null, new Poll(1000), new Cache());
+		String monitorID = getResultMonitorFactory().create("Poll",
+				URI.create("local:bob"), "getData", JOM.createObjectNode(),
+				null, new DefaultPoll(1000), new DefaultCache());
 		
 		if (monitorID != null) getState().put("PollKey", monitorID);
 		
-		CacheInterface testCache = new Cache();
-		monitorID = getResultMonitorFactory().create("Push",URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				null, new Push().onInterval(1000).onChange(), testCache);
+		Cache testCache = new DefaultCache();
+		monitorID = getResultMonitorFactory().create("Push",
+				URI.create("local:bob"), "getData", JOM.createObjectNode(),
+				null, new DefaultPush().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("PushKey", monitorID);
 		
-		monitorID = new ResultMonitorImpl("LazyPush", getId(),URI.create("local:bob"), "getData", JOM.createObjectNode()).add(new Push(-1, true)).add(testCache).store();
+		monitorID = new ResultMonitorImpl("LazyPush", getId(),
+				URI.create("local:bob"), "getData", JOM.createObjectNode())
+				.add(new DefaultPush(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().create("LazyPoll",URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				"returnRes", new Poll(800), new Poll(1500));
+		monitorID = getResultMonitorFactory().create("LazyPoll",
+				URI.create("local:bob"), "getData", JOM.createObjectNode(),
+				"returnRes", new DefaultPoll(800), new DefaultPoll(1500));
 		if (monitorID != null) getState().put("LazyPollKey", monitorID);
 		
-		monitorID = getResultMonitorFactory().create("EventPush",URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				"returnResParm", new Push().onEvent("Go"));
+		monitorID = getResultMonitorFactory().create("EventPush",
+				URI.create("local:bob"), "getData", JOM.createObjectNode(),
+				"returnResParm", new DefaultPush().onEvent("Go"));
 		if (monitorID != null) getState().put("EventPushKey", monitorID);
-
+		
 	}
 	
 	public void returnRes(@Name("result") int result) {
 		System.err.println("Received callback result:" + result);
 	}
-	public void returnResParm(@Name("result") int result, @Name("hello") String world) {
-		System.err.println("Received callback result:" + result+ " : "+ world);
+	
+	public void returnResParm(@Name("result") int result,
+			@Name("hello") String world) {
+		System.err
+				.println("Received callback result:" + result + " : " + world);
 	}
 	
 	public List<Integer> get_result() {
@@ -71,17 +80,21 @@ public class TestResultMonitorAgent extends Agent {
 			List<Integer> result = new ArrayList<Integer>();
 			ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
-			String monitorID = getState().get("PushKey",String.class);
-			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
+			String monitorID = getState().get("PushKey", String.class);
+			result.add(getResultMonitorFactory().getResult(monitorID, params,
+					Integer.class));
 			
-			monitorID = getState().get("PollKey",String.class);
-			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
+			monitorID = getState().get("PollKey", String.class);
+			result.add(getResultMonitorFactory().getResult(monitorID, params,
+					Integer.class));
 			
-			monitorID = getState().get("LazyPushKey",String.class);
-			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
+			monitorID = getState().get("LazyPushKey", String.class);
+			result.add(getResultMonitorFactory().getResult(monitorID, params,
+					Integer.class));
 			
-			monitorID = getState().get("LazyPollKey",String.class);
-			result.add(getResultMonitorFactory().getResult(monitorID, params, Integer.class));
+			monitorID = getState().get("LazyPollKey", String.class);
+			result.add(getResultMonitorFactory().getResult(monitorID, params,
+					Integer.class));
 			
 			return result;
 		} catch (Exception e) {
@@ -91,7 +104,8 @@ public class TestResultMonitorAgent extends Agent {
 	}
 	
 	public void tear_down() {
-		getResultMonitorFactory().cancel(getState().get("PushKey",String.class));
+		getResultMonitorFactory().cancel(
+				getState().get("PushKey", String.class));
 	}
 	
 	@Override

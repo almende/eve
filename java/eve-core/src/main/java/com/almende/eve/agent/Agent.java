@@ -164,7 +164,7 @@ public abstract class Agent implements AgentInterface {
 	
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	// TODO: simplify this method!
+	// TODO: Replace this by some form of publish/subscribe model!
 	public void signalAgent(AgentSignal<?> event) {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
 			sigInvoke((Object[]) event.getData());
