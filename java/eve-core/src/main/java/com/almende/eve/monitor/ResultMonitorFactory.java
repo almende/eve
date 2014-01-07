@@ -1,18 +1,17 @@
-package com.almende.eve.monitor.impl;
+package com.almende.eve.monitor;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentInterface;
 import com.almende.eve.agent.annotation.EventTriggered;
-import com.almende.eve.monitor.ResultMonitor;
-import com.almende.eve.monitor.ResultMonitorConfigType;
-import com.almende.eve.monitor.ResultMonitorFactoryInterface;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -57,7 +56,7 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			old.cancel();
 		}
 		
-		ResultMonitor monitor = new ResultMonitorImpl(monitorId, myAgent.getId(),
+		ResultMonitor monitor = new ResultMonitor(monitorId, myAgent.getId(),
 				url, method, params, callbackMethod);
 		for (ResultMonitorConfigType config : confs) {
 			monitor.add(config);
@@ -398,14 +397,14 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	
 	@Override
 	public void cancelAll() {
-		for (ResultMonitor monitor : getMonitors().values()) {
+		for (ResultMonitor monitor : getMonitors()) {
 			delete(monitor.getId());
 		}
 	}
 	
 	@Access(AccessType.PUBLIC)
 	@Override
-	public Map<String, ResultMonitor> getMonitors() {
+	public List<ResultMonitor> getMonitors() {
 		
 		try {
 			Map<String, ResultMonitor> monitors = myAgent.getState().get(
@@ -413,7 +412,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 			if (monitors == null) {
 				monitors = new HashMap<String, ResultMonitor>();
 			}
-			return monitors;
+			List<ResultMonitor> result = new ArrayList<ResultMonitor>(monitors.size());
+			result.addAll(monitors.values());
+			return result;
 		} catch (Exception e) {
 			LOG.log(Level.WARNING, "Couldn't find monitors.", e);
 		}

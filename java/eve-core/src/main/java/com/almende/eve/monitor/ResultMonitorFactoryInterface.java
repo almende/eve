@@ -2,7 +2,7 @@ package com.almende.eve.monitor;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
+import java.util.List;
 
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
@@ -10,6 +10,7 @@ import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.annotation.Sender;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -188,5 +189,5 @@ public interface ResultMonitorFactoryInterface {
 	 * @return
 	 */
 	@Access(AccessType.PUBLIC)
-	Map<String, ResultMonitor> getMonitors();
+	List<ResultMonitor> getMonitors();
 }

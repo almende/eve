@@ -9,10 +9,9 @@ import org.joda.time.DateTime;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.annotation.EventTriggered;
 import com.almende.eve.monitor.Cache;
-import com.almende.eve.monitor.impl.DefaultCache;
-import com.almende.eve.monitor.impl.DefaultPoll;
-import com.almende.eve.monitor.impl.DefaultPush;
-import com.almende.eve.monitor.impl.ResultMonitorImpl;
+import com.almende.eve.monitor.Poll;
+import com.almende.eve.monitor.Push;
+import com.almende.eve.monitor.ResultMonitor;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
@@ -38,29 +37,29 @@ public class TestResultMonitorAgent extends Agent {
 	public void prepare() {
 		String monitorID = getResultMonitorFactory().create("Poll",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				null, new DefaultPoll(1000), new DefaultCache());
+				null, new Poll(1000), new Cache());
 		
 		if (monitorID != null) getState().put("PollKey", monitorID);
 		
-		Cache testCache = new DefaultCache();
+		Cache testCache = new Cache();
 		monitorID = getResultMonitorFactory().create("Push",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				null, new DefaultPush().onInterval(1000).onChange(), testCache);
+				null, new Push().onInterval(1000).onChange(), testCache);
 		if (monitorID != null) getState().put("PushKey", monitorID);
 		
-		monitorID = new ResultMonitorImpl("LazyPush", getId(),
+		monitorID = new ResultMonitor("LazyPush", getId(),
 				URI.create("local:bob"), "getData", JOM.createObjectNode())
-				.add(new DefaultPush(-1, true)).add(testCache).store();
+				.add(new Push(-1, true)).add(testCache).store();
 		if (monitorID != null) getState().put("LazyPushKey", monitorID);
 		
 		monitorID = getResultMonitorFactory().create("LazyPoll",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				"returnRes", new DefaultPoll(800), new DefaultPoll(1500));
+				"returnRes", new Poll(800), new Poll(1500));
 		if (monitorID != null) getState().put("LazyPollKey", monitorID);
 		
 		monitorID = getResultMonitorFactory().create("EventPush",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
-				"returnResParm", new DefaultPush().onEvent("Go"));
+				"returnResParm", new Push().onEvent("Go"));
 		if (monitorID != null) getState().put("EventPushKey", monitorID);
 		
 	}

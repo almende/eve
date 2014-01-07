@@ -1,21 +1,66 @@
 package com.almende.eve.monitor;
 
-import com.almende.eve.agent.AgentInterface;
+import java.util.logging.Logger;
 
-public interface Poll extends ResultMonitorConfigType {
+import com.almende.eve.agent.AgentInterface;
+import com.almende.eve.rpc.jsonrpc.JSONRequest;
+import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class Poll implements ResultMonitorConfigType {
+	private static final long	serialVersionUID	= 1521097261949700084L;
+	private static final Logger	LOG					= Logger.getLogger(Poll.class
+															.getCanonicalName());
 	
-	void setTaskId(String taskId);
+	private int					interval;
+	private String				taskId				= null;
 	
-	String getTaskId();
+	public Poll(int interval) {
+		this.interval = interval;
+	};
 	
-	void setInterval(int interval);
+	public Poll() {
+	}
 	
-	int getInterval();
+	public Poll onInterval(int interval) {
+		this.interval = interval;
+		return this;
+	}
 	
-	void init(ResultMonitor monitor, AgentInterface agent);
+	public void cancel(ResultMonitor monitor, AgentInterface agent) {
+		if (taskId != null && agent.getScheduler() != null) {
+			agent.getScheduler().cancelTask(taskId);
+		}
+	}
 	
-	void cancel(ResultMonitor monitor, AgentInterface agent);
+	public void init(ResultMonitor monitor, AgentInterface agent) {
+		ObjectNode params = JOM.createObjectNode();
+		params.put("monitorId", monitor.getId());
+		JSONRequest request = new JSONRequest("monitor.doPoll", params);
+		
+		// Try to cancel any protential existing tasks.
+		cancel(monitor, agent);
+		
+		taskId = agent.getScheduler()
+				.createTask(request, interval, true, false);
+		
+		LOG.info("Poll task created:" + monitor.getUrl());
+		monitor.getPolls().add(this);
+	}
 	
-	Poll onInterval(int interval);
+	public int getInterval() {
+		return interval;
+	}
 	
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+	
+	public String getTaskId() {
+		return taskId;
+	}
+	
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
 }
