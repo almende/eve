@@ -21,7 +21,7 @@ public class ZmqService implements TransportService {
 	
 	private AgentHost						host			= null;
 	private String							baseUrl			= "";
-	private HashMap<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
+	private final Map<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
 	
 	protected ZmqService() {
 	}
@@ -36,8 +36,8 @@ public class ZmqService implements TransportService {
 	 *            {String} baseUrl
 	 *            {Integer} basePort
 	 */
-	public ZmqService(AgentHost agentHost, Map<String, Object> params) {
-		this.host = agentHost;
+	public ZmqService(final AgentHost agentHost, final Map<String, Object> params) {
+		host = agentHost;
 		
 		if (params != null) {
 			baseUrl = (String) params.get("baseUrl");
@@ -58,7 +58,7 @@ public class ZmqService implements TransportService {
 	// "zmq:ipc://<label>.ipc"
 	
 	@Override
-	public String getAgentUrl(String agentId) {
+	public String getAgentUrl(final String agentId) {
 		if (inboundSockets.containsKey(agentId)) {
 			return inboundSockets.get(agentId).getAgentUrl();
 		}
@@ -66,8 +66,8 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public String getAgentId(String agentUrl) {
-		for (Entry<String, ZmqConnection> entry : inboundSockets.entrySet()) {
+	public String getAgentId(final String agentUrl) {
+		for (final Entry<String, ZmqConnection> entry : inboundSockets.entrySet()) {
 			if (entry.getValue().getAgentUrl().equals(agentUrl)) {
 				return entry.getKey();
 			}
@@ -75,49 +75,35 @@ public class ZmqService implements TransportService {
 		return null;
 	}
 	
-	@Override
-	public void sendAsync(final String senderUrl, final String receiverUrl,
-			final Object message, String tag) {
-		final String receiverId = getAgentId(receiverUrl);
+	public void sendAsync(final byte[] zmqType, final String token,
+			final String senderUrl, final String receiverUrl,
+			final Object message, final String tag) {
 		host.getPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				String result = null;
 				final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
-				final Socket socket = ZMQ.getSocket(ZMQ.REQ);
+				final Socket socket = ZMQ.getSocket(org.zeromq.ZMQ.PUSH);
 				try {
 					socket.connect(addr);
-					socket.send(ZMQ.NORMAL, ZMQ.SNDMORE);
-					socket.send(senderUrl, ZMQ.SNDMORE);
-					socket.send(TokenStore.create().toString(), ZMQ.SNDMORE);
+					socket.send(zmqType, org.zeromq.ZMQ.SNDMORE);
+					socket.send(senderUrl, org.zeromq.ZMQ.SNDMORE);
+					socket.send(token, org.zeromq.ZMQ.SNDMORE);
 					socket.send(message.toString());
 					
-					result = new String(socket.recv());
-					
-				} catch (Exception e) {
-					LOG.log(Level.WARNING, "Failed to send JSON through JMQ", e);
-					
-					try {
-						host.receive(receiverId, e, senderUrl, null);
-					} catch (IOException e1) {
-						LOG.log(Level.WARNING,
-								"Couldn't send exception back to sender, IOException",
-								e1);
-					}
+				} catch (final Exception e) {
+					LOG.log(Level.WARNING, "Failed to send JSON through ZMQ", e);
 				}
-				socket.setLinger(0);
+				socket.setLinger(-1);
 				socket.close();
-				
-				try {
-					host.receive(receiverId, result, senderUrl, null);
-				} catch (IOException e) {
-					LOG.log(Level.WARNING,
-							"Host threw an IOException, probably agent '"
-									+ receiverId + "' doesn't exist? ", e);
-					return;
-				}
 			}
 		});
+	}
+	
+	@Override
+	public void sendAsync(final String senderUrl, final String receiverUrl,
+			final Object message, final String tag) {
+		sendAsync(ZMQ.NORMAL, TokenStore.create().toString(), senderUrl,
+				receiverUrl, message, tag);
 	}
 	
 	@Override
@@ -125,9 +111,9 @@ public class ZmqService implements TransportService {
 		return Arrays.asList("zmq");
 	}
 	
-	private String genUrl(String agentId) {
+	private String genUrl(final String agentId) {
 		if (baseUrl.startsWith("tcp://")) {
-			int basePort = Integer.parseInt(baseUrl.replaceAll(".*:", ""));
+			final int basePort = Integer.parseInt(baseUrl.replaceAll(".*:", ""));
 			// TODO: this is not nice. Agents might change address at server
 			// restart.... How to handle this?
 			return baseUrl.replaceFirst(":[0-9]*$", "") + ":"
@@ -143,26 +129,27 @@ public class ZmqService implements TransportService {
 	}
 	
 	@Override
-	public synchronized void reconnect(String agentId) throws IOException {
+	public synchronized void reconnect(final String agentId) throws IOException {
 		try {
 			if (inboundSockets.containsKey(agentId)) {
-				ZmqConnection conn = inboundSockets.get(agentId);
-				conn.getSocket().disconnect(conn.getZmqUrl());
-				conn.getSocket().bind(conn.getZmqUrl());
+				final ZmqConnection conn = inboundSockets.get(agentId);
+				final Socket socket = conn.getSocket();
+				socket.disconnect(conn.getZmqUrl());
+				socket.bind(conn.getZmqUrl());
 				conn.listen();
 			} else {
-				ZmqConnection socket = new ZmqConnection(
-						ZMQ.getSocket(ZMQ.ROUTER));
+				final ZmqConnection socket = new ZmqConnection(
+						ZMQ.getSocket(org.zeromq.ZMQ.PULL), this);
 				inboundSockets.put(agentId, socket);
 				
-				String url = genUrl(agentId);
+				final String url = genUrl(agentId);
 				socket.getSocket().bind(url);
 				socket.setAgentUrl(url);
 				socket.setAgentId(agentId);
 				socket.setHost(host);
 				socket.listen();
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.SEVERE, "Caught error:", e);
 		}
 	}
