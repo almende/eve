@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.http;
 
 import java.io.IOException;
@@ -22,27 +26,38 @@ import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
+/**
+ * The Class HttpService.
+ */
 public class HttpService implements TransportService {
 	private static final Logger	LOG			= Logger.getLogger(HttpService.class
 													.getCanonicalName());
 	private String				servletUrl	= null;
 	private AgentHost			host		= null;
-	private final List<String>		protocols	= Arrays.asList("http", "https",
+	private final List<String>	protocols	= Arrays.asList("http", "https",
 													"web");
 	
+	/**
+	 * Instantiates a new http service.
+	 * 
+	 * @param agentHost
+	 *            the agent host
+	 */
 	public HttpService(final AgentHost agentHost) {
 		host = agentHost;
 	}
 	
 	/**
 	 * Construct an HttpService This constructor is called when the
-	 * TransportService is constructed by the AgentHost
+	 * TransportService is constructed by the AgentHost.
 	 * 
 	 * @param agentHost
+	 *            the agent host
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(final AgentHost agentHost, final Map<String, Object> params) {
+	public HttpService(final AgentHost agentHost,
+			final Map<String, Object> params) {
 		host = agentHost;
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
@@ -51,11 +66,12 @@ public class HttpService implements TransportService {
 	
 	/**
 	 * Construct an HttpService This constructor is called when the
-	 * TransportService is constructed by the AgentHost
+	 * TransportService is constructed by the AgentHost.
 	 * 
 	 * @param agentHost
-	 * @param params
-	 *            Available parameters: {String} servlet_url
+	 *            the agent host
+	 * @param servletUrl
+	 *            the servlet url
 	 */
 	public HttpService(final AgentHost agentHost, final String servletUrl) {
 		host = agentHost;
@@ -67,6 +83,7 @@ public class HttpService implements TransportService {
 	 * mapping between an agentId and agentUrl.
 	 * 
 	 * @param servletUrl
+	 *            the new servlet url
 	 */
 	private void setServletUrl(final String servletUrl) {
 		this.servletUrl = servletUrl;
@@ -105,13 +122,18 @@ public class HttpService implements TransportService {
 	}
 	
 	/**
-	 * Send a JSON-RPC request to an agent via HTTP
+	 * Send a JSON-RPC request to an agent via HTTP.
 	 * 
 	 * @param senderUrl
+	 *            the sender url
 	 * @param receiverUrl
-	 * @param request
-	 * @return response
-	 * @throws Exception
+	 *            the receiver url
+	 * @param message
+	 *            the message
+	 * @param tag
+	 *            the tag
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
 	public void sendAsync(final String senderUrl, final String receiverUrl,
@@ -132,7 +154,8 @@ public class HttpService implements TransportService {
 								.getCallbackService("HttpTransport",
 										Object.class);
 						if (callbacks != null) {
-							final AsyncCallback<Object> callback = callbacks.get(tag);
+							final AsyncCallback<Object> callback = callbacks
+									.get(tag);
 							if (callback != null) {
 								callback.onSuccess(message);
 								return;
@@ -153,9 +176,10 @@ public class HttpService implements TransportService {
 							.toString());
 					httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
 					
-					final HttpResponse webResp = ApacheHttpClient.get().execute(
-							httpPost);
-					final String result = EntityUtils.toString(webResp.getEntity());
+					final HttpResponse webResp = ApacheHttpClient.get()
+							.execute(httpPost);
+					final String result = EntityUtils.toString(webResp
+							.getEntity());
 					host.receive(senderUrl, result, receiverUrl, null);
 				} catch (final Exception e) {
 					LOG.log(Level.WARNING,
@@ -173,6 +197,7 @@ public class HttpService implements TransportService {
 	 * Get the url of an agent from its id.
 	 * 
 	 * @param agentId
+	 *            the agent id
 	 * @return agentUrl
 	 */
 	@Override
@@ -193,6 +218,7 @@ public class HttpService implements TransportService {
 	 * is returned. A typical url is "http://myserver.com/agents/agentid/"
 	 * 
 	 * @param agentUrl
+	 *            the agent url
 	 * @return agentId
 	 */
 	@Override
@@ -206,7 +232,8 @@ public class HttpService implements TransportService {
 			}
 			
 			if (agentUrl.startsWith(servletUrl)) {
-				final int separator = agentUrl.indexOf('/', servletUrl.length());
+				final int separator = agentUrl
+						.indexOf('/', servletUrl.length());
 				try {
 					if (separator != -1) {
 						return URLDecoder.decode(agentUrl.substring(
@@ -232,7 +259,8 @@ public class HttpService implements TransportService {
 	 * configured url
 	 * 
 	 * @param agentUrl
-	 * @return
+	 *            the agent url
+	 * @return the agent resource
 	 */
 	public String getAgentResource(String agentUrl) {
 		if (servletUrl != null) {
@@ -244,7 +272,8 @@ public class HttpService implements TransportService {
 			}
 			
 			if (agentUrl.startsWith(servletUrl)) {
-				final int separator = agentUrl.indexOf('/', servletUrl.length());
+				final int separator = agentUrl
+						.indexOf('/', servletUrl.length());
 				if (separator != -1) {
 					return agentUrl.substring(separator + 1);
 				} else {
@@ -263,6 +292,7 @@ public class HttpService implements TransportService {
 	 * "".
 	 * 
 	 * @param url
+	 *            the url
 	 * @return domain
 	 */
 	public String getDomain(final String url) {
@@ -278,6 +308,11 @@ public class HttpService implements TransportService {
 		return "";
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		final Map<String, Object> data = new HashMap<String, Object>();
@@ -287,11 +322,22 @@ public class HttpService implements TransportService {
 		return data.toString();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.transport.TransportService#reconnect(java.lang.String)
+	 */
 	@Override
 	public void reconnect(final String agentId) {
 		// Nothing todo at this point
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.transport.TransportService#getKey()
+	 */
 	@Override
 	public String getKey() {
 		return "http://"

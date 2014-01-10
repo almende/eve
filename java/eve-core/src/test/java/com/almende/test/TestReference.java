@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import junit.framework.TestCase;
@@ -9,8 +13,16 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.TypedKey;
 import com.almende.test.agents.Test2Agent;
 
+/**
+ * The Class TestReference.
+ */
 public class TestReference extends TestCase {
 	
+	/**
+	 * Test reference.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testReference() throws Exception {
 		final Object testObject = new Object();

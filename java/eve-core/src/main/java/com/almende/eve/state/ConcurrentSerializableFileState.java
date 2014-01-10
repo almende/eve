@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.state;
 
 import java.io.BufferedInputStream;
@@ -26,6 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * The Class ConcurrentSerializableFileState.
+ * 
  * @class FileState
  * 
  *        A persistent state for an Eve Agent, which stores the data on disk.
@@ -45,35 +51,52 @@ import java.util.logging.Logger;
  *        ConcurrentFileState("agentId",".eveagents");<br>
  *        state.put("key", "value");<br>
  *        System.out.println(state.get("key")); // "value"<br>
- * 
  * @author jos
  * @author ludo
  */
 public class ConcurrentSerializableFileState extends
 		AbstractState<Serializable> {
-	private static final Logger			LOG			= Logger.getLogger("ConcurrentFileState");
-	
-	private String						filename	= null;
-	private FileChannel					channel		= null;
-	private FileLock					lock		= null;
-	private InputStream					fis			= null;
-	private OutputStream				fos			= null;
-	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
-	
+	private static final Logger				LOG			= Logger.getLogger("ConcurrentFileState");
+	private String							filename	= null;
+	private FileChannel						channel		= null;
+	private FileLock						lock		= null;
+	private InputStream						fis			= null;
+	private OutputStream					fos			= null;
+	private static Map<String, Boolean>		locked		= new ConcurrentHashMap<String, Boolean>();
 	private final Map<String, Serializable>	properties	= Collections
-															.synchronizedMap(new HashMap<String, Serializable>());
+																.synchronizedMap(new HashMap<String, Serializable>());
 	
-	public ConcurrentSerializableFileState(final String agentId, final String filename) {
+	/**
+	 * Instantiates a new concurrent serializable file state.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 * @param filename
+	 *            the filename
+	 */
+	public ConcurrentSerializableFileState(final String agentId,
+			final String filename) {
 		super(agentId);
 		this.filename = filename;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#finalize()
+	 */
 	@Override
 	public void finalize() throws Throwable {
 		closeFile();
 		super.finalize();
 	}
 	
+	/**
+	 * Open file.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	@SuppressWarnings("resource")
 	protected void openFile() throws IOException {
 		synchronized (locked) {
@@ -90,8 +113,8 @@ public class ConcurrentSerializableFileState extends
 				locked.put(filename, false);
 				locked.notifyAll();
 				throw new IllegalStateException(
-						"Warning: File doesn't exist (anymore):'"
-								+ filename + "'");
+						"Warning: File doesn't exist (anymore):'" + filename
+								+ "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
 			
@@ -113,6 +136,9 @@ public class ConcurrentSerializableFileState extends
 		}
 	}
 	
+	/**
+	 * Close file.
+	 */
 	protected void closeFile() {
 		
 		synchronized (locked) {
@@ -149,10 +175,10 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	/**
-	 * write properties to disk
+	 * write properties to disk.
 	 * 
-	 * @return success True if successfully written
 	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	private void write() throws IOException {
 		if (channel != null) {
@@ -168,11 +194,12 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	/**
-	 * read properties from disk
+	 * read properties from disk.
 	 * 
-	 * @return success True if successfully read
-	 * @throws ClassNotFoundException
 	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
 	 */
 	@SuppressWarnings("unchecked")
 	private void read() throws IOException, ClassNotFoundException {
@@ -192,7 +219,7 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	/**
-	 * init is executed once before the agent method is invoked
+	 * init is executed once before the agent method is invoked.
 	 */
 	@Override
 	public void init() {
@@ -200,12 +227,17 @@ public class ConcurrentSerializableFileState extends
 	
 	/**
 	 * destroy is executed once after the agent method is invoked if the
-	 * properties are changed, they will be saved
+	 * properties are changed, they will be saved.
 	 */
 	@Override
 	public void destroy() {
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#clear()
+	 */
 	@Override
 	public synchronized void clear() {
 		try {
@@ -220,6 +252,11 @@ public class ConcurrentSerializableFileState extends
 		closeFile();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#keySet()
+	 */
 	@Override
 	public synchronized Set<String> keySet() {
 		Set<String> result = null;
@@ -235,6 +272,11 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#containsKey(java.lang.String)
+	 */
 	@Override
 	public synchronized boolean containsKey(final String key) {
 		boolean result = false;
@@ -250,6 +292,11 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.AbstractState#get(java.lang.String)
+	 */
 	@Override
 	public synchronized Serializable get(final String key) {
 		Serializable result = null;
@@ -264,8 +311,15 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.AbstractState#locPut(java.lang.String,
+	 * java.io.Serializable)
+	 */
 	@Override
-	public synchronized Serializable locPut(final String key, final Serializable value) {
+	public synchronized Serializable locPut(final String key,
+			final Serializable value) {
 		Serializable result = null;
 		try {
 			openFile();
@@ -279,6 +333,13 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.state.AbstractState#locPutIfUnchanged(java.lang.String,
+	 * java.io.Serializable, java.io.Serializable)
+	 */
 	@Override
 	public synchronized boolean locPutIfUnchanged(final String key,
 			final Serializable newVal, final Serializable oldVal) {
@@ -304,6 +365,11 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#remove(java.lang.String)
+	 */
 	@Override
 	public synchronized Object remove(final String key) {
 		Object result = null;
@@ -319,6 +385,11 @@ public class ConcurrentSerializableFileState extends
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#size()
+	 */
 	@Override
 	public synchronized int size() {
 		int result = -1;

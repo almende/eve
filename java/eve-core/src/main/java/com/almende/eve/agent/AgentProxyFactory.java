@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.agent;
 
 import java.io.IOException;
@@ -18,13 +22,31 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
+/**
+ * A factory for creating AgentProxy objects.
+ */
 public class AgentProxyFactory {
 	private AgentHost	host	= null;
 	
+	/**
+	 * Instantiates a new agent proxy factory.
+	 *
+	 * @param host the host
+	 */
 	public AgentProxyFactory(final AgentHost host) {
 		this.host = host;
 	}
 	
+	/**
+	 * Gen proxy.
+	 *
+	 * @param <T> the generic type
+	 * @param sender the sender
+	 * @param receiverUrl the receiver url
+	 * @param agentInterface the agent interface
+	 * @param proxyId the proxy id
+	 * @return the t
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends AgentInterface> T genProxy(final AgentInterface sender,
 			final URI receiverUrl, final Class<T> agentInterface,
@@ -119,6 +141,14 @@ public class AgentProxyFactory {
 		return proxy;
 	}
 	
+	/**
+	 * Receive.
+	 *
+	 * @param arg the arg
+	 * @return the jSON response
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private JSONResponse receive(final Object arg) throws JSONRPCException,
 			IOException {
 		final JSONMessage jsonMsg = Agent.jsonConvert(arg);

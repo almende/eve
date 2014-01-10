@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import static org.junit.Assert.assertEquals;
@@ -11,8 +15,14 @@ import org.junit.Test;
 
 import com.almende.eve.agent.callback.SyncCallback;
 
+/**
+ * The Class TestAsyncCallback.
+ */
 public class TestAsyncCallback {
 	
+	/**
+	 * Test sync call.
+	 */
 	@Test
 	public void testSyncCall() {
 		final ScheduledExecutorService scheduler = Executors

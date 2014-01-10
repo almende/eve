@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.lock;
 
 import java.util.HashMap;
@@ -5,6 +9,9 @@ import java.util.HashMap;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.state.StateEntry;
 
+/**
+ * The Class StateLock.
+ */
 public class StateLock implements TemporalLock {
 	private static final int						MINWAIT				= 10;
 	private final Agent								myAgent;
@@ -16,10 +23,23 @@ public class StateLock implements TemporalLock {
 																			}
 																		};
 	
+	/**
+	 * Instantiates a new state lock.
+	 * 
+	 * @param myAgent
+	 *            the my agent
+	 */
 	public StateLock(final Agent myAgent) {
 		this.myAgent = myAgent;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.lock.TemporalLock#getLockMillisRemaining(java.lang.String
+	 * )
+	 */
 	@Override
 	public long getLockMillisRemaining(final String semaphoreID) {
 		final Long timeout = myMethodTimeouts.getValue(myAgent.getState()).get(
@@ -28,6 +48,12 @@ public class StateLock implements TemporalLock {
 				- System.currentTimeMillis();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.lock.TemporalLock#lock(java.lang.String, long,
+	 * boolean)
+	 */
 	@Override
 	public boolean lock(final String semaphoreID, final long remainingMS,
 			final boolean block) {
@@ -48,7 +74,14 @@ public class StateLock implements TemporalLock {
 		return true;
 	}
 	
-	/** */
+	/**
+	 * Update lock.
+	 * 
+	 * @param semaphoreID
+	 *            the semaphore id
+	 * @param remainingMS
+	 *            the remaining ms
+	 */
 	protected void updateLock(final String semaphoreID, final long remainingMS) {
 		HashMap<String, Long> currentTimeouts, newTimeouts;
 		do {
@@ -60,11 +93,21 @@ public class StateLock implements TemporalLock {
 				newTimeouts, currentTimeouts));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.lock.TemporalLock#unlock(java.lang.String)
+	 */
 	@Override
 	public void unlock(final String semaphoreID) {
 		updateLock(semaphoreID, -1);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.lock.TemporalLock#isLocked(java.lang.String)
+	 */
 	@Override
 	public boolean isLocked(final String semaphoreID) {
 		return getLockMillisRemaining(semaphoreID) > 0;

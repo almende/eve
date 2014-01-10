@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.agent.callback;
 
 import java.util.Map;
@@ -9,15 +13,14 @@ import java.util.concurrent.TimeoutException;
 /**
  * Queue to hold a list with callbacks in progress.
  * The Queue handles timeouts on the callbacks.
+ *
+ * @param <T> the generic type
  */
 public class AsyncCallbackQueue<T> {
 	private final Map<Object, CallbackHandler>	queue	= new ConcurrentHashMap<Object, CallbackHandler>();
-	// deamon timer
 	private Timer							timer	= new Timer(true);
-	
-	// timeout in milliseconds
+	/** timeout in milliseconds */
 	private static final int				TIMEOUT	= 30000;
-	
 	// TODO: make the timeout customizable in eve.yaml
 	
 	/**
@@ -29,10 +32,10 @@ public class AsyncCallbackQueue<T> {
 	 * 
 	 * The method will throw an exception when a callback with the same id
 	 * is already in the queue.
-	 * 
-	 * @param id
-	 * @param callback
-	 * @throws Exception
+	 *
+	 * @param id the id
+	 * @param description the description
+	 * @param callback the callback
 	 */
 	public synchronized void push(final Object id, final String description,
 			final AsyncCallback<T> callback) {
@@ -68,9 +71,9 @@ public class AsyncCallbackQueue<T> {
 	 * Pull a callback from the queue. The callback can be pulled from the
 	 * queue only once. If no callback is found with given id, null will
 	 * be returned.
-	 * 
-	 * @param id
-	 * @return
+	 *
+	 * @param id the id
+	 * @return the async callback
 	 */
 	public synchronized AsyncCallback<T> pull(final Object id) {
 		final CallbackHandler handler = queue.get(id);
@@ -92,7 +95,7 @@ public class AsyncCallbackQueue<T> {
 	}
 	
 	/**
-	 * Helper class to store a callback and its timeout task
+	 * Helper class to store a callback and its timeout task.
 	 */
 	private class CallbackHandler {
 		private AsyncCallback<T>	callback;

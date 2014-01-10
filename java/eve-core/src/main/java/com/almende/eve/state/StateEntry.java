@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.state;
 
 import java.io.Serializable;
@@ -13,34 +17,26 @@ import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 
 /**
+ * The Class StateEntry.
+ *
+ * @param <T> the type of value stored in this state entry
  * {@link StateEntry} wraps agent state entry key and provides respective value
  * type meta data
- * 
  * @date $Date: 2013-05-28 17:31:07 +0200 (Tue, 28 May 2013) $
  * @version $Revision: 911 $ $Author: a4g.almende $
  * @author <a href="mailto:rick@almende.org">Rick van Krevelen</a>
- * 
- * @param <T>
- *            the type of value stored in this state entry
  */
 public abstract class StateEntry<T extends Serializable> {
-	
-	/** */
 	private static final Logger	LOG	= Logger.getLogger(StateEntry.class
 											.getCanonicalName());
-	
-	/** */
 	private final String		key;
-	
-	/** */
 	private final JavaType		valueType;
 	
 	/**
-	 * Constructs a {@link StateEntry} with specified {@code key} and
+	 * Constructs a {@link StateEntry} with specified {@code key} and.
+	 *
+	 * @param key the key
 	 * {@code valueType} meta information
-	 * 
-	 * @param key
-	 * @param valueType
 	 */
 	public StateEntry(final String key) {
 		this.key = key;
@@ -51,26 +47,39 @@ public abstract class StateEntry<T extends Serializable> {
 								.getActualTypeArguments()[0]);
 	}
 	
-	/** @return the {@link StateEntry} key's {@link String} value */
+	/**
+	 * Gets the key.
+	 *
+	 * @return the {@link StateEntry} key's {@link String} value
+	 */
 	public String getKey() {
 		return this.key;
 	}
 	
-	/** @return the {@link StateEntry} value's type */
+	/**
+	 * Gets the value type.
+	 *
+	 * @return the {@link StateEntry} value's type
+	 */
 	public Type getValueType() {
 		return this.valueType;
 	}
 	
-	/** @return the value to persist/provide if none exists yet */
+	/**
+	 * Default value.
+	 *
+	 * @return the value to persist/provide if none exists yet
+	 */
 	public T defaultValue() {
 		return null;
 	}
 	
 	/**
-	 * @param state
-	 *            the {@link State} to search for this {@link StateEntry}
+	 * Exists.
+	 *
+	 * @param state the {@link State} to search for this {@link StateEntry}
 	 * @return {@code true} is specified {@code state} contains this
-	 *         {@link StateEntry}'s key, {@code false} otherwise
+	 * {@link StateEntry}'s key, {@code false} otherwise
 	 * @see java.util.Map#containsKey(Object)
 	 */
 	public boolean exists(final State state) {
@@ -78,11 +87,12 @@ public abstract class StateEntry<T extends Serializable> {
 	}
 	
 	/**
-	 * @param state
-	 *            the {@link State} from which to retrieve this
-	 *            {@code StateEntry}'s value
+	 * Gets the value.
+	 *
+	 * @param state the {@link State} from which to retrieve this
 	 * @return the value retrieved from specified {@code state} or {@code null}
-	 *         if none exists
+	 * if none exists
+	 * {@code StateEntry}'s value
 	 * @see java.util.Map#get(Object)
 	 */
 	public T getValue(final State state) {
@@ -96,13 +106,13 @@ public abstract class StateEntry<T extends Serializable> {
 	}
 	
 	/**
-	 * @param state
-	 *            the {@link State} to update with specified {@code value}
-	 * @param value
-	 *            the new value for this {@link StateEntry} in specified
-	 *            {@code state}
+	 * Put value.
+	 *
+	 * @param state the {@link State} to update with specified {@code value}
+	 * @param value the new value for this {@link StateEntry} in specified
 	 * @return the previous value or {@code null} if none existed
-	 * @see java.util.Map#put(String, Object)
+	 * {@code state}
+	 * @see java.util.Map#put(Object, Object)
 	 */
 	public T putValue(final State state, final T value) {
 		try {
@@ -116,17 +126,15 @@ public abstract class StateEntry<T extends Serializable> {
 	}
 	
 	/**
-	 * @param newValue
-	 *            the new value for this {@link StateEntry} in specified
-	 *            {@code state}
-	 * @param currentValue
-	 *            the current/precondition value for this {@link StateEntry} in
-	 *            specified {@code state}
-	 * @param state
-	 *            the {@link State} to update with specified {@code value}
+	 * Put value if unchanged.
+	 *
+	 * @param state the {@link State} to update with specified {@code value}
+	 * @param newValue the new value for this {@link StateEntry} in specified
+	 * @param currentValue the current/precondition value for this {@link StateEntry} in
+	 * specified {@code state}
 	 * @return the previous value or {@code null} if none existed
-	 * @see java.util.Map#put(String, Object)
-	 */
+	 * {@code state}
+	*/
 	public boolean putValueIfUnchanged(final State state, final T newValue,
 			final T currentValue) {
 		return state.putIfUnchanged(getKey(), newValue, currentValue);

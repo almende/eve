@@ -83,27 +83,36 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class ChatAgent.
+ */
 @Access(AccessType.PUBLIC)
 public class ChatAgent extends Agent {
+	
 	/**
-	 * Get the username
-	 * 
-	 * @return
+	 * Get the username.
+	 *
+	 * @return the username
 	 */
 	public String getUsername() {
 		final String username = getState().get("username", String.class);
 		return (username != null) ? username : getMyUrl();
 	}
 	
+	/**
+	 * Gets the my url.
+	 *
+	 * @return the my url
+	 */
 	private String getMyUrl() {
 		final List<String> urls = getUrls();
 		return urls.size() > 0 ? urls.get(0) : null;
 	}
 	
 	/**
-	 * Set the username, used for displaying messages
-	 * 
-	 * @param username
+	 * Set the username, used for displaying messages.
+	 *
+	 * @param username the new username
 	 */
 	public void setUsername(@Name("username") final String username) {
 		getState().put("username", username);
@@ -111,10 +120,10 @@ public class ChatAgent extends Agent {
 	
 	/**
 	 * Post a message to all registered agents (including itself).
-	 * 
-	 * @param message
-	 * @throws IOException
-	 * @throws JSONRPCException
+	 *
+	 * @param message the message
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	public void post(@Name("message") final String message) throws IOException,
 			JSONRPCException {
@@ -137,12 +146,12 @@ public class ChatAgent extends Agent {
 	}
 	
 	/**
-	 * Receive a message from an agent
-	 * 
-	 * @param url
-	 * @param username
-	 * @param message
-	 * @throws IOException
+	 * Receive a message from an agent.
+	 *
+	 * @param url the url
+	 * @param username the username
+	 * @param message the message
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void receive(@Name("url") final String url,
 			@Name("username") final String username,
@@ -159,12 +168,11 @@ public class ChatAgent extends Agent {
 	}
 	
 	/**
-	 * connect two agents with each other
-	 * 
-	 * @param url
-	 *            Url of an ChatAgent
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 * connect two agents with each other.
+	 *
+	 * @param url Url of an ChatAgent
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void connect(@Name("url") final String url) throws JSONRPCException,
 			IOException {
@@ -234,10 +242,10 @@ public class ChatAgent extends Agent {
 	}
 	
 	/**
-	 * Disconnect this agent from all other agents in the chat room
-	 * 
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 * Disconnect this agent from all other agents in the chat room.
+	 *
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void disconnect() throws JSONRPCException, IOException {
 		final ArrayList<String> connections = getState().get("connections",
@@ -266,11 +274,10 @@ public class ChatAgent extends Agent {
 	}
 	
 	/**
-	 * Remove an agent from connections list
-	 * 
-	 * @param url
-	 *            Url of a connected ChatAgent
-	 * @throws IOException
+	 * Remove an agent from connections list.
+	 *
+	 * @param url Url of a connected ChatAgent
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void removeConnection(@Name("url") final String url)
 			throws IOException {
@@ -290,9 +297,9 @@ public class ChatAgent extends Agent {
 	}
 	
 	/**
-	 * Retrieve the urls of all agents that are connected
-	 * 
-	 * @return
+	 * Retrieve the urls of all agents that are connected.
+	 *
+	 * @return the connections
 	 */
 	public List<String> getConnections() {
 		final ArrayList<String> connections = getState().get("connections",
@@ -306,15 +313,18 @@ public class ChatAgent extends Agent {
 	}
 	
 	/**
-	 * Log a message
-	 * 
-	 * @param message
+	 * Log a message.
+	 *
+	 * @param message the message
 	 */
 	private void log(final String message) {
 		final Logger logger = Logger.getLogger(this.getClass().getName());
 		logger.info(message);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	public String getDescription() {
 		return "A peer to peer chat agent. "
@@ -324,6 +334,9 @@ public class ChatAgent extends Agent {
 				+ "Then, use post to post a message.";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return "1.0";

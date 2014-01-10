@@ -14,31 +14,58 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
+/**
+ * The Class JOM.
+ */
 public final class JOM {
 	private static final ObjectMapper	MAPPER;
 	static {
 		MAPPER = createInstance();
 	}
-	
 	protected JOM() {
 	}
 	
+	/**
+	 * Gets the single instance of JOM.
+	 *
+	 * @return single instance of JOM
+	 */
 	public static ObjectMapper getInstance() {
 		return MAPPER;
 	}
 	
+	/**
+	 * Creates the object node.
+	 *
+	 * @return the object node
+	 */
 	public static ObjectNode createObjectNode() {
 		return MAPPER.createObjectNode();
 	}
 	
+	/**
+	 * Creates the array node.
+	 *
+	 * @return the array node
+	 */
 	public static ArrayNode createArrayNode() {
 		return MAPPER.createArrayNode();
 	}
 	
+	/**
+	 * Creates the null node.
+	 *
+	 * @return the null node
+	 */
 	public static NullNode createNullNode() {
 		return NullNode.getInstance();
 	}
 	
+	/**
+	 * Creates the instance.
+	 *
+	 * @return the object mapper
+	 */
 	private static synchronized ObjectMapper createInstance() {
 		final ObjectMapper mapper = new ObjectMapper();
 		
@@ -57,14 +84,21 @@ public final class JOM {
 		return mapper;
 	}
 	
+	/**
+	 * Gets the type factory.
+	 *
+	 * @return the type factory
+	 */
 	public static TypeFactory getTypeFactory() {
 		return MAPPER.getTypeFactory();
 	}
 	
 	/**
+	 * Gets the void.
+	 *
+	 * @return the void
 	 * @deprecated This method is no longer needed, you can directly use
-	 *             Void.class
-	 * @return
+	 * Void.class
 	 */
 	@Deprecated
 	public static JavaType getVoid() {
@@ -72,9 +106,12 @@ public final class JOM {
 	}
 	
 	/**
+	 * Gets the simple type.
+	 *
+	 * @param c the c
+	 * @return the simple type
 	 * @deprecated This method is no longer needed, you can directly use
-	 *             <Class>.class, e.g. String.class
-	 * @return
+	 * <Class>.class, e.g. String.class
 	 */
 	@Deprecated
 	public static JavaType getSimpleType(final Class<?> c) {

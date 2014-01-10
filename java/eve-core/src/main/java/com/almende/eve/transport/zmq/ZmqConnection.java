@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.zmq;
 
 import java.io.IOException;
@@ -18,57 +22,116 @@ import com.almende.util.ObjectCache;
 import com.almende.util.tokens.TokenRet;
 import com.almende.util.tokens.TokenStore;
 
+/**
+ * The Class ZmqConnection.
+ */
 public class ZmqConnection {
 	private static final Logger	LOG		= Logger.getLogger(ZmqConnection.class
 												.getCanonicalName());
-	
 	private final Socket		socket;
 	private final ZmqService	service;
 	private String				zmqUrl	= null;
 	private AgentHost			host	= null;
 	private String				agentId	= null;
 	
+	/**
+	 * Instantiates a new zmq connection.
+	 *
+	 * @param socket the socket
+	 * @param service the service
+	 */
 	public ZmqConnection(final Socket socket, final ZmqService service) {
 		this.socket = socket;
 		this.service = service;
 	}
 	
+	/**
+	 * Gets the socket.
+	 *
+	 * @return the socket
+	 */
 	public Socket getSocket() {
 		return socket;
 	}
 	
+	/**
+	 * Gets the zmq url.
+	 *
+	 * @return the zmq url
+	 */
 	public String getZmqUrl() {
 		return zmqUrl;
 	}
 	
+	/**
+	 * Sets the zmq url.
+	 *
+	 * @param zmqUrl the new zmq url
+	 */
 	public void setZmqUrl(final String zmqUrl) {
 		this.zmqUrl = zmqUrl;
 	}
 	
+	/**
+	 * Gets the host.
+	 *
+	 * @return the host
+	 */
 	public AgentHost getHost() {
 		return host;
 	}
 	
+	/**
+	 * Sets the host.
+	 *
+	 * @param host the new host
+	 */
 	public void setHost(final AgentHost host) {
 		this.host = host;
 	}
 	
+	/**
+	 * Gets the agent id.
+	 *
+	 * @return the agent id
+	 */
 	public String getAgentId() {
 		return agentId;
 	}
 	
+	/**
+	 * Sets the agent id.
+	 *
+	 * @param agentId the new agent id
+	 */
 	public void setAgentId(final String agentId) {
 		this.agentId = agentId;
 	}
 	
+	/**
+	 * Gets the agent url.
+	 *
+	 * @return the agent url
+	 */
 	public String getAgentUrl() {
 		return "zmq:" + getZmqUrl();
 	}
 	
+	/**
+	 * Sets the agent url.
+	 *
+	 * @param agentUrl the new agent url
+	 */
 	public void setAgentUrl(final String agentUrl) {
 		zmqUrl = agentUrl.replaceFirst("zmq:/?/?", "");
 	}
 	
+	/**
+	 * Gets the request.
+	 *
+	 * @param socket the socket
+	 * @return the request
+	 */
 	private ByteBuffer[] getRequest(final Socket socket) {
 		final byte[] res = socket.recv();
 		final ByteBuffer[] result = new ByteBuffer[4];
@@ -86,20 +149,13 @@ public class ZmqConnection {
 	 * process an incoming zmq message.
 	 * If the message contains a valid JSON-RPC request or response,
 	 * the message will be processed.
-	 * 
-	 * @param packet
+	 *
 	 */
 	public void listen() {
 		new Thread(new Runnable() {
-			
 			@Override
 			public void run() {
 				while (true) {
-					// Receive
-					// connID|emptyDelimiter|ZMQ.NORMAL|senderUrl|tokenJson|body
-					// or
-					// connID|emptyDelimiter|ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
-					
 					try {
 						final ByteBuffer[] msg = getRequest(socket);
 						
@@ -115,6 +171,17 @@ public class ZmqConnection {
 		}).start();
 	}
 	
+	/**
+	 * Handle msg.
+	 *
+	 * @param msg the msg
+	 * @throws ClassNotFoundException the class not found exception
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private void handleMsg(final ByteBuffer[] msg)
 			throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,

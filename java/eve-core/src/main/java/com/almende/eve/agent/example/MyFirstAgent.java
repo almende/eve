@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.agent.example;
 
 import java.io.IOException;
@@ -18,11 +22,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 @Access(AccessType.PUBLIC)
 public class MyFirstAgent extends Agent {
+	
 	/**
 	 * Example function to be called.
-	 * 
-	 * @param name
-	 * @return
+	 *
+	 * @param name the name
+	 * @return the string
 	 */
 	public String helloWorld(@Name("name") final String name) {
 		return "Hello " + name + " and the rest of the world!";
@@ -31,9 +36,9 @@ public class MyFirstAgent extends Agent {
 	/**
 	 * Through this method the agent calls itself and prints the result to the
 	 * console.
-	 * 
-	 * @throws IOException
-	 * @throws JSONRPCException
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	public void callMyself() throws IOException, JSONRPCException {
 		final ObjectNode params = JOM.createObjectNode();
@@ -45,8 +50,8 @@ public class MyFirstAgent extends Agent {
 	/**
 	 * Main method to make this example self contained, providing the AgentHost,
 	 * creating the agent, triggering the call, etc.
-	 * 
-	 * @param args
+	 *
+	 * @param args the arguments
 	 */
 	public static void main(final String[] args) {
 		final AgentHost host = AgentHost.getInstance();

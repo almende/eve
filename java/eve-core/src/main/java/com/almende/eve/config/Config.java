@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.config;
 
 import java.io.FileNotFoundException;
@@ -8,6 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+/**
+ * The Class Config.
+ */
 public class Config extends YamlConfig {
 	// TODO: https://github.com/mojombo/toml
 	private static final Logger					LOG					= Logger.getLogger(Config.class
@@ -39,18 +46,35 @@ public class Config extends YamlConfig {
 		LABELS.put("zmqservice", "com.almende.eve.transport.zmq.ZmqService");
 	}
 	
+	/**
+	 * Instantiates a new config.
+	 */
 	public Config() {
 		super();
 	}
 	
+	/**
+	 * Instantiates a new config.
+	 *
+	 * @param filename the filename
+	 * @throws FileNotFoundException the file not found exception
+	 */
 	public Config(final String filename) throws FileNotFoundException {
 		super(filename);
 	}
 	
+	/**
+	 * Instantiates a new config.
+	 *
+	 * @param inputStream the input stream
+	 */
 	public Config(final InputStream inputStream) {
 		super(inputStream);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.config.YamlConfig#get(java.lang.String[])
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(final String... params) {
@@ -69,6 +93,12 @@ public class Config extends YamlConfig {
 		return result;
 	}
 	
+	/**
+	 * Map.
+	 *
+	 * @param result the result
+	 * @return the string
+	 */
 	public static String map(String result) {
 		if (LABELS.containsKey(result.toLowerCase())) {
 			result = LABELS.get(result.toLowerCase());
@@ -76,6 +106,11 @@ public class Config extends YamlConfig {
 		return result;
 	}
 	
+	/**
+	 * Gets the environment.
+	 *
+	 * @return the environment
+	 */
 	public static String getEnvironment() {
 		if (environment == null) {
 			for (final String path : ENVIRONMENTPATH) {
@@ -104,6 +139,11 @@ public class Config extends YamlConfig {
 		return environment;
 	}
 	
+	/**
+	 * Sets the environment.
+	 *
+	 * @param env the new environment
+	 */
 	public static final void setEnvironment(final String env) {
 		environment = env;
 	}

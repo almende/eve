@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import junit.framework.TestCase;
@@ -10,8 +14,16 @@ import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.state.FileStateFactory;
 
+/**
+ * The Class TestAspects.
+ */
 public class TestAspects extends TestCase {
 	
+	/**
+	 * Test aspect.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testAspect() throws Exception {
 		final String TEST_AGENT = "AspectAgent";
@@ -30,6 +42,11 @@ public class TestAspects extends TestCase {
 		assertEquals("Hello World", result);
 	}
 	
+	/**
+	 * Call me.
+	 *
+	 * @return the string
+	 */
 	@Access(AccessType.PUBLIC)
 	public String callMe() {
 		return "Hello World";

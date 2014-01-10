@@ -38,8 +38,19 @@ import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 
+/**
+ * The Class EchoAgent.
+ */
 @Access(AccessType.PUBLIC)
 public class EchoAgent extends Agent {
+	
+	/**
+	 * Ping.
+	 *
+	 * @param message the message
+	 * @return the object
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public Object ping(@Name("message") final Object message) throws IOException {
 		// trigger event
 		final Map<String, Object> params = new HashMap<String, Object>();
@@ -50,11 +61,17 @@ public class EchoAgent extends Agent {
 		return message;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return "1.0";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	public String getDescription() {
 		return "This agent can be used for test purposes. "

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.agent.example;
 
 import java.io.IOException;
@@ -11,21 +15,25 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
+/**
+ * The Class ManagementAgent.
+ */
 @Access(AccessType.PUBLIC)
 public class ManagementAgent extends Agent {
+	
 	/**
 	 * Create a new agent. Will throw an exception if the agent already exists
-	 * 
-	 * @param id
-	 * @param type
+	 *
+	 * @param id the id
+	 * @param type the type
 	 * @return urls
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws JSONRPCException
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws ClassNotFoundException the class not found exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public List<String> create(@Name("id") final String id,
 			@Name("type") final String type) throws JSONRPCException,
@@ -37,16 +45,15 @@ public class ManagementAgent extends Agent {
 	}
 	
 	/**
-	 * Delete an agent
-	 * 
-	 * @param id
-	 * @return
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 * @throws JSONRPCException
+	 * Delete an agent.
+	 *
+	 * @param id the id
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws ClassNotFoundException the class not found exception
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
 	 */
 	public void delete(@Name("id") final String id) throws JSONRPCException,
 			ClassNotFoundException, InstantiationException,
@@ -58,16 +65,15 @@ public class ManagementAgent extends Agent {
 	/**
 	 * Retrieve an agents urls. If the agent does not exist,
 	 * null will be returned.
-	 * 
-	 * @param id
+	 *
+	 * @param id the id
 	 * @return urls
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 * @throws ClassNotFoundException the class not found exception
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public List<String> get(@Name("id") final String id)
 			throws ClassNotFoundException, InstantiationException,
@@ -78,17 +84,16 @@ public class ManagementAgent extends Agent {
 	}
 	
 	/**
-	 * Test if an agent exists
-	 * 
-	 * @param id
+	 * Test if an agent exists.
+	 *
+	 * @param id the id
 	 * @return exists
-	 * @throws NoSuchMethodException
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 * @throws ClassNotFoundException the class not found exception
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public boolean exists(@Name("id") final String id)
 			throws ClassNotFoundException, InstantiationException,
@@ -98,6 +103,9 @@ public class ManagementAgent extends Agent {
 		return (agent != null);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	public String getDescription() {
 		return "The ManagementAgent can create and delete agents, "
@@ -105,6 +113,9 @@ public class ManagementAgent extends Agent {
 				+ "Available methods: create, delete, exists, get.";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return "0.1";

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.net.URI;
@@ -16,8 +20,16 @@ import com.almende.test.agents.TestAgent;
 import com.almende.test.agents.TestInterface;
 import com.almende.test.agents.entity.Person;
 
+/**
+ * The Class TestProxy.
+ */
 public class TestProxy extends TestCase {
 	
+	/**
+	 * Test proxy.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testProxy() throws Exception {
 		// Create TestAgent according to TestInterface

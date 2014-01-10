@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.util;
 
 import java.io.UnsupportedEncodingException;
@@ -31,35 +35,49 @@ import org.jivesoftware.smack.util.Base64;
  */
 public final class EncryptionUtil {
 	
+	/**
+	 * Instantiates a new encryption util.
+	 */
 	private EncryptionUtil() {
 	};
 	
-	// master password
-	// FIXME: do not store the master password in the code
+	/**
+	 * master password:
+	 * FIXME: do not store the master password in the code
+	 */
 	private static final char[]	P	= ("This is our secret master p......d, "
 											+ "which should definetely NOT be stored in the code!")
 											.toCharArray();
 	
-	// salt
+	/** salt */
 	private static final byte[]	S	= { (byte) 0xc7, (byte) 0x73, (byte) 0x21,
 			(byte) 0x8c, (byte) 0x7e, (byte) 0xc8, (byte) 0xee, (byte) 0x99 };
 	
-	// Iteration count
+	/** Iteration count */
 	private static final int	C	= 20;
 	
 	/**
-	 * Encrypt a string
+	 * Encrypt a string.
 	 * 
 	 * @param text
+	 *            the text
 	 * @return encryptedText
 	 * @throws InvalidKeyException
+	 *             the invalid key exception
 	 * @throws InvalidAlgorithmParameterException
+	 *             the invalid algorithm parameter exception
 	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
 	 * @throws InvalidKeySpecException
+	 *             the invalid key spec exception
 	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
 	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
 	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 * @throws UnsupportedEncodingException
+	 *             the unsupported encoding exception
 	 */
 	public static String encrypt(final String text) throws InvalidKeyException,
 			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
@@ -80,18 +98,27 @@ public final class EncryptionUtil {
 	}
 	
 	/**
-	 * Decrypt an encrypted string
+	 * Decrypt an encrypted string.
 	 * 
 	 * @param encryptedText
+	 *            the encrypted text
 	 * @return text
 	 * @throws InvalidKeyException
+	 *             the invalid key exception
 	 * @throws InvalidAlgorithmParameterException
+	 *             the invalid algorithm parameter exception
 	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
 	 * @throws InvalidKeySpecException
+	 *             the invalid key spec exception
 	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
 	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
 	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 * @throws UnsupportedEncodingException
+	 *             the unsupported encoding exception
 	 */
 	public static String decrypt(final String encryptedText)
 			throws InvalidKeyException, InvalidAlgorithmParameterException,

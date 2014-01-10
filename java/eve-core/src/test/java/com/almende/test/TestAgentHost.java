@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.net.URI;
@@ -12,14 +16,23 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.Test2Agent;
 import com.almende.test.agents.Test2AgentInterface;
 
+/**
+ * The Class TestAgentHost.
+ */
 public class TestAgentHost extends TestCase {
-	static final Logger	log	= Logger.getLogger("testAgentHost");
+	private static final Logger	LOG	= Logger.getLogger("testAgentHost");
 	
+	/**
+	 * Test agent call.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testAgentCall() throws Exception {
 		final String TESTAGENT = "hostTestAgent";
 		
-		log.warning(this.getClass().getName() + ":"
+		LOG.warning(this.getClass().getName() + ":"
 				+ this.getClass().getClassLoader().hashCode());
 		final AgentHost host = AgentHost.getInstance();
 		final FileStateFactory stateFactory = new FileStateFactory(".eveagents");
@@ -30,10 +43,10 @@ public class TestAgentHost extends TestCase {
 		}
 		host.createAgent(Test2Agent.class, TESTAGENT);
 		
-		log.warning("Creating agentProxy");
+		LOG.warning("Creating agentProxy");
 		Test2AgentInterface agent = host.createAgentProxy(null,
 				URI.create("local:" + TESTAGENT), Test2AgentInterface.class);
-		log.warning("Starting agentProxy");
+		LOG.warning("Starting agentProxy");
 		Double res = agent.add(3.1, 4.2);
 		// result not exact due to intermediate binary representation
 		assertEquals(new Double(7.300000000000001), res);
@@ -44,12 +57,12 @@ public class TestAgentHost extends TestCase {
 				URI.create("https://localhost:8443/agents/" + TESTAGENT + "/"),
 				Test2AgentInterface.class);
 		
-		log.warning("checking local https call 1:");
+		LOG.warning("checking local https call 1:");
 		res = agent.add(3.1, 4.2);
 		// result not exact due to intermediate binary representation
 		assertEquals(new Double(7.300000000000001), res);
 		
-		log.warning("checking local https call 2:");
+		LOG.warning("checking local https call 2:");
 		res = agent.multiply(3.1, 4.2);
 		assertEquals(new Double(13.020000000000001), res);
 		

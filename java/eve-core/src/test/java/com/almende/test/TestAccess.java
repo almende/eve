@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import junit.framework.TestCase;
@@ -9,10 +13,19 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestAccessAgent;
 
+/**
+ * The Class TestAccess.
+ */
 public class TestAccess extends TestCase {
 	static final String	TEST1	= "TestAccessAgent";
 	static final String	TEST2	= "trustedSender";
 	
+	/**
+	 * Test access.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testAccess() throws Exception {
 		final AgentHost host = AgentHost.getInstance();

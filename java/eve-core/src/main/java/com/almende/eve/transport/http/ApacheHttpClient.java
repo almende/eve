@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.http;
 
 import java.io.IOException;
@@ -34,11 +38,22 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 
+/**
+ * The Class ApacheHttpClient.
+ */
 public final class ApacheHttpClient {
 	private static final Logger			LOG			= Logger.getLogger(ApacheHttpClient.class
 															.getCanonicalName());
 	private static DefaultHttpClient	httpClient	= null;
 	
+	/**
+	 * Instantiates a new apache http client.
+	 *
+	 * @throws KeyManagementException the key management exception
+	 * @throws UnrecoverableKeyException the unrecoverable key exception
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws KeyStoreException the key store exception
+	 */
 	private ApacheHttpClient() throws KeyManagementException,
 			UnrecoverableKeyException, NoSuchAlgorithmException,
 			KeyStoreException {
@@ -94,6 +109,15 @@ public final class ApacheHttpClient {
 		httpClient.setParams(params);
 	}
 	
+	/**
+	 * Gets the.
+	 *
+	 * @return the default http client
+	 * @throws KeyManagementException the key management exception
+	 * @throws UnrecoverableKeyException the unrecoverable key exception
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws KeyStoreException the key store exception
+	 */
 	static DefaultHttpClient get() throws KeyManagementException,
 			UnrecoverableKeyException, NoSuchAlgorithmException,
 			KeyStoreException {
@@ -103,12 +127,23 @@ public final class ApacheHttpClient {
 		return httpClient;
 	}
 	
+	/**
+	 * The Class MyCookieStore.
+	 */
 	class MyCookieStore implements CookieStore {
 		// TODO: make StateFactory and COOKIESTORE config parameters
 		
+		/** The Constant COOKIESTORE. */
 		static final String	COOKIESTORE	= "_CookieStore";
+		
+		/** The my state. */
 		private State		myState		= null;
 		
+		/**
+		 * Instantiates a new my cookie store.
+		 *
+		 * @throws IOException Signals that an I/O exception has occurred.
+		 */
 		MyCookieStore() throws IOException {
 			final AgentHost host = AgentHost.getInstance();
 			StateFactory factory = null;
@@ -127,12 +162,18 @@ public final class ApacheHttpClient {
 			}
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.apache.http.client.CookieStore#addCookie(org.apache.http.cookie.Cookie)
+		 */
 		@Override
 		public void addCookie(final Cookie cookie) {
 			myState.put(Integer.valueOf(COOKIESTORE.hashCode()).toString(),
 					cookie);
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.apache.http.client.CookieStore#getCookies()
+		 */
 		@Override
 		public List<Cookie> getCookies() {
 			final List<Cookie> result = new ArrayList<Cookie>(myState.size());
@@ -144,6 +185,9 @@ public final class ApacheHttpClient {
 			return result;
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.apache.http.client.CookieStore#clearExpired(java.util.Date)
+		 */
 		@Override
 		public boolean clearExpired(final Date date) {
 			boolean result = false;
@@ -160,15 +204,28 @@ public final class ApacheHttpClient {
 			return result;
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.apache.http.client.CookieStore#clear()
+		 */
 		@Override
 		public void clear() {
 			myState.clear();
 		}
 		
+		/**
+		 * Gets the my state.
+		 *
+		 * @return the my state
+		 */
 		public State getMyState() {
 			return myState;
 		}
 		
+		/**
+		 * Sets the my state.
+		 *
+		 * @param myState the new my state
+		 */
 		public void setMyState(final State myState) {
 			this.myState = myState;
 		}

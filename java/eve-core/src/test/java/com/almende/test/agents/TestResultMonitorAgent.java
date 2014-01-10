@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test.agents;
 
 import java.net.URI;
@@ -18,14 +22,27 @@ import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class TestResultMonitorAgent.
+ */
 @Access(AccessType.PUBLIC)
 public class TestResultMonitorAgent extends Agent {
 	
+	/**
+	 * Gets the data.
+	 *
+	 * @return the data
+	 */
 	@EventTriggered("Go")
 	public Integer getData() {
 		return DateTime.now().getSecondOfDay();
 	}
 	
+	/**
+	 * Bob event.
+	 *
+	 * @throws Exception the exception
+	 */
 	public void bobEvent() throws Exception {
 		System.err.println("BobEvent triggered!");
 		final ObjectNode params = JOM.createObjectNode();
@@ -34,6 +51,9 @@ public class TestResultMonitorAgent extends Agent {
 		
 	}
 	
+	/**
+	 * Prepare.
+	 */
 	public void prepare() {
 		String monitorID = getResultMonitorFactory().create("Poll",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
@@ -74,16 +94,32 @@ public class TestResultMonitorAgent extends Agent {
 		
 	}
 	
+	/**
+	 * Return res.
+	 *
+	 * @param result the result
+	 */
 	public void returnRes(@Name("result") final int result) {
 		System.err.println("Received callback result:" + result);
 	}
 	
+	/**
+	 * Return res parm.
+	 *
+	 * @param result the result
+	 * @param world the world
+	 */
 	public void returnResParm(@Name("result") final int result,
 			@Name("hello") final String world) {
 		System.err
 				.println("Received callback result:" + result + " : " + world);
 	}
 	
+	/**
+	 * Gets the _result.
+	 *
+	 * @return the _result
+	 */
 	public List<Integer> get_result() {
 		try {
 			final List<Integer> result = new ArrayList<Integer>();
@@ -112,16 +148,25 @@ public class TestResultMonitorAgent extends Agent {
 		return null;
 	}
 	
+	/**
+	 * Tear_down.
+	 */
 	public void tear_down() {
 		getResultMonitorFactory().cancel(
 				getState().get("PushKey", String.class));
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	public String getDescription() {
 		return "test agent to work on MemoQuery development";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return "1.0";

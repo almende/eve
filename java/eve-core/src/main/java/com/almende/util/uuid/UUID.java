@@ -126,12 +126,10 @@ public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 	 * smaller than zero if the other UUID is "larger" than this UUID and a
 	 * value
 	 * larger than zero if the other UUID is "smaller" than this UUID.
-	 * 
-	 * @param t
-	 *            the other UUID, may not be <code>null</code>
+	 *
+	 * @param t the other UUID, may not be <code>null</code>
 	 * @return a value &lt; 0, 0 or a value &gt; 0
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 * @throws ClassCastException
 	 */
 	@Override
 	public int compareTo(final UUID t) {
@@ -155,6 +153,9 @@ public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 	
 	/**
 	 * Tweaked Serialization routine.
+	 *
+	 * @param out the out
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	@Override
 	public void writeExternal(final ObjectOutput out) throws IOException {
@@ -164,6 +165,9 @@ public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 	
 	/**
 	 * Tweaked Serialization routine.
+	 *
+	 * @param in the in
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	@Override
 	public void readExternal(final ObjectInput in) throws IOException {
@@ -204,7 +208,11 @@ public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 	}
 	
 	/**
-	 * Appends a String representation of this object to the given
+	 * Appends a String representation of this object to the given.
+	 *
+	 * @param a the Appendable object, may be <code>null</code>
+	 * @return an Appendable object, defaults to a {@link StringBuilder} if
+	 * <code>a</code> is <code>null</code>
 	 * {@link Appendable} object.
 	 * <p>
 	 * For reasons I'll probably never understand, Sun has decided to have a
@@ -212,11 +220,6 @@ public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 	 * an otherwise nice and simple interface with {@link IOException}s.
 	 * <p>
 	 * I decided to ignore any possible IOExceptions in this method.
-	 * 
-	 * @param a
-	 *            the Appendable object, may be <code>null</code>
-	 * @return an Appendable object, defaults to a {@link StringBuilder} if
-	 *         <code>a</code> is <code>null</code>
 	 */
 	public Appendable toAppendable(final Appendable a) {
 		Appendable out = a;
@@ -285,12 +288,11 @@ public class UUID implements Comparable<UUID>, Externalizable, Cloneable {
 	
 	/**
 	 * Compares two Objects for equality.
-	 * 
-	 * @see java.lang.Object#equals(Object)
-	 * @param obj
-	 *            the Object to compare this UUID with, may be <code>null</code>
+	 *
+	 * @param obj the Object to compare this UUID with, may be <code>null</code>
 	 * @return <code>true</code> if the other Object is equal to this UUID,
-	 *         <code>false</code> if not
+	 * <code>false</code> if not
+	 * @see java.lang.Object#equals(Object)
 	 */
 	@Override
 	public boolean equals(final Object obj) {

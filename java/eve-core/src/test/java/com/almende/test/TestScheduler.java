@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.util.logging.Logger;
@@ -15,9 +19,18 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestSchedulerAgent;
 
+/**
+ * The Class TestScheduler.
+ */
 public class TestScheduler extends TestCase {
-	static final Logger	log	= Logger.getLogger("testScheduler");
+	private static final Logger	LOG	= Logger.getLogger("testScheduler");
 	
+	/**
+	 * Test single shot.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testSingleShot() throws Exception {
 		final AgentHost host = AgentHost.getInstance();
@@ -26,26 +39,32 @@ public class TestScheduler extends TestCase {
 		host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
 		
 		if (host.hasAgent("SingleShot")) {
-			log.severe("Removing old agent");
+			LOG.severe("Removing old agent");
 			host.deleteAgent("SingleShot");
-			log.severe("Removed old agent");
+			LOG.severe("Removed old agent");
 		}
-		log.severe("Setup new Agent");
-		final TestSchedulerAgent test = host.createAgent(TestSchedulerAgent.class,
-				"SingleShot");
-		log.severe("Running test");
+		LOG.severe("Setup new Agent");
+		final TestSchedulerAgent test = host.createAgent(
+				TestSchedulerAgent.class, "SingleShot");
+		LOG.severe("Running test");
 		
 		test.setTest("SingleShot", 5000, false, false);
-		log.severe("Sleep");
+		LOG.severe("Sleep");
 		
 		Thread.sleep(2000);
 		test.setTest("SingleShot", 5000, false, false);
-		log.severe("More Sleep");
+		LOG.severe("More Sleep");
 		
 		Thread.sleep(10000);
 		host.deleteAgent("SingleShot");
 	}
 	
+	/**
+	 * Test scheduler.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testScheduler() throws Exception {
 		schedule(false);
@@ -56,6 +75,14 @@ public class TestScheduler extends TestCase {
 		
 	}
 	
+	/**
+	 * Schedule.
+	 * 
+	 * @param clock
+	 *            the clock
+	 * @throws Exception
+	 *             the exception
+	 */
 	public void schedule(final boolean clock) throws Exception {
 		final AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
@@ -72,16 +99,16 @@ public class TestScheduler extends TestCase {
 		
 		for (final String agentId : agentIds) {
 			if (host.hasAgent(agentId)) {
-				log.severe("Agent:" + agentId + " exists, removing....");
+				LOG.severe("Agent:" + agentId + " exists, removing....");
 				host.deleteAgent(agentId);
 			}
-			log.info("Setup agent:" + agentId);
+			LOG.info("Setup agent:" + agentId);
 			final TestSchedulerAgent agent = host.createAgent(
 					TestSchedulerAgent.class, agentId);
 			agent.resetCount();
 		}
 		final DateTime start = DateTime.now();
-		log.info("Start:" + start);
+		LOG.info("Start:" + start);
 		for (final String agentId : agentIds) {
 			final TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
@@ -111,9 +138,9 @@ public class TestScheduler extends TestCase {
 					.getAgent(agentId);
 			final Scheduler scheduler = agent.getScheduler();
 			
-			log.info("Agent " + agentId + " ran " + agent.getCount()
+			LOG.info("Agent " + agentId + " ran " + agent.getCount()
 					+ " tasks.");
-			log.info("Tasks left:" + scheduler.getTasks());
+			LOG.info("Tasks left:" + scheduler.getTasks());
 			
 			scheduler.cancelAllTasks();
 			agent.resetCount();
@@ -123,9 +150,9 @@ public class TestScheduler extends TestCase {
 			final TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
 			final Scheduler scheduler = agent.getScheduler();
-			log.info("Agent " + agentId + " ran still: " + agent.getCount()
+			LOG.info("Agent " + agentId + " ran still: " + agent.getCount()
 					+ " tasks after cancel.");
-			log.info("Tasks left:" + scheduler.getTasks());
+			LOG.info("Tasks left:" + scheduler.getTasks());
 			host.deleteAgent(agentId);
 		}
 	}

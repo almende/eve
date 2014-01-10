@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.zmq;
 
 import java.io.IOException;
@@ -15,26 +19,27 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
+/**
+ * The Class ZmqService.
+ */
 public class ZmqService implements TransportService {
 	private static final Logger				LOG				= Logger.getLogger(ZmqService.class
 																	.getCanonicalName());
-	
 	private AgentHost						host			= null;
 	private String							baseUrl			= "";
 	private final Map<String, ZmqConnection>	inboundSockets	= new HashMap<String, ZmqConnection>();
-	
 	protected ZmqService() {
 	}
 	
 	/**
 	 * Construct an ZmqService
 	 * This constructor is called when the TransportService is constructed
-	 * by the AgentHost
-	 * 
-	 * @param params
-	 *            Available parameters:
-	 *            {String} baseUrl
-	 *            {Integer} basePort
+	 * by the AgentHost.
+	 *
+	 * @param agentHost the agent host
+	 * @param params Available parameters:
+	 * {String} baseUrl
+	 * {Integer} basePort
 	 */
 	public ZmqService(final AgentHost agentHost, final Map<String, Object> params) {
 		host = agentHost;
@@ -57,6 +62,9 @@ public class ZmqService implements TransportService {
 	// Within EVE zmq urls look like: "zmq:tcp://<address>:<inboundPort>" and
 	// "zmq:ipc://<label>.ipc"
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.transport.TransportService#getAgentUrl(java.lang.String)
+	 */
 	@Override
 	public String getAgentUrl(final String agentId) {
 		if (inboundSockets.containsKey(agentId)) {
@@ -65,6 +73,9 @@ public class ZmqService implements TransportService {
 		return null;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.transport.TransportService#getAgentId(java.lang.String)
+	 */
 	@Override
 	public String getAgentId(final String agentUrl) {
 		for (final Entry<String, ZmqConnection> entry : inboundSockets.entrySet()) {
@@ -75,6 +86,16 @@ public class ZmqService implements TransportService {
 		return null;
 	}
 	
+	/**
+	 * Send async.
+	 *
+	 * @param zmqType the zmq type
+	 * @param token the token
+	 * @param senderUrl the sender url
+	 * @param receiverUrl the receiver url
+	 * @param message the message
+	 * @param tag the tag
+	 */
 	public void sendAsync(final byte[] zmqType, final String token,
 			final String senderUrl, final String receiverUrl,
 			final Object message, final String tag) {
@@ -99,6 +120,9 @@ public class ZmqService implements TransportService {
 		});
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.transport.TransportService#sendAsync(java.lang.String, java.lang.String, java.lang.Object, java.lang.String)
+	 */
 	@Override
 	public void sendAsync(final String senderUrl, final String receiverUrl,
 			final Object message, final String tag) {
@@ -106,11 +130,20 @@ public class ZmqService implements TransportService {
 				receiverUrl, message, tag);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.transport.TransportService#getProtocols()
+	 */
 	@Override
 	public List<String> getProtocols() {
 		return Arrays.asList("zmq");
 	}
 	
+	/**
+	 * Gen url.
+	 *
+	 * @param agentId the agent id
+	 * @return the string
+	 */
 	private String genUrl(final String agentId) {
 		if (baseUrl.startsWith("tcp://")) {
 			final int basePort = Integer.parseInt(baseUrl.replaceAll(".*:", ""));
@@ -128,6 +161,9 @@ public class ZmqService implements TransportService {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.transport.TransportService#reconnect(java.lang.String)
+	 */
 	@Override
 	public synchronized void reconnect(final String agentId) throws IOException {
 		try {
@@ -154,6 +190,9 @@ public class ZmqService implements TransportService {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.transport.TransportService#getKey()
+	 */
 	@Override
 	public String getKey() {
 		return "zmq:" + baseUrl;

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.util;
 
 import java.lang.reflect.InvocationTargetException;
@@ -13,24 +17,59 @@ import com.almende.util.AnnotationUtil.AnnotatedClass;
 import com.almende.util.AnnotationUtil.AnnotatedMethod;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+/**
+ * The Class NamespaceUtil.
+ */
 public final class NamespaceUtil {
 	
-	// Default namespaces quick
-	//
+	// TODO: Default namespaces shoudl be quicker?
+	
 	private static Map<String, Method[]>	cache		= new HashMap<String, Method[]>();
 	private static NamespaceUtil			instance	= new NamespaceUtil();
 	private static final Pattern			PATTERN		= Pattern
 																.compile("\\.[^.]+$");
 	
+	/**
+	 * Instantiates a new namespace util.
+	 */
 	private NamespaceUtil() {
 	};
 	
+	/**
+	 * Gets the.
+	 * 
+	 * @param destination
+	 *            the destination
+	 * @param path
+	 *            the path
+	 * @return the call tuple
+	 * @throws IllegalAccessException
+	 *             the illegal access exception
+	 * @throws InvocationTargetException
+	 *             the invocation target exception
+	 * @throws NoSuchMethodException
+	 *             the no such method exception
+	 */
 	public static CallTuple get(final Object destination, final String path)
 			throws IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
 		return instance._get(destination, path);
 	}
 	
+	/**
+	 * Populate cache.
+	 * 
+	 * @param destination
+	 *            the destination
+	 * @param steps
+	 *            the steps
+	 * @param methods
+	 *            the methods
+	 * @throws IllegalAccessException
+	 *             the illegal access exception
+	 * @throws InvocationTargetException
+	 *             the invocation target exception
+	 */
 	private void populateCache(final Object destination, final String steps,
 			final Method[] methods) throws IllegalAccessException,
 			InvocationTargetException {
@@ -52,6 +91,21 @@ public final class NamespaceUtil {
 		}
 	}
 	
+	/**
+	 * _get.
+	 * 
+	 * @param destination
+	 *            the destination
+	 * @param path
+	 *            the path
+	 * @return the call tuple
+	 * @throws IllegalAccessException
+	 *             the illegal access exception
+	 * @throws InvocationTargetException
+	 *             the invocation target exception
+	 * @throws NoSuchMethodException
+	 *             the no such method exception
+	 */
 	private CallTuple _get(Object destination, String path)
 			throws IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
@@ -96,22 +150,51 @@ public final class NamespaceUtil {
 		return result;
 	}
 	
+	/**
+	 * The Class CallTuple.
+	 */
 	public class CallTuple {
+		
+		/** The destination. */
 		private Object	destination;
+		
+		/** The method name. */
 		private String	methodName;
 		
+		/**
+		 * Gets the destination.
+		 * 
+		 * @return the destination
+		 */
 		public Object getDestination() {
 			return destination;
 		}
 		
+		/**
+		 * Sets the destination.
+		 * 
+		 * @param destination
+		 *            the new destination
+		 */
 		public void setDestination(final Object destination) {
 			this.destination = destination;
 		}
 		
+		/**
+		 * Gets the method name.
+		 * 
+		 * @return the method name
+		 */
 		public String getMethodName() {
 			return methodName;
 		}
 		
+		/**
+		 * Sets the method name.
+		 * 
+		 * @param methodName
+		 *            the new method name
+		 */
 		public void setMethodName(final String methodName) {
 			this.methodName = methodName;
 		}

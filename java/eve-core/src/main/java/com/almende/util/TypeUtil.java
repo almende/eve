@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.util;
 
 import java.lang.reflect.ParameterizedType;
@@ -11,9 +15,13 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * The Class TypeUtil.
+ *
+ * @param <T> the generic type
+ */
 public abstract class TypeUtil<T> {
 	static final Logger		LOG	= Logger.getLogger(TypeUtil.class.getName());
-	
 	private final JavaType	valueType;
 	
 	/**
@@ -34,23 +42,57 @@ public abstract class TypeUtil<T> {
 								.getActualTypeArguments()[0]);
 	}
 	
-	/** @return the {@link StateEntry} value's type */
+	/**
+	 * Gets the type.
+	 *
+	 * @return the {@link TypeUtil} value's type
+	 */
 	public Type getType() {
 		return this.valueType;
 	}
 	
+	/**
+	 * Inject.
+	 *
+	 * @param value the value
+	 * @return the t
+	 */
 	public T inject(final Object value) {
 		return inject(value, valueType);
 	}
 	
+	/**
+	 * Inject.
+	 *
+	 * @param <T> the generic type
+	 * @param value the value
+	 * @param type the type
+	 * @return the t
+	 */
 	public static <T> T inject(final Object value, final Class<T> type) {
 		return inject(value, JOM.getTypeFactory().constructType(type));
 	}
 	
+	/**
+	 * Inject.
+	 *
+	 * @param <T> the generic type
+	 * @param value the value
+	 * @param type the type
+	 * @return the t
+	 */
 	public static <T> T inject(final Object value, final Type type) {
 		return inject(value, JOM.getTypeFactory().constructType(type));
 	}
 	
+	/**
+	 * Inject.
+	 *
+	 * @param <T> the generic type
+	 * @param value the value
+	 * @param fullType the full type
+	 * @return the t
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T inject(final Object value, final JavaType fullType) {
 		if (value == null) {

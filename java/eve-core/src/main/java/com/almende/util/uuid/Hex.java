@@ -42,9 +42,13 @@ import java.io.IOException;
  */
 public final class Hex {
 	
+	/**
+	 * Instantiates a new hex.
+	 */
 	private Hex() {
 	};
 	
+	/** The Constant DIGITS. */
 	private static final char[]	DIGITS	= { '0', '1', '2', '3', '4', '5', '6',
 			'7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 	
@@ -172,13 +176,10 @@ public final class Hex {
 	 * <p>
 	 * Returns 0 if the {@link CharSequence} does not contain any interesting
 	 * characters.
-	 * 
-	 * @param s
-	 *            the {@link CharSequence} to extract a <code>long</code> from,
-	 *            may not be <code>null</code>
+	 *
+	 * @param s the {@link CharSequence} to extract a <code>long</code> from,
+	 * may not be <code>null</code>
 	 * @return a <code>long</code>
-	 * @throws NullPointerException
-	 *             if the {@link CharSequence} is <code>null</code>
 	 */
 	public static long parseLong(final CharSequence s) {
 		long out = 0;
@@ -210,13 +211,10 @@ public final class Hex {
 	 * <p>
 	 * Returns 0 if the {@link CharSequence} does not contain any interesting
 	 * characters.
-	 * 
-	 * @param s
-	 *            the {@link CharSequence} to extract a <code>short</code> from,
-	 *            may not be <code>null</code>
+	 *
+	 * @param s the {@link CharSequence} to extract a <code>short</code> from,
+	 * may not be <code>null</code>
 	 * @return a <code>short</code>
-	 * @throws NullPointerException
-	 *             if the {@link CharSequence} is <code>null</code>
 	 */
 	public static short parseShort(final String s) {
 		short out = 0;

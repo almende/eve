@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.io.Serializable;
@@ -8,8 +12,16 @@ import org.junit.Test;
 
 import com.almende.eve.state.MemoryState;
 
+/**
+ * The Class TestMemoryState.
+ */
 public class TestMemoryState extends TestCase {
 	
+	/**
+	 * Test memory state.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testMemoryState() throws Exception {
 		final MemoryState fc = new MemoryState();

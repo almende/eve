@@ -41,13 +41,14 @@ import java.util.regex.Pattern;
  * @version MACAddressParser.java 4714 2012-03-16 11:43:28Z johann $
  */
 public final class MACAddressParser {
-	
-	private MACAddressParser(){};
-	
+	/** The Constant MAC_ADDRESS. */
 	public static final Pattern	MAC_ADDRESS	= Pattern
 													.compile(
 															"((?:[A-F0-9]{1,2}[:-]){5}[A-F0-9]{1,2})|(?:0x)(\\d{12})(?:.+ETHER)",
 															Pattern.CASE_INSENSITIVE);
+	
+	private MACAddressParser() {
+	};
 	
 	/**
 	 * Attempts to find a pattern in the given String.

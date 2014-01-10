@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.http;
 
 import java.io.IOException;
@@ -29,15 +33,23 @@ import com.almende.util.tokens.TokenStore;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class AgentServlet.
+ */
 @SuppressWarnings("serial")
 public class AgentServlet extends HttpServlet {
+	
 	private static final Logger	LOG			= Logger.getLogger(AgentServlet.class
 													.getSimpleName());
-	
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
 	private static AgentHost	host;
 	private static HttpService	httpTransport;
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.servlet.GenericServlet#init()
+	 */
 	@Override
 	public void init() {
 		if (AgentHost.getInstance().getStateFactory() == null) {
@@ -64,10 +76,30 @@ public class AgentServlet extends HttpServlet {
 		host.addTransportService(httpTransport);
 	}
 	
+	/**
+	 * The Enum Handshake.
+	 */
 	enum Handshake {
-		OK, NAK, INVALID
+		
+		/** The ok. */
+		OK,
+		/** The nak. */
+		NAK,
+		/** The invalid. */
+		INVALID
 	}
 	
+	/**
+	 * Handle hand shake.
+	 * 
+	 * @param req
+	 *            the req
+	 * @param res
+	 *            the res
+	 * @return true, if successful
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	private boolean handleHandShake(final HttpServletRequest req,
 			final HttpServletResponse res) throws IOException {
 		final String time = req.getHeader("X-Eve-requestToken");
@@ -87,6 +119,13 @@ public class AgentServlet extends HttpServlet {
 		return true;
 	}
 	
+	/**
+	 * Do hand shake.
+	 * 
+	 * @param req
+	 *            the req
+	 * @return the handshake
+	 */
 	private Handshake doHandShake(final HttpServletRequest req) {
 		final String tokenTupple = req.getHeader("X-Eve-Token");
 		if (tokenTupple == null) {
@@ -123,6 +162,17 @@ public class AgentServlet extends HttpServlet {
 		return Handshake.INVALID;
 	}
 	
+	/**
+	 * Handle session.
+	 * 
+	 * @param req
+	 *            the req
+	 * @param res
+	 *            the res
+	 * @return true, if successful
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	private boolean handleSession(final HttpServletRequest req,
 			final HttpServletResponse res) throws IOException {
 		try {
@@ -175,7 +225,16 @@ public class AgentServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Get an agents web interface Usage: GET /servlet/{agentId}
+	 * Get an agents web interface Usage: GET /servlet/{agentId}.
+	 * 
+	 * @param req
+	 *            the req
+	 * @param resp
+	 *            the resp
+	 * @throws ServletException
+	 *             the servlet exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
 	protected void doGet(final HttpServletRequest req,
@@ -272,6 +331,13 @@ public class AgentServlet extends HttpServlet {
 	/**
 	 * Send a JSON-RPC message to an agent Usage: POST /servlet/{agentId} With a
 	 * JSON-RPC request as body. Response will be a JSON-RPC response.
+	 * 
+	 * @param req
+	 *            the req
+	 * @param resp
+	 *            the resp
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
 	public void doPost(final HttpServletRequest req,
@@ -343,6 +409,15 @@ public class AgentServlet extends HttpServlet {
 	 * Create a new agent Usage: PUT /servlet/{agentId}?type={agentType} Where
 	 * agentType is the full class path of the agent. Returns a list with the
 	 * urls of the created agent.
+	 * 
+	 * @param req
+	 *            the req
+	 * @param resp
+	 *            the resp
+	 * @throws ServletException
+	 *             the servlet exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
 	protected void doPut(final HttpServletRequest req,
@@ -387,7 +462,16 @@ public class AgentServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Delete an agent usage: DELETE /servlet/agentId
+	 * Delete an agent usage: DELETE /servlet/agentId.
+	 * 
+	 * @param req
+	 *            the req
+	 * @param resp
+	 *            the resp
+	 * @throws ServletException
+	 *             the servlet exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
 	protected void doDelete(final HttpServletRequest req,
@@ -417,7 +501,7 @@ public class AgentServlet extends HttpServlet {
 	}
 	
 	/**
-	 * Get a description on how to use this servlet
+	 * Get a description on how to use this servlet.
 	 * 
 	 * @return info
 	 */

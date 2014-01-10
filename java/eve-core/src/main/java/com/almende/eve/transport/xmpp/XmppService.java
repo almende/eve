@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.xmpp;
 
 import java.io.IOException;
@@ -31,20 +35,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class XmppService.
+ */
 public class XmppService implements TransportService {
 	private static final String					CONNKEY				= "_XMPP_Connections";
 	private AgentHost							agentHost			= null;
 	private String								host				= null;
 	private Integer								port				= null;
 	private String								service				= null;
-	
-	// xmpp url as key "xmpp:username@host"
+	/** The connections by url, xmpp url as key "xmpp:username@host". */
 	private final Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>();
 	private static List<String>					protocols			= Arrays.asList("xmpp");
-	
 	private static final Logger					LOG					= Logger.getLogger(XmppService.class
 																			.getSimpleName());
 	
+	/**
+	 * Instantiates a new xmpp service.
+	 */
 	protected XmppService() {
 	}
 	
@@ -60,8 +68,10 @@ public class XmppService implements TransportService {
 	/**
 	 * Construct an XmppService
 	 * This constructor is called when the TransportService is constructed
-	 * by the AgentHost
+	 * by the AgentHost.
 	 * 
+	 * @param agentHost
+	 *            the agent host
 	 * @param params
 	 *            Available parameters:
 	 *            {String} host
@@ -83,10 +93,14 @@ public class XmppService implements TransportService {
 	}
 	
 	/**
-	 * initialize the settings for the xmpp service
+	 * initialize the settings for the xmpp service.
 	 * 
+	 * @param agentHost
+	 *            the agent host
 	 * @param host
+	 *            the host
 	 * @param port
+	 *            the port
 	 * @param service
 	 *            service name
 	 */
@@ -100,6 +114,15 @@ public class XmppService implements TransportService {
 		init();
 	}
 	
+	/**
+	 * Gets the conns.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 * @return the conns
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	private ArrayNode getConns(final String agentId) throws IOException {
 		final State state = agentHost.getStateFactory().get(agentId);
 		
@@ -175,6 +198,7 @@ public class XmppService implements TransportService {
 	 * If no agent with given id is connected via XMPP, null is returned.
 	 * 
 	 * @param agentUrl
+	 *            the agent url
 	 * @return agentId
 	 */
 	@Override
@@ -187,7 +211,7 @@ public class XmppService implements TransportService {
 	}
 	
 	/**
-	 * initialize the transport service
+	 * initialize the transport service.
 	 */
 	private void init() {
 		SmackConfiguration.setPacketReplyTimeout(15000);
@@ -208,18 +232,14 @@ public class XmppService implements TransportService {
 	 * Connect to the configured messaging service (such as XMPP). The service
 	 * must be configured in the Eve configuration
 	 * 
-	 * @param agentUrl
+	 * @param agentId
+	 *            the agent id
 	 * @param username
+	 *            the username
 	 * @param password
-	 * @param resource
+	 *            the password
 	 * @throws IOException
-	 * @throws BadPaddingException
-	 * @throws IllegalBlockSizeException
-	 * @throws NoSuchPaddingException
-	 * @throws InvalidKeySpecException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidAlgorithmParameterException
-	 * @throws InvalidKeyException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(final String agentId, final String username,
@@ -232,12 +252,16 @@ public class XmppService implements TransportService {
 	 * Connect to the configured messaging service (such as XMPP). The service
 	 * must be configured in the Eve configuration
 	 * 
-	 * @param agentUrl
+	 * @param agentId
+	 *            the agent id
 	 * @param username
+	 *            the username
 	 * @param password
+	 *            the password
 	 * @param resource
 	 *            (optional)
 	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void connect(final String agentId, final String username,
@@ -268,6 +292,34 @@ public class XmppService implements TransportService {
 		connectionsByUrl.put(agentUrl, connection);
 	}
 	
+	/**
+	 * Store connection.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 * @param username
+	 *            the username
+	 * @param password
+	 *            the password
+	 * @param resource
+	 *            the resource
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws InvalidAlgorithmParameterException
+	 *             the invalid algorithm parameter exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws InvalidKeySpecException
+	 *             the invalid key spec exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
+	 */
 	private void storeConnection(final String agentId, final String username,
 			final String password, final String resource) throws IOException,
 			InvalidKeyException, InvalidAlgorithmParameterException,
@@ -304,6 +356,12 @@ public class XmppService implements TransportService {
 		}
 	}
 	
+	/**
+	 * Del connections.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 */
 	private void delConnections(final String agentId) {
 		final State state = agentHost.getStateFactory().get(agentId);
 		if (state != null) {
@@ -312,17 +370,26 @@ public class XmppService implements TransportService {
 	}
 	
 	/**
-	 * Disconnect the agent from the connected messaging service(s) (if any)
+	 * Disconnect the agent from the connected messaging service(s) (if any).
 	 * 
 	 * @param agentId
-	 * @throws BadPaddingException
-	 * @throws IllegalBlockSizeException
-	 * @throws NoSuchPaddingException
-	 * @throws InvalidKeySpecException
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidAlgorithmParameterException
+	 *            the agent id
 	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws InvalidAlgorithmParameterException
+	 *             the invalid algorithm parameter exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws InvalidKeySpecException
+	 *             the invalid key spec exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	public final void disconnect(final String agentId)
@@ -362,12 +429,18 @@ public class XmppService implements TransportService {
 	}
 	
 	/**
-	 * Asynchronously Send a message to an other agent
+	 * Asynchronously Send a message to an other agent.
 	 * 
-	 * @param url
-	 * @param request
-	 * @param callback
-	 *            with a JSONResponse
+	 * @param senderUrl
+	 *            the sender url
+	 * @param receiver
+	 *            the receiver
+	 * @param message
+	 *            the message
+	 * @param tag
+	 *            the tag
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
 	public void sendAsync(final String senderUrl, final String receiver,
@@ -397,10 +470,12 @@ public class XmppService implements TransportService {
 	}
 	
 	/**
-	 * Get the url of an xmpp connection "xmpp:username@host"
+	 * Get the url of an xmpp connection "xmpp:username@host".
 	 * 
 	 * @param username
+	 *            the username
 	 * @param host
+	 *            the host
 	 * @param resource
 	 *            optional
 	 * @return url
@@ -414,6 +489,11 @@ public class XmppService implements TransportService {
 		return url;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		final Map<String, Object> data = new HashMap<String, Object>();
@@ -426,6 +506,12 @@ public class XmppService implements TransportService {
 		return data.toString();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.transport.TransportService#reconnect(java.lang.String)
+	 */
 	@Override
 	public void reconnect(final String agentId) throws IOException {
 		final ArrayNode conns = getConns(agentId);
@@ -460,11 +546,25 @@ public class XmppService implements TransportService {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.transport.TransportService#getKey()
+	 */
 	@Override
 	public String getKey() {
 		return "xmpp://" + host + ":" + port + "/" + service;
 	}
 	
+	/**
+	 * Ping.
+	 * 
+	 * @param senderUrl
+	 *            the sender url
+	 * @param receiver
+	 *            the receiver
+	 * @return true, if successful
+	 */
 	public boolean ping(final String senderUrl, final String receiver) {
 		final AgentConnection connection = connectionsByUrl.get(senderUrl);
 		return connection.isAvailable(receiver);

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.http;
 
 import java.util.Map.Entry;
@@ -12,21 +16,47 @@ import javax.servlet.ServletRegistration;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
 
+/**
+ * The listener interface for receiving agent events.
+ * The class that is interested in processing a agent
+ * event implements this interface, and the object created
+ * with that class is registered with a component using the
+ * component's <code>addAgentListener<code> method. When
+ * the agent event occurs, that object's appropriate
+ * method is invoked.
+ *
+ */
 public class AgentListener implements ServletContextListener {
 	private static final Logger		LOG	= Logger.getLogger(AgentListener.class
 												.getSimpleName());
 	private static ServletContext	c;
 	
+	/* (non-Javadoc)
+	 * @see javax.servlet.ServletContextListener#contextInitialized(javax.servlet.ServletContextEvent)
+	 */
 	@Override
 	public void contextInitialized(final ServletContextEvent sce) {
 		c = sce.getServletContext();
 		init(c);
 	}
 	
+	/**
+	 * Gets the param.
+	 *
+	 * @param param the param
+	 * @return the param
+	 */
 	protected static String getParam(final String param) {
 		return getParam(param, null);
 	}
 	
+	/**
+	 * Gets the param.
+	 *
+	 * @param param the param
+	 * @param defaultVal the default val
+	 * @return the param
+	 */
 	protected static String getParam(final String param, final String defaultVal) {
 		String result = c.getInitParameter(param);
 		if (result == null && c.getMajorVersion() >= 3) {
@@ -53,6 +83,11 @@ public class AgentListener implements ServletContextListener {
 		return result;
 	}
 	
+	/**
+	 * Inits the.
+	 *
+	 * @param ctx the ctx
+	 */
 	public static void init(final ServletContext ctx) {
 		
 		if (ctx != null) {
@@ -86,6 +121,9 @@ public class AgentListener implements ServletContextListener {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see javax.servlet.ServletContextListener#contextDestroyed(javax.servlet.ServletContextEvent)
+	 */
 	@Override
 	public void contextDestroyed(final ServletContextEvent sce) {
 	}

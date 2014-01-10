@@ -44,6 +44,9 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.util.StringUtil;
 
+/**
+ * The Class CalcAgent.
+ */
 @Access(AccessType.PUBLIC)
 public class CalcAgent extends Agent {
 	private static final String	CALC_API_URL	= "http://api.mathjs.org/v1/";
@@ -51,9 +54,10 @@ public class CalcAgent extends Agent {
 	/**
 	 * Evaluate given expression For example expr="2.5 + 3 / sqrt(16)" will
 	 * return "3.25"
-	 * 
-	 * @param expr
+	 *
+	 * @param expr the expr
 	 * @return result
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public String eval(@Name("expr") final String expr) throws IOException {
 		final String url = CALC_API_URL + "?expr="
@@ -66,11 +70,17 @@ public class CalcAgent extends Agent {
 		return StringUtil.streamToString(response.getEntity().getContent());
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return "2.0";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	public String getDescription() {
 		return "CalcAgent can evaluate mathematical expressions. "

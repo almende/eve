@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.monitor;
 
 import org.joda.time.DateTime;
@@ -5,14 +9,11 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * 
- * Cache structure for state monitoring
+ * Cache structure for state monitoring.
  * 
  * @author ludo
- * 
  */
 public class Cache implements ResultMonitorConfigType {
-	
 	private static final long	serialVersionUID	= 2159298023743341010L;
 	private DateTime			stored				= null;
 	private Object				value				= null;
@@ -24,7 +25,8 @@ public class Cache implements ResultMonitorConfigType {
 	 * { "maxAge":1000 } - example: Max age is one second.
 	 * 
 	 * @param params
-	 * @return
+	 *            the params
+	 * @return true, if successful
 	 */
 	public boolean filter(final ObjectNode params) {
 		if (!params.has("maxAge") || !params.get("maxAge").isInt()
@@ -35,9 +37,10 @@ public class Cache implements ResultMonitorConfigType {
 	}
 	
 	/**
-	 * Store value and set storage time to now();
+	 * Store value and set storage time to now();.
 	 * 
 	 * @param value
+	 *            the value
 	 */
 	public void store(final Object value) {
 		stored = DateTime.now();
@@ -47,7 +50,7 @@ public class Cache implements ResultMonitorConfigType {
 	/**
 	 * Get storage timestamp.
 	 * 
-	 * @return
+	 * @return the stored
 	 */
 	public DateTime getStored() {
 		return stored;
@@ -57,15 +60,16 @@ public class Cache implements ResultMonitorConfigType {
 	 * Set storage timestamp for filtering the stored value.
 	 * 
 	 * @param stored
+	 *            the new stored
 	 */
 	public void setStored(final DateTime stored) {
 		this.stored = stored;
 	}
 	
 	/**
-	 * Basic getter
+	 * Basic getter.
 	 * 
-	 * @return
+	 * @return the value
 	 */
 	
 	public Object getValue() {
@@ -73,9 +77,10 @@ public class Cache implements ResultMonitorConfigType {
 	}
 	
 	/**
-	 * Basic setter
+	 * Basic setter.
 	 * 
 	 * @param value
+	 *            the new value
 	 */
 	public void setValue(final Object value) {
 		this.value = value;

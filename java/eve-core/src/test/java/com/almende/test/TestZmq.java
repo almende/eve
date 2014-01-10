@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.io.IOException;
@@ -22,10 +26,22 @@ import com.almende.eve.transport.zmq.ZmqService;
 import com.almende.test.agents.Test2Agent;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class TestZmq.
+ */
 public class TestZmq extends TestCase {
 	private static final Logger	LOG	= Logger.getLogger(TestZmq.class
 											.getCanonicalName());
 	
+	/**
+	 * Gets the url.
+	 * 
+	 * @param type
+	 *            the type
+	 * @param agentId
+	 *            the agent id
+	 * @return the url
+	 */
 	private URI getUrl(final String type, final String agentId) {
 		if ("tcp".equals(type)) {
 			final int port = agentId.equals("test") ? 5556 : 5557;
@@ -38,6 +54,22 @@ public class TestZmq extends TestCase {
 		return null;
 	}
 	
+	/**
+	 * Run test.
+	 * 
+	 * @param test
+	 *            the test
+	 * @param test2
+	 *            the test2
+	 * @param type
+	 *            the type
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 */
 	private void runTest(final Test2Agent test, final Test2Agent test2,
 			final String type) throws IOException, JSONRPCException,
 			InterruptedException {
@@ -99,6 +131,12 @@ public class TestZmq extends TestCase {
 		
 	}
 	
+	/**
+	 * Test zmq.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testZmq() throws Exception {
 		final AgentHost host = AgentHost.getInstance();

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.state;
 
 import java.io.Serializable;
@@ -9,6 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * The Class MemoryState.
+ * 
  * @class MemoryState
  * 
  *        A state for an Eve Agent, which stores the data in memory.
@@ -27,7 +33,6 @@ import java.util.logging.Logger;
  *        FileState state = new State("agentId");<br>
  *        state.put("key", "value");<br>
  *        System.out.println(state.get("key")); // "value"<br>
- * 
  * @author jos
  */
 public class MemoryState extends AbstractState<Serializable> implements State {
@@ -35,13 +40,27 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 																.getName());
 	private final Map<String, Serializable>	properties	= new ConcurrentHashMap<String, Serializable>();
 	
+	/**
+	 * Instantiates a new memory state.
+	 */
 	public MemoryState() {
 	}
 	
+	/**
+	 * Instantiates a new memory state.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 */
 	public MemoryState(final String agentId) {
 		super(agentId);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#clear()
+	 */
 	@Override
 	public void clear() {
 		
@@ -50,16 +69,31 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		properties.put(KEY_AGENT_TYPE, agentType);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#keySet()
+	 */
 	@Override
 	public Set<String> keySet() {
 		return new HashSet<String>(properties.keySet());
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#containsKey(java.lang.String)
+	 */
 	@Override
 	public boolean containsKey(final String key) {
 		return properties.containsKey(key);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.AbstractState#get(java.lang.String)
+	 */
 	@Override
 	public Serializable get(final String key) {
 		try {
@@ -72,15 +106,33 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		}
 	}
 	
+	/**
+	 * Checks if is empty.
+	 * 
+	 * @return true, if is empty
+	 */
 	public boolean isEmpty() {
 		return properties.isEmpty();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.AbstractState#locPut(java.lang.String,
+	 * java.io.Serializable)
+	 */
 	@Override
 	public Serializable locPut(final String key, final Serializable value) {
 		return properties.put(key, value);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.state.AbstractState#locPutIfUnchanged(java.lang.String,
+	 * java.io.Serializable, java.io.Serializable)
+	 */
 	@Override
 	public boolean locPutIfUnchanged(final String key,
 			final Serializable newVal, final Serializable oldVal) {
@@ -95,25 +147,35 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#remove(java.lang.String)
+	 */
 	@Override
 	public Serializable remove(final String key) {
 		return properties.remove(key);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#size()
+	 */
 	@Override
 	public int size() {
 		return properties.size();
 	}
 	
 	/**
-	 * init is executed once before the agent method is invoked
+	 * init is executed once before the agent method is invoked.
 	 */
 	@Override
 	public void init() {
 	}
 	
 	/**
-	 * destroy is executed once after the agent method is invoked
+	 * destroy is executed once after the agent method is invoked.
 	 */
 	@Override
 	public void destroy() {

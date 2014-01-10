@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.scheduler.clock;
 
 import java.util.NavigableMap;
@@ -6,19 +10,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+/**
+ * The Class RunnableClock.
+ */
 public class RunnableClock implements Runnable, Clock {
-	@SuppressWarnings("unused")
-	private static final Logger									LOG			= Logger.getLogger("RunnableClock");
 	private static final NavigableMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
 	private static final ScheduledExecutorService				POOL		= Executors
 																					.newScheduledThreadPool(2);
 	private static ScheduledFuture<?>							future		= null;
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	@Override
 	public void run() {
 		synchronized (TIMELINE) {
@@ -42,6 +49,9 @@ public class RunnableClock implements Runnable, Clock {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.scheduler.clock.Clock#requestTrigger(java.lang.String, org.joda.time.DateTime, java.lang.Runnable)
+	 */
 	@Override
 	public void requestTrigger(final String agentId, final DateTime due, final Runnable callback) {
 		synchronized (TIMELINE) {
@@ -54,47 +64,80 @@ public class RunnableClock implements Runnable, Clock {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.scheduler.clock.Clock#runInPool(java.lang.Runnable)
+	 */
 	@Override
 	public void runInPool(final Runnable method) {
 		POOL.execute(method);
 	}
 }
 
+/**
+ * @author Almende
+ *
+ */
 class ClockEntry implements Comparable<ClockEntry> {
 	private String		agentId;
 	private DateTime	due;
 	private Runnable	callback;
 	
+	/**
+	 * @param agentId
+	 * @param due
+	 * @param callback
+	 */
 	public ClockEntry(final String agentId, final DateTime due, final Runnable callback) {
 		this.agentId = agentId;
 		this.due = due;
 		this.callback = callback;
 	}
 	
+	/**
+	 * @return
+	 */
 	public String getAgentId() {
 		return agentId;
 	}
 	
+	/**
+	 * @param agentId
+	 */
 	public void setAgentId(final String agentId) {
 		this.agentId = agentId;
 	}
 	
+	/**
+	 * @return
+	 */
 	public DateTime getDue() {
 		return due;
 	}
 	
+	/**
+	 * @param due
+	 */
 	public void setDue(final DateTime due) {
 		this.due = due;
 	}
 	
+	/**
+	 * @return
+	 */
 	public Runnable getCallback() {
 		return callback;
 	}
 	
+	/**
+	 * @param callback
+	 */
 	public void setCallback(final Runnable callback) {
 		this.callback = callback;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(final Object o) {
 		if (this == o) {
@@ -107,11 +150,17 @@ class ClockEntry implements Comparable<ClockEntry> {
 		return agentId.equals(other.agentId);
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		return agentId.hashCode();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(final ClockEntry o) {
 		if (due.equals(o.due)) {

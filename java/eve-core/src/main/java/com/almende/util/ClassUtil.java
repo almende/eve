@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.util;
 
 import java.io.ByteArrayInputStream;
@@ -15,16 +19,47 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The Class ClassUtil.
+ */
 public final class ClassUtil {
+	private static final Map<Class<?>, Class<?>>	PRIMITIVES_TO_WRAPPERS	= new HashMap<Class<?>, Class<?>>();
+	static {
+		PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
+		PRIMITIVES_TO_WRAPPERS.put(byte.class, Byte.class);
+		PRIMITIVES_TO_WRAPPERS.put(char.class, Character.class);
+		PRIMITIVES_TO_WRAPPERS.put(double.class, Double.class);
+		PRIMITIVES_TO_WRAPPERS.put(float.class, Float.class);
+		PRIMITIVES_TO_WRAPPERS.put(int.class, Integer.class);
+		PRIMITIVES_TO_WRAPPERS.put(long.class, Long.class);
+		PRIMITIVES_TO_WRAPPERS.put(short.class, Short.class);
+		PRIMITIVES_TO_WRAPPERS.put(void.class, Void.class);
+	}
+	private static final Map<Class<?>, Class<?>>	WRAPPERS_TO_PRIMITIVES	= new HashMap<Class<?>, Class<?>>();
+	static {
+		WRAPPERS_TO_PRIMITIVES.put(Boolean.class, boolean.class);
+		WRAPPERS_TO_PRIMITIVES.put(Byte.class, byte.class);
+		WRAPPERS_TO_PRIMITIVES.put(Character.class, char.class);
+		WRAPPERS_TO_PRIMITIVES.put(Double.class, double.class);
+		WRAPPERS_TO_PRIMITIVES.put(Float.class, float.class);
+		WRAPPERS_TO_PRIMITIVES.put(Integer.class, int.class);
+		WRAPPERS_TO_PRIMITIVES.put(Long.class, long.class);
+		WRAPPERS_TO_PRIMITIVES.put(Short.class, short.class);
+		WRAPPERS_TO_PRIMITIVES.put(Void.class, void.class);
+	}
 	
+	/**
+	 * Instantiates a new class util.
+	 */
 	private ClassUtil() {
 	};
 	
 	/**
-	 * Check if checkClass has implemented interfaceClass
-	 * 
-	 * @param checkClass
-	 * @param interfaceClass
+	 * Check if checkClass has implemented interfaceClass.
+	 *
+	 * @param checkClass the check class
+	 * @param interfaceClass the interface class
+	 * @return true, if successful
 	 */
 	public static boolean hasInterface(final Class<?> checkClass,
 			final Class<?> interfaceClass) {
@@ -48,10 +83,11 @@ public final class ClassUtil {
 	}
 	
 	/**
-	 * Check if checkClass extends superClass
-	 * 
-	 * @param checkClass
-	 * @param superClass
+	 * Check if checkClass extends superClass.
+	 *
+	 * @param checkClass the check class
+	 * @param superClass the super class
+	 * @return true, if successful
 	 */
 	public static boolean hasSuperClass(final Class<?> checkClass,
 			final Class<?> superClass) {
@@ -70,9 +106,10 @@ public final class ClassUtil {
 	
 	/**
 	 * Wraps any primitive type in it's boxed version
-	 * returns other types unmodified
-	 * 
-	 * @param class type
+	 * returns other types unmodified.
+	 *
+	 * @param <T> the generic type
+	 * @param c the c
 	 * @return class type
 	 */
 	@SuppressWarnings("unchecked")
@@ -82,9 +119,10 @@ public final class ClassUtil {
 	
 	/**
 	 * Unwraps any boxed type in it's primitive version
-	 * returns other types unmodified
-	 * 
-	 * @param class type
+	 * returns other types unmodified.
+	 *
+	 * @param <T> the generic type
+	 * @param c the c
 	 * @return class type
 	 */
 	@SuppressWarnings("unchecked")
@@ -93,48 +131,19 @@ public final class ClassUtil {
 				.get(c) : c;
 	}
 	
-	private static final Map<Class<?>, Class<?>>	PRIMITIVES_TO_WRAPPERS	= new HashMap<Class<?>, Class<?>>();
-	static {
-		PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
-		PRIMITIVES_TO_WRAPPERS.put(byte.class, Byte.class);
-		PRIMITIVES_TO_WRAPPERS.put(char.class, Character.class);
-		PRIMITIVES_TO_WRAPPERS.put(double.class, Double.class);
-		PRIMITIVES_TO_WRAPPERS.put(float.class, Float.class);
-		PRIMITIVES_TO_WRAPPERS.put(int.class, Integer.class);
-		PRIMITIVES_TO_WRAPPERS.put(long.class, Long.class);
-		PRIMITIVES_TO_WRAPPERS.put(short.class, Short.class);
-		PRIMITIVES_TO_WRAPPERS.put(void.class, Void.class);
-	}
-	
-	private static final Map<Class<?>, Class<?>>	WRAPPERS_TO_PRIMITIVES	= new HashMap<Class<?>, Class<?>>();
-	static {
-		WRAPPERS_TO_PRIMITIVES.put(Boolean.class, boolean.class);
-		WRAPPERS_TO_PRIMITIVES.put(Byte.class, byte.class);
-		WRAPPERS_TO_PRIMITIVES.put(Character.class, char.class);
-		WRAPPERS_TO_PRIMITIVES.put(Double.class, double.class);
-		WRAPPERS_TO_PRIMITIVES.put(Float.class, float.class);
-		WRAPPERS_TO_PRIMITIVES.put(Integer.class, int.class);
-		WRAPPERS_TO_PRIMITIVES.put(Long.class, long.class);
-		WRAPPERS_TO_PRIMITIVES.put(Short.class, short.class);
-		WRAPPERS_TO_PRIMITIVES.put(Void.class, void.class);
-	}
 	
 	/**
 	 * Search for method (reflection) which fits the given argument types. Works
 	 * for any combination of
 	 * primitive types, boxed types and normal objects.
-	 * 
-	 * @author PSpeed
-	 *         http://stackoverflow.com/questions/1894740/any-solution-for
-	 *         -class-getmethod-reflection-and-autoboxing
-	 * 
-	 * @param type
-	 *            Class in which the method is searched
-	 * @param name
-	 *            Method name to search for
-	 * @param parms
-	 *            Class types of the requested arguments
+	 *
+	 * @param type Class in which the method is searched
+	 * @param name Method name to search for
+	 * @param parms Class types of the requested arguments
 	 * @return Method
+	 * @author PSpeed
+	 * http://stackoverflow.com/questions/1894740/any-solution-for
+	 * -class-getmethod-reflection-and-autoboxing
 	 */
 	public static Method searchForMethod(final Class<?> type,
 			final String name, final Class<?>[] parms) {
@@ -160,6 +169,13 @@ public final class ClassUtil {
 		return null;
 	}
 	
+	/**
+	 * Are types compatible.
+	 *
+	 * @param targets the targets
+	 * @param sources the sources
+	 * @return true, if successful
+	 */
 	public static boolean areTypesCompatible(final Class<?>[] targets,
 			final Class<?>[] sources) {
 		
@@ -214,6 +230,15 @@ public final class ClassUtil {
 	// http://www.javacodegeeks.com/2011/12/cloning-of-serializable-and-non.html
 	// @Author Craig Flichel
 	
+	/**
+	 * Clone through serialize.
+	 *
+	 * @param <T> the generic type
+	 * @param t the t
+	 * @return the t
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws ClassNotFoundException the class not found exception
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends Serializable> T cloneThroughSerialize(final T t)
 			throws IOException, ClassNotFoundException {
@@ -225,6 +250,13 @@ public final class ClassUtil {
 		return (T) ois.readObject();
 	}
 	
+	/**
+	 * Serialize to output stream.
+	 *
+	 * @param ser the ser
+	 * @param os the os
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private static void serializeToOutputStream(final Serializable ser,
 			final OutputStream os) throws IOException {
 		ObjectOutputStream oos = null;

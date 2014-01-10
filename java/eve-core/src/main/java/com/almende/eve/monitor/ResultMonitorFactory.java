@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.monitor;
 
 import java.io.IOException;
@@ -32,19 +36,29 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+/**
+ * A factory for creating ResultMonitor objects.
+ */
 public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	private static final Logger										LOG			= Logger.getLogger(ResultMonitorFactory.class
 																						.getCanonicalName());
+	private static final TypedKey<HashMap<String, ResultMonitor>>	MONITORS	= new TypedKey<HashMap<String, ResultMonitor>>(
+			"_monitors") {
+	};
 	private AgentInterface											myAgent		= null;
 	
-	private static final TypedKey<HashMap<String, ResultMonitor>>	MONITORS	= new TypedKey<HashMap<String, ResultMonitor>>(
-																						"_monitors") {
-																				};
-	
+	/**
+	 * Instantiates a new result monitor factory.
+	 *
+	 * @param agent the agent
+	 */
 	public ResultMonitorFactory(final AgentInterface agent) {
 		myAgent = agent;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#create(java.lang.String, java.net.URI, java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode, java.lang.String, com.almende.eve.monitor.ResultMonitorConfigType[])
+	 */
 	@Override
 	public String create(final String monitorId, final URI url, final String method,
 			final ObjectNode params, final String callbackMethod,
@@ -63,6 +77,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		return store(monitor);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#getResult(java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode, java.lang.Class)
+	 */
 	@Override
 	public <T> T getResult(final String monitorId, final ObjectNode filterParms,
 			final Class<T> returnType) throws IOException, JSONRPCException {
@@ -70,6 +87,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 				.constructSimpleType(returnType, new JavaType[0]));
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#getResult(java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode, com.fasterxml.jackson.databind.JavaType)
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getResult(final String monitorId, final ObjectNode filterParms,
@@ -96,6 +116,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#cancel(java.lang.String)
+	 */
 	@Override
 	public void cancel(final String monitorId) {
 		final ResultMonitor monitor = getMonitorById(monitorId);
@@ -108,6 +131,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#doPoll(java.lang.String)
+	 */
 	@Access(AccessType.SELF)
 	@Override
 	public final void doPoll(@Name("monitorId") final String monitorId)
@@ -134,8 +160,12 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 	}
 	
 	// TODO: doesn't work!
+	/** The last res. */
 	private JsonNode	lastRes	= null;
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#doPush(java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode)
+	 */
 	@Access(AccessType.SELF)
 	@Override
 	public final void doPush(@Name("pushKey") final String pushKey,
@@ -182,6 +212,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#callbackPush(java.lang.Object, java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode)
+	 */
 	@Access(AccessType.PUBLIC)
 	@Override
 	public final void callbackPush(@Name("result") final Object result,
@@ -225,6 +258,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#registerPush(java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode, java.lang.String)
+	 */
 	@Access(AccessType.PUBLIC)
 	@Override
 	public final void registerPush(@Name("pushId") final String id,
@@ -299,6 +335,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		myAgent.getState().put(pushKey, result.toString());
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#unregisterPush(java.lang.String, java.lang.String)
+	 */
 	@Access(AccessType.PUBLIC)
 	@Override
 	public final void unregisterPush(@Name("pushId") final String id,
@@ -328,6 +367,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#store(com.almende.eve.monitor.ResultMonitor)
+	 */
 	@Override
 	public String store(final ResultMonitor monitor) {
 		try {
@@ -350,6 +392,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		return monitor.getId();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#delete(java.lang.String)
+	 */
 	@Override
 	public void delete(final String monitorId) {
 		
@@ -373,6 +418,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#getMonitorById(java.lang.String)
+	 */
 	@Override
 	public ResultMonitor getMonitorById(final String monitorId) {
 		try {
@@ -393,6 +441,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		return null;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#cancelAll()
+	 */
 	@Override
 	public void cancelAll() {
 		for (final ResultMonitor monitor : getMonitors()) {
@@ -400,6 +451,9 @@ public class ResultMonitorFactory implements ResultMonitorFactoryInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.monitor.ResultMonitorFactoryInterface#getMonitors()
+	 */
 	@Access(AccessType.PUBLIC)
 	@Override
 	public List<ResultMonitor> getMonitors() {

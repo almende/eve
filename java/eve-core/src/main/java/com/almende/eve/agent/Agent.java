@@ -65,14 +65,20 @@ import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.AnnotationUtil;
-import com.almende.util.TypeUtil;
 import com.almende.util.AnnotationUtil.AnnotatedClass;
+import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The base class for all Eve agents.
+ * 
+ * @author Almende
+ */
 @Access(AccessType.UNAVAILABLE)
 public abstract class Agent implements AgentInterface {
+	
 	private static final Logger				LOG					= Logger.getLogger(Agent.class
 																		.getCanonicalName());
 	private AgentHost						host				= null;
@@ -86,21 +92,44 @@ public abstract class Agent implements AgentInterface {
 		EVEREQUESTPARAMS.put(Sender.class, null);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getDescription()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
 		return "Base agent.";
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getVersion()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getVersion() {
 		return "1.0";
 	}
 	
+	/**
+	 * Instantiates a new agent.
+	 */
 	public Agent() {
 	}
 	
+	/**
+	 * This method is called during construction of the agent object.
+	 * This is not a constructor itself, because else all implementing
+	 * subclasses (=all agents) need to explicitly create this constructor.
+	 * 
+	 * @param agentHost
+	 *            the agent host
+	 * @param state
+	 *            the state
+	 */
 	public void constr(final AgentHost agentHost, final State state) {
 		if (this.state == null) {
 			host = agentHost;
@@ -120,6 +149,11 @@ public abstract class Agent implements AgentInterface {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#hasPrivate()
+	 */
 	@Override
 	public boolean hasPrivate() {
 		try {
@@ -142,18 +176,36 @@ public abstract class Agent implements AgentInterface {
 		return false;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.rpc.jsonrpc.JSONAuthorizor#onAccess(java.lang.String,
+	 * java.lang.String)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public boolean onAccess(final String senderUrl, final String functionTag) {
 		return true;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.rpc.jsonrpc.JSONAuthorizor#onAccess(java.lang.String)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public boolean onAccess(final String senderUrl) {
 		return onAccess(senderUrl, null);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.rpc.jsonrpc.JSONAuthorizor#isSelf(java.lang.String)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public boolean isSelf(final String senderUrl) {
@@ -164,6 +216,13 @@ public abstract class Agent implements AgentInterface {
 		return urls.contains(senderUrl);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentInterface#signalAgent(com.almende.eve.agent
+	 * .AgentSignal)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	// TODO: Replace this by some form of publish/subscribe model!
@@ -224,7 +283,8 @@ public abstract class Agent implements AgentInterface {
 	 * It can be overridden and used to perform some action when the agent
 	 * is invoked.
 	 * 
-	 * @param request
+	 * @param signalData
+	 *            the signal data
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigInvoke(final Object[] signalData) {
@@ -234,6 +294,9 @@ public abstract class Agent implements AgentInterface {
 	 * This method is called after handling each incoming RPC call.
 	 * It can be overridden and used to perform some action when the agent
 	 * has been invoked.
+	 * 
+	 * @param response
+	 *            the response
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigRespond(final JSONResponse response) {
@@ -243,6 +306,9 @@ public abstract class Agent implements AgentInterface {
 	 * This method is called when handling any outgoing RPC messages.
 	 * It can be overridden and used to perform some action when the agent
 	 * is sending a message.
+	 * 
+	 * @param message
+	 *            the message
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigSend(final JSONMessage message) {
@@ -253,6 +319,9 @@ public abstract class Agent implements AgentInterface {
 	 * messages.
 	 * It can be overridden and used to perform some action when the agent
 	 * encounters an exception.
+	 * 
+	 * @param response
+	 *            the response
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigException(final JSONResponse response) {
@@ -262,6 +331,9 @@ public abstract class Agent implements AgentInterface {
 	 * This method is called when handling an incoming RPC response.
 	 * It can be overridden and used to perform some action when the agent
 	 * has received a response.
+	 * 
+	 * @param response
+	 *            the response
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	protected void sigResponse(final JSONResponse response) {
@@ -317,6 +389,11 @@ public abstract class Agent implements AgentInterface {
 		// even if the AgentHost removes the file.
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#finalize()
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	protected void finalize() throws Throwable {
@@ -327,12 +404,22 @@ public abstract class Agent implements AgentInterface {
 		super.finalize();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getState()
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final State getState() {
 		return state;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getScheduler()
+	 */
 	@Override
 	@Namespace("scheduler")
 	public final Scheduler getScheduler() {
@@ -342,6 +429,11 @@ public abstract class Agent implements AgentInterface {
 		return scheduler;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getAgentHost()
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final AgentHost getAgentHost() {
@@ -349,18 +441,33 @@ public abstract class Agent implements AgentInterface {
 		
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getResultMonitorFactory()
+	 */
 	@Override
 	@Namespace("monitor")
 	public final ResultMonitorFactoryInterface getResultMonitorFactory() {
 		return monitorFactory;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getEventsFactory()
+	 */
 	@Override
 	@Namespace("event")
 	public final EventsInterface getEventsFactory() {
 		return eventsFactory;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getFirstUrl()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public URI getFirstUrl() {
@@ -371,6 +478,11 @@ public abstract class Agent implements AgentInterface {
 		return URI.create("local:" + getId());
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getMethods()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<Object> getMethods() {
@@ -378,8 +490,23 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	// TODO: only allow ObjectNode as params?
-	private JSONResponse locSend(final URI url, final String method, final Object params)
-			throws IOException, JSONRPCException {
+	/**
+	 * Loc send.
+	 * 
+	 * @param url
+	 *            the url
+	 * @param method
+	 *            the method
+	 * @param params
+	 *            the params
+	 * @return the jSON response
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
+	 */
+	private JSONResponse locSend(final URI url, final String method,
+			final Object params) throws IOException, JSONRPCException {
 		
 		ObjectNode jsonParams;
 		if (params instanceof ObjectNode) {
@@ -392,7 +519,7 @@ public abstract class Agent implements AgentInterface {
 		// to route the request internally or externally
 		final JSONRequest request = new JSONRequest(method, jsonParams);
 		final SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-		send(request, url, callback);
+		send(request, url, callback, null);
 		JSONResponse response;
 		try {
 			response = callback.get();
@@ -406,34 +533,69 @@ public abstract class Agent implements AgentInterface {
 		return response;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.Object, java.lang.Class)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final Object params, final Class<T> type)
-			throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final Object params, final Class<T> type) throws IOException,
+			JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.Object, java.lang.reflect.Type)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final Object params, final Type type)
-			throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final Object params, final Type type) throws IOException,
+			JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.Object, com.almende.util.TypeUtil)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final Object params,
-			final TypeUtil<T> type) throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final Object params, final TypeUtil<T> type) throws IOException,
+			JSONRPCException {
 		return type.inject(locSend(url, method, params).getResult());
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.Object,
+	 * com.fasterxml.jackson.databind.JavaType)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final Object params, final JavaType type)
-			throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final Object params, final JavaType type) throws IOException,
+			JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, params).getResult(), type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.reflect.Type)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> T send(final URI url, final String method, final Type type)
@@ -441,43 +603,79 @@ public abstract class Agent implements AgentInterface {
 		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, com.fasterxml.jackson.databind.JavaType)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final JavaType type)
-			throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final JavaType type) throws IOException, JSONRPCException {
 		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.Class)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final Class<T> type)
-			throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final Class<T> type) throws IOException, JSONRPCException {
 		
 		return TypeUtil.inject(locSend(url, method, null).getResult(), type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, com.almende.util.TypeUtil)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final <T> T send(final URI url, final String method, final TypeUtil<T> type)
-			throws IOException, JSONRPCException {
+	public final <T> T send(final URI url, final String method,
+			final TypeUtil<T> type) throws IOException, JSONRPCException {
 		
 		return type.inject(locSend(url, method, null).getResult());
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String, java.lang.Object)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final void send(final URI url, final String method, final Object params)
-			throws IOException, JSONRPCException {
+	public final void send(final URI url, final String method,
+			final Object params) throws IOException, JSONRPCException {
 		locSend(url, method, params);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.net.URI,
+	 * java.lang.String)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
-	public final void send(final URI url, final String method) throws IOException,
-			JSONRPCException {
+	public final void send(final URI url, final String method)
+			throws IOException, JSONRPCException {
 		locSend(url, method, null);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#createAgentProxy(java.net.URI,
+	 * java.lang.Class)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T extends AgentInterface> T createAgentProxy(final URI url,
@@ -485,6 +683,13 @@ public abstract class Agent implements AgentInterface {
 		return getAgentHost().createAgentProxy(this, url, agentInterface);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentInterface#createAsyncAgentProxy(java.net.URI,
+	 * java.lang.Class)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
@@ -492,6 +697,12 @@ public abstract class Agent implements AgentInterface {
 		return getAgentHost().createAsyncAgentProxy(this, url, agentInterface);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void sendAsync(final URI url, final String method,
@@ -499,6 +710,12 @@ public abstract class Agent implements AgentInterface {
 		sendAsync(url, method, params, null, Void.class);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * java.lang.String)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final void sendAsync(final URI url, final String method)
@@ -506,6 +723,13 @@ public abstract class Agent implements AgentInterface {
 		sendAsync(url, method, null, null, Void.class);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode,
+	 * com.almende.eve.agent.callback.AsyncCallback, java.lang.Class)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final String method,
@@ -516,6 +740,13 @@ public abstract class Agent implements AgentInterface {
 				.uncheckedSimpleType(type));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode,
+	 * com.almende.eve.agent.callback.AsyncCallback, java.lang.reflect.Type)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final String method,
@@ -526,6 +757,14 @@ public abstract class Agent implements AgentInterface {
 				JOM.getTypeFactory().constructType(type));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode,
+	 * com.almende.eve.agent.callback.AsyncCallback,
+	 * com.fasterxml.jackson.databind.JavaType)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final String method,
@@ -535,6 +774,13 @@ public abstract class Agent implements AgentInterface {
 		sendAsync(url, request, callback, type);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * com.almende.eve.rpc.jsonrpc.JSONRequest,
+	 * com.almende.eve.agent.callback.AsyncCallback, java.lang.Class)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
@@ -544,6 +790,13 @@ public abstract class Agent implements AgentInterface {
 				.uncheckedSimpleType(type));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * com.almende.eve.rpc.jsonrpc.JSONRequest,
+	 * com.almende.eve.agent.callback.AsyncCallback, java.lang.reflect.Type)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
@@ -553,6 +806,14 @@ public abstract class Agent implements AgentInterface {
 				JOM.getTypeFactory().constructType(type));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#sendAsync(java.net.URI,
+	 * com.almende.eve.rpc.jsonrpc.JSONRequest,
+	 * com.almende.eve.agent.callback.AsyncCallback,
+	 * com.fasterxml.jackson.databind.JavaType)
+	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
 	public final <T> void sendAsync(final URI url, final JSONRequest request,
@@ -579,8 +840,8 @@ public abstract class Agent implements AgentInterface {
 					}
 					if (type != null && !type.hasRawClass(Void.class)) {
 						try {
-							final T res = (T) TypeUtil.inject(response.getResult(),
-									type);
+							final T res = (T) TypeUtil.inject(
+									response.getResult(), type);
 							callback.onSuccess(res);
 						} catch (final ClassCastException cce) {
 							callback.onFailure(new JSONRPCException(
@@ -606,9 +867,14 @@ public abstract class Agent implements AgentInterface {
 			}
 		};
 		
-		send(request, url, responseCallback);
+		send(request, url, responseCallback, null);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getUrls()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<String> getUrls() {
@@ -628,28 +894,57 @@ public abstract class Agent implements AgentInterface {
 		return urls;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentInterface#getRef(com.almende.eve.state.TypedKey
+	 * )
+	 */
 	@Override
 	public <T> T getRef(final TypedKey<T> key) {
 		return host.getRef(getId(), key);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentInterface#putRef(com.almende.eve.state.TypedKey
+	 * , java.lang.Object)
+	 */
 	@Override
 	public <T> void putRef(final TypedKey<T> key, final T value) {
 		host.putRef(getId(), key, value);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getId()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getId() {
 		return state.getAgentId();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#getType()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getType() {
 		return getClass().getSimpleName();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String toString() {
@@ -660,48 +955,63 @@ public abstract class Agent implements AgentInterface {
 	}
 	
 	// TODO: This should be abstracted to a generic "Translation service"?
-	@Override
-	public void receive(final Object msg, final URI senderUrl) {
-		receive(msg, senderUrl, null);
-	}
-	
-	public static JSONMessage jsonConvert(final Object msg) throws IOException,
-			JSONRPCException {
+	/**
+	 * This message tries to convert/parse the given object to a JSONMessage.
+	 * Return null if it fails to convert the message.
+	 * 
+	 * @param msg
+	 *            the msg
+	 * @return JSONMessage
+	 */
+	public static JSONMessage jsonConvert(final Object msg) {
 		JSONMessage jsonMsg = null;
-		if (msg instanceof JSONMessage) {
-			jsonMsg = (JSONMessage) msg;
-		} else {
-			ObjectNode json = null;
-			if (msg instanceof String) {
-				final String message = (String) msg;
-				if (message.startsWith("{") || message.trim().startsWith("{")) {
-					
-					json = JOM.getInstance().readValue(message,
-							ObjectNode.class);
-				}
-			} else if (msg instanceof ObjectNode) {
-				json = (ObjectNode) msg;
-			} else if (msg == null) {
-				LOG.warning("Message null!");
+		try {
+			if (msg instanceof JSONMessage) {
+				jsonMsg = (JSONMessage) msg;
 			} else {
-				LOG.warning("Message unknown type:" + msg.getClass());
-			}
-			if (json != null) {
-				if (JSONRPC.isResponse(json)) {
-					final JSONResponse response = new JSONResponse(json);
-					jsonMsg = response;
-				} else if (JSONRPC.isRequest(json)) {
-					final JSONRequest request = new JSONRequest(json);
-					jsonMsg = request;
+				ObjectNode json = null;
+				if (msg instanceof String) {
+					final String message = (String) msg;
+					if (message.startsWith("{")
+							|| message.trim().startsWith("{")) {
+						
+						json = JOM.getInstance().readValue(message,
+								ObjectNode.class);
+					}
+				} else if (msg instanceof ObjectNode) {
+					json = (ObjectNode) msg;
+				} else if (msg == null) {
+					LOG.warning("Message null!");
 				} else {
-					throw new IllegalArgumentException(
-							" Request does not contain a valid JSON-RPC request or response");
+					LOG.warning("Message unknown type:" + msg.getClass());
+				}
+				if (json != null) {
+					if (JSONRPC.isResponse(json)) {
+						final JSONResponse response = new JSONResponse(json);
+						jsonMsg = response;
+					} else if (JSONRPC.isRequest(json)) {
+						final JSONRequest request = new JSONRequest(json);
+						jsonMsg = request;
+					} else {
+						LOG.warning("Message contains valid JSON, but is not JSON-RPC:"
+								+ json);
+					}
 				}
 			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING,
+					"Message triggered exception in trying to convert it to a JSONMessage.",
+					e);
 		}
 		return jsonMsg;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#receive(java.lang.Object,
+	 * java.net.URI, java.lang.String)
+	 */
 	@Override
 	public void receive(final Object msg, final URI senderUrl, final String tag) {
 		JsonNode id = null;
@@ -726,8 +1036,8 @@ public abstract class Agent implements AgentInterface {
 							signalAgent(new AgentSignal<Object[]>(
 									AgentSignal.INVOKE, signalData));
 							
-							final JSONResponse response = JSONRPC.invoke(me, request,
-									params, me);
+							final JSONResponse response = JSONRPC.invoke(me,
+									request, params, me);
 							
 							signalAgent(new AgentSignal<JSONResponse>(
 									AgentSignal.RESPOND, response));
@@ -785,12 +1095,13 @@ public abstract class Agent implements AgentInterface {
 		}
 	}
 	
-	@Override
-	public void send(final Object msg, final URI receiverUrl,
-			final AsyncCallback<JSONResponse> callback) throws IOException {
-		send(msg, receiverUrl, callback, null);
-	}
-	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentInterface#send(java.lang.Object,
+	 * java.net.URI, com.almende.eve.agent.callback.AsyncCallback,
+	 * java.lang.String)
+	 */
 	@Override
 	public void send(final Object msg, final URI receiverUrl,
 			final AsyncCallback<JSONResponse> callback, final String tag)

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.transport.xmpp;
 
 import java.io.IOException;
@@ -16,7 +20,15 @@ import org.jivesoftware.smack.packet.Presence;
 
 import com.almende.eve.agent.AgentHost;
 
+/**
+ * @author Almende
+ * 
+ */
+/**
+ * The Class AgentConnection.
+ */
 public class AgentConnection {
+	
 	private static final Logger	LOG			= Logger.getLogger(AgentConnection.class
 													.getCanonicalName());
 	private AgentHost			agentHost	= null;
@@ -29,12 +41,18 @@ public class AgentConnection {
 	private Integer				port		= 5222;
 	private XMPPConnection		conn		= null;
 	
+	/**
+	 * Instantiates a new agent connection.
+	 * 
+	 * @param agentHost
+	 *            the agent host
+	 */
 	public AgentConnection(final AgentHost agentHost) {
 		this.agentHost = agentHost;
 	}
 	
 	/**
-	 * Get the id of the agent linked to this connection
+	 * Get the id of the agent linked to this connection.
 	 * 
 	 * @return agentId
 	 */
@@ -43,7 +61,7 @@ public class AgentConnection {
 	}
 	
 	/**
-	 * Get the username of the connection (without host)
+	 * Get the username of the connection (without host).
 	 * 
 	 * @return username
 	 */
@@ -60,26 +78,40 @@ public class AgentConnection {
 		return resource;
 	}
 	
+	/**
+	 * Connect.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public void connect() throws IOException {
 		connect(agentId, host, port, serviceName, username, password, resource);
 	}
 	
 	/**
-	 * Login and connect the agent to the messaging service
+	 * Login and connect the agent to the messaging service.
 	 * 
 	 * @param agentId
+	 *            the agent id
 	 * @param host
+	 *            the host
 	 * @param port
+	 *            the port
 	 * @param serviceName
+	 *            the service name
 	 * @param username
+	 *            the username
 	 * @param password
+	 *            the password
 	 * @param resource
 	 *            optional
-	 * @throws JSONRPCException
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
-	public void connect(final String agentId, final String host, final Integer port,
-			final String serviceName, final String username, final String password,
-			final String resource) throws IOException {
+	public void connect(final String agentId, final String host,
+			final Integer port, final String serviceName,
+			final String username, final String password, final String resource)
+			throws IOException {
 		
 		if (isConnected()) {
 			// this is a reconnect.
@@ -131,7 +163,7 @@ public class AgentConnection {
 	}
 	
 	/**
-	 * Disconnect the agent from the messaging service
+	 * Disconnect the agent from the messaging service.
 	 */
 	public void disconnect() {
 		if (isConnected()) {
@@ -141,7 +173,7 @@ public class AgentConnection {
 	}
 	
 	/**
-	 * Check whether the agent is connected to the messaging service
+	 * Check whether the agent is connected to the messaging service.
 	 * 
 	 * @return connected
 	 */
@@ -150,13 +182,17 @@ public class AgentConnection {
 	}
 	
 	/**
-	 * Send a message to an other agent
+	 * Send a message to an other agent.
 	 * 
 	 * @param username
+	 *            the username
 	 * @param message
-	 * @throws JSONRPCException
+	 *            the message
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
-	public void send(final String username, final Object message) throws IOException {
+	public void send(final String username, final Object message)
+			throws IOException {
 		if (!isConnected()) {
 			disconnect();
 			connect();
@@ -177,12 +213,24 @@ public class AgentConnection {
 	 * A class to listen for incoming JSON-RPC messages.
 	 * The listener will invoke the JSON-RPC message on the agent and
 	 * reply the result.
+	 * 
+	 * @see JSONRPCEvent
 	 */
 	private static class JSONRPCListener implements PacketListener {
 		private AgentHost	host		= null;
 		private String		agentId		= null;
 		private String		resource	= null;
 		
+		/**
+		 * Instantiates a new jSONRPC listener.
+		 * 
+		 * @param agentHost
+		 *            the agent host
+		 * @param agentId
+		 *            the agent id
+		 * @param resource
+		 *            the resource
+		 */
 		public JSONRPCListener(final AgentHost agentHost, final String agentId,
 				final String resource) {
 			host = agentHost;
@@ -196,6 +244,7 @@ public class AgentConnection {
 		 * the message will be processed.
 		 * 
 		 * @param packet
+		 *            the packet
 		 */
 		@Override
 		public void processPacket(final Packet packet) {
@@ -231,6 +280,13 @@ public class AgentConnection {
 		}
 	}
 	
+	/**
+	 * Checks if is available.
+	 * 
+	 * @param receiver
+	 *            the receiver
+	 * @return true, if is available
+	 */
 	public boolean isAvailable(String receiver) {
 		// split url (xmpp:user/resource) into parts
 		if (receiver.startsWith("xmpp:")) {

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.agent.log;
 
 import java.io.IOException;
@@ -9,18 +13,36 @@ import java.util.logging.Logger;
 import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 
+/**
+ * The Class EventLogger.
+ */
 public class EventLogger {
 	private static final Logger	LOG			= Logger.getLogger(EventLogger.class
 													.getCanonicalName());
 	private AgentHostDefImpl	agentHost	= null;
 	
+	/**
+	 * Instantiates a new event logger.
+	 */
 	protected EventLogger() {
 	}
 	
+	/**
+	 * Instantiates a new event logger.
+	 *
+	 * @param agentHost the agent host
+	 */
 	public EventLogger(final AgentHostDefImpl agentHost) {
 		this.agentHost = agentHost;
 	}
 	
+	/**
+	 * Log.
+	 *
+	 * @param agentId the agent id
+	 * @param event the event
+	 * @param params the params
+	 */
 	public void log(final String agentId, final String event, final Object params) {
 		try {
 			final String logAgentId = getLogAgentId(agentId);
@@ -34,6 +56,20 @@ public class EventLogger {
 		}
 	}
 	
+	/**
+	 * Gets the logs.
+	 *
+	 * @param agentId the agent id
+	 * @param since the since
+	 * @return the logs
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws ClassNotFoundException the class not found exception
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public List<Log> getLogs(final String agentId, final Long since)
 			throws JSONRPCException, ClassNotFoundException,
 			InstantiationException, IllegalAccessException,
@@ -49,6 +85,12 @@ public class EventLogger {
 		return agent.getLogs(since);
 	}
 	
+	/**
+	 * Gets the log agent id.
+	 *
+	 * @param agentId the agent id
+	 * @return the log agent id
+	 */
 	private String getLogAgentId(final String agentId) {
 		// TODO: use a naming here which cannot conflict with other agents.
 		// introduce a separate namespace or something like that?

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.io.File;
@@ -16,14 +20,23 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.state.State;
 import com.almende.eve.state.TypedKey;
 
+/**
+ * The Class TestStateLocking.
+ */
 public class TestStateLocking extends TestCase {
 	// TODO: prove that a collision occurs, possibly by measuring the starttime
 	// and runtime of each run.
 	// TODO: alternatively: implement a non-locking, non-thread-safe version of
 	// the state and see it break:)
-	public static final Logger	LOG	= Logger.getLogger(TestStateLocking.class
+	private static final Logger	LOG	= Logger.getLogger(TestStateLocking.class
 											.getName());
 	
+	/**
+	 * Test run.
+	 * 
+	 * @param state
+	 *            the state
+	 */
 	private void testRun(final State state) {
 		
 		// state.clear();
@@ -98,6 +111,12 @@ public class TestStateLocking extends TestCase {
 		
 	}
 	
+	/**
+	 * Test file state.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testFileState() throws Exception {
 		final File dir = new File(".testStates");
@@ -109,6 +128,12 @@ public class TestStateLocking extends TestCase {
 		testRun(fc);
 	}
 	
+	/**
+	 * Test concurrent file state.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testConcurrentFileState() throws Exception {
 		final File dir = new File(".testStates");
@@ -116,8 +141,8 @@ public class TestStateLocking extends TestCase {
 			fail("Couldn't create .testStates folder");
 		}
 		final FileStateFactory sf = new FileStateFactory(".testStates"); // Defaults
-																	// to
-																	// ConcurrentFileState
+		// to
+		// ConcurrentFileState
 		
 		final String agentId = "ConcurrentFileStateRun";
 		if (sf.exists(agentId)) {
@@ -127,6 +152,12 @@ public class TestStateLocking extends TestCase {
 		testRun(fc);
 	}
 	
+	/**
+	 * Test concurrent json file state.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Test
 	public void testConcurrentJsonFileState() throws Exception {
 		final File dir = new File(".testStates");
@@ -134,8 +165,8 @@ public class TestStateLocking extends TestCase {
 			fail("Couldn't create .testStates folder");
 		}
 		final FileStateFactory sf = new FileStateFactory(".testStates", true); // Defaults
-																			// to
-																			// ConcurrentFileState
+																				// to
+																				// ConcurrentFileState
 		
 		final String agentId = "ConcurrentJsonFileStateRun";
 		if (sf.exists(agentId)) {

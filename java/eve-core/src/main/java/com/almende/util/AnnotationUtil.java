@@ -61,11 +61,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * The Class AnnotationUtil.
+ */
 public final class AnnotationUtil {
-	
 	private static Map<String, AnnotatedClass>	cache					= new ConcurrentHashMap<String, AnnotatedClass>();
 	private static Map<String, AnnotatedClass>	cacheIncludingObject	= new ConcurrentHashMap<String, AnnotatedClass>();
-	
 	private AnnotationUtil() {
 	};
 	
@@ -73,11 +74,9 @@ public final class AnnotationUtil {
 	 * Get all annotations of a class, methods, and parameters.
 	 * Returned annotations include all annotations of the classes interfaces
 	 * and super classes (excluding java.lang.Object).
-	 * 
-	 * @param clazz
+	 *
+	 * @param clazz the clazz
 	 * @return annotatedClazz
-	 * @throws Exception
-	 * @throws SecurityException
 	 */
 	public static AnnotatedClass get(final Class<?> clazz) {
 		final boolean includeObject = false;
@@ -88,14 +87,11 @@ public final class AnnotationUtil {
 	 * Get all annotations of a class, methods, and parameters.
 	 * Returned annotations include all annotations of the classes interfaces
 	 * and super classes.
-	 * 
-	 * @param clazz
-	 * @param includeObject
-	 *            If true, methods of java.lang.Object will be
-	 *            included in the superclasses too.
+	 *
+	 * @param clazz the clazz
+	 * @param includeObject If true, methods of java.lang.Object will be
+	 * included in the superclasses too.
 	 * @return annotatedClazz
-	 * @throws Exception
-	 * @throws SecurityException
 	 */
 	public static AnnotatedClass get(final Class<?> clazz,
 			final boolean includeObject) {
@@ -113,20 +109,25 @@ public final class AnnotationUtil {
 	 * AnnotatedClass describes a class, its annotations, and its methods.
 	 */
 	public static class AnnotatedClass {
+		
+		/** The clazz. */
 		private Class<?>					clazz		= null;
+		
+		/** The annotations. */
 		private final List<Annotation>		annotations	= new ArrayList<Annotation>();
+		
+		/** The methods. */
 		private final List<AnnotatedMethod>	methods		= new ArrayList<AnnotatedMethod>();
+		
+		/** The fields. */
 		private final List<AnnotatedField>	fields		= new ArrayList<AnnotatedField>();
 		
 		/**
-		 * Create a new AnnotatedClass
-		 * 
-		 * @param clazz
-		 * @param includeObject
-		 *            If true, the methods of super class
-		 *            java.lang.Object will be included too.
-		 * @throws Exception
-		 * @throws SecurityException
+		 * Create a new AnnotatedClass.
+		 *
+		 * @param clazz the clazz
+		 * @param includeObject If true, the methods of super class
+		 * java.lang.Object will be included too.
 		 */
 		public AnnotatedClass(final Class<?> clazz, final boolean includeObject) {
 			this.clazz = clazz;
@@ -137,13 +138,10 @@ public final class AnnotationUtil {
 		 * Recursively merge a class into this AnnotatedClass.
 		 * The method loops over all the classess interfaces and superclasses
 		 * Methods with will be merged.
-		 * 
-		 * @param clazz
-		 * @param includeObject
-		 *            if true, superclass java.lang.Object will
-		 *            be included too.
-		 * @throws Exception
-		 * @throws SecurityException
+		 *
+		 * @param clazz the clazz
+		 * @param includeObject if true, superclass java.lang.Object will
+		 * be included too.
 		 */
 		private void merge(final Class<?> clazz, final boolean includeObject) {
 			Class<?> c = clazz;
@@ -186,9 +184,9 @@ public final class AnnotationUtil {
 		
 		/**
 		 * Get all methods including methods declared in superclasses, filtered
-		 * by name
-		 * 
-		 * @param name
+		 * by name.
+		 *
+		 * @param name the name
 		 * @return filteredMethods
 		 */
 		public List<AnnotatedMethod> getMethods(final String name) {
@@ -203,9 +201,10 @@ public final class AnnotationUtil {
 		
 		/**
 		 * Get all methods including methods declared in superclasses, filtered
-		 * by annotation
-		 * 
-		 * @param annotation
+		 * by annotation.
+		 *
+		 * @param <T> the generic type
+		 * @param annotation the annotation
 		 * @return filteredMethods
 		 */
 		public <T> List<AnnotatedMethod> getAnnotatedMethods(
@@ -221,9 +220,10 @@ public final class AnnotationUtil {
 		
 		/**
 		 * Get all fields including fields declared in superclasses, filtered
-		 * by annotation
-		 * 
-		 * @param annotation
+		 * by annotation.
+		 *
+		 * @param <T> the generic type
+		 * @param annotation the annotation
 		 * @return filteredMethods
 		 */
 		public <T> List<AnnotatedField> getAnnotatedFields(
@@ -239,8 +239,8 @@ public final class AnnotationUtil {
 		
 		/**
 		 * Get all annotations defined on this class, its superclasses, and its
-		 * interfaces
-		 * 
+		 * interfaces.
+		 *
 		 * @return annotations
 		 */
 		public List<Annotation> getAnnotations() {
@@ -250,8 +250,9 @@ public final class AnnotationUtil {
 		/**
 		 * Get an annotation of this class by type.
 		 * Returns null if not available.
-		 * 
-		 * @param annotationClass
+		 *
+		 * @param <T> the generic type
+		 * @param type the type
 		 * @return annotation
 		 */
 		@SuppressWarnings("unchecked")
@@ -265,12 +266,28 @@ public final class AnnotationUtil {
 		}
 	}
 	
+	/**
+	 * The Class AnnotatedField.
+	 */
 	public static class AnnotatedField {
+		
+		/** The field. */
 		private Field					field		= null;
+		
+		/** The name. */
 		private String					name		= null;
+		
+		/** The type. */
 		private Type					type		= null;
+		
+		/** The annotations. */
 		private final List<Annotation>	annotations	= new ArrayList<Annotation>();
 		
+		/**
+		 * Instantiates a new annotated field.
+		 *
+		 * @param field the field
+		 */
 		public AnnotatedField(final Field field) {
 			this.field = field;
 			name = field.getName();
@@ -282,25 +299,45 @@ public final class AnnotationUtil {
 		/**
 		 * Merge a java method into this Annotated method.
 		 * Annotations and parameter annotations will be merged.
-		 * 
-		 * @param method
+		 *
+		 * @param field the field
 		 */
 		private void merge(final Field field) {
 			AnnotationUtil.merge(annotations, field.getDeclaredAnnotations());
 		}
 		
+		/**
+		 * Gets the field.
+		 *
+		 * @return the field
+		 */
 		public Field getField() {
 			return field;
 		}
 		
+		/**
+		 * Gets the name.
+		 *
+		 * @return the name
+		 */
 		public String getName() {
 			return name;
 		}
 		
+		/**
+		 * Gets the type.
+		 *
+		 * @return the type
+		 */
 		public Type getType() {
 			return type;
 		}
 		
+		/**
+		 * Gets the annotations.
+		 *
+		 * @return the annotations
+		 */
 		public List<Annotation> getAnnotations() {
 			return annotations;
 		}
@@ -308,8 +345,9 @@ public final class AnnotationUtil {
 		/**
 		 * Get an annotation of this field by type.
 		 * Returns null if not available.
-		 * 
-		 * @param annotationClass
+		 *
+		 * @param <T> the generic type
+		 * @param type the type
 		 * @return annotation
 		 */
 		@SuppressWarnings("unchecked")
@@ -327,13 +365,30 @@ public final class AnnotationUtil {
 	 * AnnotatedMethod describes a method and its parameters.
 	 */
 	public static class AnnotatedMethod {
+		
+		/** The method. */
 		private Method						method				= null;
+		
+		/** The name. */
 		private String						name				= null;
+		
+		/** The return type. */
 		private Class<?>					returnType			= null;
+		
+		/** The generic return type. */
 		private Type						genericReturnType	= null;
+		
+		/** The annotations. */
 		private final List<Annotation>		annotations			= new ArrayList<Annotation>();
+		
+		/** The parameters. */
 		private final List<AnnotatedParam>	parameters			= new ArrayList<AnnotatedParam>();
 		
+		/**
+		 * Instantiates a new annotated method.
+		 *
+		 * @param method the method
+		 */
 		public AnnotatedMethod(final Method method) {
 			this.method = method;
 			name = method.getName();
@@ -346,8 +401,8 @@ public final class AnnotationUtil {
 		/**
 		 * Merge a java method into this Annotated method.
 		 * Annotations and parameter annotations will be merged.
-		 * 
-		 * @param method
+		 *
+		 * @param method the method
 		 */
 		private void merge(final Method method) {
 			// merge the annotations
@@ -377,8 +432,8 @@ public final class AnnotationUtil {
 		}
 		
 		/**
-		 * Get the method name
-		 * 
+		 * Get the method name.
+		 *
 		 * @return name
 		 */
 		public String getName() {
@@ -386,8 +441,8 @@ public final class AnnotationUtil {
 		}
 		
 		/**
-		 * Get the return type of the method
-		 * 
+		 * Get the return type of the method.
+		 *
 		 * @return returnType
 		 */
 		public Class<?> getReturnType() {
@@ -395,8 +450,8 @@ public final class AnnotationUtil {
 		}
 		
 		/**
-		 * Get the generic return type of the method
-		 * 
+		 * Get the generic return type of the method.
+		 *
 		 * @return genericType
 		 */
 		public Type getGenericReturnType() {
@@ -416,8 +471,9 @@ public final class AnnotationUtil {
 		/**
 		 * Get an annotation of this method by type.
 		 * Returns null if not available.
-		 * 
-		 * @param annotationClass
+		 *
+		 * @param <T> the generic type
+		 * @param type the type
 		 * @return annotation
 		 */
 		@SuppressWarnings("unchecked")
@@ -445,13 +501,29 @@ public final class AnnotationUtil {
 	 * AnnotatedParam describes all annotations of a parameter.
 	 */
 	public static class AnnotatedParam {
+		
+		/** The annotations. */
 		private final List<Annotation>	annotations	= new ArrayList<Annotation>();
+		
+		/** The type. */
 		private Class<?>				type		= null;
+		
+		/** The generic type. */
 		private Type					genericType	= null;
 		
+		/**
+		 * Instantiates a new annotated param.
+		 */
 		public AnnotatedParam() {
 		}
 		
+		/**
+		 * Instantiates a new annotated param.
+		 *
+		 * @param annotations the annotations
+		 * @param type the type
+		 * @param genericType the generic type
+		 */
 		public AnnotatedParam(final Annotation[] annotations,
 				final Class<?> type, final Type genericType) {
 			this.type = type;
@@ -460,6 +532,11 @@ public final class AnnotationUtil {
 			merge(annotations);
 		}
 		
+		/**
+		 * Merge.
+		 *
+		 * @param annotations the annotations
+		 */
 		private void merge(final Annotation[] annotations) {
 			// merge the annotations
 			AnnotationUtil.merge(this.annotations, annotations);
@@ -478,8 +555,9 @@ public final class AnnotationUtil {
 		/**
 		 * Get an annotation of this parameter by type.
 		 * Returns null if not available.
-		 * 
-		 * @param annotationClass
+		 *
+		 * @param <T> the generic type
+		 * @param type the type
 		 * @return annotation
 		 */
 		@SuppressWarnings("unchecked")
@@ -493,8 +571,8 @@ public final class AnnotationUtil {
 		}
 		
 		/**
-		 * Get the type of the parameter
-		 * 
+		 * Get the type of the parameter.
+		 *
 		 * @return type
 		 */
 		public Class<?> getType() {
@@ -502,8 +580,8 @@ public final class AnnotationUtil {
 		}
 		
 		/**
-		 * Get the generic type of the parameter
-		 * 
+		 * Get the generic type of the parameter.
+		 *
 		 * @return genericType
 		 */
 		public Type getGenericType() {
@@ -513,10 +591,10 @@ public final class AnnotationUtil {
 	
 	/**
 	 * Merge an array with annotations (listB) into a list with
-	 * annotations (listA)
-	 * 
-	 * @param listA
-	 * @param listB
+	 * annotations (listA).
+	 *
+	 * @param listA the list a
+	 * @param listB the list b
 	 */
 	private static void merge(final List<Annotation> listA,
 			final Annotation[] listB) {
@@ -536,11 +614,10 @@ public final class AnnotationUtil {
 	
 	/**
 	 * Merge an array of methods (listB) into a list with method
-	 * annotations (listA)
-	 * 
-	 * @param listA
-	 * @param listB
-	 * @throws Exception
+	 * annotations (listA).
+	 *
+	 * @param listA the list a
+	 * @param listB the list b
 	 */
 	private static void merge(final List<AnnotatedMethod> listA,
 			final Method[] listB) {
@@ -563,10 +640,10 @@ public final class AnnotationUtil {
 	
 	/**
 	 * Merge an array with annotations (listB) into a list with
-	 * annotations (listA)
-	 * 
-	 * @param listA
-	 * @param listB
+	 * annotations (listA).
+	 *
+	 * @param listA the list a
+	 * @param listB the list b
 	 */
 	private static void merge(final List<AnnotatedField> listA,
 			final Field[] listB) {
@@ -589,11 +666,11 @@ public final class AnnotationUtil {
 	
 	/**
 	 * Test if two methods have equal names, return type, param count,
-	 * and param types
-	 * 
-	 * @param a
-	 * @param b
-	 * @return
+	 * and param types.
+	 *
+	 * @param a the a
+	 * @param b the b
+	 * @return true, if successful
 	 */
 	private static boolean equals(final Method a, final Method b) {
 		// http://stackoverflow.com/q/10062957/1262753
@@ -619,11 +696,11 @@ public final class AnnotationUtil {
 	}
 	
 	/**
-	 * Test if two fields have equal names and types
-	 * 
-	 * @param a
-	 * @param b
-	 * @return
+	 * Test if two fields have equal names and types.
+	 *
+	 * @param a the a
+	 * @param b the b
+	 * @return true, if successful
 	 */
 	private static boolean equals(final Field a, final Field b) {
 		// http://stackoverflow.com/q/10062957/1262753

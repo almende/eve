@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test.agents;
 
 import java.net.URI;
@@ -10,21 +14,33 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
 import com.almende.eve.rpc.annotation.Sender;
 
+/**
+ * The Class TestAccessAgent.
+ */
 @Access(AccessType.PRIVATE)
 // defaults to UNAVAILABLE...
 public class TestAccessAgent extends Agent {
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#sigCreate()
+	 */
 	@Override
 	public void sigCreate() {
 		getState().put("senderLabel", "trusted");
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getMethods()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<Object> getMethods() {
 		return super.getMethods();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#onAccess(java.lang.String, java.lang.String)
+	 */
 	@Override
 	public boolean onAccess(final String sender, final String functionTag) {
 		if (sender == null) {
@@ -39,45 +55,86 @@ public class TestAccessAgent extends Agent {
 		return sender.contains(senderLabel);
 	}
 	
+	/**
+	 * Self.
+	 *
+	 * @return true, if successful
+	 */
 	@Access(AccessType.SELF)
 	public boolean self() {
 		return true;
 	}
 	
+	/**
+	 * Allowed.
+	 *
+	 * @return true, if successful
+	 */
 	@Access(AccessType.PUBLIC)
 	public boolean allowed() {
 		return true;
 	}
 	
+	/**
+	 * Forbidden.
+	 *
+	 * @return true, if successful
+	 */
 	@Access(AccessType.UNAVAILABLE)
 	public boolean forbidden() {
 		return true;
 	}
 	
+	/**
+	 * Depends.
+	 *
+	 * @return true, if successful
+	 */
 	@Access(AccessType.PRIVATE)
 	// checks onAccess method before being called.
 	public boolean depends() {
 		return true;
 	}
 	
+	/**
+	 * Depend tag.
+	 *
+	 * @return true, if successful
+	 */
 	@Access(value = AccessType.PRIVATE, tag = "trust")
 	// checks onAccess method before being called.
 	public boolean dependTag() {
 		return true;
 	}
 	
+	/**
+	 * Depend un tag.
+	 *
+	 * @return true, if successful
+	 */
 	@Access(value = AccessType.PRIVATE, tag = "untrust")
 	// checks onAccess method before being called.
 	public boolean dependUnTag() {
 		return true;
 	}
 	
+	/**
+	 * Unmodified.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean unmodified() { // Depends on default annotation of entire
 									// agent, in this case through onAccess()
 									// check
 		return true;
 	}
 	
+	/**
+	 * Param.
+	 *
+	 * @param sender the sender
+	 * @return true, if successful
+	 */
 	public boolean param(@Sender final String sender) {
 		final String senderLabel = getState().get("senderLabel", String.class);
 		if (sender == null || !sender.contains(senderLabel)) { // will always
@@ -88,6 +145,12 @@ public class TestAccessAgent extends Agent {
 		return false;
 	}
 	
+	/**
+	 * Run.
+	 *
+	 * @param urls the urls
+	 * @return the boolean[]
+	 */
 	public boolean[] run(@Name("url") final String urls) {
 		final URI url = URI.create(urls);
 		boolean[] result = new boolean[0];
@@ -140,24 +203,36 @@ public class TestAccessAgent extends Agent {
 		return result;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getUrls()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public List<String> getUrls() {
 		return super.getUrls();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getType()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getType() {
 		return super.getType();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getDescription() {
 		return "Agent to test the access control features of Eve";
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public String getVersion() {

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.state;
 
 import java.io.EOFException;
@@ -29,6 +33,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.node.NullNode;
 
 /**
+ * The Class ConcurrentJsonFileState.
+ * 
  * @class FileState
  * 
  *        A persistent state for an Eve Agent, which stores the data on disk.
@@ -48,13 +54,11 @@ import com.fasterxml.jackson.databind.node.NullNode;
  *        ConcurrentFileState("agentId",".eveagents");<br>
  *        state.put("key", "value");<br>
  *        System.out.println(state.get("key")); // "value"<br>
- * 
  * @author jos
  * @author ludo
  */
 public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	private static final Logger			LOG			= Logger.getLogger("ConcurrentFileState");
-	
 	private String						filename	= null;
 	private FileChannel					channel		= null;
 	private FileLock					lock		= null;
@@ -62,22 +66,40 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	private OutputStream				fos			= null;
 	private ObjectMapper				om			= null;
 	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
-	
-	private final Map<String, JsonNode>		properties	= Collections
+	private final Map<String, JsonNode>	properties	= Collections
 															.synchronizedMap(new HashMap<String, JsonNode>());
 	
+	/**
+	 * Instantiates a new concurrent json file state.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 * @param filename
+	 *            the filename
+	 */
 	public ConcurrentJsonFileState(final String agentId, final String filename) {
 		super(agentId);
 		this.filename = filename;
 		om = JOM.getInstance();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#finalize()
+	 */
 	@Override
 	public void finalize() throws Throwable {
 		closeFile();
 		super.finalize();
 	}
 	
+	/**
+	 * Open file.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	@SuppressWarnings("resource")
 	protected void openFile() throws IOException {
 		synchronized (locked) {
@@ -94,8 +116,8 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 				locked.put(filename, false);
 				locked.notifyAll();
 				throw new IllegalStateException(
-						"Warning: File doesn't exist (anymore):'"
-								+ filename + "'");
+						"Warning: File doesn't exist (anymore):'" + filename
+								+ "'");
 			}
 			
 			channel = new RandomAccessFile(file, "rw").getChannel();
@@ -118,6 +140,9 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		}
 	}
 	
+	/**
+	 * Close file.
+	 */
 	protected void closeFile() {
 		synchronized (locked) {
 			
@@ -154,10 +179,10 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	/**
-	 * write properties to disk
+	 * write properties to disk.
 	 * 
-	 * @return success True if successfully written
 	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	private void write() throws IOException {
 		if (channel != null) {
@@ -173,11 +198,12 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	/**
-	 * read properties from disk
+	 * read properties from disk.
 	 * 
-	 * @return success True if successfully read
-	 * @throws ClassNotFoundException
 	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
 	 */
 	@JsonDeserialize(using = JsonNullAwareDeserializer.class)
 	private void read() throws IOException, ClassNotFoundException {
@@ -201,7 +227,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	/**
-	 * init is executed once before the agent method is invoked
+	 * init is executed once before the agent method is invoked.
 	 */
 	@Override
 	public void init() {
@@ -209,12 +235,17 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	
 	/**
 	 * destroy is executed once after the agent method is invoked if the
-	 * properties are changed, they will be saved
+	 * properties are changed, they will be saved.
 	 */
 	@Override
 	public void destroy() {
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#clear()
+	 */
 	@Override
 	public synchronized void clear() {
 		try {
@@ -230,6 +261,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		closeFile();
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#keySet()
+	 */
 	@Override
 	public synchronized Set<String> keySet() {
 		Set<String> result = null;
@@ -244,6 +280,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#containsKey(java.lang.String)
+	 */
 	@Override
 	public synchronized boolean containsKey(final String key) {
 		boolean result = false;
@@ -258,6 +299,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.AbstractState#get(java.lang.String)
+	 */
 	@Override
 	public synchronized JsonNode get(final String key) {
 		JsonNode result = NullNode.getInstance();
@@ -272,6 +318,12 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.AbstractState#locPut(java.lang.String,
+	 * com.fasterxml.jackson.databind.JsonNode)
+	 */
 	@Override
 	public synchronized JsonNode locPut(final String key, JsonNode value) {
 		JsonNode result = null;
@@ -290,9 +342,17 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.state.AbstractState#locPutIfUnchanged(java.lang.String,
+	 * com.fasterxml.jackson.databind.JsonNode,
+	 * com.fasterxml.jackson.databind.JsonNode)
+	 */
 	@Override
-	public synchronized boolean locPutIfUnchanged(final String key, final JsonNode newVal,
-			JsonNode oldVal) {
+	public synchronized boolean locPutIfUnchanged(final String key,
+			final JsonNode newVal, JsonNode oldVal) {
 		boolean result = false;
 		try {
 			openFile();
@@ -323,6 +383,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#remove(java.lang.String)
+	 */
 	@Override
 	public synchronized Object remove(final String key) {
 		Object result = null;
@@ -339,6 +404,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.state.State#size()
+	 */
 	@Override
 	public synchronized int size() {
 		int result = -1;

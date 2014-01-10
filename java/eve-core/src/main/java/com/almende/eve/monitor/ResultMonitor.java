@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.monitor;
 
 import java.io.Serializable;
@@ -16,11 +20,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class ResultMonitor.
+ */
 public class ResultMonitor implements Serializable {
 	private static final long					serialVersionUID	= -6738643681425840533L;
 	private static final Logger					LOG					= Logger.getLogger(ResultMonitor.class
 																			.getCanonicalName());
-	
+	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
 	private String								id;
 	private String								agentId;
 	private URI									url;
@@ -30,13 +37,30 @@ public class ResultMonitor implements Serializable {
 	private List<Poll>							polls				= new ArrayList<Poll>();
 	private List<Push>							pushes				= new ArrayList<Push>();
 	private String								cacheType;
-	
-	private static transient Map<String, Cache>	caches				= new HashMap<String, Cache>();
 	private transient AgentInterface			myAgent				= null;
 	
+	/**
+	 * Instantiates a new result monitor.
+	 */
 	public ResultMonitor() {
 	};
 	
+	/**
+	 * Instantiates a new result monitor.
+	 * 
+	 * @param id
+	 *            the id
+	 * @param agentId
+	 *            the agent id
+	 * @param url
+	 *            the url
+	 * @param method
+	 *            the method
+	 * @param params
+	 *            the params
+	 * @param callbackMethod
+	 *            the callback method
+	 */
 	public ResultMonitor(final String id, final String agentId, final URI url,
 			final String method, final ObjectNode params,
 			final String callbackMethod) {
@@ -53,6 +77,9 @@ public class ResultMonitor implements Serializable {
 		loadAgent();
 	}
 	
+	/**
+	 * Load agent.
+	 */
 	public final void loadAgent() {
 		if (myAgent == null) {
 			final AgentHost host = AgentHost.getInstance();
@@ -66,11 +93,28 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	/**
+	 * Instantiates a new result monitor.
+	 * 
+	 * @param id
+	 *            the id
+	 * @param agentId
+	 *            the agent id
+	 * @param url
+	 *            the url
+	 * @param method
+	 *            the method
+	 * @param params
+	 *            the params
+	 */
 	public ResultMonitor(final String id, final String agentId, final URI url,
 			final String method, final ObjectNode params) {
 		this(id, agentId, url, method, params, null);
 	}
 	
+	/**
+	 * Inits the.
+	 */
 	public void init() {
 		loadAgent();
 		if (!caches.containsKey(id) && cacheType != null) {
@@ -83,6 +127,13 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	/**
+	 * Adds the.
+	 * 
+	 * @param config
+	 *            the config
+	 * @return the result monitor
+	 */
 	public ResultMonitor add(final ResultMonitorConfigType config) {
 		if (config instanceof Cache) {
 			addCache((Cache) config);
@@ -96,10 +147,21 @@ public class ResultMonitor implements Serializable {
 		return this;
 	}
 	
+	/**
+	 * Checks for cache.
+	 * 
+	 * @return true, if successful
+	 */
 	public boolean hasCache() {
 		return cacheType != null;
 	}
 	
+	/**
+	 * Adds the cache.
+	 * 
+	 * @param config
+	 *            the config
+	 */
 	public void addCache(final Cache config) {
 		cacheType = config.getClass().getName();
 		synchronized (caches) {
@@ -107,6 +169,11 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	/**
+	 * Gets the cache.
+	 * 
+	 * @return the cache
+	 */
 	@JsonIgnore
 	public Cache getCache() {
 		synchronized (caches) {
@@ -114,11 +181,23 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	/**
+	 * Adds the poll.
+	 * 
+	 * @param config
+	 *            the config
+	 */
 	public void addPoll(final Poll config) {
 		loadAgent();
 		config.init(this, myAgent);
 	}
 	
+	/**
+	 * Adds the push.
+	 * 
+	 * @param config
+	 *            the config
+	 */
 	public void addPush(final Push config) {
 		loadAgent();
 		try {
@@ -128,6 +207,9 @@ public class ResultMonitor implements Serializable {
 		}
 	}
 	
+	/**
+	 * Cancel.
+	 */
 	public void cancel() {
 		LOG.info("Canceling monitor:" + id);
 		for (final Poll poll : getPolls()) {
@@ -156,78 +238,182 @@ public class ResultMonitor implements Serializable {
 		return factory.store(this);
 	}
 	
+	/**
+	 * Gets the id.
+	 * 
+	 * @return the id
+	 */
 	public String getId() {
 		return id;
 	}
 	
+	/**
+	 * Sets the id.
+	 * 
+	 * @param id
+	 *            the new id
+	 */
 	public void setId(final String id) {
 		this.id = id;
 	}
 	
+	/**
+	 * Gets the agent id.
+	 * 
+	 * @return the agent id
+	 */
 	public String getAgentId() {
 		return agentId;
 	}
 	
+	/**
+	 * Sets the agent id.
+	 * 
+	 * @param agentId
+	 *            the new agent id
+	 */
 	public void setAgentId(final String agentId) {
 		this.agentId = agentId;
 	}
 	
+	/**
+	 * Gets the url.
+	 * 
+	 * @return the url
+	 */
 	public URI getUrl() {
 		return url;
 	}
 	
+	/**
+	 * Sets the url.
+	 * 
+	 * @param url
+	 *            the new url
+	 */
 	public void setUrl(final URI url) {
 		this.url = url;
 	}
 	
+	/**
+	 * Gets the method.
+	 * 
+	 * @return the method
+	 */
 	public String getMethod() {
 		return method;
 	}
 	
+	/**
+	 * Sets the method.
+	 * 
+	 * @param method
+	 *            the new method
+	 */
 	public void setMethod(final String method) {
 		this.method = method;
 	}
 	
+	/**
+	 * Gets the params.
+	 * 
+	 * @return the params
+	 */
 	public String getParams() {
 		return params;
 	}
 	
+	/**
+	 * Sets the params.
+	 * 
+	 * @param params
+	 *            the new params
+	 */
 	public void setParams(final String params) {
 		this.params = params;
 	}
 	
+	/**
+	 * Gets the callback method.
+	 * 
+	 * @return the callback method
+	 */
 	public String getCallbackMethod() {
 		return callbackMethod;
 	}
 	
+	/**
+	 * Sets the callback method.
+	 * 
+	 * @param callbackMethod
+	 *            the new callback method
+	 */
 	public void setCallbackMethod(final String callbackMethod) {
 		this.callbackMethod = callbackMethod;
 	}
 	
+	/**
+	 * Gets the polls.
+	 * 
+	 * @return the polls
+	 */
 	public List<Poll> getPolls() {
 		return polls;
 	}
 	
+	/**
+	 * Sets the polls.
+	 * 
+	 * @param polls
+	 *            the new polls
+	 */
 	public void setPolls(final List<Poll> polls) {
 		this.polls = polls;
 	}
 	
+	/**
+	 * Gets the pushes.
+	 * 
+	 * @return the pushes
+	 */
 	public List<Push> getPushes() {
 		return pushes;
 	}
 	
+	/**
+	 * Sets the pushes.
+	 * 
+	 * @param pushes
+	 *            the new pushes
+	 */
 	public void setPushes(final List<Push> pushes) {
 		this.pushes = pushes;
 	}
 	
+	/**
+	 * Gets the cache type.
+	 * 
+	 * @return the cache type
+	 */
 	public String getCacheType() {
 		return cacheType;
 	}
 	
+	/**
+	 * Sets the cache type.
+	 * 
+	 * @param cacheType
+	 *            the new cache type
+	 */
 	public void setCacheType(final String cacheType) {
 		this.cacheType = cacheType;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		try {

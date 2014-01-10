@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.scheduler;
 
 import java.io.IOException;
@@ -36,30 +40,38 @@ import com.almende.util.TypeUtil;
  * http://www.javapractices.com/topic/TopicAction.do?Id=54
  */
 public class RunnableSchedulerFactory implements SchedulerFactory {
+	private static final Logger						LOG			= Logger.getLogger(RunnableSchedulerFactory.class
+																		.getSimpleName());
+	private final ScheduledExecutorService			scheduler	= Executors
+																		.newScheduledThreadPool(8);
+	/** All tasks: {agentId: {taskId: task}} */
+	private final Map<String, Map<String, Task>>	allTasks	= new ConcurrentHashMap<String, Map<String, Task>>();
 	private State									state		= null;
 	private String									stateId		= null;
 	private AgentHost								host		= null;
 	private long									count		= 0;
-	private final ScheduledExecutorService			scheduler	= Executors
-																		.newScheduledThreadPool(8);
-	
-	// {agentId: {taskId: task}}
-	private final Map<String, Map<String, Task>>	allTasks	= new ConcurrentHashMap<String, Map<String, Task>>();
-	
-	private static final Logger						LOG			= Logger.getLogger(RunnableSchedulerFactory.class
-																		.getSimpleName());
 	
 	/**
-	 * This constructor is called when constructed by the AgentHost
+	 * This constructor is called when constructed by the AgentHost.
 	 * 
-	 * @param AgentHostDefImpl
+	 * @param host
+	 *            the host
 	 * @param params
+	 *            the params
 	 */
 	public RunnableSchedulerFactory(final AgentHost host,
 			final Map<String, Object> params) {
 		this(host, (params != null) ? (String) params.get("id") : null);
 	}
 	
+	/**
+	 * Instantiates a new runnable scheduler factory.
+	 * 
+	 * @param host
+	 *            the host
+	 * @param id
+	 *            the id
+	 */
 	public RunnableSchedulerFactory(final AgentHost host, final String id) {
 		this.host = host;
 		stateId = id;
@@ -79,7 +91,6 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * Initialize a state for the service, to persist the parameters of all open
 	 * connections.
 	 * 
-	 * @param id
 	 */
 	private void initState() {
 		// set a state for the service, where the service can
@@ -103,22 +114,31 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	}
 	
 	/**
-	 * Get a scheduler for a specific agent
+	 * Get a scheduler for a specific agent.
 	 * 
-	 * @param agentId
+	 * @param agent
+	 *            the agent
+	 * @return the scheduler
 	 */
 	@Override
 	public Scheduler getScheduler(final AgentInterface agent) {
 		return new RunnableScheduler(agent.getId());
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.scheduler.SchedulerFactory#destroyScheduler(java.lang
+	 * .String)
+	 */
 	@Override
 	public void destroyScheduler(final String agentId) {
 		allTasks.remove(agentId);
 	}
 	
 	/**
-	 * Create a new unique taskId
+	 * Create a new unique taskId.
 	 * 
 	 * @return taskId
 	 */
@@ -130,18 +150,37 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	
 	// TODO: make the class Task serializable (and auto-restart when
 	// initializing again?)
+	/**
+	 * The Class Task.
+	 */
 	class Task implements Serializable {
+		
+		/** The Constant serialVersionUID. */
 		private static final long	serialVersionUID	= -2250937108323878021L;
+		
+		/** The agent id. */
 		private String				agentId				= null;
+		
+		/** The task id. */
 		private String				taskId				= null;
+		
+		/** The request. */
 		private JSONRequest			request				= null;
+		
+		/** The timestamp. */
 		private DateTime			timestamp			= null;
+		
+		/** The future. */
 		private ScheduledFuture<?>	future				= null;
+		
+		/** The interval. */
 		private long				interval			= 0;
+		
+		/** The sequential. */
 		private boolean				sequential			= false;
 		
 		/**
-		 * Schedule a task
+		 * Schedule a task.
 		 * 
 		 * @param agentId
 		 *            Id of the agent to be requested
@@ -149,6 +188,10 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 *            A JSONRequest with method and params
 		 * @param delay
 		 *            The delay in milliseconds
+		 * @param interval
+		 *            the interval
+		 * @param sequential
+		 *            the sequential
 		 */
 		Task(final String agentId, final JSONRequest request, final long delay,
 				final boolean interval, final boolean sequential) {
@@ -169,13 +212,15 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Schedule a task
+		 * Schedule a task.
 		 * 
 		 * @param params
 		 *            A Map with parameters: agentId, request (stringified
 		 *            JSONRequest), and timestamp (ISOdate)
-		 * @throws IOException
 		 * @throws JSONRPCException
+		 *             the jSONRPC exception
+		 * @throws IOException
+		 *             Signals that an I/O exception has occurred.
 		 */
 		Task(final Map<String, String> params) throws JSONRPCException,
 				IOException {
@@ -202,7 +247,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Start task
+		 * Start task.
 		 * 
 		 * @param delay
 		 *            delay in milliseconds
@@ -235,7 +280,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 							throw new IllegalStateException(
 									"Sending agent is missing:" + agentId);
 						}
-						sender.send(request, URI.create(receiverUrl), null);
+						sender.send(request, URI.create(receiverUrl), null, null);
 						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
@@ -251,34 +296,72 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			}, delay, TimeUnit.MILLISECONDS);
 		}
 		
+		/**
+		 * Gets the task id.
+		 * 
+		 * @return the task id
+		 */
 		public String getTaskId() {
 			return taskId;
 		}
 		
+		/**
+		 * Gets the agent id.
+		 * 
+		 * @return the agent id
+		 */
 		public String getAgentId() {
 			return agentId;
 		}
 		
+		/**
+		 * Gets the request.
+		 * 
+		 * @return the request
+		 */
 		public JSONRequest getRequest() {
 			return request;
 		}
 		
+		/**
+		 * Gets the timestamp.
+		 * 
+		 * @return the timestamp
+		 */
 		public DateTime getTimestamp() {
 			return timestamp;
 		}
 		
+		/**
+		 * Gets the future.
+		 * 
+		 * @return the future
+		 */
 		public ScheduledFuture<?> getFuture() {
 			return future;
 		}
 		
+		/**
+		 * Gets the interval.
+		 * 
+		 * @return the interval
+		 */
 		public long getInterval() {
 			return interval;
 		}
 		
+		/**
+		 * Checks if is sequential.
+		 * 
+		 * @return true, if is sequential
+		 */
 		public boolean isSequential() {
 			return sequential;
 		}
 		
+		/**
+		 * Cancel.
+		 */
 		public void cancel() {
 			if (future != null) {
 				final boolean mayInterruptIfRunning = false;
@@ -288,7 +371,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Store this task in the global task list
+		 * Store this task in the global task list.
 		 */
 		private void store() {
 			Map<String, Task> tasks = allTasks.get(agentId);
@@ -306,7 +389,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Remove this task from the global task list
+		 * Remove this task from the global task list.
 		 */
 		private void remove() {
 			final Map<String, Task> tasks = allTasks.get(agentId);
@@ -329,6 +412,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		/**
 		 * Check if this task is still on the global Task list. If missing (e.g.
 		 * due to cancel) returns true;
+		 * 
+		 * @return true, if successful
 		 */
 		private boolean cancelled() {
 			final Map<String, Task> tasks = allTasks.get(agentId);
@@ -341,6 +426,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return true;
 		}
 		
+		/**
+		 * Gets the params.
+		 * 
+		 * @return the params
+		 */
 		public Map<String, String> getParams() {
 			final Map<String, String> params = new HashMap<String, String>();
 			params.put("agentId", agentId);
@@ -351,6 +441,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return params;
 		}
 		
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
 		@Override
 		public String toString() {
 			try {
@@ -368,12 +463,19 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * method getSchedular(agentId).
 	 */
 	public final class RunnableScheduler extends AbstractScheduler {
+		
+		/**
+		 * Instantiates a new runnable scheduler.
+		 * 
+		 * @param agentId
+		 *            the agent id
+		 */
 		private RunnableScheduler(final String agentId) {
 			this.agentId = agentId;
 		}
 		
 		/**
-		 * Schedule a task
+		 * Schedule a task.
 		 * 
 		 * @param request
 		 *            A JSONRequest with method and params
@@ -395,7 +497,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Schedule a task
+		 * Schedule a task.
 		 * 
 		 * @param request
 		 *            A JSONRequest with method and params
@@ -409,9 +511,10 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Cancel a scheduled task by its id
+		 * Cancel a scheduled task by its id.
 		 * 
 		 * @param taskId
+		 *            the task id
 		 */
 		@Override
 		public void cancelTask(final String taskId) {
@@ -425,7 +528,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Retrieve a list with all scheduled tasks
+		 * Retrieve a list with all scheduled tasks.
 		 * 
 		 * @return taskIds
 		 */
@@ -439,7 +542,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		/**
-		 * Retrieve a list with all scheduled tasks
+		 * Retrieve a list with all scheduled tasks.
 		 * 
 		 * @return taskIds
 		 */
@@ -455,13 +558,24 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return new HashSet<String>();
 		}
 		
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
 		@Override
 		public String toString() {
 			return allTasks.toString();
 		}
 		
+		/** The agent id. */
 		private String	agentId	= null;
 		
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.almende.eve.scheduler.AbstractScheduler#cancelAllTasks()
+		 */
 		@Override
 		public void cancelAllTasks() {
 			for (final String id : getTasks()) {
@@ -471,7 +585,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	}
 	
 	/**
-	 * load scheduled, persisted tasks
+	 * load scheduled, persisted tasks.
 	 */
 	private void initTasks() {
 		int taskCount = 0;
@@ -509,7 +623,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	}
 	
 	/**
-	 * Persist all currently running tasks
+	 * Persist all currently running tasks.
 	 */
 	private void storeTasks() {
 		final ArrayList<Map<String, String>> serializedTasks = new ArrayList<Map<String, String>>();

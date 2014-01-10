@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.agent;
 
 import java.io.IOException;
@@ -36,6 +40,11 @@ import com.almende.util.ClassUtil;
 import com.almende.util.ObjectCache;
 import com.almende.util.TypeUtil;
 
+/**
+ * The Class AgentHostDefImpl.
+ * 
+ * @author Almende
+ */
 public final class AgentHostDefImpl extends AgentHost {
 	
 	private static final Logger																	LOG					= Logger.getLogger(AgentHostDefImpl.class
@@ -48,19 +57,27 @@ public final class AgentHostDefImpl extends AgentHost {
 	private final EventLogger																	eventLogger			= new EventLogger(
 																															this);
 	private boolean																				doesShortcut		= true;
-	
 	private static final ExecutorService														POOL				= Executors
 																															.newCachedThreadPool();
-	
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
-	
 	private static final String																	AGENTS				= "agents";
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getPool()
+	 */
 	@Override
 	public ExecutorService getPool() {
 		return POOL;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#loadConfig(com.almende.eve.config.Config)
+	 */
 	@Override
 	public void loadConfig(final Config config) {
 		HOST.setConfig(config);
@@ -76,6 +93,12 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#signalAgents(com.almende.eve.agent.
+	 * AgentSignal)
+	 */
 	@Override
 	public void signalAgents(final AgentSignal<?> event) {
 		if (stateFactory != null) {
@@ -95,6 +118,11 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getAgent(java.lang.String)
+	 */
 	@Override
 	public Agent getAgent(final String agentId) throws ClassNotFoundException,
 			InstantiationException, IllegalAccessException,
@@ -152,6 +180,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		return agent;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#createAgentProxy(com.almende.eve.agent
+	 * .AgentInterface, java.net.URI, java.lang.Class)
+	 */
 	@Override
 	public <T extends AgentInterface> T createAgentProxy(
 			final AgentInterface sender, final URI receiverUrl,
@@ -175,6 +210,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		return proxy;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#createAsyncAgentProxy(com.almende.eve
+	 * .agent.AgentInterface, java.net.URI, java.lang.Class)
+	 */
 	@Override
 	public <T extends AgentInterface> AsyncProxy<T> createAsyncAgentProxy(
 			final AgentInterface sender, final URI receiverUrl,
@@ -183,19 +225,32 @@ public final class AgentHostDefImpl extends AgentHost {
 				agentInterface));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#createAgent(java.lang.String,
+	 * java.lang.String)
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Agent> T createAgent(final String agentType, final String agentId)
-			throws InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException,
-			ClassNotFoundException, IOException {
+	public <T extends Agent> T createAgent(final String agentType,
+			final String agentId) throws InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, ClassNotFoundException, IOException {
 		return createAgent((Class<T>) Class.forName(agentType), agentId);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#createAgent(java.lang.Class,
+	 * java.lang.String)
+	 */
 	@Override
-	public <T extends Agent> T createAgent(final Class<T> agentType, final String agentId)
-			throws InstantiationException, IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException, IOException {
+	public <T extends Agent> T createAgent(final Class<T> agentType,
+			final String agentId) throws InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
 		
 		// create the state
 		final State state = getStateFactory().create(agentId);
@@ -217,18 +272,28 @@ public final class AgentHostDefImpl extends AgentHost {
 		return agent;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#createAspectAgent(java.lang.Class,
+	 * java.lang.String)
+	 */
 	@Override
-	public <T> AspectAgent<T> createAspectAgent(final Class<? extends T> aspect,
-			final String agentId) throws InstantiationException,
-			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+	public <T> AspectAgent<T> createAspectAgent(
+			final Class<? extends T> aspect, final String agentId)
+			throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, IOException {
 		@SuppressWarnings("unchecked")
-		final
-		AspectAgent<T> result = createAgent(AspectAgent.class, agentId);
+		final AspectAgent<T> result = createAgent(AspectAgent.class, agentId);
 		result.init(aspect);
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#deleteAgent(java.lang.String)
+	 */
 	@Override
 	public void deleteAgent(final String agentId) {
 		if (agentId == null) {
@@ -259,19 +324,35 @@ public final class AgentHostDefImpl extends AgentHost {
 		getStateFactory().delete(agentId);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#hasAgent(java.lang.String)
+	 */
 	@Override
 	public boolean hasAgent(final String agentId) {
 		return getStateFactory().exists(agentId);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getEventLogger()
+	 */
 	@Override
 	public EventLogger getEventLogger() {
 		return eventLogger;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#receive(java.lang.String,
+	 * java.lang.Object, java.lang.String, java.lang.String)
+	 */
 	@Override
-	public void receive(final String receiverId, final Object message, final String senderUrl,
-			final String tag) throws IOException {
+	public void receive(final String receiverId, final Object message,
+			final String senderUrl, final String tag) throws IOException {
 		URI senderUri = null;
 		if (senderUrl != null) {
 			try {
@@ -283,9 +364,15 @@ public final class AgentHostDefImpl extends AgentHost {
 		receive(receiverId, message, senderUri, tag);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#receive(java.lang.String,
+	 * java.lang.Object, java.net.URI, java.lang.String)
+	 */
 	@Override
-	public void receive(final String receiverId, final Object message, final URI senderUri,
-			final String tag) throws IOException {
+	public void receive(final String receiverId, final Object message,
+			final URI senderUri, final String tag) throws IOException {
 		AgentInterface receiver = null;
 		try {
 			receiver = getAgent(receiverId);
@@ -303,6 +390,12 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#sendAsync(java.net.URI,
+	 * java.lang.Object, com.almende.eve.agent.AgentInterface, java.lang.String)
+	 */
 	@Override
 	public void sendAsync(final URI receiverUrl, final Object message,
 			final AgentInterface sender, final String tag) throws IOException {
@@ -335,6 +428,11 @@ public final class AgentHostDefImpl extends AgentHost {
 	}
 	
 	// TODO: change to URI en create a protocol->transport map in agentHost
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getAgentId(java.lang.String)
+	 */
 	@Override
 	public String getAgentId(final String agentUrl) {
 		if (agentUrl.startsWith("local:")) {
@@ -349,6 +447,12 @@ public final class AgentHostDefImpl extends AgentHost {
 		return null;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getSenderUrl(java.lang.String,
+	 * java.net.URI)
+	 */
 	@Override
 	public URI getSenderUrl(final String agentId, final URI receiverUrl) {
 		if (receiverUrl.getScheme().equals("local")) {
@@ -370,6 +474,12 @@ public final class AgentHostDefImpl extends AgentHost {
 		return null;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getRef(java.lang.String,
+	 * com.almende.eve.state.TypedKey)
+	 */
 	@Override
 	public <T> T getRef(final String agentId, final TypedKey<T> key) {
 		final ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
@@ -381,8 +491,15 @@ public final class AgentHostDefImpl extends AgentHost {
 		return null;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#putRef(java.lang.String,
+	 * com.almende.eve.state.TypedKey, java.lang.Object)
+	 */
 	@Override
-	public <T> void putRef(final String agentId, final TypedKey<T> key, final T value) {
+	public <T> void putRef(final String agentId, final TypedKey<T> key,
+			final T value) {
 		synchronized (refStore) {
 			ConcurrentHashMap<TypedKey<?>, WeakReference<?>> objects = refStore
 					.get(agentId);
@@ -394,6 +511,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#getStateFactoryFromConfig(com.almende
+	 * .eve.config.Config, java.lang.String)
+	 */
 	@Override
 	public StateFactory getStateFactoryFromConfig(final Config config,
 			String configName) {
@@ -436,6 +560,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#setStateFactory(com.almende.eve.config
+	 * .Config)
+	 */
 	@Override
 	public void setStateFactory(final Config config) {
 		if (stateFactory != null) {
@@ -446,6 +577,12 @@ public final class AgentHostDefImpl extends AgentHost {
 		setStateFactory(getStateFactoryFromConfig(config, "state"));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#addAgents(com.almende.eve.config.Config)
+	 */
 	@Override
 	public void addAgents(final Config config) {
 		final Map<String, String> agents = config.get("bootstrap", AGENTS);
@@ -468,6 +605,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#setStateFactory(com.almende.eve.state
+	 * .StateFactory)
+	 */
 	@Override
 	public void setStateFactory(final StateFactory stateFactory) {
 		if (this.stateFactory != null) {
@@ -480,6 +624,11 @@ public final class AgentHostDefImpl extends AgentHost {
 		
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getStateFactory()
+	 */
 	@Override
 	public StateFactory getStateFactory() {
 		if (stateFactory == null) {
@@ -488,6 +637,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		return stateFactory;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#setSchedulerFactory(com.almende.eve.config
+	 * .Config)
+	 */
 	@Override
 	public void setSchedulerFactory(final Config config) {
 		// get the class name from the config file
@@ -526,6 +682,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#addTransportServices(com.almende.eve.
+	 * config.Config)
+	 */
 	@Override
 	public void addTransportServices(final Config config) {
 		if (config == null) {
@@ -548,7 +711,8 @@ public final class AgentHostDefImpl extends AgentHost {
 						// and replace the short name for the full class path
 						className = Config.map(className);
 						// get class
-						final Class<?> transportClass = Class.forName(className);
+						final Class<?> transportClass = Class
+								.forName(className);
 						if (!ClassUtil.hasInterface(transportClass,
 								TransportService.class)) {
 							throw new IllegalArgumentException(
@@ -578,6 +742,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#addTransportService(com.almende.eve.transport
+	 * .TransportService)
+	 */
 	@Override
 	public void addTransportService(final TransportService transportService) {
 		if (!transportServices.contains(transportService.getKey())) {
@@ -593,6 +764,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#removeTransportService(com.almende.eve
+	 * .transport.TransportService)
+	 */
 	@Override
 	public void removeTransportService(final TransportService transportService) {
 		transportServices.remove(transportService);
@@ -603,6 +781,11 @@ public final class AgentHostDefImpl extends AgentHost {
 		
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getTransportServices()
+	 */
 	@Override
 	public List<TransportService> getTransportServices() {
 		// TODO: check efficiency of this method, is there something simpler?
@@ -610,6 +793,12 @@ public final class AgentHostDefImpl extends AgentHost {
 				.values()));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#getTransportServices(java.lang.String)
+	 */
 	@Override
 	public List<TransportService> getTransportServices(final String protocol) {
 		final List<TransportService> filteredServices = new ArrayList<TransportService>();
@@ -624,6 +813,12 @@ public final class AgentHostDefImpl extends AgentHost {
 		return filteredServices;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#getTransportService(java.lang.String)
+	 */
 	@Override
 	public TransportService getTransportService(final String protocol) {
 		final List<TransportService> services = getTransportServices(protocol);
@@ -633,6 +828,13 @@ public final class AgentHostDefImpl extends AgentHost {
 		return null;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#setSchedulerFactory(com.almende.eve.scheduler
+	 * .SchedulerFactory)
+	 */
 	@Override
 	public void setSchedulerFactory(final SchedulerFactory schedulerFactory) {
 		if (this.schedulerFactory != null) {
@@ -643,6 +845,12 @@ public final class AgentHostDefImpl extends AgentHost {
 				AgentSignal.SETSCHEDULERFACTORY, schedulerFactory));
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#getScheduler(com.almende.eve.agent.Agent)
+	 */
 	@Override
 	public Scheduler getScheduler(final Agent agent) {
 		if (schedulerFactory == null) {
@@ -651,9 +859,15 @@ public final class AgentHostDefImpl extends AgentHost {
 		return schedulerFactory.getScheduler(agent);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getCallbackService(java.lang.String,
+	 * java.lang.Class)
+	 */
 	@Override
-	public synchronized <T> CallbackInterface<T> getCallbackService(final String id,
-			final Class<T> clazz) {
+	public synchronized <T> CallbackInterface<T> getCallbackService(
+			final String id, final Class<T> clazz) {
 		// TODO: make this better!
 		final TypeUtil<CallbackInterface<T>> type = new TypeUtil<CallbackInterface<T>>() {
 		};
@@ -665,32 +879,67 @@ public final class AgentHostDefImpl extends AgentHost {
 		return result;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#setConfig(com.almende.eve.config.Config)
+	 */
 	@Override
 	public void setConfig(final Config config) {
 		this.config = config;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#getConfig()
+	 */
 	@Override
 	public Config getConfig() {
 		return config;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#isDoesShortcut()
+	 */
 	@Override
 	public boolean isDoesShortcut() {
 		return doesShortcut;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.AgentHost#setDoesShortcut(boolean)
+	 */
 	@Override
 	public void setDoesShortcut(final boolean doesShortcut) {
 		this.doesShortcut = doesShortcut;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#getResultMonitorFactory(com.almende.eve
+	 * .agent.AgentInterface)
+	 */
 	@Override
 	public ResultMonitorFactoryInterface getResultMonitorFactory(
 			final AgentInterface agent) {
 		return new ResultMonitorFactory(agent);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.agent.AgentHost#getEventsFactory(com.almende.eve.agent
+	 * .AgentInterface)
+	 */
 	@Override
 	public EventsInterface getEventsFactory(final AgentInterface agent) {
 		return new EventsFactory(agent);

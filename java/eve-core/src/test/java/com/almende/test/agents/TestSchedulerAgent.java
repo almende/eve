@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test.agents;
 
 import java.util.logging.Logger;
@@ -14,10 +18,25 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Class TestSchedulerAgent.
+ */
 @Access(AccessType.PUBLIC)
 public class TestSchedulerAgent extends Agent {
-	static final Logger	log	= Logger.getLogger("testScheduler");
+	private static final Logger	LOG	= Logger.getLogger("testScheduler");
 	
+	/**
+	 * Sets the test.
+	 * 
+	 * @param agentId
+	 *            the agent id
+	 * @param delay
+	 *            the delay
+	 * @param interval
+	 *            the interval
+	 * @param sequential
+	 *            the sequential
+	 */
 	public void setTest(@Name("agentId") final String agentId,
 			@Name("delay") final int delay,
 			@Name("interval") final boolean interval,
@@ -33,6 +52,22 @@ public class TestSchedulerAgent extends Agent {
 		getScheduler().createTask(request, delay, interval, sequential);
 	}
 	
+	/**
+	 * Do test.
+	 * 
+	 * @param startStr
+	 *            the start str
+	 * @param expectedStr
+	 *            the expected str
+	 * @param interval
+	 *            the interval
+	 * @param sequential
+	 *            the sequential
+	 * @param id
+	 *            the id
+	 * @param delay
+	 *            the delay
+	 */
 	public void doTest(@Name("time") final String startStr,
 			@Name("expected") final String expectedStr,
 			@Name("interval") final Boolean interval,
@@ -42,11 +77,11 @@ public class TestSchedulerAgent extends Agent {
 		final DateTime expected = new DateTime(expectedStr);
 		
 		if (interval) {
-			log.info(id + ": Duration since schedule:"
+			LOG.info(id + ": Duration since schedule:"
 					+ (new Duration(startTime, DateTime.now()).getMillis())
 					+ " sequential:" + sequential + " delay:" + delay + "ms.");
 		} else {
-			log.info(id
+			LOG.info(id
 					+ ": Delay after expected runtime:"
 					+ (new Duration(expected, DateTime.now()).getMillis()
 							+ "ms of planned delay:" + delay + "ms "));
@@ -64,6 +99,11 @@ public class TestSchedulerAgent extends Agent {
 		}
 	}
 	
+	/**
+	 * Gets the count.
+	 * 
+	 * @return the count
+	 */
 	public int getCount() {
 		Integer count = getState().get("runCount", Integer.class);
 		if (count == null) {
@@ -72,15 +112,28 @@ public class TestSchedulerAgent extends Agent {
 		return count;
 	}
 	
+	/**
+	 * Reset count.
+	 */
 	public void resetCount() {
 		getState().put("runCount", 0);
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.Agent#getDescription()
+	 */
 	@Override
 	public String getDescription() {
 		return "Scheduler test agent";
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.almende.eve.agent.Agent#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return "0.1";

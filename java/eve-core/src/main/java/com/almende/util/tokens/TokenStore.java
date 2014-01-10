@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.util.tokens;
 
 import java.util.logging.Level;
@@ -51,9 +55,18 @@ public final class TokenStore {
 		}
 	}
 	
+	/**
+	 * Instantiates a new token store.
+	 */
 	private TokenStore() {
 	};
 	
+	/**
+	 * Gets the.
+	 *
+	 * @param time the time
+	 * @return the string
+	 */
 	public static String get(final String time) {
 		try {
 			return tokens.get(time, String.class);
@@ -63,6 +76,11 @@ public final class TokenStore {
 		}
 	}
 	
+	/**
+	 * Creates the.
+	 *
+	 * @return the token ret
+	 */
 	public static TokenRet create() {
 		synchronized (tokens) {
 			TokenRet result;

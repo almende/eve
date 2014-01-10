@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.event;
 
 import java.io.IOException;
@@ -21,6 +25,9 @@ import com.almende.util.uuid.UUID;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * A factory for creating Events objects.
+ */
 public class EventsFactory implements EventsInterface {
 	private AgentInterface											myAgent			= null;
 	private static final TypedKey<HashMap<String, List<Callback>>>	SUBSCRIPTIONS	= new TypedKey<HashMap<String, List<Callback>>>(
@@ -28,6 +35,11 @@ public class EventsFactory implements EventsInterface {
 																					};
 	private static final String										EVENT			= "event";
 	
+	/**
+	 * Instantiates a new events factory.
+	 *
+	 * @param agent the agent
+	 */
 	public EventsFactory(final AgentInterface agent) {
 		myAgent = agent;
 	}
@@ -35,9 +47,9 @@ public class EventsFactory implements EventsInterface {
 	/**
 	 * Retrieve the list with subscriptions on given event.
 	 * If there are no subscriptions for this event, an empty list is returned
-	 * 
-	 * @param event
-	 * @return
+	 *
+	 * @param event the event
+	 * @return the subscriptions
 	 */
 	@Override
 	public List<Callback> getSubscriptions(final String event) {
@@ -54,10 +66,10 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Store a list with subscriptions for an event
-	 * 
-	 * @param event
-	 * @param subscriptions
+	 * Store a list with subscriptions for an event.
+	 *
+	 * @param event the event
+	 * @param subscriptions the subscriptions
 	 */
 	private void putSubscriptions(final String event, final List<Callback> subscriptions) {
 		
@@ -78,15 +90,14 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Subscribe to an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
+	 * Subscribe to an other agents event.
+	 *
+	 * @param url the url
+	 * @param event the event
+	 * @param callbackMethod the callback method
 	 * @return subscriptionId
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 * @throws Exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Override
 	public String subscribe(final URI url, final String event, final String callbackMethod)
@@ -95,15 +106,15 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Subscribe to an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
+	 * Subscribe to an other agents event.
+	 *
+	 * @param url the url
+	 * @param event the event
+	 * @param callbackMethod the callback method
+	 * @param callbackParams the callback params
 	 * @return subscriptionId
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 * @throws Exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Override
 	public String subscribe(final URI url, final String event, final String callbackMethod,
@@ -122,12 +133,12 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Unsubscribe from an other agents event
-	 * 
-	 * @param url
-	 * @param subscriptionId
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * Unsubscribe from an other agents event.
+	 *
+	 * @param url the url
+	 * @param subscriptionId the subscription id
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Override
 	public void unsubscribe(final URI url, final String subscriptionId) throws IOException,
@@ -139,14 +150,13 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Unsubscribe from an other agents event
-	 * 
-	 * @param url
-	 * @param event
-	 * @param callbackMethod
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
-	 * @throws Exception
+	 * Unsubscribe from an other agents event.
+	 *
+	 * @param url the url
+	 * @param event the event
+	 * @param callbackMethod the callback method
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Override
 	public void unsubscribe(final URI url, final String event, final String callbackMethod)
@@ -160,11 +170,10 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Trigger an event
-	 * 
-	 * @param event
-	 * @throws IOException
-	 * @throws JsonProcessingException
+	 * Trigger an event.
+	 *
+	 * @param event the event
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
@@ -173,13 +182,11 @@ public class EventsFactory implements EventsInterface {
 	}
 	
 	/**
-	 * Trigger an event
-	 * 
-	 * @param event
-	 * @param params
-	 *            An ObjectNode, Map, or POJO
-	 * @throws IOException
-	 * @throws JsonProcessingException
+	 * Trigger an event.
+	 *
+	 * @param event the event
+	 * @param params An ObjectNode, Map, or POJO
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	@Override
 	@Access(AccessType.UNAVAILABLE)
@@ -239,6 +246,9 @@ public class EventsFactory implements EventsInterface {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.event.EventsInterface#createSubscription(java.lang.String, java.lang.String, java.lang.String, com.fasterxml.jackson.databind.node.ObjectNode)
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public final String createSubscription(@Name(EVENT) final String event,
@@ -284,6 +294,9 @@ public class EventsFactory implements EventsInterface {
 		return subscriptionId;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.almende.eve.event.EventsInterface#deleteSubscription(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
 	@Override
 	@Access(AccessType.PUBLIC)
 	public final void deleteSubscription(
@@ -336,13 +349,13 @@ public class EventsFactory implements EventsInterface {
 	
 	/**
 	 * Work-method for trigger: called by scheduler for asynchronous and/or
-	 * delayed behaviour
-	 * 
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @throws JSONRPCException
-	 * @throws ProtocolException
+	 * delayed behaviour.
+	 *
+	 * @param url the url
+	 * @param method the method
+	 * @param params the params
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Override
 	@Access(AccessType.SELF)
@@ -353,6 +366,11 @@ public class EventsFactory implements EventsInterface {
 		myAgent.sendAsync(URI.create(url), method, params);
 	}
 	
+	/**
+	 * Gets the subscription stats.
+	 *
+	 * @return the subscription stats
+	 */
 	@Access(AccessType.SELF)
 	public ObjectNode getSubscriptionStats() {
 		final ObjectNode result = JOM.createObjectNode();

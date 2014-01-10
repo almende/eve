@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.event;
 
 import java.io.IOException;
@@ -11,6 +15,9 @@ import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Interface EventsInterface.
+ */
 @Access(AccessType.PUBLIC)
 public interface EventsInterface {
 	
@@ -18,7 +25,8 @@ public interface EventsInterface {
 	 * Get existing even subscriptions for a given event.
 	 * 
 	 * @param event
-	 * @return
+	 *            the event
+	 * @return the subscriptions
 	 */
 	List<Callback> getSubscriptions(@Name("event") String event);
 	
@@ -33,8 +41,13 @@ public interface EventsInterface {
 	 * See also Agent.trigger(event, params).
 	 * 
 	 * @param event
+	 *            the event
 	 * @param callbackUrl
+	 *            the callback url
 	 * @param callbackMethod
+	 *            the callback method
+	 * @param params
+	 *            the params
 	 * @return subscriptionId
 	 */
 	String createSubscription(@Name("event") String event,
@@ -53,9 +66,13 @@ public interface EventsInterface {
 	 * will be deleted).
 	 * 
 	 * @param subscriptionId
+	 *            the subscription id
 	 * @param event
+	 *            the event
 	 * @param callbackUrl
+	 *            the callback url
 	 * @param callbackMethod
+	 *            the callback method
 	 */
 	void deleteSubscription(
 			@Optional @Name("subscriptionId") String subscriptionId,
@@ -69,81 +86,114 @@ public interface EventsInterface {
 	 * method trigger
 	 * 
 	 * @param url
+	 *            the url
 	 * @param method
+	 *            the method
 	 * @param params
-	 * @throws Exception
+	 *            the params
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
 	 */
 	void doTrigger(@Name("url") String url, @Name("method") String method,
 			@Name("params") ObjectNode params) throws IOException,
 			JSONRPCException;
 	
 	/**
-	 * Subscribe to an other agents event
+	 * Subscribe to an other agents event.
 	 * 
 	 * @param url
+	 *            the url
 	 * @param event
+	 *            the event
 	 * @param callbackMethod
+	 *            the callback method
 	 * @return subscriptionId
-	 * @throws Exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String subscribe(URI url, String event, String callbackMethod)
 			throws IOException, JSONRPCException;
 	
 	/**
-	 * Subscribe to an other agents event
+	 * Subscribe to an other agents event.
 	 * 
 	 * @param url
+	 *            the url
 	 * @param event
+	 *            the event
 	 * @param callbackMethod
+	 *            the callback method
+	 * @param callbackParams
+	 *            the callback params
 	 * @return subscriptionId
-	 * @throws Exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String subscribe(URI url, String event, String callbackMethod,
 			ObjectNode callbackParams) throws IOException, JSONRPCException;
 	
 	/**
-	 * Unsubscribe from an other agents event
+	 * Unsubscribe from an other agents event.
 	 * 
 	 * @param url
+	 *            the url
 	 * @param subscriptionId
-	 * @throws Exception
+	 *            the subscription id
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void unsubscribe(URI url, String subscriptionId) throws IOException,
 			JSONRPCException;
 	
 	/**
-	 * Unsubscribe from an other agents event
+	 * Unsubscribe from an other agents event.
 	 * 
 	 * @param url
+	 *            the url
 	 * @param event
+	 *            the event
 	 * @param callbackMethod
-	 * @throws Exception
+	 *            the callback method
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void unsubscribe(URI url, String event, String callbackMethod)
 			throws IOException, JSONRPCException;
 	
 	/**
-	 * Trigger an event
+	 * Trigger an event.
 	 * 
 	 * @param event
-	 * @throws Exception
-	 * @throws JSONRPCException
+	 *            the event
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void trigger(@Name("event") String event) throws IOException;
 	
 	/**
-	 * Trigger an event
+	 * Trigger an event.
 	 * 
 	 * @param event
+	 *            the event
 	 * @param params
 	 *            An ObjectNode, Map, or POJO
-	 * @throws Exception
-	 * @throws JSONRPCException
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void trigger(@Name("event") String event, @Name("params") Object params)

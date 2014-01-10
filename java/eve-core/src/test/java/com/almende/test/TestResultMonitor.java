@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import java.util.List;
@@ -13,8 +17,16 @@ import com.almende.eve.scheduler.RunnableSchedulerFactory;
 import com.almende.eve.state.FileStateFactory;
 import com.almende.test.agents.TestResultMonitorAgent;
 
+/**
+ * The Class TestResultMonitor.
+ */
 public class TestResultMonitor extends TestCase {
 	
+	/**
+	 * Test.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void test() throws Exception {
 		final AgentHost host = AgentHost.getInstance();

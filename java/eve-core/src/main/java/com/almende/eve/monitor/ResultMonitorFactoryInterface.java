@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.eve.monitor;
 
 import java.io.IOException;
@@ -13,17 +17,20 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * The Interface ResultMonitorFactoryInterface.
+ */
 @Access(AccessType.PUBLIC)
 public interface ResultMonitorFactoryInterface {
+	
 	/**
 	 * Callback method for monitoring framework, doing the work for
 	 * requester-side polling
 	 * part of a connection.
-	 * 
-	 * @param monitorId
-	 * @throws JSONRPCException
-	 * @throws IOException
-	 * @throws Exception
+	 *
+	 * @param monitorId the monitor id
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	void doPoll(@Name("monitorId") String monitorId) throws JSONRPCException,
 			IOException;
@@ -31,12 +38,11 @@ public interface ResultMonitorFactoryInterface {
 	/**
 	 * Callback method for monitoring framework, doing the work for pushing data
 	 * back to the requester.
-	 * 
-	 * @param pushParams
-	 * @throws JSONRPCException
-	 * @throws IOException
-	 * @throws
-	 * @throws Exception
+	 *
+	 * @param pushKey the push key
+	 * @param triggerParams the trigger params
+	 * @throws JSONRPCException the jSONRPC exception
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	void doPush(@Name("pushKey") String pushKey,
 			@Optional @Name("params") ObjectNode triggerParams)
@@ -45,10 +51,11 @@ public interface ResultMonitorFactoryInterface {
 	/**
 	 * Callback method for the monitoring framework, doing the work for
 	 * receiving pushed data in the requester.
-	 * 
-	 * @param result
-	 * @param monitorId
-	 * @throws JSONRPCException
+	 *
+	 * @param result the result
+	 * @param monitorId the monitor id
+	 * @param callbackParams the callback params
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	void callbackPush(@Name("result") Object result,
 			@Name("monitorId") String monitorId,
@@ -59,19 +66,20 @@ public interface ResultMonitorFactoryInterface {
 	 * Register a Push request as part of the monitoring framework. The sender
 	 * in this case is the requesting agent, the receiver has the requested RPC
 	 * method.
-	 * 
-	 * @param pushParams
-	 * @param senderUrl
-	 * @return
+	 *
+	 * @param id the id
+	 * @param pushParams the push params
+	 * @param senderUrl the sender url
 	 */
 	void registerPush(@Name("pushId") String id,
 			@Name("params") ObjectNode pushParams, @Sender String senderUrl);
 	
 	/**
 	 * Unregister a Push request, part of the monitoring framework.
-	 * 
-	 * @param id
-	 * @throws IOException
+	 *
+	 * @param id the id
+	 * @param senderUrl the sender url
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	void unregisterPush(@Name("pushId") String id, @Sender String senderUrl)
 			throws IOException;
@@ -82,14 +90,14 @@ public interface ResultMonitorFactoryInterface {
 	 * new ResultMonitor(monitorId, getId(),
 	 * url,method,params).add(ResultMonitorConfigType
 	 * config).add(ResultMonitorConfigType config).store();
-	 * 
-	 * @param monitorId
-	 * @param url
-	 * @param method
-	 * @param params
-	 * @param callbackMethod
-	 * @param confs
-	 * @return
+	 *
+	 * @param monitorId the monitor id
+	 * @param url the url
+	 * @param method the method
+	 * @param params the params
+	 * @param callbackMethod the callback method
+	 * @param confs the confs
+	 * @return the string
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String create(String monitorId, URI url, String method, ObjectNode params,
@@ -97,8 +105,8 @@ public interface ResultMonitorFactoryInterface {
 	
 	/**
 	 * Cancels a running monitor subscription.
-	 * 
-	 * @param monitorId
+	 *
+	 * @param monitorId the monitor id
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void cancel(String monitorId);
@@ -114,13 +122,14 @@ public interface ResultMonitorFactoryInterface {
 	 * { "maxAge":1000 } -- maximally 1 second old data may be returned from
 	 * cache.<br>
 	 * <br>
-	 * 
-	 * @param monitorId
-	 * @param filterParms
-	 * @param returnType
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 *
+	 * @param <T> the generic type
+	 * @param monitorId the monitor id
+	 * @param filterParms the filter parms
+	 * @param returnType the return type
+	 * @return the result
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filterParms,
@@ -137,54 +146,55 @@ public interface ResultMonitorFactoryInterface {
 	 * { "maxAge":1000 } -- maximally 1 second old data may be returned from
 	 * cache.<br>
 	 * <br>
-	 * 
-	 * @param monitorId
-	 * @param filterParms
-	 * @param returnType
-	 * @return
-	 * @throws JSONRPCException
-	 * @throws IOException
+	 *
+	 * @param <T> the generic type
+	 * @param monitorId the monitor id
+	 * @param filterParms the filter parms
+	 * @param returnType the return type
+	 * @return the result
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException the jSONRPC exception
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	<T> T getResult(String monitorId, ObjectNode filterParms,
 			Class<T> returnType) throws IOException, JSONRPCException;
 	
 	/**
-	 * Store/update a monitor
-	 * 
-	 * @param monitor
-	 * @return
+	 * Store/update a monitor.
+	 *
+	 * @param monitor the monitor
+	 * @return the string
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String store(ResultMonitor monitor);
 	
 	/**
-	 * Delete a monitor by its id
-	 * 
-	 * @param monitorId
+	 * Delete a monitor by its id.
+	 *
+	 * @param monitorId the monitor id
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void delete(String monitorId);
 	
 	/**
-	 * Cancel all running monitors
+	 * Cancel all running monitors.
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	void cancelAll();
 	
 	/**
-	 * Find an existing monitor by its id
-	 * 
-	 * @param monitorId
-	 * @return
+	 * Find an existing monitor by its id.
+	 *
+	 * @param monitorId the monitor id
+	 * @return the monitor by id
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	ResultMonitor getMonitorById(String monitorId);
 	
 	/**
-	 * Return a map of all existing monitors
-	 * 
-	 * @return
+	 * Return a map of all existing monitors.
+	 *
+	 * @return the monitors
 	 */
 	@Access(AccessType.PUBLIC)
 	List<ResultMonitor> getMonitors();

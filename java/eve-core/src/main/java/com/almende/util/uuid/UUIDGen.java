@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class contains methods to generate UUID fields. These methods have been
- * refactored out of {@link com.eaio.uuid.UUID}.
+ * refactored out of "com.eaio.uuid.UUID".
  * <p>
  * Starting with version 2, this implementation tries to obtain the MAC address
  * of the network card. Under Microsoft Windows, the <code>ifconfig</code>
@@ -49,16 +49,16 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>
  * The MAC address code has been tested extensively in Microsoft Windows, Linux,
  * Solaris 8, HP-UX 11, but should work in MacOS X and BSDs, too.
- * <p>
- * If you use JDK 6 or later, the code in {@link InterfaceAddress} will be used.
  * 
  * @see <a href="http://johannburkard.de/software/uuid/">UUID</a>
  * @author <a href="mailto:jb@eaio.de">Johann Burkard</a>
  * @version UUIDGen.java 4714 2012-03-16 11:43:28Z johann $
- * @see com.eaio.uuid.UUID
  */
 public final class UUIDGen {
 	
+	/**
+	 * Instantiates a new uUID gen.
+	 */
 	private UUIDGen() {
 	};
 	
@@ -268,11 +268,10 @@ public final class UUIDGen {
 	
 	/**
 	 * Returns the first line of the shell command.
-	 * 
-	 * @param commands
-	 *            the commands to run
+	 *
+	 * @param commands the commands to run
 	 * @return the first line of the command
-	 * @throws IOException
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	static String getFirstLineOfCommand(final String... commands) throws IOException {
 		
@@ -305,6 +304,9 @@ public final class UUIDGen {
 	static class HardwareAddressLookup {
 		
 		/**
+		 * To string.
+		 *
+		 * @return the string
 		 * @see java.lang.Object#toString()
 		 */
 		@Override

@@ -1,3 +1,7 @@
+/*
+ * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 package com.almende.test;
 
 import junit.framework.TestCase;
@@ -10,8 +14,16 @@ import com.almende.eve.state.FileStateFactory;
 import com.almende.eve.transport.xmpp.XmppService;
 import com.almende.test.agents.Test2Agent;
 
+/**
+ * The Class TestXMPP.
+ */
 public class TestXMPP extends TestCase {
 	
+	/**
+	 * Test xmpp.
+	 *
+	 * @throws Exception the exception
+	 */
 	@Test
 	public void testXMPP() throws Exception {
 		// Create TestAgent according to TestInterface
