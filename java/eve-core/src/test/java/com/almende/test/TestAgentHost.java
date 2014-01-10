@@ -19,39 +19,39 @@ public class TestAgentHost extends TestCase {
 	public void testAgentCall() throws Exception {
 		final String TESTAGENT = "hostTestAgent";
 		
-		log.warning(this.getClass().getName() + ":"+this.getClass().getClassLoader().hashCode());
-		AgentHost host = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		log.warning(this.getClass().getName() + ":"
+				+ this.getClass().getClassLoader().hashCode());
+		final AgentHost host = AgentHost.getInstance();
+		final FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		host.setStateFactory(stateFactory);
-
-		if (host.hasAgent(TESTAGENT)){
+		
+		if (host.hasAgent(TESTAGENT)) {
 			host.deleteAgent(TESTAGENT);
 		}
 		host.createAgent(Test2Agent.class, TESTAGENT);
 		
 		log.warning("Creating agentProxy");
-		Test2AgentInterface agent = host.createAgentProxy(null, 
-				URI.create("local:"+TESTAGENT), 
-				Test2AgentInterface.class);
+		Test2AgentInterface agent = host.createAgentProxy(null,
+				URI.create("local:" + TESTAGENT), Test2AgentInterface.class);
 		log.warning("Starting agentProxy");
 		Double res = agent.add(3.1, 4.2);
-		//result not exact due to intermediate binary representation
-		assertEquals(new Double(7.300000000000001),res);
+		// result not exact due to intermediate binary representation
+		assertEquals(new Double(7.300000000000001), res);
 		res = agent.multiply(3.1, 4.2);
-		assertEquals(new Double(13.020000000000001),res);
+		assertEquals(new Double(13.020000000000001), res);
 		
-		agent = host.createAgentProxy(null, 
-				URI.create("https://localhost:8443/agents/"+TESTAGENT+"/"), 
+		agent = host.createAgentProxy(null,
+				URI.create("https://localhost:8443/agents/" + TESTAGENT + "/"),
 				Test2AgentInterface.class);
 		
 		log.warning("checking local https call 1:");
 		res = agent.add(3.1, 4.2);
-		//result not exact due to intermediate binary representation
-		assertEquals(new Double(7.300000000000001),res); 
+		// result not exact due to intermediate binary representation
+		assertEquals(new Double(7.300000000000001), res);
 		
 		log.warning("checking local https call 2:");
 		res = agent.multiply(3.1, 4.2);
-		assertEquals(new Double(13.020000000000001),res);
+		assertEquals(new Double(13.020000000000001), res);
 		
 		host.deleteAgent(TESTAGENT);
 	}

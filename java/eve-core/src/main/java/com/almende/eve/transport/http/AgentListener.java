@@ -9,7 +9,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRegistration;
 
-import com.almende.eve.agent.AgentHostDefImpl;
+import com.almende.eve.agent.AgentHost;
 import com.almende.eve.config.Config;
 
 public class AgentListener implements ServletContextListener {
@@ -18,19 +18,19 @@ public class AgentListener implements ServletContextListener {
 	private static ServletContext	c;
 	
 	@Override
-	public void contextInitialized(ServletContextEvent sce) {
+	public void contextInitialized(final ServletContextEvent sce) {
 		c = sce.getServletContext();
 		init(c);
 	}
 	
-	protected static String getParam(String param) {
+	protected static String getParam(final String param) {
 		return getParam(param, null);
 	}
 	
-	protected static String getParam(String param, String defaultVal) {
+	protected static String getParam(final String param, final String defaultVal) {
 		String result = c.getInitParameter(param);
 		if (result == null && c.getMajorVersion() >= 3) {
-			for (Entry<String, ? extends ServletRegistration> ent : c
+			for (final Entry<String, ? extends ServletRegistration> ent : c
 					.getServletRegistrations().entrySet()) {
 				result = ent.getValue().getInitParameter(param);
 				if (result != null) {
@@ -53,7 +53,7 @@ public class AgentListener implements ServletContextListener {
 		return result;
 	}
 	
-	public static void init(ServletContext ctx) {
+	public static void init(final ServletContext ctx) {
 		
 		if (ctx != null) {
 			c = ctx;
@@ -72,22 +72,22 @@ public class AgentListener implements ServletContextListener {
 				}
 			}
 			
-			String fullname = "/WEB-INF/" + filename;
+			final String fullname = "/WEB-INF/" + filename;
 			
 			LOG.info("loading configuration file '" + c.getRealPath(fullname)
 					+ "'...");
 			
-			Config config = new Config(c.getResourceAsStream(fullname));
+			final Config config = new Config(c.getResourceAsStream(fullname));
 			try {
-				AgentHostDefImpl.getInstance().loadConfig(config);
-			} catch (Exception e) {
+				AgentHost.getInstance().loadConfig(config);
+			} catch (final Exception e) {
 				LOG.log(Level.WARNING, "", e);
 			}
 		}
 	}
 	
 	@Override
-	public void contextDestroyed(ServletContextEvent sce) {
+	public void contextDestroyed(final ServletContextEvent sce) {
 	}
 	
 }

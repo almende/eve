@@ -15,28 +15,28 @@ public class Poll implements ResultMonitorConfigType {
 	private int					interval;
 	private String				taskId				= null;
 	
-	public Poll(int interval) {
+	public Poll(final int interval) {
 		this.interval = interval;
 	};
 	
 	public Poll() {
 	}
 	
-	public Poll onInterval(int interval) {
+	public Poll onInterval(final int interval) {
 		this.interval = interval;
 		return this;
 	}
 	
-	public void cancel(ResultMonitor monitor, AgentInterface agent) {
+	public void cancel(final ResultMonitor monitor, final AgentInterface agent) {
 		if (taskId != null && agent.getScheduler() != null) {
 			agent.getScheduler().cancelTask(taskId);
 		}
 	}
 	
-	public void init(ResultMonitor monitor, AgentInterface agent) {
-		ObjectNode params = JOM.createObjectNode();
+	public void init(final ResultMonitor monitor, final AgentInterface agent) {
+		final ObjectNode params = JOM.createObjectNode();
 		params.put("monitorId", monitor.getId());
-		JSONRequest request = new JSONRequest("monitor.doPoll", params);
+		final JSONRequest request = new JSONRequest("monitor.doPoll", params);
 		
 		// Try to cancel any protential existing tasks.
 		cancel(monitor, agent);
@@ -52,7 +52,7 @@ public class Poll implements ResultMonitorConfigType {
 		return interval;
 	}
 	
-	public void setInterval(int interval) {
+	public void setInterval(final int interval) {
 		this.interval = interval;
 	}
 	
@@ -60,7 +60,7 @@ public class Poll implements ResultMonitorConfigType {
 		return taskId;
 	}
 	
-	public void setTaskId(String taskId) {
+	public void setTaskId(final String taskId) {
 		this.taskId = taskId;
 	}
 }

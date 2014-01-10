@@ -31,33 +31,33 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	public CouchDBState() {
 	}
 	
-	public CouchDBState(String agentId, CouchDbConnector db) {
+	public CouchDBState(final String agentId, final CouchDbConnector db) {
 		super(agentId);
-		this.id = couchify(agentId);
+		id = couchify(agentId);
 		this.db = db;
 	}
 	
 	private void read() {
-		CouchDBState state = this.db.get(CouchDBState.class, id);
-		this.revision = state.revision;
-		this.properties = state.properties;
+		final CouchDBState state = db.get(CouchDBState.class, id);
+		revision = state.revision;
+		properties = state.properties;
 	}
 	
 	private synchronized void update() {
-		this.db.update(this);
+		db.update(this);
 	}
 	
 	@Override
 	public synchronized JsonNode locPut(final String key, final JsonNode value) {
-		String ckey = couchify(key);
+		final String ckey = couchify(key);
 		JsonNode result = null;
 		try {
 			result = properties.put(ckey, value);
 			update();
-		} catch (UpdateConflictException uce) {
+		} catch (final UpdateConflictException uce) {
 			read();
 			locPut(ckey, value);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Failed to store property", e);
 		}
 		
@@ -65,9 +65,9 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	}
 	
 	@Override
-	public synchronized boolean locPutIfUnchanged(final String key,final JsonNode newVal,
-			JsonNode oldVal) {
-		String ckey = couchify(key);
+	public synchronized boolean locPutIfUnchanged(final String key,
+			final JsonNode newVal, JsonNode oldVal) {
+		final String ckey = couchify(key);
 		boolean result = false;
 		try {
 			JsonNode cur = NullNode.getInstance();
@@ -85,10 +85,10 @@ public class CouchDBState extends AbstractState<JsonNode> {
 				update();
 				result = true;
 			}
-		} catch (UpdateConflictException uce) {
+		} catch (final UpdateConflictException uce) {
 			read();
 			locPutIfUnchanged(ckey, newVal, oldVal);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		
@@ -139,7 +139,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 		try {
 			result = properties.remove(key);
 			update();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return result;
@@ -147,11 +147,11 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	
 	@Override
 	public boolean containsKey(final String key) {
-		String ckey = couchify(key);
+		final String ckey = couchify(key);
 		boolean result = false;
 		try {
 			result = properties.containsKey(ckey);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return result;
@@ -159,15 +159,14 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	
 	@Override
 	public Set<String> keySet() {
-		Set<String> result = new HashSet<String>();
-		;
+		final Set<String> result = new HashSet<String>();
 		Set<String> keys = null;
 		try {
 			keys = new HashSet<String>(properties.keySet());
-			for (String key : keys) {
+			for (final String key : keys) {
 				result.add(decouchify(key));
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return result;
@@ -176,14 +175,13 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	@Override
 	public synchronized void clear() {
 		try {
-			String agentType = (String) properties
+			final String agentType = properties
 					.get(couchify(KEY_AGENT_TYPE)).textValue();
-			;
 			properties.clear();
 			properties.put(couchify(KEY_AGENT_TYPE), JOM.getInstance()
 					.valueToTree(agentType));
 			update();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Failed clearing state", e);
 		}
 	}
@@ -193,7 +191,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 		int result = -1;
 		try {
 			result = properties.size();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return result;
@@ -205,7 +203,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 		JsonNode result = null;
 		try {
 			result = properties.get(key);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return result;
@@ -213,11 +211,11 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	
 	@JsonProperty("_id")
 	public String getId() {
-		return this.id;
+		return id;
 	};
 	
 	@JsonProperty("_id")
-	public void setId(String id) {
+	public void setId(final String id) {
 		this.id = id;
 	}
 	
@@ -228,7 +226,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	}
 	
 	@JsonProperty("_rev")
-	public void setRevision(String revision) {
+	public void setRevision(final String revision) {
 		this.revision = revision;
 	}
 	
@@ -240,7 +238,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 	
 	@Override
 	@JsonIgnore
-	public synchronized void setAgentType(Class<?> agentType) {
+	public synchronized void setAgentType(final Class<?> agentType) {
 		super.setAgentType(agentType);
 	}
 	
@@ -248,11 +246,11 @@ public class CouchDBState extends AbstractState<JsonNode> {
 		return properties;
 	}
 	
-	public void setProperties(Map<String, JsonNode> properties) {
+	public void setProperties(final Map<String, JsonNode> properties) {
 		this.properties = properties;
 	}
 	
-	public void setDb(CouchDbConnector db) {
+	public void setDb(final CouchDbConnector db) {
 		this.db = db;
 	}
 }

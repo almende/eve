@@ -17,72 +17,95 @@ import com.almende.test.agents.TestInterface;
 import com.almende.test.agents.entity.Person;
 
 public class TestProxy extends TestCase {
-
+	
 	@Test
 	public void testProxy() throws Exception {
-		//Create TestAgent according to TestInterface
-		AgentHost host = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		// Create TestAgent according to TestInterface
+		final AgentHost host = AgentHost.getInstance();
+		final FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		host.setStateFactory(stateFactory);
 		
-		if (host.hasAgent("TestAgent")){
+		if (host.hasAgent("TestAgent")) {
 			host.deleteAgent("TestAgent");
 		}
 		@SuppressWarnings("unused")
-		TestAgent agent = host.createAgent(TestAgent.class, "TestAgent");
+		final TestAgent agent = host.createAgent(TestAgent.class, "TestAgent");
 		
-		//generate sync proxy from TestInterface
-		TestInterface proxy = host.createAgentProxy(null, URI.create("local:TestAgent"), TestInterface.class);
-		assertEquals("Hello world, you said: nice weather, isn't it?",proxy.helloWorld("nice weather, isn't it?"));
-		assertEquals(15,proxy.testPrimitive(5,10));
+		// generate sync proxy from TestInterface
+		final TestInterface proxy = host.createAgentProxy(null,
+				URI.create("local:TestAgent"), TestInterface.class);
+		assertEquals("Hello world, you said: nice weather, isn't it?",
+				proxy.helloWorld("nice weather, isn't it?"));
+		assertEquals(15, proxy.testPrimitive(5, 10));
 		proxy.testVoid();
-
 		
-		Map<String, List<Person>> result = proxy.complexResult();
+		final Map<String, List<Person>> result = proxy.complexResult();
 		assertEquals("Ludo", result.get("result").get(0).getName());
 		
-		//Generate asyncproxy from TestInterface
-		AsyncProxy<TestInterface> aProxy = host.createAsyncAgentProxy(null,URI.create("local:TestAgent"), TestInterface.class);
-		Future<?> res = aProxy.call("helloWorld","hi");
-		assertEquals("Hello world, you said: hi",res.get());
-		Future<?> voidRes = aProxy.call("testVoid");
+		// Generate asyncproxy from TestInterface
+		final AsyncProxy<TestInterface> aProxy = host.createAsyncAgentProxy(
+				null, URI.create("local:TestAgent"), TestInterface.class);
+		final Future<?> res = aProxy.call("helloWorld", "hi");
+		assertEquals("Hello world, you said: hi", res.get());
+		final Future<?> voidRes = aProxy.call("testVoid");
 		voidRes.get();
 		
-		Future<?> intRes = aProxy.call("testPrimitive",5,10);
-		assertEquals(new Integer(15),intRes.get());
+		final Future<?> intRes = aProxy.call("testPrimitive", 5, 10);
+		assertEquals(new Integer(15), intRes.get());
 		
-/*		long delay=10000;
-		
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		Thread.sleep(delay);
-		
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		Thread.sleep(delay);
-		
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		Thread.sleep(delay);
-		
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		Thread.sleep(delay);
-		
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent", TestInterface.class);
-		Thread.sleep(delay);
-*/		
+		/*
+		 * long delay=10000;
+		 * 
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * Thread.sleep(delay);
+		 * 
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * Thread.sleep(delay);
+		 * 
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * Thread.sleep(delay);
+		 * 
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * Thread.sleep(delay);
+		 * 
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * aProxy = factory.createAsyncAgentProxy(null,"local:TestAgent",
+		 * TestInterface.class);
+		 * Thread.sleep(delay);
+		 */
 	}
-
+	
 }

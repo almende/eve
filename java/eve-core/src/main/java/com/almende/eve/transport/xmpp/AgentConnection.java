@@ -29,7 +29,7 @@ public class AgentConnection {
 	private Integer				port		= 5222;
 	private XMPPConnection		conn		= null;
 	
-	public AgentConnection(AgentHost agentHost) {
+	public AgentConnection(final AgentHost agentHost) {
 		this.agentHost = agentHost;
 	}
 	
@@ -77,9 +77,9 @@ public class AgentConnection {
 	 *            optional
 	 * @throws JSONRPCException
 	 */
-	public void connect(String agentId, String host, Integer port,
-			String serviceName, String username, String password,
-			String resource) throws IOException {
+	public void connect(final String agentId, final String host, final Integer port,
+			final String serviceName, final String username, final String password,
+			final String resource) throws IOException {
 		
 		if (isConnected()) {
 			// this is a reconnect.
@@ -95,7 +95,7 @@ public class AgentConnection {
 		
 		try {
 			// configure and connect
-			ConnectionConfiguration connConfig = new ConnectionConfiguration(
+			final ConnectionConfiguration connConfig = new ConnectionConfiguration(
 					host, port, serviceName);
 			
 			connConfig.setSASLAuthenticationEnabled(true);
@@ -113,7 +113,7 @@ public class AgentConnection {
 			}
 			
 			// set presence to available
-			Presence presence = new Presence(Presence.Type.available);
+			final Presence presence = new Presence(Presence.Type.available);
 			conn.sendPacket(presence);
 			
 			// set acceptance to all
@@ -124,7 +124,7 @@ public class AgentConnection {
 			conn.addPacketListener(new JSONRPCListener(agentHost, agentId,
 					resource), null);
 			
-		} catch (XMPPException e) {
+		} catch (final XMPPException e) {
 			LOG.log(Level.WARNING, "", e);
 			throw new IOException("Failed to connect to messenger", e);
 		}
@@ -156,7 +156,7 @@ public class AgentConnection {
 	 * @param message
 	 * @throws JSONRPCException
 	 */
-	public void send(String username, Object message) throws IOException {
+	public void send(final String username, final Object message) throws IOException {
 		if (!isConnected()) {
 			disconnect();
 			connect();
@@ -164,7 +164,7 @@ public class AgentConnection {
 		if (isConnected()) {
 			
 			// send the message
-			Message reply = new Message();
+			final Message reply = new Message();
 			reply.setTo(username);
 			reply.setBody(message.toString());
 			conn.sendPacket(reply);
@@ -183,9 +183,9 @@ public class AgentConnection {
 		private String		agentId		= null;
 		private String		resource	= null;
 		
-		public JSONRPCListener(AgentHost agentHost, String agentId,
-				String resource) {
-			this.host = agentHost;
+		public JSONRPCListener(final AgentHost agentHost, final String agentId,
+				final String resource) {
+			host = agentHost;
 			this.agentId = agentId;
 			this.resource = resource;
 		}
@@ -198,16 +198,16 @@ public class AgentConnection {
 		 * @param packet
 		 */
 		@Override
-		public void processPacket(Packet packet) {
-			Message message = (Message) packet;
+		public void processPacket(final Packet packet) {
+			final Message message = (Message) packet;
 			
 			// Check if resource is given and matches local resource. If not
 			// equal, silently drop packet.
-			String to = message.getTo();
+			final String to = message.getTo();
 			if (resource != null && to != null) {
-				int index = to.indexOf('/');
+				final int index = to.indexOf('/');
 				if (index > 0) {
-					String res = to.substring(index + 1);
+					final String res = to.substring(index + 1);
 					if (!resource.equals(res)) {
 						LOG.warning("Received stanza meant for another agent, disregarding. "
 								+ res);
@@ -221,8 +221,10 @@ public class AgentConnection {
 			if (body != null) {
 				try {
 					host.receive(agentId, body, senderUrl, null);
-				} catch (IOException e) {
-					LOG.log(Level.WARNING,"Host threw an IOException, probably agent '"+agentId+"' doesn't exist? ",e);
+				} catch (final IOException e) {
+					LOG.log(Level.WARNING,
+							"Host threw an IOException, probably agent '"
+									+ agentId + "' doesn't exist? ", e);
 					return;
 				}
 			}
@@ -234,24 +236,24 @@ public class AgentConnection {
 		if (receiver.startsWith("xmpp:")) {
 			receiver = receiver.substring(5, receiver.length());
 		}
-		int slash = receiver.indexOf('/');
+		final int slash = receiver.indexOf('/');
 		if (slash <= 0) {
 			return false;
 		}
-		String res = receiver.substring(slash + 1, receiver.length());
-		String user = receiver.substring(0, slash);
+		final String res = receiver.substring(slash + 1, receiver.length());
+		final String user = receiver.substring(0, slash);
 		
-		Roster roster = this.conn.getRoster();
+		final Roster roster = conn.getRoster();
 		
-		org.jivesoftware.smack.RosterEntry re = roster.getEntry(user);
+		final org.jivesoftware.smack.RosterEntry re = roster.getEntry(user);
 		if (re == null) {
 			LOG.info("subscribing to " + receiver);
-			Presence subscribe = new Presence(Presence.Type.subscribe);
+			final Presence subscribe = new Presence(Presence.Type.subscribe);
 			subscribe.setTo(receiver);
 			conn.sendPacket(subscribe);
 		}
 		
-		Presence p = roster.getPresenceResource(user + "/" + res);
+		final Presence p = roster.getPresenceResource(user + "/" + res);
 		LOG.info("Presence for " + user + "/" + res + " : " + p.getType());
 		if (p.isAvailable()) {
 			return true;

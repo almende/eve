@@ -14,9 +14,9 @@ public class FileStateFactory implements StateFactory {
 	
 	private String				path	= null;
 	private Boolean				json	= false;
-	private Logger				logger	= Logger.getLogger(this.getClass()
+	private final Logger				logger	= Logger.getLogger(this.getClass()
 												.getSimpleName());
-	private Map<String, State>	states	= new HashMap<String, State>();
+	private final Map<String, State>	states	= new HashMap<String, State>();
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost
@@ -29,7 +29,7 @@ public class FileStateFactory implements StateFactory {
 			params = new HashMap<String, Object>();
 		}
 		if (params.containsKey("json")) {
-			this.json = (Boolean) params.get("json");
+			json = (Boolean) params.get("json");
 		}
 		
 		if (params.containsKey("path")) {
@@ -37,12 +37,12 @@ public class FileStateFactory implements StateFactory {
 		}
 	}
 	
-	public FileStateFactory(String path, Boolean json) {
+	public FileStateFactory(final String path, final Boolean json) {
 		this.json = json;
 		setPath(path);
 	}
 	
-	public FileStateFactory(String path) {
+	public FileStateFactory(final String path) {
 		this(path, false);
 	}
 	
@@ -63,7 +63,7 @@ public class FileStateFactory implements StateFactory {
 		this.path = path;
 		
 		// make the directory
-		File file = new File(path);
+		final File file = new File(path);
 		if (!file.exists() && !file.mkdir()) {
 			logger.severe("Could not create State folder!");
 			throw new IllegalStateException();
@@ -73,12 +73,12 @@ public class FileStateFactory implements StateFactory {
 		String info = "Agents will be stored in ";
 		try {
 			info += file.getCanonicalPath();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			info += path;
 		}
 		logger.info(info
 				+ ". "
-				+ (this.json ? "(stored in JSON format)"
+				+ (json ? "(stored in JSON format)"
 						: "(stored in JavaObject format)"));
 	}
 	
@@ -88,7 +88,7 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	public State get(String agentId, boolean json) {
+	public State get(final String agentId, final boolean json) {
 		State state = null;
 		if (exists(agentId)) {
 			if (states.containsKey(agentId)) {
@@ -108,8 +108,8 @@ public class FileStateFactory implements StateFactory {
 	}
 	
 	@Override
-	public State get(String agentId) {
-		return get(agentId, this.json);
+	public State get(final String agentId) {
+		return get(agentId, json);
 	}
 	
 	/**
@@ -119,7 +119,7 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return state
 	 */
-	public synchronized State create(String agentId, boolean json)
+	public synchronized State create(final String agentId, final boolean json)
 			throws IOException {
 		if (exists(agentId)) {
 			throw new IllegalStateException("Cannot create state, "
@@ -129,8 +129,8 @@ public class FileStateFactory implements StateFactory {
 		// store the new (empty) file
 		// TODO: it is not so nice solution to create an empty file to mark the
 		// state as created.
-		String filename = getFilename(agentId);
-		File file = new File(filename);
+		final String filename = getFilename(agentId);
+		final File file = new File(filename);
 		file.createNewFile();
 		
 		State state = null;
@@ -145,8 +145,8 @@ public class FileStateFactory implements StateFactory {
 	}
 	
 	@Override
-	public synchronized State create(String agentId) throws IOException {
-		return create(agentId, this.json);
+	public synchronized State create(final String agentId) throws IOException {
+		return create(agentId, json);
 	}
 	
 	/**
@@ -155,8 +155,8 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 */
 	@Override
-	public void delete(String agentId) {
-		File file = new File(getFilename(agentId));
+	public void delete(final String agentId) {
+		final File file = new File(getFilename(agentId));
 		if (file.exists()) {
 			file.delete();
 		}
@@ -169,8 +169,8 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 */
 	@Override
-	public boolean exists(String agentId) {
-		File file = new File(getFilename(agentId));
+	public boolean exists(final String agentId) {
+		final File file = new File(getFilename(agentId));
 		return file.exists();
 	}
 	
@@ -180,19 +180,19 @@ public class FileStateFactory implements StateFactory {
 	 * @param agentId
 	 * @return
 	 */
-	private String getFilename(String agentId) {
+	private String getFilename(final String agentId) {
 		
-		String apath = path != null ? path : "./";
+		final String apath = path != null ? path : "./";
 		
 		// try 1 level of subdirs. I need this badly, tymon
-		File folder = new File(apath);
-		File[] files = folder.listFiles();
-		List<File> totalList = Arrays.asList(files);
-		for (File file : totalList) {
+		final File folder = new File(apath);
+		final File[] files = folder.listFiles();
+		final List<File> totalList = Arrays.asList(files);
+		for (final File file : totalList) {
 			if (!file.isDirectory()) {
 				continue;
 			}
-			String ret = apath + file.getName() + "/" + agentId;
+			final String ret = apath + file.getName() + "/" + agentId;
 			if (new File(ret).exists()) {
 				return ret;
 			}
@@ -203,7 +203,7 @@ public class FileStateFactory implements StateFactory {
 	
 	@Override
 	public String toString() {
-		Map<String, Object> data = new HashMap<String, Object>();
+		final Map<String, Object> data = new HashMap<String, Object>();
 		data.put("class", this.getClass().getName());
 		data.put("path", path);
 		return data.toString();
@@ -211,7 +211,7 @@ public class FileStateFactory implements StateFactory {
 	
 	@Override
 	public Iterator<String> getAllAgentIds() {
-		File folder = new File(path);
+		final File folder = new File(path);
 		File[] files = folder.listFiles();
 		if (files == null) {
 			files = new File[0];
@@ -219,8 +219,8 @@ public class FileStateFactory implements StateFactory {
 		final List<File> list = new ArrayList<File>(files.length);
 		
 		if (files.length > 0) {
-			List<File> totalList = Arrays.asList(files);
-			for (File file : totalList) {
+			final List<File> totalList = Arrays.asList(files);
+			for (final File file : totalList) {
 				if (file.isFile() && file.canRead() && !file.isHidden()
 						&& file.length() > 2) {
 					list.add(file);
@@ -228,10 +228,10 @@ public class FileStateFactory implements StateFactory {
 				
 				// try 1 level of subdirs. i need this badly, tymon
 				if (file.isDirectory() && file.canRead()) {
-					File folder2 = new File(path + file.getName());
-					File[] files2 = folder2.listFiles();
-					List<File> totalList2 = Arrays.asList(files2);
-					for (File file2 : totalList2) {
+					final File folder2 = new File(path + file.getName());
+					final File[] files2 = folder2.listFiles();
+					final List<File> totalList2 = Arrays.asList(files2);
+					for (final File file2 : totalList2) {
 						if (file2.isFile() && file2.canRead()) {
 							list.add(file2);
 						}

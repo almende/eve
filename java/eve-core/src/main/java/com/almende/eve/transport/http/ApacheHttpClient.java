@@ -27,12 +27,10 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.state.State;
 import com.almende.eve.state.StateFactory;
 
@@ -45,21 +43,21 @@ public final class ApacheHttpClient {
 			UnrecoverableKeyException, NoSuchAlgorithmException,
 			KeyStoreException {
 		// Allow self-signed SSL certificates:
-		TrustStrategy trustStrategy = new TrustSelfSignedStrategy();
-		X509HostnameVerifier hostnameVerifier = new AllowAllHostnameVerifier();
-		SSLSocketFactory sslSf = new SSLSocketFactory(trustStrategy,
+		final TrustStrategy trustStrategy = new TrustSelfSignedStrategy();
+		final X509HostnameVerifier hostnameVerifier = new AllowAllHostnameVerifier();
+		final SSLSocketFactory sslSf = new SSLSocketFactory(trustStrategy,
 				hostnameVerifier);
-		Scheme https = new Scheme("https", 443, sslSf);
+		final Scheme https = new Scheme("https", 443, sslSf);
 		
-		SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
+		final SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
 		schemeRegistry.register(https);
 		
 		// Work with PoolingClientConnectionManager
 		final ClientConnectionManager connection = new PoolingClientConnectionManager(
 				schemeRegistry);
 		
-		//Provide eviction thread to clear out stale threads.
-		new Thread( new Runnable() {
+		// Provide eviction thread to clear out stale threads.
+		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -71,7 +69,7 @@ public final class ApacheHttpClient {
 									TimeUnit.SECONDS);
 						}
 					}
-				} catch (InterruptedException ex) {
+				} catch (final InterruptedException ex) {
 				}
 			}
 		}).start();
@@ -82,11 +80,11 @@ public final class ApacheHttpClient {
 		// Set cookie policy and persistent cookieStore
 		try {
 			httpClient.setCookieStore(new MyCookieStore());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING,
 					"Failed to initialize persistent cookieStore!", e);
 		}
-		HttpParams params = httpClient.getParams();
+		final HttpParams params = httpClient.getParams();
 		
 		params.setParameter(ClientPNames.COOKIE_POLICY,
 				CookiePolicy.BROWSER_COMPATIBILITY);
@@ -112,7 +110,7 @@ public final class ApacheHttpClient {
 		private State		myState		= null;
 		
 		MyCookieStore() throws IOException {
-			AgentHost host = AgentHostDefImpl.getInstance();
+			final AgentHost host = AgentHost.getInstance();
 			StateFactory factory = null;
 			if (host.getConfig() != null) {
 				factory = host.getStateFactoryFromConfig(host.getConfig(),
@@ -130,15 +128,15 @@ public final class ApacheHttpClient {
 		}
 		
 		@Override
-		public void addCookie(Cookie cookie) {
+		public void addCookie(final Cookie cookie) {
 			myState.put(Integer.valueOf(COOKIESTORE.hashCode()).toString(),
-					(BasicClientCookie) cookie);
+					cookie);
 		}
 		
 		@Override
 		public List<Cookie> getCookies() {
-			List<Cookie> result = new ArrayList<Cookie>(myState.size());
-			for (String entryKey : myState.keySet()) {
+			final List<Cookie> result = new ArrayList<Cookie>(myState.size());
+			for (final String entryKey : myState.keySet()) {
 				if (!entryKey.equals(State.KEY_AGENT_TYPE)) {
 					result.add(myState.get(entryKey, Cookie.class));
 				}
@@ -147,12 +145,12 @@ public final class ApacheHttpClient {
 		}
 		
 		@Override
-		public boolean clearExpired(Date date) {
+		public boolean clearExpired(final Date date) {
 			boolean result = false;
 			
-			for (String entryKey : myState.keySet()) {
+			for (final String entryKey : myState.keySet()) {
 				if (!entryKey.equals(State.KEY_AGENT_TYPE)) {
-					Cookie cookie = myState.get(entryKey, Cookie.class);
+					final Cookie cookie = myState.get(entryKey, Cookie.class);
 					if (cookie.isExpired(date)) {
 						myState.remove(entryKey);
 						result = true;
@@ -171,7 +169,7 @@ public final class ApacheHttpClient {
 			return myState;
 		}
 		
-		public void setMyState(State myState) {
+		public void setMyState(final State myState) {
 			this.myState = myState;
 		}
 	}

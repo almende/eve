@@ -25,7 +25,7 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 		myState = getState();
 	}
 	
-	public void init(Class<? extends T> agentAspect) {
+	public void init(final Class<? extends T> agentAspect) {
 		myState = getState();
 		myState.put("_aspectType", agentAspect.getName());
 	}
@@ -34,12 +34,12 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 	@Namespace("aspect")
 	public T getAspect() {
 		if (aspect == null) {
-			String AspectType = myState.get("_aspectType", String.class);
+			final String aspectType = myState.get("_aspectType", String.class);
 			try {
-				aspect = (T) Class.forName(AspectType).getConstructor()
+				aspect = (T) Class.forName(aspectType).getConstructor()
 						.newInstance();
-			} catch (Exception e) {
-				LOG.log(Level.WARNING,"",e);
+			} catch (final Exception e) {
+				LOG.log(Level.WARNING, "", e);
 			}
 		}
 		return aspect;

@@ -19,34 +19,35 @@ public final class NamespaceUtil {
 	//
 	private static Map<String, Method[]>	cache		= new HashMap<String, Method[]>();
 	private static NamespaceUtil			instance	= new NamespaceUtil();
-	private static final Pattern			PATTERN		= Pattern.compile("\\.[^.]+$");
+	private static final Pattern			PATTERN		= Pattern
+																.compile("\\.[^.]+$");
 	
 	private NamespaceUtil() {
 	};
 	
-	public static CallTuple get(Object destination, String path)
+	public static CallTuple get(final Object destination, final String path)
 			throws IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
 		return instance._get(destination, path);
 	}
 	
-	private void populateCache(Object destination, String steps, Method[] methods)
-			throws IllegalAccessException, InvocationTargetException {
-		AnnotatedClass clazz = AnnotationUtil.get(destination.getClass());
-		for (AnnotatedMethod method : clazz
+	private void populateCache(final Object destination, final String steps,
+			final Method[] methods) throws IllegalAccessException,
+			InvocationTargetException {
+		final AnnotatedClass clazz = AnnotationUtil.get(destination.getClass());
+		for (final AnnotatedMethod method : clazz
 				.getAnnotatedMethods(Namespace.class)) {
-			String path = steps +"."+ method.getAnnotation(Namespace.class).value();
-			methods[methods.length-1] = method.getActualMethod();
-			cache.put(path, Arrays.copyOf(methods,methods.length));
+			final String path = steps + "."
+					+ method.getAnnotation(Namespace.class).value();
+			methods[methods.length - 1] = method.getActualMethod();
+			cache.put(path, Arrays.copyOf(methods, methods.length));
 			
-			Object newDest = method.getActualMethod().invoke(destination,
+			final Object newDest = method.getActualMethod().invoke(destination,
 					(Object[]) null);
 			// recurse:
 			if (newDest != null) {
-				populateCache(
-						newDest,
-						path,
-						Arrays.copyOf(methods, methods.length+1));
+				populateCache(newDest, path,
+						Arrays.copyOf(methods, methods.length + 1));
 			}
 		}
 	}
@@ -54,8 +55,8 @@ public final class NamespaceUtil {
 	private CallTuple _get(Object destination, String path)
 			throws IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
-		CallTuple result = new CallTuple();
-
+		final CallTuple result = new CallTuple();
+		
 		if (!path.contains(".")) {
 			// Quick shortcut back
 			result.setDestination(destination);
@@ -63,30 +64,29 @@ public final class NamespaceUtil {
 			return result;
 		}
 		
-		path = destination.getClass().getName()+"."+path;
+		path = destination.getClass().getName() + "." + path;
 		String[] steps = path.split("\\.");
-		String reducedMethod = steps[steps.length - 1];
-		steps = Arrays.copyOf(steps, steps.length-1);
+		final String reducedMethod = steps[steps.length - 1];
+		steps = Arrays.copyOf(steps, steps.length - 1);
 		path = PATTERN.matcher(path).replaceFirst("");
 		
 		if (!cache.containsKey(path)) {
-			Method[] methods = new Method[1];
-			String newSteps = destination.getClass().getName();
+			final Method[] methods = new Method[1];
+			final String newSteps = destination.getClass().getName();
 			populateCache(destination, newSteps, methods);
 		}
 		if (!cache.containsKey(path)) {
 			try {
 				throw new IllegalStateException("Non resolveable path given:'"
-						+ path
-						+ "' \n checked:"
+						+ path + "' \n checked:"
 						+ JOM.getInstance().writeValueAsString(cache));
-			} catch (JsonProcessingException e) {
+			} catch (final JsonProcessingException e) {
 				throw new IllegalStateException("Non resolveable path given:'"
 						+ path + "' \n checked:" + cache);
 			}
 		}
-		Method[] methods = cache.get(path);
-		for (Method method : methods) {
+		final Method[] methods = cache.get(path);
+		for (final Method method : methods) {
 			if (method != null) {
 				destination = method.invoke(destination, (Object[]) null);
 			}
@@ -104,7 +104,7 @@ public final class NamespaceUtil {
 			return destination;
 		}
 		
-		public void setDestination(Object destination) {
+		public void setDestination(final Object destination) {
 			this.destination = destination;
 		}
 		
@@ -112,7 +112,7 @@ public final class NamespaceUtil {
 			return methodName;
 		}
 		
-		public void setMethodName(String methodName) {
+		public void setMethodName(final String methodName) {
 			this.methodName = methodName;
 		}
 	}

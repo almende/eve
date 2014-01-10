@@ -19,11 +19,11 @@ public class AgentSignal<T> {
 	private String				event				= "";
 	private T					data				= null;
 	
-	public AgentSignal(String event) {
+	public AgentSignal(final String event) {
 		this.event = event;
 	}
 	
-	public AgentSignal(String event, T data) {
+	public AgentSignal(final String event, final T data) {
 		this.event = event;
 		this.data = data;
 	}
@@ -32,7 +32,7 @@ public class AgentSignal<T> {
 		return event;
 	}
 	
-	public void setEvent(String event) {
+	public void setEvent(final String event) {
 		this.event = event;
 	}
 	
@@ -40,7 +40,7 @@ public class AgentSignal<T> {
 		return data;
 	}
 	
-	public void setData(T data) {
+	public void setData(final T data) {
 		this.data = data;
 	}
 }

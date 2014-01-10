@@ -15,24 +15,24 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public final class JOM {
-	private static final ObjectMapper	mapper;
+	private static final ObjectMapper	MAPPER;
 	static {
-		mapper = createInstance();
+		MAPPER = createInstance();
 	}
 	
 	protected JOM() {
 	}
 	
 	public static ObjectMapper getInstance() {
-		return mapper;
+		return MAPPER;
 	}
 	
 	public static ObjectNode createObjectNode() {
-		return mapper.createObjectNode();
+		return MAPPER.createObjectNode();
 	}
 	
 	public static ArrayNode createArrayNode() {
-		return mapper.createArrayNode();
+		return MAPPER.createArrayNode();
 	}
 	
 	public static NullNode createNullNode() {
@@ -40,7 +40,7 @@ public final class JOM {
 	}
 	
 	private static synchronized ObjectMapper createInstance() {
-		ObjectMapper mapper = new ObjectMapper();
+		final ObjectMapper mapper = new ObjectMapper();
 		
 		// set configuration
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
@@ -58,25 +58,26 @@ public final class JOM {
 	}
 	
 	public static TypeFactory getTypeFactory() {
-		return mapper.getTypeFactory();
+		return MAPPER.getTypeFactory();
 	}
 	
 	/**
-	 * @deprecated This method is no longer needed, you can directly use Void.class
+	 * @deprecated This method is no longer needed, you can directly use
+	 *             Void.class
 	 * @return
 	 */
 	@Deprecated
 	public static JavaType getVoid() {
-		return mapper.getTypeFactory()
-				.uncheckedSimpleType(Void.class);
+		return MAPPER.getTypeFactory().uncheckedSimpleType(Void.class);
 	}
 	
 	/**
-	 * @deprecated This method is no longer needed, you can directly use <Class>.class, e.g. String.class
+	 * @deprecated This method is no longer needed, you can directly use
+	 *             <Class>.class, e.g. String.class
 	 * @return
 	 */
 	@Deprecated
-	public static JavaType getSimpleType(Class<?> c) {
-		return mapper.getTypeFactory().uncheckedSimpleType(c);
+	public static JavaType getSimpleType(final Class<?> c) {
+		return MAPPER.getTypeFactory().uncheckedSimpleType(c);
 	}
 }

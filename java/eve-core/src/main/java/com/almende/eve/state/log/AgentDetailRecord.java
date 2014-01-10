@@ -17,17 +17,17 @@ public class AgentDetailRecord implements Serializable {
 	// true if call was succesfull, false if an
 	// exception was thrown
 	private Boolean	success;
-
+	
 	public AgentDetailRecord() {
 	}
 	
-	public AgentDetailRecord(String agent, String type, String method,
-			String timestamp, Long duration, Boolean success) {
+	public AgentDetailRecord(final String agent, final String type, final String method,
+			final String timestamp, final Long duration, final Boolean success) {
 		init(agent, type, method, timestamp, duration, success);
 	}
 	
-	public final void init(String agent, String type, String method,
-			String timestamp, Long duration, Boolean success) {
+	public final void init(final String agent, final String type, final String method,
+			final String timestamp, final Long duration, final Boolean success) {
 		setAgent(agent);
 		setType(type);
 		setMethod(method);
@@ -40,7 +40,7 @@ public class AgentDetailRecord implements Serializable {
 		return agent;
 	}
 	
-	public void setAgent(String agent) {
+	public void setAgent(final String agent) {
 		this.agent = agent;
 	}
 	
@@ -48,7 +48,7 @@ public class AgentDetailRecord implements Serializable {
 		return type;
 	}
 	
-	public void setType(String type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 	
@@ -56,7 +56,7 @@ public class AgentDetailRecord implements Serializable {
 		return method;
 	}
 	
-	public void setMethod(String method) {
+	public void setMethod(final String method) {
 		this.method = method;
 	}
 	
@@ -64,7 +64,7 @@ public class AgentDetailRecord implements Serializable {
 		return timestamp;
 	}
 	
-	public void setTimestamp(String timestamp) {
+	public void setTimestamp(final String timestamp) {
 		this.timestamp = timestamp;
 	}
 	
@@ -72,11 +72,11 @@ public class AgentDetailRecord implements Serializable {
 		return duration;
 	}
 	
-	public void setDuration(Long duration) {
+	public void setDuration(final Long duration) {
 		this.duration = duration;
 	}
 	
-	public void setSuccess(Boolean success) {
+	public void setSuccess(final Boolean success) {
 		this.success = success;
 	}
 	

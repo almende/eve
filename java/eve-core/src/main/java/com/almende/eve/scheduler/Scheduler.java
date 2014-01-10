@@ -9,8 +9,11 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 public interface Scheduler {
 	/**
 	 * Schedule a task
-	 * @param request   A JSONRequest with method and params
-	 * @param delay     The delay in milliseconds
+	 * 
+	 * @param request
+	 *            A JSONRequest with method and params
+	 * @param delay
+	 *            The delay in milliseconds
 	 * @return taskId
 	 */
 	String createTask(JSONRequest request, long delay);
@@ -18,36 +21,45 @@ public interface Scheduler {
 	/**
 	 * Schedule a task, potentially running at an interval
 	 * 
-	 * @param request    A JSONRequest with method and params
-	 * @param delay      The delay in milliseconds
-	 * @param reoeat   Should the task be repeated at an interval?
-	 * @param sequential Should (long running) repetitive tasks run sequentially, or may they run in parallel? (are they threadsafe?)
+	 * @param request
+	 *            A JSONRequest with method and params
+	 * @param delay
+	 *            The delay in milliseconds
+	 * @param reoeat
+	 *            Should the task be repeated at an interval?
+	 * @param sequential
+	 *            Should (long running) repetitive tasks run sequentially, or
+	 *            may they run in parallel? (are they threadsafe?)
 	 * @return taskId
 	 */
-	String createTask(JSONRequest request, long delay, boolean repeat, boolean sequential);
-
+	String createTask(JSONRequest request, long delay, boolean repeat,
+			boolean sequential);
+	
 	/**
 	 * Cancel a scheduled task by its id
+	 * 
 	 * @param taskId
 	 */
 	void cancelTask(String id);
 	
 	/**
 	 * Cancel all scheduled tasks
+	 * 
 	 * @param taskId
 	 */
 	void cancelAllTasks();
 	
-
 	/**
 	 * Retrieve a list with all scheduled tasks
+	 * 
 	 * @return taskIds
 	 */
 	@Access(AccessType.PUBLIC)
 	Set<String> getTasks();
-
+	
 	/**
 	 * Retrieve a list with all scheduled tasks
+	 * 
 	 * @return taskIds
 	 */
 	@Access(AccessType.PUBLIC)

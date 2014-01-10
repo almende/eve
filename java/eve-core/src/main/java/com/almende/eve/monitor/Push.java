@@ -19,41 +19,41 @@ public class Push implements ResultMonitorConfigType {
 	private boolean				onChange			= false;
 	private String				event				= "";
 	
-	public Push(int interval, boolean onEvent) {
-		this.pushId = new UUID().toString();
+	public Push(final int interval, final boolean onEvent) {
+		pushId = new UUID().toString();
 		this.interval = interval;
 		this.onEvent = onEvent;
 	}
 	
 	public Push() {
-		this.pushId = new UUID().toString();
+		pushId = new UUID().toString();
 	}
 	
-	public Push onInterval(int interval) {
+	public Push onInterval(final int interval) {
 		this.interval = interval;
 		return this;
 	}
 	
 	public Push onEvent() {
-		this.onEvent = true;
+		onEvent = true;
 		return this;
 	}
 	
-	public Push onEvent(String event) {
-		this.onEvent = true;
+	public Push onEvent(final String event) {
+		onEvent = true;
 		this.event = event;
 		return this;
 	}
 	
 	public Push onChange() {
-		this.onChange = true;
+		onChange = true;
 		return this;
 	}
 	
-	public void init(ResultMonitor monitor, AgentInterface agent)
+	public void init(final ResultMonitor monitor, final AgentInterface agent)
 			throws IOException, JSONRPCException {
-		ObjectNode wrapper = JOM.createObjectNode();
-		ObjectNode config = JOM.createObjectNode();
+		final ObjectNode wrapper = JOM.createObjectNode();
+		final ObjectNode config = JOM.createObjectNode();
 		
 		config.put("monitorId", monitor.getId());
 		if (interval > 0) {
@@ -77,9 +77,9 @@ public class Push implements ResultMonitorConfigType {
 				null, Void.class);
 	}
 	
-	public void cancel(ResultMonitor monitor, AgentInterface agent)
+	public void cancel(final ResultMonitor monitor, final AgentInterface agent)
 			throws IOException, JSONRPCException {
-		ObjectNode params = JOM.createObjectNode();
+		final ObjectNode params = JOM.createObjectNode();
 		params.put("pushId", pushId);
 		agent.sendAsync(monitor.getUrl(), "monitor.unregisterPush", params,
 				null, Void.class);
@@ -89,7 +89,7 @@ public class Push implements ResultMonitorConfigType {
 		return pushId;
 	}
 	
-	public void setPushId(String pushId) {
+	public void setPushId(final String pushId) {
 		this.pushId = pushId;
 	}
 	
@@ -97,7 +97,7 @@ public class Push implements ResultMonitorConfigType {
 		return interval;
 	}
 	
-	public void setInterval(int interval) {
+	public void setInterval(final int interval) {
 		this.interval = interval;
 	}
 	
@@ -105,7 +105,7 @@ public class Push implements ResultMonitorConfigType {
 		return event;
 	}
 	
-	public void setEvent(String event) {
+	public void setEvent(final String event) {
 		this.event = event;
 	}
 }

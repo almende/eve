@@ -12,44 +12,44 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 public class EventLogger {
 	private static final Logger	LOG			= Logger.getLogger(EventLogger.class
 													.getCanonicalName());
-	private AgentHostDefImpl			agentHost	= null;
+	private AgentHostDefImpl	agentHost	= null;
 	
 	protected EventLogger() {
 	}
 	
-	public EventLogger(AgentHostDefImpl agentHost) {
+	public EventLogger(final AgentHostDefImpl agentHost) {
 		this.agentHost = agentHost;
 	}
 	
-	public void log(String agentId, String event, Object params) {
+	public void log(final String agentId, final String event, final Object params) {
 		try {
-			String logAgentId = getLogAgentId(agentId);
-			LogAgent agent = (LogAgent) agentHost.getAgent(logAgentId);
+			final String logAgentId = getLogAgentId(agentId);
+			final LogAgent agent = (LogAgent) agentHost.getAgent(logAgentId);
 			if (agent != null) {
 				// log only if the log agent exists
 				agent.log(new Log(agentId, event, params));
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 	}
 	
-	public List<Log> getLogs(String agentId, Long since)
+	public List<Log> getLogs(final String agentId, final Long since)
 			throws JSONRPCException, ClassNotFoundException,
 			InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, IOException {
-		String logAgentId = getLogAgentId(agentId);
+		final String logAgentId = getLogAgentId(agentId);
 		LogAgent agent = (LogAgent) agentHost.getAgent(logAgentId);
 		if (agent == null) {
 			// create the log agent if it does not yet exist
-			agent = (LogAgent) agentHost
+			agent = agentHost
 					.createAgent(LogAgent.class, logAgentId);
 			agent.config(agentHost.getAgent(agentId).getFirstUrl());
 		}
 		return agent.getLogs(since);
 	}
 	
-	private String getLogAgentId(String agentId) {
+	private String getLogAgentId(final String agentId) {
 		// TODO: use a naming here which cannot conflict with other agents.
 		// introduce a separate namespace or something like that?
 		return "_logagent_" + agentId;

@@ -10,26 +10,28 @@ import com.almende.eve.state.TypedKey;
 import com.almende.test.agents.Test2Agent;
 
 public class TestReference extends TestCase {
-
 	
 	@Test
 	public void testReference() throws Exception {
-		Object testObject = new Object();
+		final Object testObject = new Object();
 		
-		final String TEST_AGENT = "ReferenceAgent"; 
-		AgentHost host = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		final String TEST_AGENT = "ReferenceAgent";
+		final AgentHost host = AgentHost.getInstance();
+		final FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		host.setStateFactory(stateFactory);
 		
-		if (host.hasAgent(TEST_AGENT)) host.deleteAgent(TEST_AGENT);
+		if (host.hasAgent(TEST_AGENT)) {
+			host.deleteAgent(TEST_AGENT);
+		}
 		Test2Agent test = host.createAgent(Test2Agent.class, TEST_AGENT);
 		
-		test.putRef(new TypedKey<Object>("test"){}, testObject);
+		test.putRef(new TypedKey<Object>("test") {
+		}, testObject);
 		
-		test = (Test2Agent)host.getAgent(TEST_AGENT);
+		test = (Test2Agent) host.getAgent(TEST_AGENT);
 		
-		assertEquals(test.getRef(new TypedKey<Object>("test"){}), testObject);
+		assertEquals(test.getRef(new TypedKey<Object>("test") {
+		}), testObject);
 	}
-	
 	
 }

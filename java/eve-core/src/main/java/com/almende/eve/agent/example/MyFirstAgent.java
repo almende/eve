@@ -24,7 +24,7 @@ public class MyFirstAgent extends Agent {
 	 * @param name
 	 * @return
 	 */
-	public String helloWorld(@Name("name") String name) {
+	public String helloWorld(@Name("name") final String name) {
 		return "Hello " + name + " and the rest of the world!";
 	}
 	
@@ -36,9 +36,9 @@ public class MyFirstAgent extends Agent {
 	 * @throws JSONRPCException
 	 */
 	public void callMyself() throws IOException, JSONRPCException {
-		ObjectNode params = JOM.createObjectNode();
+		final ObjectNode params = JOM.createObjectNode();
 		params.put("name", getId());
-		String result = send(getFirstUrl(), "helloWorld", params, String.class);
+		final String result = send(getFirstUrl(), "helloWorld", params, String.class);
 		System.out.println("Got reply:" + result);
 	}
 	
@@ -48,15 +48,16 @@ public class MyFirstAgent extends Agent {
 	 * 
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		AgentHost host = AgentHost.getInstance();
+	public static void main(final String[] args) {
+		final AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new MemoryStateFactory());
 		try {
 			
-			MyFirstAgent agent = host.createAgent(MyFirstAgent.class, "MyFirstAgent");
+			final MyFirstAgent agent = host.createAgent(MyFirstAgent.class,
+					"MyFirstAgent");
 			agent.callMyself();
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			System.err.println("Strange, couldn't create agent in host.");
 			e.printStackTrace();
 		}

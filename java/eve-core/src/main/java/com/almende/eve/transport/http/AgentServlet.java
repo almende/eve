@@ -17,7 +17,6 @@ import org.apache.http.client.methods.HttpGet;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.AgentSignal;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
@@ -41,15 +40,15 @@ public class AgentServlet extends HttpServlet {
 	
 	@Override
 	public void init() {
-		if (AgentHostDefImpl.getInstance().getStateFactory() == null) {
+		if (AgentHost.getInstance().getStateFactory() == null) {
 			LOG.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		host = AgentHostDefImpl.getInstance();
+		host = AgentHost.getInstance();
 		
-		String environment = Config.getEnvironment();
-		String envParam = "environment." + environment + ".servlet_url";
-		String globalParam = "servlet_url";
+		final String environment = Config.getEnvironment();
+		final String envParam = "environment." + environment + ".servlet_url";
+		final String globalParam = "servlet_url";
 		String servletUrl = getInitParameter(envParam);
 		if (servletUrl == null) {
 			// if no environment specific servlet_url is defined, read
@@ -69,15 +68,15 @@ public class AgentServlet extends HttpServlet {
 		OK, NAK, INVALID
 	}
 	
-	private boolean handleHandShake(HttpServletRequest req,
-			HttpServletResponse res) throws IOException {
-		String time = req.getHeader("X-Eve-requestToken");
+	private boolean handleHandShake(final HttpServletRequest req,
+			final HttpServletResponse res) throws IOException {
+		final String time = req.getHeader("X-Eve-requestToken");
 		
 		if (time == null) {
 			return false;
 		}
 		
-		String token = TokenStore.get(time);
+		final String token = TokenStore.get(time);
 		if (token == null) {
 			res.sendError(HttpServletResponse.SC_PRECONDITION_FAILED);
 		} else {
@@ -88,21 +87,22 @@ public class AgentServlet extends HttpServlet {
 		return true;
 	}
 	
-	private Handshake doHandShake(HttpServletRequest req) {
-		String tokenTupple = req.getHeader("X-Eve-Token");
+	private Handshake doHandShake(final HttpServletRequest req) {
+		final String tokenTupple = req.getHeader("X-Eve-Token");
 		if (tokenTupple == null) {
 			return Handshake.NAK;
 		}
 		
 		try {
-			String senderUrl = req.getHeader("X-Eve-SenderUrl");
+			final String senderUrl = req.getHeader("X-Eve-SenderUrl");
 			if (senderUrl != null && !senderUrl.equals("")) {
-				ObjectNode tokenObj = (ObjectNode) JOM.getInstance().readTree(
-						tokenTupple);
-				HttpGet httpGet = new HttpGet(senderUrl);
+				final ObjectNode tokenObj = (ObjectNode) JOM.getInstance()
+						.readTree(tokenTupple);
+				final HttpGet httpGet = new HttpGet(senderUrl);
 				httpGet.setHeader("X-Eve-requestToken", tokenObj.get("time")
 						.textValue());
-				HttpResponse response = ApacheHttpClient.get().execute(httpGet);
+				final HttpResponse response = ApacheHttpClient.get().execute(
+						httpGet);
 				if (response.getStatusLine().getStatusCode() == HttpServletResponse.SC_OK) {
 					if (tokenObj
 							.get("token")
@@ -116,22 +116,22 @@ public class AgentServlet extends HttpServlet {
 							+ response);
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		
 		return Handshake.INVALID;
 	}
 	
-	private boolean handleSession(HttpServletRequest req,
-			HttpServletResponse res) throws IOException {
+	private boolean handleSession(final HttpServletRequest req,
+			final HttpServletResponse res) throws IOException {
 		try {
 			
 			if (req.getSession(false) != null) {
 				return true;
 			}
 			
-			Handshake hs = doHandShake(req);
+			final Handshake hs = doHandShake(req);
 			if (hs.equals(Handshake.INVALID)) {
 				return false;
 			}
@@ -150,7 +150,7 @@ public class AgentServlet extends HttpServlet {
 					LOG.warning("context-param \"authentication\" is deprecated. Use \"eve_authentication\" instead.");
 				}
 			}
-			Boolean doAuthentication = Boolean
+			final Boolean doAuthentication = Boolean
 					.parseBoolean(doAuthenticationStr);
 			
 			if (hs.equals(Handshake.NAK) && doAuthentication) {
@@ -165,7 +165,7 @@ public class AgentServlet extends HttpServlet {
 			}
 			// generate new session:
 			req.getSession(true);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 					"Exception running HandleSession:" + e.getMessage());
 			LOG.log(Level.WARNING, "", e);
@@ -178,10 +178,11 @@ public class AgentServlet extends HttpServlet {
 	 * Get an agents web interface Usage: GET /servlet/{agentId}
 	 */
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		String uri = req.getRequestURI();
-		String agentId = httpTransport.getAgentId(uri);
+	protected void doGet(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
+		final String uri = req.getRequestURI();
+		final String agentId = httpTransport.getAgentId(uri);
 		String resource = httpTransport.getAgentResource(uri);
 		
 		// if no agentId is found, return generic information on servlet usage
@@ -198,7 +199,7 @@ public class AgentServlet extends HttpServlet {
 						"Agent with id '" + agentId + "' not found.");
 				return;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServletException(e);
 		}
 		
@@ -208,54 +209,57 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			if (host.getAgent(agentId).hasPrivate() && !handleSession(req, resp)) {
+			if (host.getAgent(agentId).hasPrivate()
+					&& !handleSession(req, resp)) {
 				if (!resp.isCommitted()) {
 					resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				}
 				return;
 			}
-		} catch (Exception e1) {
+		} catch (final Exception e1) {
 			LOG.log(Level.WARNING, "", e1);
 		}
 		// get the resource name from the end of the url
 		if (resource == null || resource.equals("")) {
 			if (!uri.endsWith("/") && !resp.isCommitted()) {
-				String redirect = uri + "/";
+				final String redirect = uri + "/";
 				resp.sendRedirect(redirect);
 				return;
 			}
 			resource = "index.html";
 		}
-		String extension = resource.substring(resource.lastIndexOf('.') + 1);
+		final String extension = resource
+				.substring(resource.lastIndexOf('.') + 1);
 		
 		if (resource.equals("events")) {
 			// retrieve the agents logs
-			String sinceStr = req.getParameter("since");
+			final String sinceStr = req.getParameter("since");
 			Long since = null;
 			if (sinceStr != null) {
 				try {
 					since = Long.valueOf(sinceStr);
-				} catch (java.lang.NumberFormatException e) {
+				} catch (final java.lang.NumberFormatException e) {
 					LOG.warning("Couldn't parse 'since' parameter:'" + since
 							+ "'");
 				}
 			}
 			
 			try {
-				List<Log> logs = host.getEventLogger().getLogs(agentId,
+				final List<Log> logs = host.getEventLogger().getLogs(agentId,
 						since);
 				resp.addHeader("Content-type", "application/json");
 				JOM.getInstance().writer().writeValue(resp.getWriter(), logs);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				LOG.log(Level.WARNING, "", e);
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 						e.getMessage());
 			}
 		} else {
 			// load the resource
-			String mimetype = StreamingUtil.getMimeType(extension);
-			String filename = RESOURCES + resource;
-			InputStream is = this.getClass().getResourceAsStream(filename);
+			final String mimetype = StreamingUtil.getMimeType(extension);
+			final String filename = RESOURCES + resource;
+			final InputStream is = this.getClass()
+					.getResourceAsStream(filename);
 			if (is != null) {
 				StreamingUtil.streamBinaryData(is, mimetype, resp);
 			} else {
@@ -270,14 +274,14 @@ public class AgentServlet extends HttpServlet {
 	 * JSON-RPC request as body. Response will be a JSON-RPC response.
 	 */
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws IOException {
 		
 		// retrieve the agent url and the request body
-		String body = StringUtil.streamToString(req.getInputStream());
+		final String body = StringUtil.streamToString(req.getInputStream());
 		
-		String agentUrl = req.getRequestURI();
-		String agentId = httpTransport.getAgentId(agentUrl);
+		final String agentUrl = req.getRequestURI();
+		final String agentId = httpTransport.getAgentId(agentUrl);
 		if (agentId == null || agentId.equals("")) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"No agentId found in url.");
@@ -287,7 +291,7 @@ public class AgentServlet extends HttpServlet {
 		Agent agent = null;
 		try {
 			agent = host.getAgent(agentId);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Couldn't get agent:" + agentId, e);
 		}
 		if (agent == null) {
@@ -311,22 +315,23 @@ public class AgentServlet extends HttpServlet {
 			senderUrl = "web://" + req.getRemoteUser() + "@"
 					+ req.getRemoteAddr();
 		}
-		String tag = new UUID().toString();
+		final String tag = new UUID().toString();
 		
 		// TODO: this should not depend on JSONResponse...
-		SyncCallback<Object> callback = new SyncCallback<Object>();
+		final SyncCallback<Object> callback = new SyncCallback<Object>();
 		
-		CallbackInterface<Object> callbacks = host.getCallbackService("HttpTransport",Object.class);
+		final CallbackInterface<Object> callbacks = host.getCallbackService(
+				"HttpTransport", Object.class);
 		callbacks.store(tag, callback);
 		host.receive(agentId, body, URI.create(senderUrl), tag);
 		
 		try {
-			Object message = callback.get();
+			final Object message = callback.get();
 			// return response
 			resp.addHeader("Content-Type", "application/json");
 			resp.getWriter().println(message.toString());
 			resp.getWriter().close();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Sync receive raised exception.", e);
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 					"Receiver raised exception:" + e.getMessage());
@@ -340,10 +345,11 @@ public class AgentServlet extends HttpServlet {
 	 * urls of the created agent.
 	 */
 	@Override
-	protected void doPut(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		String agentUrl = req.getRequestURI();
-		String agentId = httpTransport.getAgentId(agentUrl);
+	protected void doPut(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
+		final String agentUrl = req.getRequestURI();
+		final String agentId = httpTransport.getAgentId(agentUrl);
 		String agentType = req.getParameter("type");
 		
 		if (!handleSession(req, resp)) {
@@ -370,12 +376,12 @@ public class AgentServlet extends HttpServlet {
 		}
 		
 		try {
-			Agent agent = host.createAgent(agentType, agentId);
-			for (String url : agent.getUrls()) {
+			final Agent agent = host.createAgent(agentType, agentId);
+			for (final String url : agent.getUrls()) {
 				resp.getWriter().println(url);
 			}
 			agent.signalAgent(new AgentSignal<Void>(AgentSignal.DESTROY, null));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServletException(e);
 		}
 	}
@@ -384,10 +390,11 @@ public class AgentServlet extends HttpServlet {
 	 * Delete an agent usage: DELETE /servlet/agentId
 	 */
 	@Override
-	protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		String agentUrl = req.getRequestURI();
-		String agentId = httpTransport.getAgentId(agentUrl);
+	protected void doDelete(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
+		final String agentUrl = req.getRequestURI();
+		final String agentId = httpTransport.getAgentId(agentUrl);
 		
 		if (!handleSession(req, resp)) {
 			if (!resp.isCommitted()) {
@@ -404,7 +411,7 @@ public class AgentServlet extends HttpServlet {
 		try {
 			host.deleteAgent(agentId);
 			resp.getWriter().write("Agent " + agentId + " deleted");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ServletException(e);
 		}
 	}
@@ -415,8 +422,8 @@ public class AgentServlet extends HttpServlet {
 	 * @return info
 	 */
 	protected String getServletDocs() {
-		String servletUrl = httpTransport.getServletUrl();
-		String info = "EVE AGENTS SERVLET\n" + "\n" + "Usage:\n" + "\n" +
+		final String servletUrl = httpTransport.getServletUrl();
+		final String info = "EVE AGENTS SERVLET\n" + "\n" + "Usage:\n" + "\n" +
 		
 		"GET "
 				+ servletUrl

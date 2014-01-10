@@ -5,19 +5,21 @@ import java.io.InputStream;
 
 public final class StringUtil {
 	
-	private StringUtil(){};
+	private StringUtil() {
+	};
 	
 	/**
 	 * Convert a stream to a string
+	 * 
 	 * @param in
 	 * @return
 	 * @throws IOException
 	 */
-	public static String streamToString(InputStream in) throws IOException {
-		StringBuffer out = new StringBuffer();
-		byte[] b = new byte[4096];
+	public static String streamToString(final InputStream in) throws IOException {
+		final StringBuffer out = new StringBuffer();
+		final byte[] b = new byte[4096];
 		int n = 0;
-		while(true){
+		while (true) {
 			n = in.read(b);
 			if (n == -1) {
 				break;

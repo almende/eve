@@ -31,21 +31,21 @@ import java.util.logging.Logger;
  * @author jos
  */
 public class MemoryState extends AbstractState<Serializable> implements State {
-	private static final Logger			LOG			= Logger.getLogger(MemoryState.class
-															.getName());
-	private Map<String, Serializable>	properties	= new ConcurrentHashMap<String, Serializable>();
+	private static final Logger				LOG			= Logger.getLogger(MemoryState.class
+																.getName());
+	private final Map<String, Serializable>	properties	= new ConcurrentHashMap<String, Serializable>();
 	
 	public MemoryState() {
 	}
 	
-	public MemoryState(String agentId) {
+	public MemoryState(final String agentId) {
 		super(agentId);
 	}
 	
 	@Override
 	public void clear() {
-
-		String agentType = (String) properties.get(KEY_AGENT_TYPE);
+		
+		final String agentType = (String) properties.get(KEY_AGENT_TYPE);
 		properties.clear();
 		properties.put(KEY_AGENT_TYPE, agentType);
 	}
@@ -56,18 +56,18 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 	}
 	
 	@Override
-	public boolean containsKey(String key) {
+	public boolean containsKey(final String key) {
 		return properties.containsKey(key);
 	}
 	
 	@Override
-	public Serializable get(String key) {
+	public Serializable get(final String key) {
 		try {
 			return properties.get(key);
-			//return ClassUtil.cloneThroughSerialize(properties.get(key));
-		} catch (Exception e) {
-			LOG.log(Level.WARNING,"Couldn't clone object: " + key
-					+ ", returning pointer to original object.",e);
+			// return ClassUtil.cloneThroughSerialize(properties.get(key));
+		} catch (final Exception e) {
+			LOG.log(Level.WARNING, "Couldn't clone object: " + key
+					+ ", returning pointer to original object.", e);
 			return properties.get(key);
 		}
 	}
@@ -77,26 +77,26 @@ public class MemoryState extends AbstractState<Serializable> implements State {
 	}
 	
 	@Override
-	public Serializable locPut(String key, Serializable value) {
+	public Serializable locPut(final String key, final Serializable value) {
 		return properties.put(key, value);
 	}
 	
 	@Override
-	public boolean locPutIfUnchanged(String key, Serializable newVal,
-			Serializable oldVal) {
+	public boolean locPutIfUnchanged(final String key,
+			final Serializable newVal, final Serializable oldVal) {
 		boolean result = false;
 		if (!(oldVal == null && properties.containsKey(key) && properties
 				.get(key) != null)
-				|| (properties.get(key) != null && properties.get(key)
-						.equals(oldVal))) {
-			properties.put(key, (Serializable) newVal);
+				|| (properties.get(key) != null && properties.get(key).equals(
+						oldVal))) {
+			properties.put(key, newVal);
 			result = true;
 		}
 		return result;
 	}
 	
 	@Override
-	public Serializable remove(String key) {
+	public Serializable remove(final String key) {
 		return properties.remove(key);
 	}
 	

@@ -39,41 +39,44 @@ public abstract class TypeUtil<T> {
 		return this.valueType;
 	}
 	
-	public T inject(Object value) {
+	public T inject(final Object value) {
 		return inject(value, valueType);
 	}
 	
-	public static <T> T inject(Object value, Class<T> type) {
+	public static <T> T inject(final Object value, final Class<T> type) {
 		return inject(value, JOM.getTypeFactory().constructType(type));
 	}
 	
-	public static <T> T inject(Object value, Type type) {
+	public static <T> T inject(final Object value, final Type type) {
 		return inject(value, JOM.getTypeFactory().constructType(type));
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> T inject(Object value, JavaType fullType) {
+	public static <T> T inject(final Object value, final JavaType fullType) {
 		if (value == null) {
 			return null;
 		}
 		if (fullType.hasRawClass(Void.class)) {
 			return null;
 		}
-		ObjectMapper mapper = JOM.getInstance();
+		final ObjectMapper mapper = JOM.getInstance();
 		if (value instanceof JsonNode) {
 			if (((JsonNode) value).isNull()) {
 				return null;
 			}
 			try {
 				return mapper.convertValue(value, fullType);
-			} catch (Exception e) {
-				throw new ClassCastException("Failed to convert value:" + value + " -----> " + fullType);
+			} catch (final Exception e) {
+				throw new ClassCastException("Failed to convert value:" + value
+						+ " -----> " + fullType);
 			}
 		}
-		if (fullType.getRawClass().isAssignableFrom(value.getClass())){
+		if (fullType.getRawClass().isAssignableFrom(value.getClass())) {
 			return (T) value;
 		} else {
-			throw new ClassCastException(value.getClass().getCanonicalName() + " can't be converted to: "+ fullType.getRawClass().getCanonicalName());
+			throw new ClassCastException(value.getClass().getCanonicalName()
+					+ " can't be converted to: "
+					+ fullType.getRawClass().getCanonicalName());
 		}
 	}
 	

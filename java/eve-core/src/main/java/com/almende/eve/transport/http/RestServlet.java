@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.almende.eve.agent.AgentHost;
-import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.agent.callback.CallbackInterface;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
@@ -17,62 +16,66 @@ import com.almende.eve.rpc.jsonrpc.JSONResponse;
 import com.almende.util.TypeUtil;
 import com.almende.util.uuid.UUID;
 
-
 @SuppressWarnings("serial")
 public class RestServlet extends HttpServlet {
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	private AgentHost host = null;
+	private final Logger	logger	= Logger.getLogger(this.getClass()
+											.getSimpleName());
+	private AgentHost		host	= null;
 	
 	@Override
 	public void init() {
-		if (AgentHostDefImpl.getInstance().getStateFactory() == null){
+		if (AgentHost.getInstance().getStateFactory() == null) {
 			logger.severe("DEPRECIATED SETUP: Please add com.almende.eve.transport.http.AgentListener as a Listener to your web.xml!");
 			AgentListener.init(getServletContext());
 		}
-		host = AgentHostDefImpl.getInstance();
+		host = AgentHost.getInstance();
 	}
 	
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void doGet(final HttpServletRequest req,
+			final HttpServletResponse resp) throws IOException {
 		try {
 			// get method from url
-			String uri = req.getRequestURI();
-			String[] path = uri.split("\\/");
-			String agentId = (path.length > 2) ? path[path.length - 2] : null;
-			String method = (path.length > 1) ? path[path.length - 1] : null;
-
+			final String uri = req.getRequestURI();
+			final String[] path = uri.split("\\/");
+			final String agentId = (path.length > 2) ? path[path.length - 2]
+					: null;
+			final String method = (path.length > 1) ? path[path.length - 1]
+					: null;
+			
 			// get query parameters
-			JSONRequest request = new JSONRequest();
+			final JSONRequest request = new JSONRequest();
 			request.setMethod(method);
-			Enumeration<String> params = req.getParameterNames();
+			final Enumeration<String> params = req.getParameterNames();
 			while (params.hasMoreElements()) {
-				String param = params.nextElement();
+				final String param = params.nextElement();
 				request.putParam(param, req.getParameter(param));
 			}
-
-			String tag = new UUID().toString();
-			SyncCallback<Object> callback = new SyncCallback<Object>();
 			
-			CallbackInterface<Object> callbacks = host.getCallbackService("HttpTransport",Object.class);
-			callbacks.store(tag,callback);
+			final String tag = new UUID().toString();
+			final SyncCallback<Object> callback = new SyncCallback<Object>();
 			
-			String senderUrl = null;
+			final CallbackInterface<Object> callbacks = host
+					.getCallbackService("HttpTransport", Object.class);
+			callbacks.store(tag, callback);
+			
+			final String senderUrl = null;
 			host.receive(agentId, request, senderUrl, tag);
-
-			JSONResponse response = TypeUtil.inject(callback.get(),JSONResponse.class);
+			
+			final JSONResponse response = TypeUtil.inject(callback.get(),
+					JSONResponse.class);
 			
 			// return response
 			resp.addHeader("Content-Type", "application/json");
 			resp.getWriter().println(response.getResult());
-		} catch (Exception err) {
+		} catch (final Exception err) {
 			resp.getWriter().println(err.getMessage());
 		}
 	}
-
+	
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void doPost(final HttpServletRequest req,
+			final HttpServletResponse resp) throws IOException {
 		doGet(req, resp);
 	}
 }

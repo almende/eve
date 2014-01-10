@@ -11,7 +11,7 @@ import com.almende.eve.agent.AgentInterface;
 public class ClockSchedulerFactory implements SchedulerFactory {
 	private static final Logger		LOG			= Logger.getLogger(ClockSchedulerFactory.class
 														.getCanonicalName());
-	private Map<String, Scheduler>	schedulers	= new HashMap<String, Scheduler>();
+	private final Map<String, Scheduler>	schedulers	= new HashMap<String, Scheduler>();
 	private AgentHost				host		= null;
 	
 	/**
@@ -20,16 +20,16 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	 * @param AgentHostDefImpl
 	 * @param params
 	 */
-	public ClockSchedulerFactory(AgentHost host, Map<String, Object> params) {
+	public ClockSchedulerFactory(final AgentHost host, final Map<String, Object> params) {
 		this(host, "");
 	}
 	
-	public ClockSchedulerFactory(AgentHost host, String id) {
+	public ClockSchedulerFactory(final AgentHost host, final String id) {
 		this.host = host;
 	}
 	
 	@Override
-	public Scheduler getScheduler(AgentInterface agent) {
+	public Scheduler getScheduler(final AgentInterface agent) {
 		ClockScheduler scheduler = null;
 		synchronized (schedulers) {
 			if (schedulers.containsKey(agent.getId())) {
@@ -38,7 +38,7 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 				try {
 					scheduler = new ClockScheduler(agent, host);
 					schedulers.put(agent.getId(), scheduler);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					LOG.log(Level.SEVERE, "Couldn't init new scheduler", e);
 				}
 			}
@@ -51,7 +51,7 @@ public class ClockSchedulerFactory implements SchedulerFactory {
 	}
 	
 	@Override
-	public void destroyScheduler(String agentId) {
+	public void destroyScheduler(final String agentId) {
 		synchronized (schedulers) {
 			schedulers.remove(agentId);
 		}

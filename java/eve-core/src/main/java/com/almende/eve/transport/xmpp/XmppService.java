@@ -32,18 +32,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class XmppService implements TransportService {
-	private static final String				CONNKEY				= "_XMPP_Connections";
-	private AgentHost						agentHost			= null;
-	private String							host				= null;
-	private Integer							port				= null;
-	private String							service				= null;
+	private static final String					CONNKEY				= "_XMPP_Connections";
+	private AgentHost							agentHost			= null;
+	private String								host				= null;
+	private Integer								port				= null;
+	private String								service				= null;
 	
 	// xmpp url as key "xmpp:username@host"
-	private Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>();
-	private static List<String>				protocols			= Arrays.asList("xmpp");
+	private final Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>();
+	private static List<String>					protocols			= Arrays.asList("xmpp");
 	
-	private static final Logger				LOG					= Logger.getLogger(XmppService.class
-																		.getSimpleName());
+	private static final Logger					LOG					= Logger.getLogger(XmppService.class
+																			.getSimpleName());
 	
 	protected XmppService() {
 	}
@@ -52,7 +52,7 @@ public class XmppService implements TransportService {
 	static {
 		try {
 			Class.forName("org.jivesoftware.smack.ReconnectionManager");
-		} catch (ClassNotFoundException ex) {
+		} catch (final ClassNotFoundException ex) {
 			// problem loading reconnection manager
 		}
 	}
@@ -69,7 +69,8 @@ public class XmppService implements TransportService {
 	 *            {String} serviceName
 	 *            {String} id
 	 */
-	public XmppService(AgentHost agentHost, Map<String, Object> params) {
+	public XmppService(final AgentHost agentHost,
+			final Map<String, Object> params) {
 		this.agentHost = agentHost;
 		
 		if (params != null) {
@@ -89,8 +90,8 @@ public class XmppService implements TransportService {
 	 * @param service
 	 *            service name
 	 */
-	public XmppService(AgentHost agentHost, String host, Integer port,
-			String service) {
+	public XmppService(final AgentHost agentHost, final String host,
+			final Integer port, final String service) {
 		this.agentHost = agentHost;
 		this.host = host;
 		this.port = port;
@@ -99,8 +100,8 @@ public class XmppService implements TransportService {
 		init();
 	}
 	
-	private ArrayNode getConns(String agentId) throws IOException {
-		State state = agentHost.getStateFactory().get(agentId);
+	private ArrayNode getConns(final String agentId) throws IOException {
+		final State state = agentHost.getStateFactory().get(agentId);
 		
 		ArrayNode conns = null;
 		if (state.containsKey(CONNKEY)) {
@@ -119,8 +120,8 @@ public class XmppService implements TransportService {
 	 *            The url of the agent
 	 * @return connectionStatus
 	 */
-	public Boolean isConnected(String agentUrl) {
-		AgentConnection connection = connectionsByUrl.get(agentUrl);
+	public Boolean isConnected(final String agentUrl) {
+		final AgentConnection connection = connectionsByUrl.get(agentUrl);
 		
 		if (connection == null) {
 			return false;
@@ -140,19 +141,19 @@ public class XmppService implements TransportService {
 	 * @return agentUrl
 	 */
 	@Override
-	public String getAgentUrl(String agentId) {
+	public String getAgentUrl(final String agentId) {
 		try {
-			ArrayNode conns = getConns(agentId);
+			final ArrayNode conns = getConns(agentId);
 			if (conns != null) {
-				for (JsonNode conn : conns) {
-					ObjectNode params = (ObjectNode) conn;
+				for (final JsonNode conn : conns) {
+					final ObjectNode params = (ObjectNode) conn;
 					
-					String encryptedUsername = params.has("username") ? params
+					final String encryptedUsername = params.has("username") ? params
 							.get("username").textValue() : null;
-					String encryptedResource = params.has("resource") ? params
+					final String encryptedResource = params.has("resource") ? params
 							.get("resource").textValue() : null;
 					if (encryptedUsername != null) {
-						String username = EncryptionUtil
+						final String username = EncryptionUtil
 								.decrypt(encryptedUsername);
 						String resource = null;
 						if (encryptedResource != null) {
@@ -163,7 +164,7 @@ public class XmppService implements TransportService {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		return null;
@@ -177,8 +178,8 @@ public class XmppService implements TransportService {
 	 * @return agentId
 	 */
 	@Override
-	public String getAgentId(String agentUrl) {
-		AgentConnection connection = connectionsByUrl.get(agentUrl);
+	public String getAgentId(final String agentUrl) {
+		final AgentConnection connection = connectionsByUrl.get(agentUrl);
 		if (connection != null) {
 			return connection.getAgentId();
 		}
@@ -221,9 +222,9 @@ public class XmppService implements TransportService {
 	 * @throws InvalidKeyException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public final void connect(String agentId, String username, String password)
-			throws IOException {
-		String resource = null;
+	public final void connect(final String agentId, final String username,
+			final String password) throws IOException {
+		final String resource = null;
 		connect(agentId, username, password, resource);
 	}
 	
@@ -239,16 +240,16 @@ public class XmppService implements TransportService {
 	 * @throws IOException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public final void connect(String agentId, String username, String password,
-			String resource) throws IOException {
+	public final void connect(final String agentId, final String username,
+			final String password, final String resource) throws IOException {
 		// First store the connection info for later reconnection.
 		try {
 			storeConnection(agentId, username, password, resource);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.SEVERE, "Failed to store XMPP Connection.", e);
 		}
 		
-		String agentUrl = generateUrl(username, host, resource);
+		final String agentUrl = generateUrl(username, host, resource);
 		AgentConnection connection;
 		if (connectionsByUrl.containsKey(agentUrl)) {
 			LOG.warning("Warning, agent was already connected, reconnecting.");
@@ -267,16 +268,16 @@ public class XmppService implements TransportService {
 		connectionsByUrl.put(agentUrl, connection);
 	}
 	
-	private void storeConnection(String agentId, String username,
-			String password, String resource) throws IOException,
+	private void storeConnection(final String agentId, final String username,
+			final String password, final String resource) throws IOException,
 			InvalidKeyException, InvalidAlgorithmParameterException,
 			NoSuchAlgorithmException, InvalidKeySpecException,
 			NoSuchPaddingException, IllegalBlockSizeException,
 			BadPaddingException {
 		
-		State state = agentHost.getStateFactory().get(agentId);
+		final State state = agentHost.getStateFactory().get(agentId);
 		
-		String conns = state.get(CONNKEY, String.class);
+		final String conns = state.get(CONNKEY, String.class);
 		ArrayNode newConns;
 		if (conns != null) {
 			newConns = (ArrayNode) JOM.getInstance().readTree(conns);
@@ -284,13 +285,13 @@ public class XmppService implements TransportService {
 			newConns = JOM.createArrayNode();
 		}
 		
-		ObjectNode params = JOM.createObjectNode();
+		final ObjectNode params = JOM.createObjectNode();
 		params.put("username", EncryptionUtil.encrypt(username));
 		params.put("password", EncryptionUtil.encrypt(password));
 		if (resource != null && !resource.equals("")) {
 			params.put("resource", EncryptionUtil.encrypt(resource));
 		}
-		for (JsonNode item : newConns) {
+		for (final JsonNode item : newConns) {
 			if (item.get("username").equals(params.get("username"))) {
 				return;
 			}
@@ -303,10 +304,10 @@ public class XmppService implements TransportService {
 		}
 	}
 	
-	private void delConnections(String agentId) {
-		State state = agentHost.getStateFactory().get(agentId);
-		if (state != null){
-			state.remove(CONNKEY);	
+	private void delConnections(final String agentId) {
+		final State state = agentHost.getStateFactory().get(agentId);
+		if (state != null) {
+			state.remove(CONNKEY);
 		}
 	}
 	
@@ -324,29 +325,32 @@ public class XmppService implements TransportService {
 	 * @throws IOException
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	public final void disconnect(String agentId) throws InvalidKeyException,
-			InvalidAlgorithmParameterException, NoSuchAlgorithmException,
-			InvalidKeySpecException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IOException {
+	public final void disconnect(final String agentId)
+			throws InvalidKeyException, InvalidAlgorithmParameterException,
+			NoSuchAlgorithmException, InvalidKeySpecException,
+			NoSuchPaddingException, IllegalBlockSizeException,
+			BadPaddingException, IOException {
 		
-		ArrayNode conns = getConns(agentId);
+		final ArrayNode conns = getConns(agentId);
 		if (conns != null) {
-			for (JsonNode conn : conns) {
-				ObjectNode params = (ObjectNode) conn;
+			for (final JsonNode conn : conns) {
+				final ObjectNode params = (ObjectNode) conn;
 				
-				String encryptedUsername = params.has("username") ? params.get(
-						"username").textValue() : null;
-				String encryptedResource = params.has("resource") ? params.get(
-						"resource").textValue() : null;
+				final String encryptedUsername = params.has("username") ? params
+						.get("username").textValue() : null;
+				final String encryptedResource = params.has("resource") ? params
+						.get("resource").textValue() : null;
 				if (encryptedUsername != null) {
-					String username = EncryptionUtil.decrypt(encryptedUsername);
+					final String username = EncryptionUtil
+							.decrypt(encryptedUsername);
 					String resource = null;
 					if (encryptedResource != null) {
 						resource = EncryptionUtil.decrypt(encryptedResource);
 					}
 					
-					String url = generateUrl(username, host, resource);
-					AgentConnection connection = connectionsByUrl.get(url);
+					final String url = generateUrl(username, host, resource);
+					final AgentConnection connection = connectionsByUrl
+							.get(url);
 					if (connection != null) {
 						connection.disconnect();
 						connectionsByUrl.remove(url);
@@ -366,8 +370,8 @@ public class XmppService implements TransportService {
 	 *            with a JSONResponse
 	 */
 	@Override
-	public void sendAsync(String senderUrl, String receiver, Object message,
-			String tag) throws IOException {
+	public void sendAsync(final String senderUrl, final String receiver,
+			final Object message, final String tag) throws IOException {
 		
 		AgentConnection connection = null;
 		
@@ -376,13 +380,13 @@ public class XmppService implements TransportService {
 		}
 		if (connection != null) {
 			// remove the protocol from the receiver url
-			String protocol = "xmpp:";
+			final String protocol = "xmpp:";
 			if (!receiver.startsWith(protocol)) {
 				throw new ProtocolException("Receiver url must start with '"
 						+ protocol + "' (receiver='" + receiver + "')");
 			}
 			// username@domain
-			String fullUsername = receiver.substring(protocol.length());
+			final String fullUsername = receiver.substring(protocol.length());
 			connection.send(fullUsername, message);
 		} else {
 			// TODO: use an anonymous xmpp connection when the sender agent has
@@ -401,8 +405,8 @@ public class XmppService implements TransportService {
 	 *            optional
 	 * @return url
 	 */
-	private static String generateUrl(String username, String host,
-			String resource) {
+	private static String generateUrl(final String username, final String host,
+			final String resource) {
 		String url = "xmpp:" + username + "@" + host;
 		if (resource != null && !resource.equals("")) {
 			url += "/" + resource;
@@ -412,7 +416,7 @@ public class XmppService implements TransportService {
 	
 	@Override
 	public String toString() {
-		Map<String, Object> data = new HashMap<String, Object>();
+		final Map<String, Object> data = new HashMap<String, Object>();
 		data.put("class", this.getClass().getName());
 		data.put("host", host);
 		data.put("port", port);
@@ -423,24 +427,24 @@ public class XmppService implements TransportService {
 	}
 	
 	@Override
-	public void reconnect(String agentId) throws IOException {
-		ArrayNode conns = getConns(agentId);
+	public void reconnect(final String agentId) throws IOException {
+		final ArrayNode conns = getConns(agentId);
 		if (conns != null) {
-			for (JsonNode conn : conns) {
-				ObjectNode params = (ObjectNode) conn;
+			for (final JsonNode conn : conns) {
+				final ObjectNode params = (ObjectNode) conn;
 				LOG.info("Initializing connection:" + agentId + " --> "
 						+ params);
 				try {
-					String encryptedUsername = params.has("username") ? params
+					final String encryptedUsername = params.has("username") ? params
 							.get("username").textValue() : null;
-					String encryptedPassword = params.has("password") ? params
+					final String encryptedPassword = params.has("password") ? params
 							.get("password").textValue() : null;
-					String encryptedResource = params.has("resource") ? params
+					final String encryptedResource = params.has("resource") ? params
 							.get("resource").textValue() : null;
 					if (encryptedUsername != null && encryptedPassword != null) {
-						String username = EncryptionUtil
+						final String username = EncryptionUtil
 								.decrypt(encryptedUsername);
-						String password = EncryptionUtil
+						final String password = EncryptionUtil
 								.decrypt(encryptedPassword);
 						String resource = null;
 						if (encryptedResource != null) {
@@ -449,7 +453,7 @@ public class XmppService implements TransportService {
 						}
 						connect(agentId, username, password, resource);
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					throw new IOException("Failed to connect XMPP.", e);
 				}
 			}
@@ -461,8 +465,8 @@ public class XmppService implements TransportService {
 		return "xmpp://" + host + ":" + port + "/" + service;
 	}
 	
-	public boolean ping(String senderUrl, String receiver) {
-		AgentConnection connection = this.connectionsByUrl.get(senderUrl);
+	public boolean ping(final String senderUrl, final String receiver) {
+		final AgentConnection connection = connectionsByUrl.get(senderUrl);
 		return connection.isAvailable(receiver);
 	}
 	

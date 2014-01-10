@@ -18,20 +18,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Access(AccessType.PUBLIC)
 public class LogAgent extends Agent {
 	private static final long	TIMETOLIVE	= 20 * 60 * 1000;	// milliseconds
-						
-	public void config(URI agentUrl) throws IOException, JSONRPCException{
+																
+	public void config(final URI agentUrl) throws IOException, JSONRPCException {
 		getEventsFactory().subscribe(agentUrl, "*", "eventLog");
 	}
 	
-	public void eventLog(@Name("event") String event, @Name("params") ObjectNode params) throws IOException{
-		String agentId = getId().replaceFirst("_logagent_", "");
+	public void eventLog(@Name("event") final String event,
+			@Name("params") final ObjectNode params) throws IOException {
+		final String agentId = getId().replaceFirst("_logagent_", "");
 		log(new Log(agentId, event, params));
 	}
 	
-	public void log(Log log) {
+	public void log(final Log log) {
 		// TODO: use a database instead of the state - when you register
 		// more and more logs this will be very unreliable.
-		ArrayList<Log> logs = getState().get("logs",new TypeUtil<ArrayList<Log>>(){});
+		ArrayList<Log> logs = getState().get("logs",
+				new TypeUtil<ArrayList<Log>>() {
+				});
 		if (logs == null) {
 			logs = new ArrayList<Log>();
 		}
@@ -42,14 +45,16 @@ public class LogAgent extends Agent {
 		getState().put("logs", logs);
 	}
 	
-	public List<Log> getLogs(Long since) {
-		ArrayList<Log> logs = getState().get("logs",new TypeUtil<ArrayList<Log>>(){});
+	public List<Log> getLogs(final Long since) {
+		final ArrayList<Log> logs = getState().get("logs",
+				new TypeUtil<ArrayList<Log>>() {
+				});
 		
 		// TODO: use a database for the logs. It is very inefficient to
 		// retrieve them all and then filter them.
-		List<Log> output = new ArrayList<Log>();
+		final List<Log> output = new ArrayList<Log>();
 		if (logs != null) {
-			for (Log log : logs) {
+			for (final Log log : logs) {
 				if (((since == null) || (log.getTimestamp() > since))) {
 					output.add(log);
 				}
@@ -67,7 +72,7 @@ public class LogAgent extends Agent {
 	 * Remove existing time to live
 	 */
 	public void cancelTimeToLive() {
-		String timeoutId = getState().get("timeoutId",String.class);
+		final String timeoutId = getState().get("timeoutId", String.class);
 		if (timeoutId != null) {
 			getScheduler().cancelTask(timeoutId);
 		}
@@ -84,13 +89,13 @@ public class LogAgent extends Agent {
 	 *            interval in milliseconds
 	 * @throws Exception
 	 */
-	public void setTimeToLive(long interval) {
+	public void setTimeToLive(final long interval) {
 		// remove existing timeout
 		cancelTimeToLive();
 		
 		// create a new timeout
-		JSONRequest request = new JSONRequest("killMe", null);
-		String timeoutId = getScheduler().createTask(request, interval);
+		final JSONRequest request = new JSONRequest("killMe", null);
+		final String timeoutId = getScheduler().createTask(request, interval);
 		getState().put("timeoutId", timeoutId);
 	}
 	
@@ -109,8 +114,6 @@ public class LogAgent extends Agent {
 			InvocationTargetException, NoSuchMethodException {
 		getAgentHost().deleteAgent(getId());
 	}
-	
-	
 	
 	@Override
 	public String getDescription() {

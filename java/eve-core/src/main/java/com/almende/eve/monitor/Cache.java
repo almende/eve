@@ -26,7 +26,7 @@ public class Cache implements ResultMonitorConfigType {
 	 * @param params
 	 * @return
 	 */
-	public boolean filter(ObjectNode params) {
+	public boolean filter(final ObjectNode params) {
 		if (!params.has("maxAge") || !params.get("maxAge").isInt()
 				|| stored == null) {
 			return false;
@@ -39,8 +39,8 @@ public class Cache implements ResultMonitorConfigType {
 	 * 
 	 * @param value
 	 */
-	public void store(Object value) {
-		this.stored = DateTime.now();
+	public void store(final Object value) {
+		stored = DateTime.now();
 		this.value = value;
 	}
 	
@@ -58,7 +58,7 @@ public class Cache implements ResultMonitorConfigType {
 	 * 
 	 * @param stored
 	 */
-	public void setStored(DateTime stored) {
+	public void setStored(final DateTime stored) {
 		this.stored = stored;
 	}
 	
@@ -77,7 +77,7 @@ public class Cache implements ResultMonitorConfigType {
 	 * 
 	 * @param value
 	 */
-	public void setValue(Object value) {
+	public void setValue(final Object value) {
 		this.value = value;
 	}
 	

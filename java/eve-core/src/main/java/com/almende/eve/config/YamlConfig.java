@@ -10,97 +10,108 @@ import java.util.logging.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 public class YamlConfig {
-	private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
-	private Map<String, Object> config = null;
+	private final Logger		logger	= Logger.getLogger(this.getClass()
+												.getSimpleName());
+	private Map<String, Object>	config	= null;
 	
-	public YamlConfig() {}
-
+	public YamlConfig() {
+	}
+	
 	/**
 	 * Load the configuration file by filename (absolute path)
 	 * Default filename is /WEB-INF/eve.yaml
+	 * 
 	 * @param filename
 	 * @return
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
-	public YamlConfig(String filename) throws FileNotFoundException {
+	public YamlConfig(final String filename) throws FileNotFoundException {
 		load(filename);
 	}
 	
 	/**
 	 * Load the configuration file from input stream
+	 * 
 	 * @param filename
 	 * @return
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
-	public YamlConfig(InputStream inputStream) {
+	public YamlConfig(final InputStream inputStream) {
 		load(inputStream);
 	}
-
+	
 	/**
 	 * Load the configuration from a map
+	 * 
 	 * @param map
 	 * @return
 	 */
-	public YamlConfig(Map<String, Object> config) {
+	public YamlConfig(final Map<String, Object> config) {
 		this.config = config;
 	}
 	
 	/**
 	 * Load the configuration file by filename (absolute path)
 	 * Default filename is /WEB-INF/eve.yaml
+	 * 
 	 * @param filename
 	 * @return
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
-	public final void load(String filename) throws FileNotFoundException{
-		File file = new File(filename);
-		logger.info("Loading configuration file " + file.getAbsoluteFile() + "...");
-
-		FileInputStream in = new FileInputStream(filename);
+	public final void load(final String filename) throws FileNotFoundException {
+		final File file = new File(filename);
+		logger.info("Loading configuration file " + file.getAbsoluteFile()
+				+ "...");
+		
+		final FileInputStream in = new FileInputStream(filename);
 		load(in);
 	}
 	
 	/**
 	 * Load the configuration file from input stream
+	 * 
 	 * @param filename
 	 * @return
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
 	@SuppressWarnings("unchecked")
-	public final void load(InputStream inputStream) {
-		Yaml yaml = new Yaml();
+	public final void load(final InputStream inputStream) {
+		final Yaml yaml = new Yaml();
 		config = yaml.loadAs(inputStream, Map.class);
 	}
 	
 	/**
 	 * Get the full configuration
 	 * returns null if no configuration file is loaded
+	 * 
 	 * @return
 	 */
 	public Map<String, Object> get() {
-		return config;		
+		return config;
 	}
 	
 	/**
 	 * retrieve a (nested) parameter from the config
-	 * the parameter name can be a simple name like config.get("url"), 
+	 * the parameter name can be a simple name like config.get("url"),
 	 * or nested parameter like config.get("servlet", "config", "url")
-	 * null is returned when the parameter is not found, or when no 
+	 * null is returned when the parameter is not found, or when no
 	 * configuration file is loaded.
-	 * @param params    One or multiple (nested) parameters
+	 * 
+	 * @param params
+	 *            One or multiple (nested) parameters
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T get(String ... params) {
+	public <T> T get(final String... params) {
 		if (config == null) {
 			return null;
 		}
 		
 		Map<String, Object> c = config;
 		for (int i = 0; i < params.length - 1; i++) {
-			String key = params[i];
+			final String key = params[i];
 			// FIXME: check instance
-			c = (Map<String, Object>) c.get(key); 
+			c = (Map<String, Object>) c.get(key);
 			if (c == null) {
 				return null;
 			}

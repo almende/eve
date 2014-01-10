@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Access(AccessType.PUBLIC)
 public interface EventsInterface {
 	
-	
 	/**
 	 * Get existing even subscriptions for a given event.
 	 * 
@@ -102,8 +101,7 @@ public interface EventsInterface {
 	 */
 	@Access(AccessType.UNAVAILABLE)
 	String subscribe(URI url, String event, String callbackMethod,
-			ObjectNode callbackParams) throws IOException,
-			JSONRPCException;
+			ObjectNode callbackParams) throws IOException, JSONRPCException;
 	
 	/**
 	 * Unsubscribe from an other agents event

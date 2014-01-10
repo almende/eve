@@ -6,6 +6,7 @@ import java.util.Iterator;
 public interface StateFactory {
 	/**
 	 * Get state with given id. Returns null if not found
+	 * 
 	 * @param agentId
 	 * @return state
 	 */
@@ -14,6 +15,7 @@ public interface StateFactory {
 	/**
 	 * Create a state with given id. Will throw an exception when already
 	 * existing.
+	 * 
 	 * @param agentId
 	 * @return state
 	 */
@@ -21,20 +23,23 @@ public interface StateFactory {
 	
 	/**
 	 * Delete a state. If the state does not exist, nothing will happen.
+	 * 
 	 * @param agentId
 	 */
-	 void delete(String agentId);
+	void delete(String agentId);
 	
 	/**
 	 * Test if a state with given id exists.
+	 * 
 	 * @param agentId
 	 * @return exists
 	 */
-	 boolean exists(String agentId);
+	boolean exists(String agentId);
 	
 	/**
 	 * Get an interator on all agents
+	 * 
 	 * @return Iterator<Agent>
 	 */
-	 Iterator<String> getAllAgentIds();
+	Iterator<String> getAllAgentIds();
 }

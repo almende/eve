@@ -20,7 +20,7 @@ public class TestScheduler extends TestCase {
 	
 	@Test
 	public void testSingleShot() throws Exception {
-		AgentHost host = AgentHost.getInstance();
+		final AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		host.addTransportService(new HttpService(host));
 		host.setSchedulerFactory(new ClockSchedulerFactory(host, ""));
@@ -31,7 +31,7 @@ public class TestScheduler extends TestCase {
 			log.severe("Removed old agent");
 		}
 		log.severe("Setup new Agent");
-		TestSchedulerAgent test = host.createAgent(TestSchedulerAgent.class,
+		final TestSchedulerAgent test = host.createAgent(TestSchedulerAgent.class,
 				"SingleShot");
 		log.severe("Running test");
 		
@@ -56,8 +56,8 @@ public class TestScheduler extends TestCase {
 		
 	}
 	
-	public void schedule(boolean clock) throws Exception {
-		AgentHost host = AgentHost.getInstance();
+	public void schedule(final boolean clock) throws Exception {
+		final AgentHost host = AgentHost.getInstance();
 		host.setStateFactory(new FileStateFactory(".eveagents_schedulerTest"));
 		host.addTransportService(new HttpService(host));
 		
@@ -68,22 +68,22 @@ public class TestScheduler extends TestCase {
 					"_runnableScheduler"));
 		}
 		
-		String agentIds[] = { "myTest1", "myTest2", "myTest3" };
+		final String agentIds[] = { "myTest1", "myTest2", "myTest3" };
 		
-		for (String agentId : agentIds) {
+		for (final String agentId : agentIds) {
 			if (host.hasAgent(agentId)) {
 				log.severe("Agent:" + agentId + " exists, removing....");
 				host.deleteAgent(agentId);
 			}
 			log.info("Setup agent:" + agentId);
-			TestSchedulerAgent agent = (TestSchedulerAgent) host.createAgent(
+			final TestSchedulerAgent agent = host.createAgent(
 					TestSchedulerAgent.class, agentId);
 			agent.resetCount();
 		}
-		DateTime start = DateTime.now();
+		final DateTime start = DateTime.now();
 		log.info("Start:" + start);
-		for (String agentId : agentIds) {
-			TestSchedulerAgent agent = (TestSchedulerAgent) host
+		for (final String agentId : agentIds) {
+			final TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
 			agent.setTest(agentId, 500, true, false);
 			agent.setTest(agentId, 1000, true, false);
@@ -106,10 +106,10 @@ public class TestScheduler extends TestCase {
 		while (start.plus(3000).isAfterNow()) {
 			Thread.sleep(500);
 		}
-		for (String agentId : agentIds) {
-			TestSchedulerAgent agent = (TestSchedulerAgent) host
+		for (final String agentId : agentIds) {
+			final TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
-			Scheduler scheduler = agent.getScheduler();
+			final Scheduler scheduler = agent.getScheduler();
 			
 			log.info("Agent " + agentId + " ran " + agent.getCount()
 					+ " tasks.");
@@ -119,10 +119,10 @@ public class TestScheduler extends TestCase {
 			agent.resetCount();
 		}
 		Thread.sleep(1000);
-		for (String agentId : agentIds) {
-			TestSchedulerAgent agent = (TestSchedulerAgent) host
+		for (final String agentId : agentIds) {
+			final TestSchedulerAgent agent = (TestSchedulerAgent) host
 					.getAgent(agentId);
-			Scheduler scheduler = agent.getScheduler();
+			final Scheduler scheduler = agent.getScheduler();
 			log.info("Agent " + agentId + " ran still: " + agent.getCount()
 					+ " tasks after cancel.");
 			log.info("Tasks left:" + scheduler.getTasks());

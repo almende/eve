@@ -22,22 +22,22 @@ public class CouchDBStateFactory implements StateFactory {
 												.getSimpleName());
 	private static CouchDbConnector	db	= null;
 	
-	public CouchDBStateFactory(Map<String, Object> params) {
+	public CouchDBStateFactory(final Map<String, Object> params) {
 		this((String) params.get("url"), (String) params.get("database"),
 				(String) params.get("username"), (String) params
 						.get("password"));
 	}
 	
-	public CouchDBStateFactory(String url) {
+	public CouchDBStateFactory(final String url) {
 		this(url, null, null, null);
 	}
 	
-	public CouchDBStateFactory(String url, String database) {
+	public CouchDBStateFactory(final String url, final String database) {
 		this(url, database, null, null);
 	}
 	
-	public CouchDBStateFactory(String url, final String database,
-			String username, String password) {
+	public CouchDBStateFactory(final String url, final String database,
+			final String username, final String password) {
 		
 		if (url == null) {
 			LOG.severe("Cannot connect to couch db with a url");
@@ -50,7 +50,7 @@ public class CouchDBStateFactory implements StateFactory {
 		}
 		
 		try {
-			Builder builder = new StdHttpClient.Builder().url(url);
+			final Builder builder = new StdHttpClient.Builder().url(url);
 			
 			if (username != null && !username.isEmpty()) {
 				builder.username(username);
@@ -60,13 +60,13 @@ public class CouchDBStateFactory implements StateFactory {
 				builder.password(password);
 			}
 			
-			HttpClient httpClient = builder.build();
-			CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
+			final HttpClient httpClient = builder.build();
+			final CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
 			// if the second parameter is true, the database will be created if
 			// it doesn't exists
 			db = dbInstance.createConnector(sdb, true);
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.SEVERE, "Failed to connect to couch db", e);
 		}
 	}
@@ -92,8 +92,8 @@ public class CouchDBStateFactory implements StateFactory {
 		try {
 			state = db.get(CouchDBState.class, couchify(agentId));
 			state.setDb(db);
-		} catch (DocumentNotFoundException dEx) {
-		} catch (Exception e) {
+		} catch (final DocumentNotFoundException dEx) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Failed to load agent", e);
 		}
 		
@@ -101,21 +101,21 @@ public class CouchDBStateFactory implements StateFactory {
 	}
 	
 	@Override
-	public synchronized CouchDBState create(String agentId) throws IOException {
+	public synchronized CouchDBState create(final String agentId) throws IOException {
 		if (exists(agentId)) {
 			throw new IllegalStateException("Cannot create state, "
 					+ "state with id '" + agentId + "' already exists.");
 		}
 		
-		CouchDBState state = new CouchDBState(agentId, db);
+		final CouchDBState state = new CouchDBState(agentId, db);
 		db.create(state);
 		
 		return state;
 	}
 	
 	@Override
-	public void delete(String agentId) {
-		CouchDBState state = get(couchify(agentId));
+	public void delete(final String agentId) {
+		final CouchDBState state = get(couchify(agentId));
 		db.delete(state);
 	}
 	

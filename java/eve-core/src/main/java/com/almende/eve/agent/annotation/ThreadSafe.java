@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation for parameter names.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.TYPE)
+@Target(value = ElementType.TYPE)
 public @interface ThreadSafe {
 	boolean value();
 }

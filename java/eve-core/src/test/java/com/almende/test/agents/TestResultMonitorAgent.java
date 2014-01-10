@@ -28,7 +28,7 @@ public class TestResultMonitorAgent extends Agent {
 	
 	public void bobEvent() throws Exception {
 		System.err.println("BobEvent triggered!");
-		ObjectNode params = JOM.createObjectNode();
+		final ObjectNode params = JOM.createObjectNode();
 		params.put("hello", "world");
 		getEventsFactory().trigger("Go", params);
 		
@@ -39,45 +39,55 @@ public class TestResultMonitorAgent extends Agent {
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
 				null, new Poll(1000), new Cache());
 		
-		if (monitorID != null) getState().put("PollKey", monitorID);
+		if (monitorID != null) {
+			getState().put("PollKey", monitorID);
+		}
 		
-		Cache testCache = new Cache();
+		final Cache testCache = new Cache();
 		monitorID = getResultMonitorFactory().create("Push",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
 				null, new Push().onInterval(1000).onChange(), testCache);
-		if (monitorID != null) getState().put("PushKey", monitorID);
+		if (monitorID != null) {
+			getState().put("PushKey", monitorID);
+		}
 		
 		monitorID = new ResultMonitor("LazyPush", getId(),
 				URI.create("local:bob"), "getData", JOM.createObjectNode())
 				.add(new Push(-1, true)).add(testCache).store();
-		if (monitorID != null) getState().put("LazyPushKey", monitorID);
+		if (monitorID != null) {
+			getState().put("LazyPushKey", monitorID);
+		}
 		
 		monitorID = getResultMonitorFactory().create("LazyPoll",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
 				"returnRes", new Poll(800), new Poll(1500));
-		if (monitorID != null) getState().put("LazyPollKey", monitorID);
+		if (monitorID != null) {
+			getState().put("LazyPollKey", monitorID);
+		}
 		
 		monitorID = getResultMonitorFactory().create("EventPush",
 				URI.create("local:bob"), "getData", JOM.createObjectNode(),
 				"returnResParm", new Push().onEvent("Go"));
-		if (monitorID != null) getState().put("EventPushKey", monitorID);
+		if (monitorID != null) {
+			getState().put("EventPushKey", monitorID);
+		}
 		
 	}
 	
-	public void returnRes(@Name("result") int result) {
+	public void returnRes(@Name("result") final int result) {
 		System.err.println("Received callback result:" + result);
 	}
 	
-	public void returnResParm(@Name("result") int result,
-			@Name("hello") String world) {
+	public void returnResParm(@Name("result") final int result,
+			@Name("hello") final String world) {
 		System.err
 				.println("Received callback result:" + result + " : " + world);
 	}
 	
 	public List<Integer> get_result() {
 		try {
-			List<Integer> result = new ArrayList<Integer>();
-			ObjectNode params = JOM.createObjectNode();
+			final List<Integer> result = new ArrayList<Integer>();
+			final ObjectNode params = JOM.createObjectNode();
 			params.put("maxAge", 3000);
 			String monitorID = getState().get("PushKey", String.class);
 			result.add(getResultMonitorFactory().getResult(monitorID, params,
@@ -96,7 +106,7 @@ public class TestResultMonitorAgent extends Agent {
 					Integer.class));
 			
 			return result;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return null;

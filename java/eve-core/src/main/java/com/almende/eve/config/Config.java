@@ -21,7 +21,8 @@ public class Config extends YamlConfig {
 	 */
 	private static final Map<String, String>	LABELS				= new HashMap<String, String>();
 	static {
-		LABELS.put("couchdbstatefactory", "com.almende.eve.state.couchdb.CouchDBStateFactory");
+		LABELS.put("couchdbstatefactory",
+				"com.almende.eve.state.couchdb.CouchDBStateFactory");
 		LABELS.put("filestatefactory", "com.almende.eve.state.FileStateFactory");
 		LABELS.put("memorystatefactory",
 				"com.almende.eve.state.MemoryStateFactory");
@@ -42,17 +43,18 @@ public class Config extends YamlConfig {
 		super();
 	}
 	
-	public Config(String filename) throws FileNotFoundException {
+	public Config(final String filename) throws FileNotFoundException {
 		super(filename);
 	}
 	
-	public Config(InputStream inputStream) {
+	public Config(final InputStream inputStream) {
 		super(inputStream);
 	}
 	
+	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(String... params) {
-		ArrayList<String> envParams = new ArrayList<String>(params.length + 2);
+	public <T> T get(final String... params) {
+		final ArrayList<String> envParams = new ArrayList<String>(params.length + 2);
 		envParams.add("environment");
 		envParams.add(getEnvironment());
 		envParams.addAll(Arrays.asList(params));
@@ -60,14 +62,14 @@ public class Config extends YamlConfig {
 		if (result == null) {
 			result = super.get(params);
 		}
-
+		
 		if (result != null && String.class.isAssignableFrom(result.getClass())) {
 			result = (T) map((String) result);
 		}
 		return result;
 	}
 	
-	public static String map(String result){
+	public static String map(String result) {
 		if (LABELS.containsKey(result.toLowerCase())) {
 			result = LABELS.get(result.toLowerCase());
 		}
@@ -76,7 +78,7 @@ public class Config extends YamlConfig {
 	
 	public static String getEnvironment() {
 		if (environment == null) {
-			for (String path : ENVIRONMENTPATH) {
+			for (final String path : ENVIRONMENTPATH) {
 				environment = System.getProperty(path);
 				if (environment != null) {
 					LOG.info("Current environment: '" + environment
@@ -92,7 +94,7 @@ public class Config extends YamlConfig {
 				String msg = "No environment variable found. "
 						+ "Environment set to '" + environment
 						+ "'. Checked paths: ";
-				for (String path : ENVIRONMENTPATH) {
+				for (final String path : ENVIRONMENTPATH) {
 					msg += path + ", ";
 				}
 				LOG.warning(msg);
@@ -102,7 +104,7 @@ public class Config extends YamlConfig {
 		return environment;
 	}
 	
-	public static final void setEnvironment(String env) {
+	public static final void setEnvironment(final String env) {
 		environment = env;
 	}
 }

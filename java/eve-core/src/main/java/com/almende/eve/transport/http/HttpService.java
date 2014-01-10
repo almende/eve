@@ -27,11 +27,11 @@ public class HttpService implements TransportService {
 													.getCanonicalName());
 	private String				servletUrl	= null;
 	private AgentHost			host		= null;
-	private List<String>		protocols	= Arrays.asList("http", "https",
+	private final List<String>		protocols	= Arrays.asList("http", "https",
 													"web");
 	
-	public HttpService(AgentHost agentHost) {
-		this.host = agentHost;
+	public HttpService(final AgentHost agentHost) {
+		host = agentHost;
 	}
 	
 	/**
@@ -42,8 +42,8 @@ public class HttpService implements TransportService {
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(AgentHost agentHost, Map<String, Object> params) {
-		this.host = agentHost;
+	public HttpService(final AgentHost agentHost, final Map<String, Object> params) {
+		host = agentHost;
 		if (params != null) {
 			setServletUrl((String) params.get("servlet_url"));
 		}
@@ -57,9 +57,9 @@ public class HttpService implements TransportService {
 	 * @param params
 	 *            Available parameters: {String} servlet_url
 	 */
-	public HttpService(AgentHost agentHost, String servlet_url) {
-		this.host = agentHost;
-		setServletUrl(servlet_url);
+	public HttpService(final AgentHost agentHost, final String servletUrl) {
+		host = agentHost;
+		setServletUrl(servletUrl);
 	}
 	
 	/**
@@ -68,14 +68,14 @@ public class HttpService implements TransportService {
 	 * 
 	 * @param servletUrl
 	 */
-	private void setServletUrl(String servletUrl) {
+	private void setServletUrl(final String servletUrl) {
 		this.servletUrl = servletUrl;
 		if (!this.servletUrl.endsWith("/")) {
 			this.servletUrl += "/";
 		}
-		int separator = this.servletUrl.indexOf(':');
+		final int separator = this.servletUrl.indexOf(':');
 		if (separator != -1) {
-			String protocol = this.servletUrl.substring(0, separator);
+			final String protocol = this.servletUrl.substring(0, separator);
 			if (!protocols.contains(protocol)) {
 				protocols.add(protocol);
 			}
@@ -128,10 +128,11 @@ public class HttpService implements TransportService {
 						// This is a reply to a synchronous inbound call, get
 						// callback
 						// and use it to send the message
-						CallbackInterface<Object> callbacks = host.getCallbackService(
-								"HttpTransport", Object.class);
+						final CallbackInterface<Object> callbacks = host
+								.getCallbackService("HttpTransport",
+										Object.class);
 						if (callbacks != null) {
-							AsyncCallback<Object> callback = callbacks.get(tag);
+							final AsyncCallback<Object> callback = callbacks.get(tag);
 							if (callback != null) {
 								callback.onSuccess(message);
 								return;
@@ -152,11 +153,11 @@ public class HttpService implements TransportService {
 							.toString());
 					httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
 					
-					HttpResponse webResp = ApacheHttpClient.get().execute(
+					final HttpResponse webResp = ApacheHttpClient.get().execute(
 							httpPost);
-					String result = EntityUtils.toString(webResp.getEntity());
+					final String result = EntityUtils.toString(webResp.getEntity());
 					host.receive(senderUrl, result, receiverUrl, null);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					LOG.log(Level.WARNING,
 							"HTTP roundtrip resulted in exception!", e);
 				} finally {
@@ -175,11 +176,11 @@ public class HttpService implements TransportService {
 	 * @return agentUrl
 	 */
 	@Override
-	public String getAgentUrl(String agentId) {
+	public String getAgentUrl(final String agentId) {
 		if (servletUrl != null) {
 			try {
 				return servletUrl + URLEncoder.encode(agentId, "UTF-8") + "/";
-			} catch (UnsupportedEncodingException e) {
+			} catch (final UnsupportedEncodingException e) {
 				return servletUrl + agentId + "/";
 			}
 		} else {
@@ -198,14 +199,14 @@ public class HttpService implements TransportService {
 	public String getAgentId(String agentUrl) {
 		if (servletUrl != null) {
 			// add domain when missing
-			String domain = getDomain(agentUrl);
+			final String domain = getDomain(agentUrl);
 			if (domain.equals("")) {
 				// provided url is only containing the path (not the domain)
 				agentUrl = getDomain(servletUrl) + agentUrl;
 			}
 			
 			if (agentUrl.startsWith(servletUrl)) {
-				int separator = agentUrl.indexOf('/', servletUrl.length());
+				final int separator = agentUrl.indexOf('/', servletUrl.length());
 				try {
 					if (separator != -1) {
 						return URLDecoder.decode(agentUrl.substring(
@@ -215,7 +216,7 @@ public class HttpService implements TransportService {
 								agentUrl.substring(servletUrl.length()),
 								"UTF-8");
 					}
-				} catch (UnsupportedEncodingException e) {
+				} catch (final UnsupportedEncodingException e) {
 					LOG.log(Level.WARNING, "", e);
 				}
 			}
@@ -236,14 +237,14 @@ public class HttpService implements TransportService {
 	public String getAgentResource(String agentUrl) {
 		if (servletUrl != null) {
 			// add domain when missing
-			String domain = getDomain(agentUrl);
+			final String domain = getDomain(agentUrl);
 			if (domain.equals("")) {
 				// provided url is only containing the path (not the domain)
 				agentUrl = getDomain(servletUrl) + agentUrl;
 			}
 			
 			if (agentUrl.startsWith(servletUrl)) {
-				int separator = agentUrl.indexOf('/', servletUrl.length());
+				final int separator = agentUrl.indexOf('/', servletUrl.length());
 				if (separator != -1) {
 					return agentUrl.substring(separator + 1);
 				} else {
@@ -264,12 +265,12 @@ public class HttpService implements TransportService {
 	 * @param url
 	 * @return domain
 	 */
-	public String getDomain(String url) {
-		int protocolSeparator = url.indexOf("://");
+	public String getDomain(final String url) {
+		final int protocolSeparator = url.indexOf("://");
 		if (protocolSeparator != -1) {
-			int fromIndex = (protocolSeparator != -1) ? protocolSeparator + 3
+			final int fromIndex = (protocolSeparator != -1) ? protocolSeparator + 3
 					: 0;
-			int pathSeparator = url.indexOf('/', fromIndex);
+			final int pathSeparator = url.indexOf('/', fromIndex);
 			if (pathSeparator != -1) {
 				return url.substring(0, pathSeparator);
 			}
@@ -279,7 +280,7 @@ public class HttpService implements TransportService {
 	
 	@Override
 	public String toString() {
-		Map<String, Object> data = new HashMap<String, Object>();
+		final Map<String, Object> data = new HashMap<String, Object>();
 		data.put("class", this.getClass().getName());
 		data.put("servlet_url", servletUrl);
 		data.put("protocols", protocols);
@@ -287,15 +288,14 @@ public class HttpService implements TransportService {
 	}
 	
 	@Override
-	public void reconnect(String agentId) {
+	public void reconnect(final String agentId) {
 		// Nothing todo at this point
 	}
 	
 	@Override
 	public String getKey() {
 		return "http://"
-				+ (this.getServletUrl() == null ? "outbound" : this
-						.getServletUrl());
+				+ (getServletUrl() == null ? "outbound" : getServletUrl());
 	}
 	
 }

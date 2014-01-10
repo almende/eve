@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation for parameter requirement
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.PARAMETER)
+@Target(value = ElementType.PARAMETER)
 @Deprecated
 public @interface Required {
 	boolean value();

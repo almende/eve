@@ -55,8 +55,8 @@ public final class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	public static String invoke(Object destination, String request,
-			JSONAuthorizor auth) throws IOException {
+	public static String invoke(final Object destination, final String request,
+			final JSONAuthorizor auth) throws IOException {
 		return invoke(destination, request, null, auth);
 	}
 	
@@ -74,15 +74,15 @@ public final class JSONRPC {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	public static String invoke(Object destination, String request,
-			RequestParams requestParams, JSONAuthorizor auth)
+	public static String invoke(final Object destination, final String request,
+			final RequestParams requestParams, final JSONAuthorizor auth)
 			throws IOException {
 		JSONRequest jsonRequest = null;
 		JSONResponse jsonResponse = null;
 		try {
 			jsonRequest = new JSONRequest(request);
 			jsonResponse = invoke(destination, jsonRequest, requestParams, auth);
-		} catch (JSONRPCException err) {
+		} catch (final JSONRPCException err) {
 			jsonResponse = new JSONResponse(err);
 		}
 		
@@ -98,8 +98,8 @@ public final class JSONRPC {
 	 *            will be invoked on the given object
 	 * @return
 	 */
-	public static JSONResponse invoke(Object destination, JSONRequest request,
-			JSONAuthorizor auth) {
+	public static JSONResponse invoke(final Object destination, final JSONRequest request,
+			final JSONAuthorizor auth) {
 		return invoke(destination, request, null, auth);
 	}
 	
@@ -114,8 +114,8 @@ public final class JSONRPC {
 	 *            Optional request parameters
 	 * @return
 	 */
-	public static JSONResponse invoke(Object destination, JSONRequest request,
-			RequestParams requestParams, JSONAuthorizor auth) {
+	public static JSONResponse invoke(final Object destination, final JSONRequest request,
+			final RequestParams requestParams, final JSONAuthorizor auth) {
 		final JSONResponse resp = new JSONResponse(request.getId(), null);
 		try {
 			final CallTuple tuple = NamespaceUtil.get(destination,
@@ -123,8 +123,8 @@ public final class JSONRPC {
 			final Object realDest = tuple.getDestination();
 			final String realMethod = tuple.getMethodName();
 			
-			final AnnotatedMethod annotatedMethod = getMethod(realDest, realMethod,
-					requestParams, auth);
+			final AnnotatedMethod annotatedMethod = getMethod(realDest,
+					realMethod, requestParams, auth);
 			if (annotatedMethod == null) {
 				throw new JSONRPCException(
 						JSONRPCException.CODE.METHOD_NOT_FOUND,
@@ -141,10 +141,10 @@ public final class JSONRPC {
 				result = JOM.createNullNode();
 			}
 			resp.setResult(result);
-		} catch (JSONRPCException err) {
-			resp.setError((JSONRPCException) err);
-		} catch (Exception err) {
-			Throwable cause = err.getCause();
+		} catch (final JSONRPCException err) {
+			resp.setError(err);
+		} catch (final Exception err) {
+			final Throwable cause = err.getCause();
 			if (cause instanceof JSONRPCException) {
 				resp.setError((JSONRPCException) cause);
 			} else {
@@ -153,7 +153,7 @@ public final class JSONRPC {
 							"Exception raised, returning its cause as JSONRPCException. Request:"
 									+ request, cause);
 					
-					JSONRPCException jsonError = new JSONRPCException(
+					final JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR,
 							getMessage(cause), cause);
 					jsonError.setData(cause);
@@ -163,7 +163,7 @@ public final class JSONRPC {
 							"Exception raised, returning it as JSONRPCException. Request:"
 									+ request, err);
 					
-					JSONRPCException jsonError = new JSONRPCException(
+					final JSONRPCException jsonError = new JSONRPCException(
 							JSONRPCException.CODE.INTERNAL_ERROR,
 							getMessage(err), err);
 					jsonError.setData(err);
@@ -189,20 +189,20 @@ public final class JSONRPC {
 	 * @return errors A list with validation errors. When no problems are found,
 	 *         an empty list is returned
 	 */
-	public static List<String> validate(Class<?> c, RequestParams requestParams) {
-		List<String> errors = new ArrayList<String>();
-		Set<String> methodNames = new HashSet<String>();
+	public static List<String> validate(final Class<?> c, final RequestParams requestParams) {
+		final List<String> errors = new ArrayList<String>();
+		final Set<String> methodNames = new HashSet<String>();
 		
 		AnnotatedClass ac = null;
 		try {
 			ac = AnnotationUtil.get(c);
 			if (ac != null) {
-				for (AnnotatedMethod method : ac.getMethods()) {
-					boolean available = isAvailable(method, null,
+				for (final AnnotatedMethod method : ac.getMethods()) {
+					final boolean available = isAvailable(method, null,
 							requestParams, null);
 					if (available) {
 						// The method name may only occur once
-						String name = method.getName();
+						final String name = method.getName();
 						if (methodNames.contains(name)) {
 							errors.add("Public method '"
 									+ name
@@ -218,7 +218,7 @@ public final class JSONRPC {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(Level.WARNING, "Problems wrapping class for annotation",
 					e);
 			errors.add("Class can't be wrapped for annotation, exception raised:"
@@ -227,22 +227,22 @@ public final class JSONRPC {
 		return errors;
 	}
 	
-	private static Map<String, Object> _describe(Object c,
-			RequestParams requestParams, String namespace) {
-		Map<String, Object> methods = new TreeMap<String, Object>();
+	private static Map<String, Object> _describe(final Object c,
+			final RequestParams requestParams, final String namespace) {
+		final Map<String, Object> methods = new TreeMap<String, Object>();
 		try {
 			if (c == null) {
 				return methods;
 			}
-			AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
-			for (AnnotatedMethod method : annotatedClass.getMethods()) {
+			final AnnotatedClass annotatedClass = AnnotationUtil.get(c.getClass());
+			for (final AnnotatedMethod method : annotatedClass.getMethods()) {
 				if (isAvailable(method, null, requestParams, null)) {
 					// format as JSON
-					List<Object> descParams = new ArrayList<Object>();
-					for (AnnotatedParam param : method.getParams()) {
+					final List<Object> descParams = new ArrayList<Object>();
+					for (final AnnotatedParam param : method.getParams()) {
 						if (getRequestAnnotation(param, requestParams) == null) {
-							String name = getName(param);
-							Map<String, Object> paramData = new HashMap<String, Object>();
+							final String name = getName(param);
+							final Map<String, Object> paramData = new HashMap<String, Object>();
 							paramData.put("name", name);
 							paramData.put("type",
 									typeToString(param.getGenericType()));
@@ -251,12 +251,12 @@ public final class JSONRPC {
 						}
 					}
 					
-					Map<String, Object> result = new HashMap<String, Object>();
+					final Map<String, Object> result = new HashMap<String, Object>();
 					result.put("type",
 							typeToString(method.getGenericReturnType()));
 					
-					Map<String, Object> desc = new HashMap<String, Object>();
-					String methodName = namespace.equals("") ? method.getName()
+					final Map<String, Object> desc = new HashMap<String, Object>();
+					final String methodName = namespace.equals("") ? method.getName()
 							: namespace + "." + method.getName();
 					desc.put("method", methodName);
 					desc.put("params", descParams);
@@ -264,15 +264,15 @@ public final class JSONRPC {
 					methods.put(methodName, desc);
 				}
 			}
-			for (AnnotatedMethod method : annotatedClass
+			for (final AnnotatedMethod method : annotatedClass
 					.getAnnotatedMethods(Namespace.class)) {
-				String innerNamespace = method.getAnnotation(Namespace.class)
+				final String innerNamespace = method.getAnnotation(Namespace.class)
 						.value();
 				methods.putAll(_describe(
 						method.getActualMethod().invoke(c, (Object[]) null),
 						requestParams, innerNamespace));
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(Level.WARNING,
 					"Failed to describe class:" + c.toString(), e);
 			return null;
@@ -293,18 +293,18 @@ public final class JSONRPC {
 	 *            to read string.
 	 * @return
 	 */
-	public static List<Object> describe(Object c, RequestParams requestParams) {
+	public static List<Object> describe(final Object c, final RequestParams requestParams) {
 		try {
-			Map<String, Object> methods = _describe(c, requestParams, "");
+			final Map<String, Object> methods = _describe(c, requestParams, "");
 			
 			// create a sorted array
-			List<Object> sortedMethods = new ArrayList<Object>();
-			TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
-			for (String methodName : methodNames) {
+			final List<Object> sortedMethods = new ArrayList<Object>();
+			final TreeSet<String> methodNames = new TreeSet<String>(methods.keySet());
+			for (final String methodName : methodNames) {
 				sortedMethods.add(methods.get(methodName));
 			}
 			return sortedMethods;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(Level.WARNING,
 					"Failed to describe class:" + c.toString(), e);
 			return null;
@@ -318,22 +318,22 @@ public final class JSONRPC {
 	 * @param c
 	 * @return
 	 */
-	private static String typeToString(Type c) {
+	private static String typeToString(final Type c) {
 		String s = c.toString();
 		
 		// replace full namespaces to short names
 		int point = s.lastIndexOf('.');
 		while (point >= 0) {
-			int angle = s.lastIndexOf('<', point);
-			int space = s.lastIndexOf(' ', point);
-			int start = Math.max(angle, space);
+			final int angle = s.lastIndexOf('<', point);
+			final int space = s.lastIndexOf(' ', point);
+			final int start = Math.max(angle, space);
 			s = s.substring(0, start + 1) + s.substring(point + 1);
 			point = s.lastIndexOf('.');
 		}
 		
 		// remove modifiers like "class blabla" or "interface blabla"
-		int space = s.indexOf(' ');
-		int angle = s.indexOf('<', point);
+		final int space = s.indexOf(' ');
+		final int angle = s.indexOf('<', point);
 		if (space >= 0 && (angle < 0 || angle > space)) {
 			s = s.substring(space + 1);
 		}
@@ -347,7 +347,7 @@ public final class JSONRPC {
 	 * @param error
 	 * @return message String with the error description of the cause
 	 */
-	private static String getMessage(Throwable error) {
+	private static String getMessage(final Throwable error) {
 		Throwable cause = error;
 		while (cause.getCause() != null) {
 			cause = cause.getCause();
@@ -364,19 +364,19 @@ public final class JSONRPC {
 	 * @param requestParams
 	 * @return methodType meta information on the method, or null if not found
 	 */
-	private static AnnotatedMethod getMethod(Object destination, String method,
-			RequestParams requestParams, JSONAuthorizor auth) {
+	private static AnnotatedMethod getMethod(final Object destination, final String method,
+			final RequestParams requestParams, final JSONAuthorizor auth) {
 		AnnotatedClass annotatedClass;
 		try {
 			annotatedClass = AnnotationUtil.get(destination.getClass());
 			
-			List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
-			for (AnnotatedMethod m : methods) {
+			final List<AnnotatedMethod> methods = annotatedClass.getMethods(method);
+			for (final AnnotatedMethod m : methods) {
 				if (isAvailable(m, destination, requestParams, auth)) {
 					return m;
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(Level.WARNING, "GetMethod failed:", e);
 		}
 		return null;
@@ -391,8 +391,8 @@ public final class JSONRPC {
 	 * @return
 	 * @throws Exception
 	 */
-	private static Object[] castParams(Object params,
-			List<AnnotatedParam> annotatedParams, RequestParams requestParams) {
+	private static Object[] castParams(final Object params,
+			final List<AnnotatedParam> annotatedParams, final RequestParams requestParams) {
 		
 		if (annotatedParams.size() == 0) {
 			return new Object[0];
@@ -408,22 +408,22 @@ public final class JSONRPC {
 				
 				// the method expects one parameter of type JSONObject
 				// feed the params object itself to it.
-				Object[] objects = new Object[1];
+				final Object[] objects = new Object[1];
 				objects[0] = params;
 				return objects;
 			} else {
-				ObjectNode paramsObject = (ObjectNode) params;
+				final ObjectNode paramsObject = (ObjectNode) params;
 				
-				Object[] objects = new Object[annotatedParams.size()];
+				final Object[] objects = new Object[annotatedParams.size()];
 				for (int i = 0; i < annotatedParams.size(); i++) {
-					AnnotatedParam p = annotatedParams.get(i);
+					final AnnotatedParam p = annotatedParams.get(i);
 					
-					Annotation a = getRequestAnnotation(p, requestParams);
+					final Annotation a = getRequestAnnotation(p, requestParams);
 					if (a != null) {
 						// this is a systems parameter
 						objects[i] = requestParams.get(a);
 					} else {
-						String name = getName(p);
+						final String name = getName(p);
 						if (name != null) {
 							// this is a named parameter
 							if (paramsObject.has(name)) {
@@ -468,26 +468,26 @@ public final class JSONRPC {
 	 * @param args
 	 * @return
 	 */
-	public static JSONRequest createRequest(Method method, Object[] args) {
+	public static JSONRequest createRequest(final Method method, final Object[] args) {
 		AnnotatedMethod annotatedMethod = null;
 		try {
 			annotatedMethod = new AnnotationUtil.AnnotatedMethod(method);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.log(Level.WARNING,
 					"Method can't be used as annotated method", e);
 			throw new IllegalArgumentException("Method '" + method.getName()
 					+ "' can't be used as annotated method.", e);
 		}
-		List<AnnotatedParam> annotatedParams = annotatedMethod.getParams();
+		final List<AnnotatedParam> annotatedParams = annotatedMethod.getParams();
 		
-		ObjectNode params = JOM.createObjectNode();
+		final ObjectNode params = JOM.createObjectNode();
 		
 		for (int i = 0; i < annotatedParams.size(); i++) {
-			AnnotatedParam annotatedParam = annotatedParams.get(i);
+			final AnnotatedParam annotatedParam = annotatedParams.get(i);
 			if (i < args.length && args[i] != null) {
-				String name = getName(annotatedParam);
+				final String name = getName(annotatedParam);
 				if (name != null) {
-					JsonNode paramValue = JOM.getInstance().convertValue(
+					final JsonNode paramValue = JOM.getInstance().convertValue(
 							args[i], JsonNode.class);
 					params.put(name, paramValue);
 				} else {
@@ -503,7 +503,7 @@ public final class JSONRPC {
 		JsonNode id = null;
 		try {
 			id = JOM.getInstance().readTree(new UUID().toString());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 		}
 		return new JSONRequest(id, method.getName(), params);
 	}
@@ -517,10 +517,10 @@ public final class JSONRPC {
 	 * @param requestParams
 	 * @return available
 	 */
-	private static boolean isAvailable(AnnotatedMethod method,
-			Object destination, RequestParams requestParams, JSONAuthorizor auth) {
+	private static boolean isAvailable(final AnnotatedMethod method,
+			final Object destination, final RequestParams requestParams, final JSONAuthorizor auth) {
 		
-		int mod = method.getActualMethod().getModifiers();
+		final int mod = method.getActualMethod().getModifiers();
 		
 		Access methodAccess = method.getAnnotation(Access.class);
 		if (destination != null
@@ -532,7 +532,7 @@ public final class JSONRPC {
 			return false;
 		}
 		
-		Access classAccess = AnnotationUtil.get(
+		final Access classAccess = AnnotationUtil.get(
 				destination != null ? destination.getClass() : method
 						.getActualMethod().getDeclaringClass()).getAnnotation(
 				Access.class);
@@ -565,11 +565,11 @@ public final class JSONRPC {
 	 * @param requestParams
 	 * @return hasNamedParams
 	 */
-	private static boolean hasNamedParams(AnnotatedMethod method,
-			RequestParams requestParams) {
-		for (AnnotatedParam param : method.getParams()) {
+	private static boolean hasNamedParams(final AnnotatedMethod method,
+			final RequestParams requestParams) {
+		for (final AnnotatedParam param : method.getParams()) {
 			boolean found = false;
-			for (Annotation a : param.getAnnotations()) {
+			for (final Annotation a : param.getAnnotations()) {
 				if (requestParams != null && requestParams.has(a)) {
 					found = true;
 					break;
@@ -594,9 +594,9 @@ public final class JSONRPC {
 	 * @return required
 	 */
 	@SuppressWarnings("deprecation")
-	private static boolean isRequired(AnnotatedParam param) {
+	private static boolean isRequired(final AnnotatedParam param) {
 		boolean required = true;
-		com.almende.eve.rpc.annotation.Required requiredAnnotation = param
+		final com.almende.eve.rpc.annotation.Required requiredAnnotation = param
 				.getAnnotation(com.almende.eve.rpc.annotation.Required.class);
 		if (requiredAnnotation != null) {
 			required = requiredAnnotation.value();
@@ -614,9 +614,9 @@ public final class JSONRPC {
 	 * @param param
 	 * @return name
 	 */
-	private static String getName(AnnotatedParam param) {
+	private static String getName(final AnnotatedParam param) {
 		String name = null;
-		Name nameAnnotation = param.getAnnotation(Name.class);
+		final Name nameAnnotation = param.getAnnotation(Name.class);
 		if (nameAnnotation != null) {
 			name = nameAnnotation.value();
 		}
@@ -631,9 +631,9 @@ public final class JSONRPC {
 	 * @param requestParams
 	 * @return annotation
 	 */
-	private static Annotation getRequestAnnotation(AnnotatedParam param,
-			RequestParams requestParams) {
-		for (Annotation annotation : param.getAnnotations()) {
+	private static Annotation getRequestAnnotation(final AnnotatedParam param,
+			final RequestParams requestParams) {
+		for (final Annotation annotation : param.getAnnotations()) {
 			if (requestParams != null && requestParams.has(annotation)) {
 				return annotation;
 			}
@@ -648,7 +648,7 @@ public final class JSONRPC {
 	 * @param json
 	 * @return
 	 */
-	public static boolean isRequest(ObjectNode json) {
+	public static boolean isRequest(final ObjectNode json) {
 		return json.has("method");
 	}
 	
@@ -659,7 +659,7 @@ public final class JSONRPC {
 	 * @param json
 	 * @return
 	 */
-	public static boolean isResponse(ObjectNode json) {
+	public static boolean isResponse(final ObjectNode json) {
 		return (json.has("result") || json.has("error"));
 	}
 	

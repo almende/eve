@@ -60,10 +60,10 @@ public class ConcurrentSerializableFileState extends
 	private OutputStream				fos			= null;
 	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
 	
-	private Map<String, Serializable>	properties	= Collections
+	private final Map<String, Serializable>	properties	= Collections
 															.synchronizedMap(new HashMap<String, Serializable>());
 	
-	public ConcurrentSerializableFileState(String agentId, String filename) {
+	public ConcurrentSerializableFileState(final String agentId, final String filename) {
 		super(agentId);
 		this.filename = filename;
 	}
@@ -80,18 +80,18 @@ public class ConcurrentSerializableFileState extends
 			while (locked.containsKey(filename) && locked.get(filename)) {
 				try {
 					locked.wait();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 				}
 			}
 			locked.put(filename, true);
 			
-			File file = new File(this.filename);
+			final File file = new File(filename);
 			if (!file.exists()) {
 				locked.put(filename, false);
 				locked.notifyAll();
 				throw new IllegalStateException(
 						"Warning: File doesn't exist (anymore):'"
-								+ this.filename + "'");
+								+ filename + "'");
 			}
 			channel = new RandomAccessFile(file, "rw").getChannel();
 			
@@ -99,7 +99,7 @@ public class ConcurrentSerializableFileState extends
 				// TODO: add support for shared locks, allowing parallel reading
 				// operations.
 				lock = channel.lock();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				channel.close();
 				channel = null;
 				lock = null;
@@ -121,7 +121,7 @@ public class ConcurrentSerializableFileState extends
 				try {
 					
 					lock.release();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					LOG.log(Level.WARNING, "", e);
 				}
 			}
@@ -136,7 +136,7 @@ public class ConcurrentSerializableFileState extends
 				if (channel != null) {
 					channel.close();
 				}
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				LOG.log(Level.WARNING, "", e);
 			}
 			channel = null;
@@ -158,7 +158,7 @@ public class ConcurrentSerializableFileState extends
 		if (channel != null) {
 			channel.position(0);
 		}
-		ObjectOutput out = new ObjectOutputStream(fos);
+		final ObjectOutput out = new ObjectOutputStream(fos);
 		out.writeObject(properties);
 		out.flush();
 		
@@ -182,11 +182,11 @@ public class ConcurrentSerializableFileState extends
 			}
 			
 			properties.clear();
-			ObjectInput in = new ObjectInputStream(fis);
+			final ObjectInput in = new ObjectInputStream(fis);
 			
 			properties.putAll((Map<String, Serializable>) in.readObject());
 			
-		} catch (EOFException eof) {
+		} catch (final EOFException eof) {
 			// empty file, new agent?
 		}
 	}
@@ -210,11 +210,11 @@ public class ConcurrentSerializableFileState extends
 	public synchronized void clear() {
 		try {
 			openFile();
-			String agentType = (String) properties.get(KEY_AGENT_TYPE);
+			final String agentType = (String) properties.get(KEY_AGENT_TYPE);
 			properties.clear();
 			properties.put(KEY_AGENT_TYPE, agentType);
 			write();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -228,7 +228,7 @@ public class ConcurrentSerializableFileState extends
 			read();
 			result = new HashSet<String>(properties.keySet());
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -236,14 +236,14 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	@Override
-	public synchronized boolean containsKey(String key) {
+	public synchronized boolean containsKey(final String key) {
 		boolean result = false;
 		try {
 			openFile();
 			read();
 			result = properties.containsKey(key);
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -251,13 +251,13 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	@Override
-	public synchronized Serializable get(String key) {
+	public synchronized Serializable get(final String key) {
 		Serializable result = null;
 		try {
 			openFile();
 			read();
 			result = properties.get(key);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -265,14 +265,14 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	@Override
-	public synchronized Serializable locPut(String key, Serializable value) {
+	public synchronized Serializable locPut(final String key, final Serializable value) {
 		Serializable result = null;
 		try {
 			openFile();
 			read();
 			result = properties.put(key, value);
 			write();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -280,8 +280,8 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	@Override
-	public synchronized boolean locPutIfUnchanged(String key,
-			Serializable newVal, Serializable oldVal) {
+	public synchronized boolean locPutIfUnchanged(final String key,
+			final Serializable newVal, final Serializable oldVal) {
 		boolean result = false;
 		try {
 			openFile();
@@ -294,7 +294,7 @@ public class ConcurrentSerializableFileState extends
 				write();
 				result = true;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 			// Don't let users loop if exception is thrown. They
 			// would get into a deadlock....
@@ -305,14 +305,14 @@ public class ConcurrentSerializableFileState extends
 	}
 	
 	@Override
-	public synchronized Object remove(String key) {
+	public synchronized Object remove(final String key) {
 		Object result = null;
 		try {
 			openFile();
 			read();
 			result = properties.remove(key);
 			write();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -326,7 +326,7 @@ public class ConcurrentSerializableFileState extends
 			openFile();
 			read();
 			result = properties.size();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();

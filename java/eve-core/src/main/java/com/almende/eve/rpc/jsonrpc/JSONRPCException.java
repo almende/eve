@@ -11,12 +11,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JSONRPCException extends Exception {
 	private static final long	serialVersionUID	= -4258336566828038603L;
-	private static final Logger	LOG			= Logger.getLogger(JSONRPCException.class
-													.getCanonicalName());
-	private ObjectNode			error		= JOM.createObjectNode();
-	static final String			CODE_S		= "code";
-	static final String			MESSAGE_S	= "message";
-	static final String			DATA_S		= "data";
+	private static final Logger	LOG					= Logger.getLogger(JSONRPCException.class
+															.getCanonicalName());
+	private final ObjectNode			error				= JOM.createObjectNode();
+	static final String			CODE_S				= "code";
+	static final String			MESSAGE_S			= "message";
+	static final String			DATA_S				= "data";
 	
 	public static enum CODE {
 		UNKNOWN_ERROR, PARSE_ERROR, INVALID_REQUEST, REMOTE_EXCEPTION, METHOD_NOT_FOUND, INVALID_PARAMS, INTERNAL_ERROR, NOT_FOUND, UNAUTHORIZED
@@ -27,22 +27,22 @@ public class JSONRPCException extends Exception {
 		init(CODE.UNKNOWN_ERROR, null, null);
 	}
 	
-	public JSONRPCException(CODE code) {
+	public JSONRPCException(final CODE code) {
 		super();
 		init(code, null, null);
 	}
 	
-	public JSONRPCException(CODE code, String description) {
+	public JSONRPCException(final CODE code, final String description) {
 		super(description);
 		init(code, description, null);
 	}
 	
-	public JSONRPCException(CODE code, String description, final Throwable t) {
+	public JSONRPCException(final CODE code, final String description, final Throwable t) {
 		super(description, t);
 		init(code, description, t);
 	}
 	
-	public JSONRPCException(JSONRPCException error) {
+	public JSONRPCException(final JSONRPCException error) {
 		super(error);
 		if (error != null) {
 			setCode(error.getCode());
@@ -55,37 +55,37 @@ public class JSONRPCException extends Exception {
 		}
 	}
 	
-	public JSONRPCException(String message) {
+	public JSONRPCException(final String message) {
 		super(message);
 		setCode(0);
 		setMessage(message);
 	}
 	
-	public JSONRPCException(String message, Throwable t) {
+	public JSONRPCException(final String message, final Throwable t) {
 		super(message, t);
 		setCode(0);
 		setMessage(message);
 		try {
 			setData(JOM.getInstance().writeValueAsString(t));
-		} catch (JsonProcessingException e) {
-			LOG.log(Level.SEVERE,"Failed to init JSONRPCException!",e);
+		} catch (final JsonProcessingException e) {
+			LOG.log(Level.SEVERE, "Failed to init JSONRPCException!", e);
 		}
 	}
 	
-	public JSONRPCException(Integer code, String message) {
+	public JSONRPCException(final Integer code, final String message) {
 		super(message);
 		setCode(code);
 		setMessage(message);
 	}
 	
-	public JSONRPCException(Integer code, String message, Object data) {
+	public JSONRPCException(final Integer code, final String message, final Object data) {
 		super(message);
 		setCode(code);
 		setMessage(message);
 		setData(data);
 	}
 	
-	public JSONRPCException(ObjectNode exception) {
+	public JSONRPCException(final ObjectNode exception) {
 		super();
 		if (exception != null && !exception.isNull()) {
 			// set code, message, and optional data
@@ -104,7 +104,7 @@ public class JSONRPCException extends Exception {
 		}
 	}
 	
-	private void init(CODE code, String message, Throwable t) {
+	private void init(final CODE code, final String message, final Throwable t) {
 		switch (code) {
 			case UNKNOWN_ERROR:
 				setCode(-32000);
@@ -149,7 +149,7 @@ public class JSONRPCException extends Exception {
 		}
 	}
 	
-	public final void setCode(int code) {
+	public final void setCode(final int code) {
 		error.put(CODE_S, code);
 	}
 	
@@ -157,16 +157,17 @@ public class JSONRPCException extends Exception {
 		return error.get(CODE_S).asInt();
 	}
 	
-	public final void setMessage(String message) {
+	public final void setMessage(final String message) {
 		error.put(MESSAGE_S, message != null ? message : "");
 	}
 	
+	@Override
 	public String getMessage() {
 		return error.get(MESSAGE_S).asText();
 	}
 	
-	public final void setData(Object data) {
-		ObjectMapper mapper = JOM.getInstance();
+	public final void setData(final Object data) {
+		final ObjectMapper mapper = JOM.getInstance();
 		error.put(DATA_S,
 				data != null ? mapper.convertValue(data, JsonNode.class) : null);
 	}
@@ -187,10 +188,12 @@ public class JSONRPCException extends Exception {
 	public String toString() {
 		try {
 			return JOM.getInstance().writeValueAsString(this);
-		} catch (JsonProcessingException e) {
-			LOG.log(Level.SEVERE,"Couldn't JSON serialize JSONRPCException!",e);
+		} catch (final JsonProcessingException e) {
+			LOG.log(Level.SEVERE, "Couldn't JSON serialize JSONRPCException!",
+					e);
 		}
-		return this.getClass().getCanonicalName() + ": " + error.get("message").textValue();
+		return this.getClass().getCanonicalName() + ": "
+				+ error.get("message").textValue();
 	}
 	
 }

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class JSONResponse extends JSONMessage {
 	private static final long	serialVersionUID	= 12392962249054051L;
-	private ObjectNode			resp				= JOM.createObjectNode();
+	private final ObjectNode			resp				= JOM.createObjectNode();
 	private static final Logger	LOG					= Logger.getLogger(JSONResponse.class
 															.getName());
 	
@@ -20,37 +20,37 @@ public final class JSONResponse extends JSONMessage {
 		init(null, null, null);
 	}
 	
-	public JSONResponse(String json) throws JSONRPCException, IOException {
-		ObjectMapper mapper = JOM.getInstance();
+	public JSONResponse(final String json) throws JSONRPCException, IOException {
+		final ObjectMapper mapper = JOM.getInstance();
 		try {
 			init(mapper.readValue(json, ObjectNode.class));
-		} catch (JsonParseException e) {
+		} catch (final JsonParseException e) {
 			LOG.warning("Failed to parse JSON: '" + json + "'");
 			throw e;
 		}
 	}
 	
-	public JSONResponse(ObjectNode response) throws JSONRPCException {
+	public JSONResponse(final ObjectNode response) throws JSONRPCException {
 		init(response);
 	}
 	
-	public JSONResponse(Object result) {
+	public JSONResponse(final Object result) {
 		init(null, result, null);
 	}
 	
-	public JSONResponse(JsonNode id, Object result) {
+	public JSONResponse(final JsonNode id, final Object result) {
 		init(id, result, null);
 	}
 	
-	public JSONResponse(JSONRPCException error) {
+	public JSONResponse(final JSONRPCException error) {
 		init(null, null, error);
 	}
 	
-	public JSONResponse(JsonNode id, JSONRPCException error) {
+	public JSONResponse(final JsonNode id, final JSONRPCException error) {
 		init(id, null, error);
 	}
 	
-	private void init(ObjectNode response) throws JSONRPCException {
+	private void init(final ObjectNode response) throws JSONRPCException {
 		if (response == null || response.isNull()) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Response is null");
@@ -60,14 +60,14 @@ public final class JSONResponse extends JSONMessage {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Value of member 'jsonrpc' must be '2.0'");
 		}
-		boolean hasError = response.has(ERROR) && !response.get(ERROR).isNull();
+		final boolean hasError = response.has(ERROR) && !response.get(ERROR).isNull();
 		if (hasError && !(response.get(ERROR).isObject())) {
 			throw new JSONRPCException(JSONRPCException.CODE.INVALID_REQUEST,
 					"Member 'error' is no ObjectNode");
 		}
 		
-		JsonNode id = response.get(ID);
-		Object result = response.get(RESULT);
+		final JsonNode id = response.get(ID);
+		final Object result = response.get(RESULT);
 		JSONRPCException error = null;
 		if (hasError) {
 			error = new JSONRPCException((ObjectNode) response.get(ERROR));
@@ -76,24 +76,25 @@ public final class JSONResponse extends JSONMessage {
 		init(id, result, error);
 	}
 	
-	private void init(JsonNode id, Object result, JSONRPCException error) {
+	private void init(final JsonNode id, final Object result, final JSONRPCException error) {
 		setVersion();
 		setId(id);
 		setResult(result);
 		setError(error);
 	}
 	
-	public void setId(JsonNode id) {
+	public void setId(final JsonNode id) {
 		resp.put(ID, id);
 	}
 	
+	@Override
 	public JsonNode getId() {
 		return resp.get(ID);
 	}
 	
-	public void setResult(Object result) {
+	public void setResult(final Object result) {
 		if (result != null) {
-			ObjectMapper mapper = JOM.getInstance();
+			final ObjectMapper mapper = JOM.getInstance();
 			resp.put(RESULT, mapper.convertValue(result, JsonNode.class));
 			setError(null);
 		} else {
@@ -107,7 +108,7 @@ public final class JSONResponse extends JSONMessage {
 		return resp.get(RESULT);
 	}
 	
-	public void setError(JSONRPCException error) {
+	public void setError(final JSONRPCException error) {
 		if (error != null) {
 			resp.put(ERROR, error.getObjectNode());
 			setResult(null);
@@ -120,7 +121,7 @@ public final class JSONResponse extends JSONMessage {
 	
 	public JSONRPCException getError() {
 		if (resp.has(ERROR)) {
-			ObjectNode error = (ObjectNode) resp.get(ERROR);
+			final ObjectNode error = (ObjectNode) resp.get(ERROR);
 			return new JSONRPCException(error);
 		} else {
 			return null;
@@ -137,10 +138,10 @@ public final class JSONResponse extends JSONMessage {
 	
 	@Override
 	public String toString() {
-		ObjectMapper mapper = JOM.getInstance();
+		final ObjectMapper mapper = JOM.getInstance();
 		try {
 			return mapper.writeValueAsString(resp);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.SEVERE, "Failed to stringify response.", e);
 		}
 		return null;

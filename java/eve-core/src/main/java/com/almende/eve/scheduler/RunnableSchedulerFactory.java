@@ -28,6 +28,7 @@ import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.eve.state.State;
 import com.almende.util.TypeUtil;
+
 /**
  * Documentation on Scheduling:
  * http://docs.oracle.com/javase/1.5.0/docs/api/java
@@ -54,14 +55,14 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * @param AgentHostDefImpl
 	 * @param params
 	 */
-	public RunnableSchedulerFactory(AgentHost host,
-			Map<String, Object> params) {
+	public RunnableSchedulerFactory(final AgentHost host,
+			final Map<String, Object> params) {
 		this(host, (params != null) ? (String) params.get("id") : null);
 	}
 	
-	public RunnableSchedulerFactory(AgentHost host, String id) {
+	public RunnableSchedulerFactory(final AgentHost host, final String id) {
 		this.host = host;
-		this.stateId = id;
+		stateId = id;
 		
 		init();
 	}
@@ -96,7 +97,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 				state = host.getStateFactory().create(stateId);
 				state.setAgentType(RunnableScheduler.class);
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Can't init State", e);
 		}
 	}
@@ -107,12 +108,12 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * @param agentId
 	 */
 	@Override
-	public Scheduler getScheduler(AgentInterface agent) {
+	public Scheduler getScheduler(final AgentInterface agent) {
 		return new RunnableScheduler(agent.getId());
 	}
 	
 	@Override
-	public void destroyScheduler(String agentId) {
+	public void destroyScheduler(final String agentId) {
 		allTasks.remove(agentId);
 	}
 	
@@ -123,7 +124,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 */
 	private synchronized String createTaskId() {
 		count++;
-		long id = count;
+		final long id = count;
 		return Long.toString(id);
 	}
 	
@@ -149,8 +150,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @param delay
 		 *            The delay in milliseconds
 		 */
-		Task(final String agentId, final JSONRequest request, long delay,
-				boolean interval, boolean sequential) {
+		Task(final String agentId, final JSONRequest request, final long delay,
+				final boolean interval, final boolean sequential) {
 			// TODO: throw exceptions when agentId, request are null or
 			// delay < 0
 			this.agentId = agentId;
@@ -176,7 +177,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * @throws IOException
 		 * @throws JSONRPCException
 		 */
-		Task(Map<String, String> params) throws JSONRPCException, IOException {
+		Task(final Map<String, String> params) throws JSONRPCException,
+				IOException {
 			// TODO: throw exceptions when agentId, request are null or
 			// delay < 0
 			
@@ -227,8 +229,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 							start(interval);
 						}
 						
-						String receiverUrl = "local:" + agentId;
-						AgentInterface sender = host.getAgent(agentId);
+						final String receiverUrl = "local:" + agentId;
+						final AgentInterface sender = host.getAgent(agentId);
 						if (sender == null) {
 							throw new IllegalStateException(
 									"Sending agent is missing:" + agentId);
@@ -238,7 +240,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						LOG.log(Level.WARNING, "", e);
 					} finally {
 						if (interval <= 0) {
@@ -279,7 +281,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		
 		public void cancel() {
 			if (future != null) {
-				boolean mayInterruptIfRunning = false;
+				final boolean mayInterruptIfRunning = false;
 				future.cancel(mayInterruptIfRunning);
 			}
 			remove();
@@ -307,7 +309,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * Remove this task from the global task list
 		 */
 		private void remove() {
-			Map<String, Task> tasks = allTasks.get(agentId);
+			final Map<String, Task> tasks = allTasks.get(agentId);
 			if (tasks != null) {
 				tasks.remove(taskId);
 				
@@ -329,9 +331,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * due to cancel) returns true;
 		 */
 		private boolean cancelled() {
-			Map<String, Task> tasks = allTasks.get(agentId);
+			final Map<String, Task> tasks = allTasks.get(agentId);
 			if (tasks != null) {
-				Task storedTask = tasks.get(taskId);
+				final Task storedTask = tasks.get(taskId);
 				if (storedTask != null) {
 					return false;
 				}
@@ -340,7 +342,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		}
 		
 		public Map<String, String> getParams() {
-			Map<String, String> params = new HashMap<String, String>();
+			final Map<String, String> params = new HashMap<String, String>();
 			params.put("agentId", agentId);
 			params.put("request", request.toString());
 			params.put("timestamp", timestamp.toString());
@@ -349,10 +351,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 			return params;
 		}
 		
+		@Override
 		public String toString() {
 			try {
 				return JOM.getInstance().writeValueAsString(this);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				LOG.log(Level.WARNING, "", e);
 				return super.toString();
 			}
@@ -365,7 +368,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * method getSchedular(agentId).
 	 */
 	public final class RunnableScheduler extends AbstractScheduler {
-		private RunnableScheduler(String agentId) {
+		private RunnableScheduler(final String agentId) {
 			this.agentId = agentId;
 		}
 		
@@ -383,9 +386,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 *            run in parallel?
 		 * @return taskId
 		 */
-		public String createTask(JSONRequest request, long delay,
-				boolean repeat, boolean sequential) {
-			Task task = new Task(agentId, request, delay, repeat, sequential);
+		@Override
+		public String createTask(final JSONRequest request, final long delay,
+				final boolean repeat, final boolean sequential) {
+			final Task task = new Task(agentId, request, delay, repeat,
+					sequential);
 			return task.getTaskId();
 		}
 		
@@ -398,7 +403,8 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 *            The delay in milliseconds
 		 * @return taskId
 		 */
-		public String createTask(JSONRequest request, long delay) {
+		@Override
+		public String createTask(final JSONRequest request, final long delay) {
 			return createTask(request, delay, false, false);
 		}
 		
@@ -407,10 +413,11 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 * 
 		 * @param taskId
 		 */
-		public void cancelTask(String taskId) {
-			Map<String, Task> tasks = allTasks.get(agentId);
+		@Override
+		public void cancelTask(final String taskId) {
+			final Map<String, Task> tasks = allTasks.get(agentId);
 			if (tasks != null) {
-				Task task = tasks.get(taskId);
+				final Task task = tasks.get(taskId);
 				if (task != null) {
 					task.cancel();
 				}
@@ -424,7 +431,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 */
 		@Override
 		public synchronized Set<String> getTasks() {
-			Map<String, Task> tasks = allTasks.get(agentId);
+			final Map<String, Task> tasks = allTasks.get(agentId);
 			if (tasks != null) {
 				return tasks.keySet();
 			}
@@ -438,10 +445,10 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		 */
 		@Override
 		public synchronized Set<String> getDetailedTasks() {
-			Map<String, Task> tasks = allTasks.get(agentId);
-			HashSet<String> result = new HashSet<String>();
+			final Map<String, Task> tasks = allTasks.get(agentId);
+			final HashSet<String> result = new HashSet<String>();
 			if (tasks != null) {
-				for (Task task : tasks.values()) {
+				for (final Task task : tasks.values()) {
 					result.add(task.toString());
 				}
 			}
@@ -457,7 +464,7 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		
 		@Override
 		public void cancelAllTasks() {
-			for (String id : getTasks()) {
+			for (final String id : getTasks()) {
 				cancelTask(id);
 			}
 		}
@@ -471,12 +478,12 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		int failedTaskCount = 0;
 		
 		try {
-			List<Map<String, String>> serializedTasks = state.get("tasks",
-					new TypeUtil<List<Map<String, String>>>() {
+			final List<Map<String, String>> serializedTasks = state.get(
+					"tasks", new TypeUtil<List<Map<String, String>>>() {
 					});
 			
 			if (serializedTasks != null) {
-				for (Map<String, String> taskParams : serializedTasks) {
+				for (final Map<String, String> taskParams : serializedTasks) {
 					taskCount++;
 					try {
 						// start the task
@@ -484,13 +491,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						// TODO: optimize: when a new Task is created, it will
 						// automatically
 						// store and persist allTasks again. That is inefficient
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						LOG.log(Level.WARNING, "", e);
 						failedTaskCount++;
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		
@@ -505,12 +512,13 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	 * Persist all currently running tasks
 	 */
 	private void storeTasks() {
-		ArrayList<Map<String, String>> serializedTasks = new ArrayList<Map<String, String>>();
+		final ArrayList<Map<String, String>> serializedTasks = new ArrayList<Map<String, String>>();
 		
-		for (Entry<String, Map<String, Task>> allEntry : allTasks.entrySet()) {
-			Map<String, Task> tasks = allEntry.getValue();
-			for (Entry<String, Task> entry : tasks.entrySet()) {
-				Task task = entry.getValue();
+		for (final Entry<String, Map<String, Task>> allEntry : allTasks
+				.entrySet()) {
+			final Map<String, Task> tasks = allEntry.getValue();
+			for (final Entry<String, Task> entry : tasks.entrySet()) {
+				final Task task = entry.getValue();
 				serializedTasks.add(task.getParams());
 			}
 		}

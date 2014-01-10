@@ -10,7 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public final class StreamingUtil {
 	
-	private StreamingUtil(){};
+	private StreamingUtil() {
+	};
 	
 	/**
 	 * Stream an input stream to a servlet response
@@ -20,13 +21,14 @@ public final class StreamingUtil {
 	 * @param response
 	 * @throws IOException
 	 */
-	public static void streamBinaryData(InputStream inputStream,
-			String mimeType, HttpServletResponse response) throws IOException {
-		OutputStream os = response.getOutputStream();
+	public static void streamBinaryData(final InputStream inputStream,
+			final String mimeType, final HttpServletResponse response)
+			throws IOException {
+		final OutputStream os = response.getOutputStream();
 		if (inputStream != null && os != null) {
 			response.setContentType(mimeType);
 			// TODO: use buffered streams?
-			byte[] buff = new byte[1024];
+			final byte[] buff = new byte[1024];
 			int bytesRead;
 			while (-1 != (bytesRead = inputStream.read(buff, 0, buff.length))) {
 				os.write(buff, 0, bytesRead);
@@ -34,21 +36,20 @@ public final class StreamingUtil {
 		}
 	}
 	
-	
-	private static Map<String,String> mimeTypes;
+	private static Map<String, String>	mimeTypes;
 	static {
-		mimeTypes = new HashMap<String,String>();
-		mimeTypes.put("pdf","application/pdf");
+		mimeTypes = new HashMap<String, String>();
+		mimeTypes.put("pdf", "application/pdf");
 		mimeTypes.put("html", "text/html");
 		mimeTypes.put("js", "text/javascript");
-		mimeTypes.put("css","text/css");
+		mimeTypes.put("css", "text/css");
 		mimeTypes.put("gif", "image/gif");
 		mimeTypes.put("jpeg", "image/jpeg");
 		mimeTypes.put("jpg", "image/jpeg");
-		mimeTypes.put("bmp","image/bmp");
+		mimeTypes.put("bmp", "image/bmp");
 		mimeTypes.put("png", "image/png");
 		mimeTypes.put("avi", "video/avi");
-		mimeTypes.put("mpeg","video/mpeg");
+		mimeTypes.put("mpeg", "video/mpeg");
 		mimeTypes.put("xml", "text/xml");
 		mimeTypes.put("json", "application/json");
 		mimeTypes.put("basic", "audio/basic");
@@ -62,7 +63,7 @@ public final class StreamingUtil {
 	 * 
 	 * @return String MIMEtype, for example "image/jpeg" or "application/pdf"
 	 */
-	public static String getMimeType(String format) {
+	public static String getMimeType(final String format) {
 		return mimeTypes.get(format.toLowerCase());
 	}
 	

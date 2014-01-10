@@ -8,10 +8,10 @@ import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.fasterxml.jackson.databind.JavaType;
 
 public abstract class TypedKey<T> {
-	private JavaType	valueType;
-	private String		key;
+	private final JavaType	valueType;
+	private final String		key;
 	
-	public TypedKey(String key) {
+	public TypedKey(final String key) {
 		this.key = key;
 		this.valueType = JOM.getTypeFactory()
 				.constructType(
@@ -29,14 +29,14 @@ public abstract class TypedKey<T> {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		if (this == o) {
 			return true;
 		}
 		if (!(o instanceof TypedKey)) {
 			return false;
 		}
-		TypedKey<?> other = (TypedKey<?>) o;
+		final TypedKey<?> other = (TypedKey<?>) o;
 		return key.equals(other.key) && valueType.equals(other.valueType);
 	}
 	

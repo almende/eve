@@ -16,18 +16,18 @@ public class ObjectCache {
 	
 	private static Map<String, ObjectCache>	caches	= new ConcurrentHashMap<String, ObjectCache>();
 	
-	protected ObjectCache(String label, Config config) {
+	protected ObjectCache(final String label, final Config config) {
 		if (config != null) {
 			configCache(config);
 		}
 		caches.put(label, this);
 	}
 	
-	protected ObjectCache(String label) {
+	protected ObjectCache(final String label) {
 		this(label, null);
 	}
 	
-	public static ObjectCache get(String label) {
+	public static ObjectCache get(final String label) {
 		if (!caches.containsKey(label)) {
 			new ObjectCache(label);
 		}
@@ -40,15 +40,15 @@ public class ObjectCache {
 	 * 
 	 * @param config
 	 */
-	public void configCache(Config config) {
+	public void configCache(final Config config) {
 		synchronized (cache) {
-			Integer max = config.get("ObjectCache", "maxSize");
+			final Integer max = config.get("ObjectCache", "maxSize");
 			if (max != null) {
-				this.maxSize = max;
+				maxSize = max;
 			}
-			this.cache = new ConcurrentHashMap<String, MetaInfo<?>>(
-					this.maxSize + 1);
-			this.scores = new TreeSet<MetaInfo<?>>();
+			cache = new ConcurrentHashMap<String, MetaInfo<?>>(
+					maxSize + 1);
+			scores = new TreeSet<MetaInfo<?>>();
 		}
 	}
 	
@@ -59,9 +59,9 @@ public class ObjectCache {
 	 * @param key
 	 * @return
 	 */
-	public <T> T get(String key, Class<T> type) {
+	public <T> T get(final String key, final Class<T> type) {
 		synchronized (cache) {
-			MetaInfo<?> result = cache.get(key);
+			final MetaInfo<?> result = cache.get(key);
 			if (result != null
 					&& type.isAssignableFrom(result.getValue().getClass())) {
 				result.use();
@@ -71,7 +71,7 @@ public class ObjectCache {
 		}
 	}
 	
-	public boolean containsKey(String key) {
+	public boolean containsKey(final String key) {
 		return cache.containsKey(key);
 	}
 	
@@ -82,11 +82,11 @@ public class ObjectCache {
 	 * @param key
 	 * @param value
 	 */
-	public <T> void put(String key, T value) {
+	public <T> void put(final String key, final T value) {
 		synchronized (cache) {
-			MetaInfo<T> entry = new MetaInfo<T>(key, value);
+			final MetaInfo<T> entry = new MetaInfo<T>(key, value);
 			cache.put(key, entry);
-			int overshoot = cache.size() - maxSize;
+			final int overshoot = cache.size() - maxSize;
 			if (overshoot > 0) {
 				evict(overshoot);
 			}
@@ -94,9 +94,9 @@ public class ObjectCache {
 		}
 	}
 	
-	protected void evict(int amount) {
+	protected void evict(final int amount) {
 		synchronized (cache) {
-			ArrayList<MetaInfo<?>> toEvict = new ArrayList<MetaInfo<?>>(amount);
+			final ArrayList<MetaInfo<?>> toEvict = new ArrayList<MetaInfo<?>>(amount);
 			if (scores.size() <= amount) {
 				cache.clear();
 				scores.clear();
@@ -104,12 +104,12 @@ public class ObjectCache {
 			}
 			for (int i = 0; i < amount; i++) {
 				if (scores.size() > 0) {
-					MetaInfo<?> entry = scores.first();
+					final MetaInfo<?> entry = scores.first();
 					toEvict.add(entry);
 					scores.remove(entry);
 				}
 			}
-			for (MetaInfo<?> entry : toEvict) {
+			for (final MetaInfo<?> entry : toEvict) {
 				cache.remove(entry.getKey());
 			}
 		}
@@ -120,8 +120,8 @@ public class ObjectCache {
 	 * 
 	 * @param key
 	 */
-	public void delete(String key) {
-		MetaInfo<?> item = cache.remove(key);
+	public void delete(final String key) {
+		final MetaInfo<?> item = cache.remove(key);
 		if (item != null) {
 			scores.remove(item);
 		}
@@ -142,12 +142,12 @@ public class ObjectCache {
 }
 
 class MetaInfo<T> implements Comparable<MetaInfo<?>> {
-	private String	key;
+	private final String	key;
 	private T		value;
 	private int		count	= 0;
-	private long	created;
+	private final long	created;
 	
-	public MetaInfo(String key, T value) {
+	public MetaInfo(final String key, final T value) {
 		created = System.currentTimeMillis();
 		this.key = key;
 		this.value = value;
@@ -176,12 +176,12 @@ class MetaInfo<T> implements Comparable<MetaInfo<?>> {
 		return value;
 	}
 	
-	public void setValue(T value) {
+	public void setValue(final T value) {
 		this.value = value;
 	}
 	
 	@Override
-	public int compareTo(MetaInfo<?> o) {
+	public int compareTo(final MetaInfo<?> o) {
 		return Double.compare(score(), o.score());
 	}
 	

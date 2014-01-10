@@ -11,23 +11,27 @@ import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.state.FileStateFactory;
 
 public class TestAspects extends TestCase {
-
+	
 	@Test
 	public void testAspect() throws Exception {
-		final String TEST_AGENT = "AspectAgent"; 
-		AgentHost factory = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		final String TEST_AGENT = "AspectAgent";
+		final AgentHost factory = AgentHost.getInstance();
+		final FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		factory.setStateFactory(stateFactory);
 		
-		if (factory.hasAgent(TEST_AGENT)) factory.deleteAgent(TEST_AGENT);
-		AspectAgent<TestAspects> agent = factory.createAspectAgent(this.getClass(), TEST_AGENT);
+		if (factory.hasAgent(TEST_AGENT)) {
+			factory.deleteAgent(TEST_AGENT);
+		}
+		final AspectAgent<TestAspects> agent = factory.createAspectAgent(
+				this.getClass(), TEST_AGENT);
 		
-		String result  = agent.send(agent.getFirstUrl(),"aspect.callMe",String.class);
-		assertEquals("Hello World",result);
+		final String result = agent.send(agent.getFirstUrl(), "aspect.callMe",
+				String.class);
+		assertEquals("Hello World", result);
 	}
 	
 	@Access(AccessType.PUBLIC)
-	public String callMe(){
+	public String callMe() {
 		return "Hello World";
 	}
 }

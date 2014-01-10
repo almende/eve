@@ -31,7 +31,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 																			};
 	private static final int									MAXCOUNT	= 100;
 	
-	public ClockScheduler(AgentInterface myAgent, AgentHost host) {
+	public ClockScheduler(final AgentInterface myAgent, final AgentHost host) {
 		if (myAgent == null) {
 			throw new IllegalArgumentException("MyAgent should not be null!");
 		}
@@ -43,13 +43,13 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		if (myAgent.getState() == null) {
 			return null;
 		}
-		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		final TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline != null && !timeline.isEmpty()) {
 			TaskEntry task = timeline.firstEntry().getValue();
 			int count = 0;
 			while (task != null && task.isActive() && count < MAXCOUNT) {
 				count++;
-				Entry<String, TaskEntry> entry = timeline.higherEntry(task
+				final Entry<String, TaskEntry> entry = timeline.higherEntry(task
 						.getTaskId());
 				task = null;
 				if (entry != null) {
@@ -70,11 +70,11 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		return null;
 	}
 	
-	public void putTask(TaskEntry task) {
+	public void putTask(final TaskEntry task) {
 		putTask(task, false);
 	}
 	
-	public void putTask(TaskEntry task, boolean onlyIfExists) {
+	public void putTask(final TaskEntry task, final boolean onlyIfExists) {
 		if (task == null || myAgent.getState() == null) {
 			LOG.warning("Trying to save task to non-existing state or task is null");
 			return;
@@ -106,7 +106,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	@Override
-	public void cancelTask(String id) {
+	public void cancelTask(final String id) {
 		if (myAgent.getState() == null) {
 			return;
 		}
@@ -141,7 +141,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 		try {
 			// TODO: fix sequential calls, needs callback and guaranteed
 			// replies, also in the case of void? (This holds for all methods?)
-			String receiverUrl = "local:" + myAgent.getId();
+			final String receiverUrl = "local:" + myAgent.getId();
 			// Next call is always short/asynchronous
 			myAgent.send(task.getRequest(), URI.create(receiverUrl), null);
 			
@@ -154,7 +154,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 				_this.putTask(task, true);
 				_this.run();
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.SEVERE, myAgent.getId()
 					+ ": Failed to run scheduled task:" + task.toString(), e);
 		}
@@ -162,14 +162,14 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	}
 	
 	@Override
-	public String createTask(JSONRequest request, long delay) {
+	public String createTask(final JSONRequest request, final long delay) {
 		return createTask(request, delay, false, false);
 	}
 	
 	@Override
-	public String createTask(JSONRequest request, long delay, boolean repeat,
-			boolean sequential) {
-		TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request,
+	public String createTask(final JSONRequest request, final long delay, final boolean repeat,
+			final boolean sequential) {
+		final TaskEntry task = new TaskEntry(DateTime.now().plus(delay), request,
 				(repeat ? delay : 0), sequential);
 		putTask(task);
 		if (repeat || delay <= 0) {
@@ -186,8 +186,8 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			return null;
 		}
 		
-		Set<String> result = new HashSet<String>();
-		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		final Set<String> result = new HashSet<String>();
+		final TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
@@ -200,12 +200,12 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			return null;
 		}
 		
-		Set<String> result = new HashSet<String>();
-		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		final Set<String> result = new HashSet<String>();
+		final TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		if (timeline == null || timeline.size() == 0) {
 			return result;
 		}
-		for (TaskEntry entry : timeline.values()) {
+		for (final TaskEntry entry : timeline.values()) {
 			result.add(entry.toString());
 		}
 		return result;
@@ -213,7 +213,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 	
 	@Override
 	public void run() {
-		TaskEntry task = getFirstTask();
+		final TaskEntry task = getFirstTask();
 		if (task != null) {
 			if (task.getDue().isBeforeNow()) {
 				runTask(task);
@@ -231,7 +231,7 @@ public class ClockScheduler extends AbstractScheduler implements Runnable {
 			return null;
 		}
 		
-		TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
+		final TreeMap<String, TaskEntry> timeline = myAgent.getState().get(TYPEDKEY);
 		return (timeline != null) ? timeline.toString() : "[]";
 	}
 }
@@ -252,9 +252,9 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	public TaskEntry() {
 	};
 	
-	public TaskEntry(DateTime due, JSONRequest request, long interval,
-			boolean sequential) {
-		this.taskId = new UUID().toString();
+	public TaskEntry(final DateTime due, final JSONRequest request, final long interval,
+			final boolean sequential) {
+		taskId = new UUID().toString();
 		this.request = request;
 		this.due = due;
 		this.interval = interval;
@@ -262,14 +262,14 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		if (this == o) {
 			return true;
 		}
 		if (!(o instanceof TaskEntry)) {
 			return false;
 		}
-		TaskEntry other = (TaskEntry) o;
+		final TaskEntry other = (TaskEntry) o;
 		return taskId.equals(other.taskId);
 	}
 	
@@ -279,7 +279,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	}
 	
 	@Override
-	public int compareTo(TaskEntry o) {
+	public int compareTo(final TaskEntry o) {
 		if (equals(o)) {
 			return 0;
 		}
@@ -310,31 +310,31 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 		return interval;
 	}
 	
-	public void setTaskId(String taskId) {
+	public void setTaskId(final String taskId) {
 		this.taskId = taskId;
 	}
 	
-	public void setRequest(JSONRequest request) {
+	public void setRequest(final JSONRequest request) {
 		this.request = request;
 	}
 	
-	public void setDueAsString(String due) {
+	public void setDueAsString(final String due) {
 		this.due = new DateTime(due);
 	}
 	
-	public void setDue(DateTime due) {
+	public void setDue(final DateTime due) {
 		this.due = due;
 	}
 	
-	public void setInterval(long interval) {
+	public void setInterval(final long interval) {
 		this.interval = interval;
 	}
 	
-	public void setSequential(boolean sequential) {
+	public void setSequential(final boolean sequential) {
 		this.sequential = sequential;
 	}
 	
-	public void setActive(boolean active) {
+	public void setActive(final boolean active) {
 		this.active = active;
 	}
 	
@@ -350,7 +350,7 @@ class TaskEntry implements Comparable<TaskEntry>, Serializable {
 	public String toString() {
 		try {
 			return JOM.getInstance().writeValueAsString(this);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Couldn't use Jackson to print task.", e);
 			return "{\"taskId\":" + taskId + ",\"due\":" + due + "}";
 		}

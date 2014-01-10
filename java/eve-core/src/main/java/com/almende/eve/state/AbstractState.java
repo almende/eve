@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 public abstract class AbstractState<V> implements State {
 	private static final Logger	LOG		= Logger.getLogger(AbstractState.class
 												.getCanonicalName());
@@ -27,7 +26,7 @@ public abstract class AbstractState<V> implements State {
 	 * The implemented classes must have this public constructor with
 	 * parameters AgentHost, and agentId
 	 */
-	public AbstractState(String agentId) {
+	public AbstractState(final String agentId) {
 		this.agentId = agentId;
 	}
 	
@@ -47,18 +46,19 @@ public abstract class AbstractState<V> implements State {
 	 * @return agentType
 	 */
 	@Override
-	public synchronized void setAgentType(Class<?> agentType) {
+	public synchronized void setAgentType(final Class<?> agentType) {
 		// TODO: dangerous to use a generic state parameter to store the agent
 		// class, can be accidentally overwritten
 		put(KEY_AGENT_TYPE, agentType.getName());
 	}
 	
 	@Override
-	public synchronized Object put(String key, Object value){
-		if (value == null || Serializable.class.isAssignableFrom(value.getClass())){
-			return locPut(key,(Serializable) value);	
-		} else if (JsonNode.class.isAssignableFrom(value.getClass())){
-			return locPut(key,(JsonNode) value);
+	public synchronized Object put(final String key, final Object value) {
+		if (value == null
+				|| Serializable.class.isAssignableFrom(value.getClass())) {
+			return locPut(key, (Serializable) value);
+		} else if (JsonNode.class.isAssignableFrom(value.getClass())) {
+			return locPut(key, (JsonNode) value);
 		} else {
 			LOG.severe("Can't handle input that is not Serializable nor JsonNode.");
 			throw new IllegalArgumentException();
@@ -66,17 +66,20 @@ public abstract class AbstractState<V> implements State {
 	}
 	
 	@Override
-	public synchronized boolean putIfUnchanged(String key, Object newVal,
-			Object oldVal){
-		if (newVal == null || Serializable.class.isAssignableFrom(newVal.getClass())){
-			return locPutIfUnchanged(key,(Serializable) newVal, (Serializable) oldVal);
-		} else if (JsonNode.class.isAssignableFrom(newVal.getClass())){
-			return locPutIfUnchanged(key,(JsonNode) newVal, (JsonNode) oldVal);
+	public synchronized boolean putIfUnchanged(final String key,
+			final Object newVal, final Object oldVal) {
+		if (newVal == null
+				|| Serializable.class.isAssignableFrom(newVal.getClass())) {
+			return locPutIfUnchanged(key, (Serializable) newVal,
+					(Serializable) oldVal);
+		} else if (JsonNode.class.isAssignableFrom(newVal.getClass())) {
+			return locPutIfUnchanged(key, (JsonNode) newVal, (JsonNode) oldVal);
 		} else {
 			LOG.severe("Can't handle input that is not Serializable nor JsonNode.");
 			throw new IllegalArgumentException();
 		}
 	}
+	
 	/**
 	 * Get the configured agents type (the full class path).
 	 * 
@@ -85,10 +88,10 @@ public abstract class AbstractState<V> implements State {
 	 */
 	@Override
 	public synchronized Class<?> getAgentType() throws ClassNotFoundException {
-		String agentType = get(KEY_AGENT_TYPE,String.class);
+		String agentType = get(KEY_AGENT_TYPE, String.class);
 		if (agentType == null) {
 			// try deprecated "class"
-			agentType = get("class",String.class);
+			agentType = get("class", String.class);
 			if (agentType != null) {
 				put(KEY_AGENT_TYPE, agentType);
 				remove("class");
@@ -104,60 +107,70 @@ public abstract class AbstractState<V> implements State {
 	public abstract V get(String key);
 	
 	@Override
-	public <T> T get(String key, Class<T> type) {
+	public <T> T get(final String key, final Class<T> type) {
 		return TypeUtil.inject(get(key), type);
 	}
 	
 	@Override
-	public <T> T get(String key, Type type) {
+	public <T> T get(final String key, final Type type) {
 		return TypeUtil.inject(get(key), type);
 	}
 	
 	@Override
-	public <T> T get(String key, JavaType type) {
+	public <T> T get(final String key, final JavaType type) {
 		return TypeUtil.inject(get(key), type);
 	}
 	
 	@Override
-	public <T> T get(String key, TypeUtil<T> type) {
+	public <T> T get(final String key, final TypeUtil<T> type) {
 		return type.inject(get(key));
 	}
 	
 	@Override
-	public <T> T get(TypedKey<T> typedKey){
-		return get(typedKey.getKey(),typedKey.getType());
+	public <T> T get(final TypedKey<T> typedKey) {
+		return get(typedKey.getKey(), typedKey.getType());
 	}
 	
-	public JsonNode locPut(String key, JsonNode value) {
+	public JsonNode locPut(final String key, final JsonNode value) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
 		locPut(key, value.toString());
 		return value;
 	}
 	
-	//Default cross type input acceptance, specific States are expected to override their own typed version.
-	public boolean locPutIfUnchanged(String key, JsonNode newVal, JsonNode oldVal) {
+	// Default cross type input acceptance, specific States are expected to
+	// override their own typed version.
+	public boolean locPutIfUnchanged(final String key, final JsonNode newVal,
+			final JsonNode oldVal) {
 		LOG.warning("Warning, this type of State can't store JsonNodes, only Serializable objects. This JsonNode is stored as string.");
 		return locPutIfUnchanged(key, newVal.toString(), oldVal.toString());
 	}
-	public synchronized Serializable locPut(String key, Serializable value) {
-		ObjectMapper om = JOM.getInstance();
+	
+	public synchronized Serializable locPut(final String key,
+			final Serializable value) {
+		final ObjectMapper om = JOM.getInstance();
 		locPut(key, om.valueToTree(value));
 		return value;
 	}
-	public boolean locPutIfUnchanged(String key, Serializable newVal,
-			Serializable oldVal) {
-		ObjectMapper om = JOM.getInstance();
-		return locPutIfUnchanged(key, om.valueToTree(newVal), om.valueToTree(oldVal));
+	
+	public boolean locPutIfUnchanged(final String key,
+			final Serializable newVal, final Serializable oldVal) {
+		final ObjectMapper om = JOM.getInstance();
+		return locPutIfUnchanged(key, om.valueToTree(newVal),
+				om.valueToTree(oldVal));
 	}
 	
 	@Override
-	public String toString(){
-		StringBuilder result= new StringBuilder();
-		for (String key : this.keySet()){
+	public String toString() {
+		final StringBuilder result = new StringBuilder();
+		for (final String key : keySet()) {
 			try {
-				result.append("'"+key+"': "+JOM.getInstance().writeValueAsString(get(key,JsonNode.class)));
-			} catch (JsonProcessingException e) {
-				result.append("'"+key+"': [unprintable]");
+				result.append("'"
+						+ key
+						+ "': "
+						+ JOM.getInstance().writeValueAsString(
+								get(key, JsonNode.class)));
+			} catch (final JsonProcessingException e) {
+				result.append("'" + key + "': [unprintable]");
 			}
 			result.append("\n");
 		}

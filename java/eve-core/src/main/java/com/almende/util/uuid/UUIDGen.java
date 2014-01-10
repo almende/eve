@@ -84,17 +84,17 @@ public final class UUIDGen {
 			macAddress = Class
 					.forName("com.eaio.uuid.UUIDGen$HardwareAddressLookup")
 					.newInstance().toString();
-		} catch (ExceptionInInitializerError err) {
+		} catch (final ExceptionInInitializerError err) {
 			// Ignored.
-		} catch (ClassNotFoundException ex) {
+		} catch (final ClassNotFoundException ex) {
 			// Ignored.
-		} catch (LinkageError err) {
+		} catch (final LinkageError err) {
 			// Ignored.
-		} catch (IllegalAccessException ex) {
+		} catch (final IllegalAccessException ex) {
 			// Ignored.
-		} catch (InstantiationException ex) {
+		} catch (final InstantiationException ex) {
 			// Ignored.
-		} catch (SecurityException ex) {
+		} catch (final SecurityException ex) {
 			// Ignored.
 		}
 		
@@ -104,7 +104,7 @@ public final class UUIDGen {
 			BufferedReader in = null;
 			
 			try {
-				String osname = System.getProperty("os.name", ""), osver = System
+				final String osname = System.getProperty("os.name", ""), osver = System
 						.getProperty("os.version", "");
 				
 				if (osname.startsWith("Windows")) {
@@ -120,7 +120,7 @@ public final class UUIDGen {
 								new String[] { "dladm", "show-phys", "-m" },
 								null);
 					} else {
-						String hostName = getFirstLineOfCommand("uname", "-n");
+						final String hostName = getFirstLineOfCommand("uname", "-n");
 						if (hostName != null) {
 							p = Runtime.getRuntime().exec(
 									new String[] { "/usr/sbin/arp", hostName },
@@ -148,9 +148,9 @@ public final class UUIDGen {
 					}
 				}
 				
-			} catch (SecurityException ex) {
+			} catch (final SecurityException ex) {
 				// Ignore it.
-			} catch (IOException ex) {
+			} catch (final IOException ex) {
 				// Ignore it.
 			} finally {
 				if (p != null) {
@@ -158,7 +158,7 @@ public final class UUIDGen {
 						in.close();
 						p.getErrorStream().close();
 						p.getOutputStream().close();
-					} catch (Exception e) {
+					} catch (final Exception e) {
 					}
 					p.destroy();
 				}
@@ -170,12 +170,12 @@ public final class UUIDGen {
 			clockSeqAndNode |= Hex.parseLong(macAddress);
 		} else {
 			try {
-				byte[] local = InetAddress.getLocalHost().getAddress();
+				final byte[] local = InetAddress.getLocalHost().getAddress();
 				clockSeqAndNode |= (local[0] << 24) & 0xFF000000L;
 				clockSeqAndNode |= (local[1] << 16) & 0xFF0000;
 				clockSeqAndNode |= (local[2] << 8) & 0xFF00;
 				clockSeqAndNode |= local[3] & 0xFF;
-			} catch (UnknownHostException ex) {
+			} catch (final UnknownHostException ex) {
 				clockSeqAndNode |= (long) (Math.random() * 0x7FFFFFFF);
 			}
 		}
@@ -218,7 +218,7 @@ public final class UUIDGen {
 	 * @return a new time value
 	 * @see UUID#getTime()
 	 */
-	public static long createTime(long currentTimeMillis) {
+	public static long createTime(final long currentTimeMillis) {
 		
 		long time;
 		
@@ -227,7 +227,7 @@ public final class UUIDGen {
 		long timeMillis = (currentTimeMillis * 10000) + 0x01B21DD213814000L;
 		
 		while (true) {
-			long current = lastTime.get();
+			final long current = lastTime.get();
 			if (timeMillis > current) {
 				if (lastTime.compareAndSet(current, timeMillis)) {
 					break;
@@ -274,7 +274,7 @@ public final class UUIDGen {
 	 * @return the first line of the command
 	 * @throws IOException
 	 */
-	static String getFirstLineOfCommand(String... commands) throws IOException {
+	static String getFirstLineOfCommand(final String... commands) throws IOException {
 		
 		Process p = null;
 		BufferedReader reader = null;
@@ -291,7 +291,7 @@ public final class UUIDGen {
 					reader.close();
 					p.getErrorStream().close();
 					p.getOutputStream().close();
-				} catch (Exception e) {
+				} catch (final Exception e) {
 				}
 				p.destroy();
 			}
@@ -311,12 +311,12 @@ public final class UUIDGen {
 		public String toString() {
 			String out = null;
 			try {
-				Enumeration<NetworkInterface> ifs = NetworkInterface
+				final Enumeration<NetworkInterface> ifs = NetworkInterface
 						.getNetworkInterfaces();
 				if (ifs != null) {
 					while (ifs.hasMoreElements()) {
-						NetworkInterface iface = ifs.nextElement();
-						byte[] hardware = iface.getHardwareAddress();
+						final NetworkInterface iface = ifs.nextElement();
+						final byte[] hardware = iface.getHardwareAddress();
 						if (hardware != null && hardware.length == 6
 								&& hardware[1] != (byte) 0xff) {
 							out = Hex.append(new StringBuilder(36), hardware)
@@ -325,7 +325,7 @@ public final class UUIDGen {
 						}
 					}
 				}
-			} catch (SocketException ex) {
+			} catch (final SocketException ex) {
 				// Ignore it.
 			}
 			return out;

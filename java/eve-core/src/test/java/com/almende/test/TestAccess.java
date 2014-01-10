@@ -10,32 +10,34 @@ import com.almende.eve.transport.http.HttpService;
 import com.almende.test.agents.TestAccessAgent;
 
 public class TestAccess extends TestCase {
-	static final String TEST1 = "TestAccessAgent";
-	static final String TEST2 = "trustedSender";
-
+	static final String	TEST1	= "TestAccessAgent";
+	static final String	TEST2	= "trustedSender";
+	
 	@Test
 	public void testAccess() throws Exception {
-		AgentHost host = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents");
+		final AgentHost host = AgentHost.getInstance();
+		final FileStateFactory stateFactory = new FileStateFactory(".eveagents");
 		host.setStateFactory(stateFactory);
-		host.addTransportService(new HttpService(host,"http://localhost:8080/agents"));
-		host.addTransportService(new HttpService(host,"https://localhost:8443/agents"));
-
+		host.addTransportService(new HttpService(host,
+				"http://localhost:8080/agents"));
+		host.addTransportService(new HttpService(host,
+				"https://localhost:8443/agents"));
+		
 		TestAccessAgent testAgent;
 		if (host.hasAgent(TEST1)) {
 			testAgent = (TestAccessAgent) host.getAgent(TEST1);
 		} else {
 			testAgent = host.createAgent(TestAccessAgent.class, TEST1);
 		}
-		System.err.println("testAgent:"+testAgent.getId()+":"+testAgent.getUrls());
+		System.err.println("testAgent:" + testAgent.getId() + ":"
+				+ testAgent.getUrls());
 		TestAccessAgent agent;
 		if (host.hasAgent(TEST2)) {
 			agent = (TestAccessAgent) host.getAgent(TEST2);
 		} else {
-			agent = (TestAccessAgent) host.createAgent(
-					TestAccessAgent.class, TEST2);
+			agent = host.createAgent(TestAccessAgent.class, TEST2);
 		}
-		boolean[] result = agent.run((String)testAgent.getUrls().get(0));
+		boolean[] result = agent.run(testAgent.getUrls().get(0));
 		assertEquals(8, result.length);
 		assertEquals(true, result[0]);// allowed
 		assertEquals(false, result[1]);// forbidden
@@ -59,7 +61,7 @@ public class TestAccess extends TestCase {
 		assertEquals(false, result[6]);// param
 		assertEquals(false, result[7]);// self
 		
-		//retry calling itself
+		// retry calling itself
 		result = agent.run(agent.getFirstUrl().toString());
 		assertEquals(8, result.length);
 		assertEquals(true, result[0]);// allowed

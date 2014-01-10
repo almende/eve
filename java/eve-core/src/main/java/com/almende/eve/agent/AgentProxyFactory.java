@@ -19,9 +19,9 @@ import com.almende.util.TypeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class AgentProxyFactory {
-	private AgentHost			host	= null;
+	private AgentHost	host	= null;
 	
-	public AgentProxyFactory(AgentHost host) {
+	public AgentProxyFactory(final AgentHost host) {
 		this.host = host;
 	}
 	
@@ -30,11 +30,12 @@ public class AgentProxyFactory {
 			final URI receiverUrl, final Class<T> agentInterface,
 			final String proxyId) {
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
-		T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
+		final T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					
-					public Object invoke(Object proxy, Method method,
-							Object[] args) throws JSONRPCException, IOException {
+					@Override
+					public Object invoke(final Object proxy, final Method method,
+							final Object[] args) throws JSONRPCException, IOException {
 						
 						AgentInterface agent = sender;
 						if (agent == null) {
@@ -57,11 +58,11 @@ public class AgentProxyFactory {
 								if (response.getId() != null) {
 									id = response.getId();
 								}
-								CallbackInterface<JSONResponse> cbs = host
+								final CallbackInterface<JSONResponse> cbs = host
 										.getCallbackService(proxyId,
 												JSONResponse.class);
 								if (cbs != null) {
-									AsyncCallback<JSONResponse> callback = cbs
+									final AsyncCallback<JSONResponse> callback = cbs
 											.get(id);
 									if (callback != null) {
 										if (response.getError() != null) {
@@ -76,11 +77,11 @@ public class AgentProxyFactory {
 							return null;
 						} else {
 							
-							JSONRequest request = JSONRPC.createRequest(method,
+							final JSONRequest request = JSONRPC.createRequest(method,
 									args);
 							
-							SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-							CallbackInterface<JSONResponse> cbs = host
+							final SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
+							final CallbackInterface<JSONResponse> cbs = host
 									.getCallbackService(proxyId,
 											JSONResponse.class);
 							if (cbs != null) {
@@ -89,7 +90,7 @@ public class AgentProxyFactory {
 							try {
 								host.sendAsync(receiverUrl, request, agent,
 										null);
-							} catch (IOException e1) {
+							} catch (final IOException e1) {
 								throw new JSONRPCException(
 										CODE.REMOTE_EXCEPTION, "", e1);
 							}
@@ -97,11 +98,11 @@ public class AgentProxyFactory {
 							JSONResponse response;
 							try {
 								response = callback.get();
-							} catch (Exception e) {
+							} catch (final Exception e) {
 								throw new JSONRPCException(
 										CODE.REMOTE_EXCEPTION, "", e);
 							}
-							JSONRPCException err = response.getError();
+							final JSONRPCException err = response.getError();
 							if (err != null) {
 								throw err;
 							} else if (response.getResult() != null
@@ -117,10 +118,11 @@ public class AgentProxyFactory {
 				});
 		return proxy;
 	}
-	private JSONResponse receive(Object arg)
-			throws JSONRPCException, IOException {
-		JSONMessage jsonMsg = Agent.jsonConvert(arg);
-		if (jsonMsg instanceof JSONResponse){
+	
+	private JSONResponse receive(final Object arg) throws JSONRPCException,
+			IOException {
+		final JSONMessage jsonMsg = Agent.jsonConvert(arg);
+		if (jsonMsg instanceof JSONResponse) {
 			return (JSONResponse) jsonMsg;
 		}
 		return null;

@@ -11,7 +11,7 @@ import java.util.concurrent.TimeoutException;
  * The Queue handles timeouts on the callbacks.
  */
 public class AsyncCallbackQueue<T> {
-	private Map<Object, CallbackHandler>	queue	= new ConcurrentHashMap<Object, CallbackHandler>();
+	private final Map<Object, CallbackHandler>	queue	= new ConcurrentHashMap<Object, CallbackHandler>();
 	// deamon timer
 	private Timer							timer	= new Timer(true);
 	
@@ -35,19 +35,19 @@ public class AsyncCallbackQueue<T> {
 	 * @throws Exception
 	 */
 	public synchronized void push(final Object id, final String description,
-			AsyncCallback<T> callback) {
+			final AsyncCallback<T> callback) {
 		if (queue.containsKey(id)) {
 			throw new IllegalStateException("Callback with id '" + id
 					+ "' already in queue");
 		}
 		
 		final AsyncCallbackQueue<T> me = this;
-		CallbackHandler handler = new CallbackHandler();
+		final CallbackHandler handler = new CallbackHandler();
 		handler.callback = callback;
 		handler.timeout = new TimerTask() {
 			@Override
 			public void run() {
-				AsyncCallback<T> callback = me.pull(id);
+				final AsyncCallback<T> callback = me.pull(id);
 				if (callback != null) {
 					callback.onFailure(new TimeoutException(
 							"Timeout occurred for request with id '" + id
@@ -57,7 +57,7 @@ public class AsyncCallbackQueue<T> {
 		};
 		try {
 			timer.schedule(handler.timeout, TIMEOUT);
-		} catch (IllegalStateException e) {
+		} catch (final IllegalStateException e) {
 			timer = new Timer(true);
 			timer.schedule(handler.timeout, TIMEOUT);
 		}
@@ -72,8 +72,8 @@ public class AsyncCallbackQueue<T> {
 	 * @param id
 	 * @return
 	 */
-	public synchronized AsyncCallback<T> pull(Object id) {
-		CallbackHandler handler = queue.get(id);
+	public synchronized AsyncCallback<T> pull(final Object id) {
+		final CallbackHandler handler = queue.get(id);
 		if (handler != null) {
 			queue.remove(id);
 			// stop the timeout

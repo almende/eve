@@ -15,36 +15,38 @@ public class RunnableClock implements Runnable, Clock {
 	@SuppressWarnings("unused")
 	private static final Logger									LOG			= Logger.getLogger("RunnableClock");
 	private static final NavigableMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
-	private static final ScheduledExecutorService				pool		= Executors.newScheduledThreadPool(2);
+	private static final ScheduledExecutorService				POOL		= Executors
+																					.newScheduledThreadPool(2);
 	private static ScheduledFuture<?>							future		= null;
 	
+	@Override
 	public void run() {
 		synchronized (TIMELINE) {
 			while (!TIMELINE.isEmpty()) {
-				ClockEntry ce = TIMELINE.firstEntry().getValue();
-				DateTime now = DateTime.now();
+				final ClockEntry ce = TIMELINE.firstEntry().getValue();
+				final DateTime now = DateTime.now();
 				if (ce.getDue().isBefore(now)) {
 					TIMELINE.remove(ce);
-					pool.execute(ce.getCallback());
+					POOL.execute(ce.getCallback());
 					continue;
 				}
 				if (future != null) {
 					future.cancel(false);
 					future = null;
 				}
-				long interval = new Interval(now, ce.getDue())
+				final long interval = new Interval(now, ce.getDue())
 						.toDurationMillis();
-				future = pool.schedule(this, interval, TimeUnit.MILLISECONDS);
+				future = POOL.schedule(this, interval, TimeUnit.MILLISECONDS);
 				break;
 			}
 		}
 	}
 	
 	@Override
-	public void requestTrigger(String agentId, DateTime due, Runnable callback) {
+	public void requestTrigger(final String agentId, final DateTime due, final Runnable callback) {
 		synchronized (TIMELINE) {
-			ClockEntry ce = new ClockEntry(agentId, due, callback);
-			ClockEntry oldVal = TIMELINE.get(ce);
+			final ClockEntry ce = new ClockEntry(agentId, due, callback);
+			final ClockEntry oldVal = TIMELINE.get(ce);
 			if (oldVal == null || oldVal.getDue().isAfter(due)) {
 				TIMELINE.put(ce, ce);
 				run();
@@ -53,8 +55,8 @@ public class RunnableClock implements Runnable, Clock {
 	}
 	
 	@Override
-	public void runInPool(Runnable method) {
-		pool.execute(method);
+	public void runInPool(final Runnable method) {
+		POOL.execute(method);
 	}
 }
 
@@ -63,7 +65,7 @@ class ClockEntry implements Comparable<ClockEntry> {
 	private DateTime	due;
 	private Runnable	callback;
 	
-	public ClockEntry(String agentId, DateTime due, Runnable callback) {
+	public ClockEntry(final String agentId, final DateTime due, final Runnable callback) {
 		this.agentId = agentId;
 		this.due = due;
 		this.callback = callback;
@@ -73,7 +75,7 @@ class ClockEntry implements Comparable<ClockEntry> {
 		return agentId;
 	}
 	
-	public void setAgentId(String agentId) {
+	public void setAgentId(final String agentId) {
 		this.agentId = agentId;
 	}
 	
@@ -81,7 +83,7 @@ class ClockEntry implements Comparable<ClockEntry> {
 		return due;
 	}
 	
-	public void setDue(DateTime due) {
+	public void setDue(final DateTime due) {
 		this.due = due;
 	}
 	
@@ -89,19 +91,19 @@ class ClockEntry implements Comparable<ClockEntry> {
 		return callback;
 	}
 	
-	public void setCallback(Runnable callback) {
+	public void setCallback(final Runnable callback) {
 		this.callback = callback;
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		if (this == o) {
 			return true;
 		}
 		if (!(o instanceof ClockEntry)) {
 			return false;
 		}
-		ClockEntry other = (ClockEntry) o;
+		final ClockEntry other = (ClockEntry) o;
 		return agentId.equals(other.agentId);
 	}
 	
@@ -111,7 +113,7 @@ class ClockEntry implements Comparable<ClockEntry> {
 	}
 	
 	@Override
-	public int compareTo(ClockEntry o) {
+	public int compareTo(final ClockEntry o) {
 		if (due.equals(o.due)) {
 			return 0;
 		}

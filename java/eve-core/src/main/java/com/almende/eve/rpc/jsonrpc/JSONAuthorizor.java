@@ -30,9 +30,11 @@ public interface JSONAuthorizor {
 	
 	/**
 	 * This method should check if the sender equals the recipient.
-	 * All methods annotated with AccessType.SELF will only be called if this method returns true.
+	 * All methods annotated with AccessType.SELF will only be called if this
+	 * method returns true.
 	 * 
-	 * Default implementation checks all urls for senderUrl and allows all "web" sources.
+	 * Default implementation checks all urls for senderUrl and allows all "web"
+	 * sources.
 	 * 
 	 * @param senderUrl
 	 * @return

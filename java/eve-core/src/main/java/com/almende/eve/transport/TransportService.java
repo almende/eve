@@ -44,9 +44,10 @@ public interface TransportService {
 	 * @param url
 	 */
 	void reconnect(String agentId) throws IOException;
-
+	
 	/**
 	 * Generate unique key for this transport service
+	 * 
 	 * @return
 	 */
 	String getKey();

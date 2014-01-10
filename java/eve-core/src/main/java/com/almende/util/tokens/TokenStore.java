@@ -29,7 +29,7 @@ public final class TokenStore {
 	private static DateTime		last	= DateTime.now();
 	
 	static {
-		AgentHost host = AgentHost.getInstance();
+		final AgentHost host = AgentHost.getInstance();
 		
 		StateFactory factory = null;
 		if (host.getConfig() != null) {
@@ -45,7 +45,7 @@ public final class TokenStore {
 			try {
 				tokens = factory.create("_TokenStore");
 				tokens.setAgentType(TokenStore.class);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				LOG.log(Level.WARNING, "", e);
 			}
 		}
@@ -54,11 +54,10 @@ public final class TokenStore {
 	private TokenStore() {
 	};
 	
-	public static String get(String time) {
+	public static String get(final String time) {
 		try {
-			String token =tokens.get(time, String.class);
-			return token;
-		} catch (Exception e) {
+			return tokens.get(time, String.class);
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Exception during TokenStore get:", e);
 			return null;
 		}
@@ -70,15 +69,15 @@ public final class TokenStore {
 			if (tokens.size() == 0
 					|| tokens.get(last.toString(), String.class) == null
 					|| last.plus(3600000).isBeforeNow()) {
-				DateTime now = DateTime.now();
-				String token = new UUID().toString();
+				final DateTime now = DateTime.now();
+				final String token = new UUID().toString();
 				result = new TokenRet(token, now);
 				tokens.put(now.toString(), token);
 				last = now;
 				
 				if (tokens.size() > SIZE + 2) {
 					DateTime oldest = last;
-					for (String time : tokens.keySet()) {
+					for (final String time : tokens.keySet()) {
 						try {
 							if (time.equals(State.KEY_AGENT_TYPE)) {
 								continue;
@@ -86,7 +85,7 @@ public final class TokenStore {
 							if (DateTime.parse(time).isBefore(oldest)) {
 								oldest = DateTime.parse(time);
 							}
-						} catch (Exception e) {
+						} catch (final Exception e) {
 							LOG.log(Level.WARNING,
 									"Failed in eviction of tokens:", e);
 						}

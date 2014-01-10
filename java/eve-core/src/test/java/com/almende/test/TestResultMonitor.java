@@ -17,19 +17,24 @@ public class TestResultMonitor extends TestCase {
 	
 	@Test
 	public void test() throws Exception {
-		AgentHost host = AgentHost.getInstance();
-		FileStateFactory stateFactory = new FileStateFactory(".eveagents_resultmonitor", true);
+		final AgentHost host = AgentHost.getInstance();
+		final FileStateFactory stateFactory = new FileStateFactory(
+				".eveagents_resultmonitor", true);
 		host.setStateFactory(stateFactory);
-		//factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
+		// factory.setSchedulerFactory(new ClockSchedulerFactory(factory, ""));
 		host.setSchedulerFactory(new RunnableSchedulerFactory(host, ""));
 		
-		if (host.hasAgent("alice")) host.deleteAgent("alice");
-		if (host.hasAgent("bob")) host.deleteAgent("bob");
+		if (host.hasAgent("alice")) {
+			host.deleteAgent("alice");
+		}
+		if (host.hasAgent("bob")) {
+			host.deleteAgent("bob");
+		}
 		
-		TestResultMonitorAgent alice = host.createAgent(
+		final TestResultMonitorAgent alice = host.createAgent(
 				TestResultMonitorAgent.class, "alice");
-		TestResultMonitorAgent bob = host.createAgent(TestResultMonitorAgent.class,
-				"bob");
+		final TestResultMonitorAgent bob = host.createAgent(
+				TestResultMonitorAgent.class, "bob");
 		
 		alice.prepare();
 		bob.getScheduler().createTask(
@@ -39,7 +44,7 @@ public class TestResultMonitor extends TestCase {
 		int count = 0;
 		while (count++ < 20) {
 			Thread.sleep(1000);
-			List<Integer> res = alice.get_result();
+			final List<Integer> res = alice.get_result();
 			
 			System.err.println(count + " Alice, from Bob:" + res.get(0) + ":"
 					+ res.get(1) + ":" + res.get(2) + ":" + res.get(3));

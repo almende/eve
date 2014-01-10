@@ -15,80 +15,96 @@ import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 public class ManagementAgent extends Agent {
 	/**
 	 * Create a new agent. Will throw an exception if the agent already exists
+	 * 
 	 * @param id
 	 * @param type
 	 * @return urls
-	 * @throws IOException 
-	 * @throws ClassNotFoundException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws JSONRPCException 
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws JSONRPCException
 	 */
-	public List<String> create(@Name("id") String id,
-			@Name("type") String type) throws JSONRPCException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, IOException {
-		Agent agent = getAgentHost().createAgent(type, id);
+	public List<String> create(@Name("id") final String id,
+			@Name("type") final String type) throws JSONRPCException,
+			InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException,
+			ClassNotFoundException, IOException {
+		final Agent agent = getAgentHost().createAgent(type, id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
-
+	
 	/**
 	 * Delete an agent
+	 * 
 	 * @param id
 	 * @return
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 * @throws JSONRPCException 
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
+	 * @throws JSONRPCException
 	 */
-	public void delete(@Name("id") String id) throws JSONRPCException, ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	public void delete(@Name("id") final String id) throws JSONRPCException,
+			ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException {
 		getAgentHost().deleteAgent(id);
 	}
-
+	
 	/**
-	 * Retrieve an agents urls. If the agent does not exist, 
+	 * Retrieve an agents urls. If the agent does not exist,
 	 * null will be returned.
+	 * 
 	 * @param id
 	 * @return urls
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
+	 * @throws JSONRPCException
+	 * @throws IOException
 	 */
-	public List<String> get(@Name("id") String id) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		AgentInterface agent = getAgentHost().getAgent(id);
+	public List<String> get(@Name("id") final String id)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
+		final AgentInterface agent = getAgentHost().getAgent(id);
 		return (agent != null) ? agent.getUrls() : null;
 	}
-
+	
 	/**
 	 * Test if an agent exists
+	 * 
 	 * @param id
 	 * @return exists
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 * @throws JSONRPCException 
-	 * @throws IOException 
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
+	 * @throws JSONRPCException
+	 * @throws IOException
 	 */
-	public boolean exists(@Name("id") String id) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
-		AgentInterface agent = getAgentHost().getAgent(id);
+	public boolean exists(@Name("id") final String id)
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
+		final AgentInterface agent = getAgentHost().getAgent(id);
 		return (agent != null);
 	}
-
+	
 	@Override
 	public String getDescription() {
-		return "The ManagementAgent can create and delete agents, " +
-				"and provide general information about an agent. " +
-				"Available methods: create, delete, exists, get.";
+		return "The ManagementAgent can create and delete agents, "
+				+ "and provide general information about an agent. "
+				+ "Available methods: create, delete, exists, get.";
 	}
-
+	
 	@Override
 	public String getVersion() {
 		return "0.1";

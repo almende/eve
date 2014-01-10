@@ -63,10 +63,10 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	private ObjectMapper				om			= null;
 	private static Map<String, Boolean>	locked		= new ConcurrentHashMap<String, Boolean>();
 	
-	private Map<String, JsonNode>		properties	= Collections
+	private final Map<String, JsonNode>		properties	= Collections
 															.synchronizedMap(new HashMap<String, JsonNode>());
 	
-	public ConcurrentJsonFileState(String agentId, String filename) {
+	public ConcurrentJsonFileState(final String agentId, final String filename) {
 		super(agentId);
 		this.filename = filename;
 		om = JOM.getInstance();
@@ -84,18 +84,18 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			while (locked.containsKey(filename) && locked.get(filename)) {
 				try {
 					locked.wait();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 				}
 			}
 			locked.put(filename, true);
 			
-			File file = new File(this.filename);
+			final File file = new File(filename);
 			if (!file.exists()) {
 				locked.put(filename, false);
 				locked.notifyAll();
 				throw new IllegalStateException(
 						"Warning: File doesn't exist (anymore):'"
-								+ this.filename + "'");
+								+ filename + "'");
 			}
 			
 			channel = new RandomAccessFile(file, "rw").getChannel();
@@ -104,7 +104,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 				// operations.
 				lock = channel.lock();
 				
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				channel.close();
 				channel = null;
 				lock = null;
@@ -120,28 +120,28 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	
 	protected void closeFile() {
 		synchronized (locked) {
-
+			
 			if (lock != null && lock.isValid()) {
 				try {
 					
 					lock.release();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					LOG.log(Level.WARNING, "", e);
 				}
 			}
 			try {
-				if (fos != null){
+				if (fos != null) {
 					fos.close();
 				}
-				if (fis != null){
+				if (fis != null) {
 					fis.close();
 				}
 				
-				if (channel != null){
+				if (channel != null) {
 					channel.close();
 				}
 				
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				LOG.log(Level.WARNING, "", e);
 			}
 			channel = null;
@@ -169,7 +169,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		if (channel != null) {
 			channel.truncate(channel.position());
 		}
-
+		
 	}
 	
 	/**
@@ -186,16 +186,16 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 				channel.position(0);
 			}
 			properties.clear();
-			JsonNode data = om.readTree(fis);
-			Iterator<Entry<String, JsonNode>> fieldIter = data.fields();
+			final JsonNode data = om.readTree(fis);
+			final Iterator<Entry<String, JsonNode>> fieldIter = data.fields();
 			
 			while (fieldIter.hasNext()) {
-				Entry<String, JsonNode> item = fieldIter.next();
+				final Entry<String, JsonNode> item = fieldIter.next();
 				properties.put(item.getKey(), item.getValue());
 			}
-		} catch (EOFException eof) {
+		} catch (final EOFException eof) {
 			// empty file, new agent?
-		} catch (JsonMappingException jme){
+		} catch (final JsonMappingException jme) {
 			// empty file, new agent?
 		}
 	}
@@ -219,11 +219,12 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	public synchronized void clear() {
 		try {
 			openFile();
-			String agentType = properties.get(KEY_AGENT_TYPE).textValue();
+			final String agentType = properties.get(KEY_AGENT_TYPE).textValue();
 			properties.clear();
-			properties.put(KEY_AGENT_TYPE, JOM.getInstance().valueToTree(agentType));
+			properties.put(KEY_AGENT_TYPE,
+					JOM.getInstance().valueToTree(agentType));
 			write();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -236,7 +237,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			openFile();
 			read();
 			result = new HashSet<String>(properties.keySet());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -244,13 +245,13 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	@Override
-	public synchronized boolean containsKey(String key) {
+	public synchronized boolean containsKey(final String key) {
 		boolean result = false;
 		try {
 			openFile();
 			read();
 			result = properties.containsKey(key);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -258,13 +259,13 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	@Override
-	public synchronized JsonNode get(String key) {
+	public synchronized JsonNode get(final String key) {
 		JsonNode result = NullNode.getInstance();
 		try {
 			openFile();
 			read();
 			result = properties.get(key);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -272,17 +273,17 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	@Override
-	public synchronized JsonNode locPut(String key, JsonNode value) {
+	public synchronized JsonNode locPut(final String key, JsonNode value) {
 		JsonNode result = null;
 		try {
 			openFile();
 			read();
-			if (value == null){
-				value=NullNode.getInstance();
+			if (value == null) {
+				value = NullNode.getInstance();
 			}
 			result = properties.put(key, value);
 			write();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -290,7 +291,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 	}
 	
 	@Override
-	public synchronized boolean locPutIfUnchanged(String key, JsonNode newVal,
+	public synchronized boolean locPutIfUnchanged(final String key, final JsonNode newVal,
 			JsonNode oldVal) {
 		boolean result = false;
 		try {
@@ -298,20 +299,21 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			read();
 			
 			JsonNode cur = NullNode.getInstance();
-			if (properties.containsKey(key)){
+			if (properties.containsKey(key)) {
 				cur = properties.get(key);
 			}
-			if (oldVal == null){
+			if (oldVal == null) {
 				oldVal = NullNode.getInstance();
 			}
 			
-			//Poor mans equality as some Numbers are compared incorrectly: e.g. IntNode versus LongNode
+			// Poor mans equality as some Numbers are compared incorrectly: e.g.
+			// IntNode versus LongNode
 			if (oldVal.equals(cur) || oldVal.toString().equals(cur.toString())) {
 				properties.put(key, newVal);
 				write();
 				result = true;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 			// Don't let users loop if exception is thrown. They
 			// would get into a deadlock....
@@ -320,9 +322,9 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 		closeFile();
 		return result;
 	}
-
+	
 	@Override
-	public synchronized Object remove(String key) {
+	public synchronized Object remove(final String key) {
 		Object result = null;
 		try {
 			openFile();
@@ -330,7 +332,7 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			result = properties.remove(key);
 			
 			write();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
@@ -345,11 +347,11 @@ public class ConcurrentJsonFileState extends AbstractState<JsonNode> {
 			read();
 			result = properties.size();
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
 		closeFile();
 		return result;
 	}
-
+	
 }

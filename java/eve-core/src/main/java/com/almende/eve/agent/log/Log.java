@@ -17,19 +17,19 @@ public class Log implements Serializable {
 	private String	event		= null;
 	private String	params		= null;
 	
-	public Log(String agentId, String event, Object params) throws IOException {
+	public Log(final String agentId, final String event, final Object params) throws IOException {
 		init(agentId, event, params);
 	}
 	
-	public final void init(String agentId, String event, Object params)
+	public final void init(final String agentId, final String event, final Object params)
 			throws IOException {
-		this.setTimestamp(new Date().getTime());
-		this.setAgentId(agentId);
-		this.setEvent(event);
-		this.setParams(params);
+		setTimestamp(new Date().getTime());
+		setAgentId(agentId);
+		setEvent(event);
+		setParams(params);
 	}
 	
-	public void setTimestamp(Long timestamp) {
+	public void setTimestamp(final Long timestamp) {
 		this.timestamp = timestamp;
 	}
 	
@@ -37,7 +37,7 @@ public class Log implements Serializable {
 		return timestamp;
 	}
 	
-	public void setAgentId(String agentId) {
+	public void setAgentId(final String agentId) {
 		this.agentId = agentId;
 	}
 	
@@ -45,7 +45,7 @@ public class Log implements Serializable {
 		return agentId;
 	}
 	
-	public void setEvent(String event) {
+	public void setEvent(final String event) {
 		this.event = event;
 	}
 	
@@ -53,13 +53,13 @@ public class Log implements Serializable {
 		return event;
 	}
 	
-	public void setParams(Object params) throws IOException {
-		ObjectMapper mapper = JOM.getInstance();
+	public void setParams(final Object params) throws IOException {
+		final ObjectMapper mapper = JOM.getInstance();
 		this.params = mapper.writeValueAsString(params);
 	}
 	
 	public Object getParams() throws IOException {
-		ObjectMapper mapper = JOM.getInstance();
+		final ObjectMapper mapper = JOM.getInstance();
 		return mapper.readValue(params, Object.class);
 	}
 }

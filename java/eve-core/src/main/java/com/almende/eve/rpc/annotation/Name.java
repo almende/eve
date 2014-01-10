@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation for parameter names.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=ElementType.PARAMETER)
+@Target(value = ElementType.PARAMETER)
 public @interface Name {
 	String value();
 }
