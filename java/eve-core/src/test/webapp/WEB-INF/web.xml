@@ -36,15 +36,6 @@
 		<url-pattern>/agents/*</url-pattern>
 	</servlet-mapping>
 
-	<servlet>
-		<servlet-name>RESTServlet</servlet-name>
-		<servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>RESTServlet</servlet-name>
-		<url-pattern>/rest/*</url-pattern>
-	</servlet-mapping>
-
 	<login-config>
 		<auth-method>BASIC</auth-method>
 		<realm-name>Eve Test Environment</realm-name>
