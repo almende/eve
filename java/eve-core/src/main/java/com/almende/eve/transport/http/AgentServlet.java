@@ -43,6 +43,7 @@ public class AgentServlet extends HttpServlet {
 	private static final Logger	LOG			= Logger.getLogger(AgentServlet.class
 													.getSimpleName());
 	private static final String	RESOURCES	= "/com/almende/eve/resources/";
+	private static final String AGENTURLWARNING = "AgentServlet has a strange URL, can't find agentId!";
 	private static AgentHost	host;
 	private static HttpService	httpTransport;
 	
@@ -246,8 +247,7 @@ public class AgentServlet extends HttpServlet {
 		try {
 			agentId = httpTransport.getAgentId(new URI(uri));
 		} catch (URISyntaxException e) {
-			throw new ServletException(
-					"AgentServlet has a strange URL, can't find agentId!");
+			throw new ServletException(AGENTURLWARNING,e);
 		}
 		String resource = httpTransport.getAgentResource(uri);
 		
@@ -360,8 +360,7 @@ public class AgentServlet extends HttpServlet {
 		try {
 			agentId = httpTransport.getAgentId(new URI(agentUrl));
 		} catch (URISyntaxException e) {
-			throw new ServletException(
-					"AgentServlet has a strange URL, can't find agentId!");
+			throw new ServletException(AGENTURLWARNING,e);
 		}
 		if (agentId == null || agentId.equals("")) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -442,8 +441,7 @@ public class AgentServlet extends HttpServlet {
 		try {
 			agentId = httpTransport.getAgentId(new URI(agentUrl));
 		} catch (URISyntaxException e) {
-			throw new ServletException(
-					"AgentServlet has a strange URL, can't find agentId!");
+			throw new ServletException(AGENTURLWARNING,e);
 		}
 		String agentType = req.getParameter("type");
 		
@@ -502,8 +500,7 @@ public class AgentServlet extends HttpServlet {
 		try {
 			agentId = httpTransport.getAgentId(new URI(agentUrl));
 		} catch (URISyntaxException e) {
-			throw new ServletException(
-					"AgentServlet has a strange URL, can't find agentId!");
+			throw new ServletException(AGENTURLWARNING,e);
 		}
 		
 		if (!handleSession(req, resp)) {

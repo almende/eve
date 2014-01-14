@@ -182,7 +182,8 @@ public class HttpService implements TransportService {
 							.execute(httpPost);
 					final String result = EntityUtils.toString(webResp
 							.getEntity());
-					host.receive(getAgentId(senderUrl), result, receiverUrl, null);
+					host.receive(getAgentId(senderUrl), result, receiverUrl,
+							null);
 				} catch (final Exception e) {
 					LOG.log(Level.WARNING,
 							"HTTP roundtrip resulted in exception!", e);
@@ -213,8 +214,8 @@ public class HttpService implements TransportService {
 					return new URI(servletUrl + agentId + "/");
 				}
 			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.log(Level.WARNING, "Strange, couldn't generate agentUrl:"
+						+ agentId, e);
 			}
 		}
 		return null;
