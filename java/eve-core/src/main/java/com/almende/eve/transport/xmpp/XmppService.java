@@ -6,6 +6,8 @@ package com.almende.eve.transport.xmpp;
 
 import java.io.IOException;
 import java.net.ProtocolException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -39,16 +41,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * The Class XmppService.
  */
 public class XmppService implements TransportService {
-	private static final String					CONNKEY				= "_XMPP_Connections";
-	private AgentHost							agentHost			= null;
-	private String								host				= null;
-	private Integer								port				= null;
-	private String								service				= null;
+	private static final String				CONNKEY				= "_XMPP_Connections";
+	private AgentHost						agentHost			= null;
+	private String							host				= null;
+	private Integer							port				= null;
+	private String							service				= null;
 	/** The connections by url, xmpp url as key "xmpp:username@host". */
-	private final Map<String, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<String, AgentConnection>();
-	private static List<String>					protocols			= Arrays.asList("xmpp");
-	private static final Logger					LOG					= Logger.getLogger(XmppService.class
-																			.getSimpleName());
+	private final Map<URI, AgentConnection>	connectionsByUrl	= new ConcurrentHashMap<URI, AgentConnection>();
+	private static List<String>				protocols			= Arrays.asList("xmpp");
+	private static final Logger				LOG					= Logger.getLogger(XmppService.class
+																		.getSimpleName());
 	
 	/**
 	 * Instantiates a new xmpp service.
@@ -164,7 +166,7 @@ public class XmppService implements TransportService {
 	 * @return agentUrl
 	 */
 	@Override
-	public String getAgentUrl(final String agentId) {
+	public URI getAgentUrl(final String agentId) {
 		try {
 			final ArrayNode conns = getConns(agentId);
 			if (conns != null) {
@@ -202,8 +204,9 @@ public class XmppService implements TransportService {
 	 * @return agentId
 	 */
 	@Override
-	public String getAgentId(final String agentUrl) {
-		final AgentConnection connection = connectionsByUrl.get(agentUrl);
+	public String getAgentId(final URI agentUrl) {
+		final AgentConnection connection = connectionsByUrl.get(agentUrl
+				.toString());
 		if (connection != null) {
 			return connection.getAgentId();
 		}
@@ -273,7 +276,7 @@ public class XmppService implements TransportService {
 			LOG.log(Level.SEVERE, "Failed to store XMPP Connection.", e);
 		}
 		
-		final String agentUrl = generateUrl(username, host, resource);
+		final URI agentUrl = generateUrl(username, host, resource);
 		AgentConnection connection;
 		if (connectionsByUrl.containsKey(agentUrl)) {
 			LOG.warning("Warning, agent was already connected, reconnecting.");
@@ -415,7 +418,7 @@ public class XmppService implements TransportService {
 						resource = EncryptionUtil.decrypt(encryptedResource);
 					}
 					
-					final String url = generateUrl(username, host, resource);
+					final URI url = generateUrl(username, host, resource);
 					final AgentConnection connection = connectionsByUrl
 							.get(url);
 					if (connection != null) {
@@ -433,7 +436,7 @@ public class XmppService implements TransportService {
 	 * 
 	 * @param senderUrl
 	 *            the sender url
-	 * @param receiver
+	 * @param receiverUrl
 	 *            the receiver
 	 * @param message
 	 *            the message
@@ -443,8 +446,8 @@ public class XmppService implements TransportService {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
-	public void sendAsync(final String senderUrl, final String receiver,
-			final Object message, final String tag) throws IOException {
+	public void sendAsync(final URI senderUrl, final URI receiverUrl,
+			final String message, final String tag) throws IOException {
 		
 		AgentConnection connection = null;
 		
@@ -453,6 +456,7 @@ public class XmppService implements TransportService {
 		}
 		if (connection != null) {
 			// remove the protocol from the receiver url
+			String receiver = receiverUrl.toString();
 			final String protocol = "xmpp:";
 			if (!receiver.startsWith(protocol)) {
 				throw new ProtocolException("Receiver url must start with '"
@@ -479,14 +483,20 @@ public class XmppService implements TransportService {
 	 * @param resource
 	 *            optional
 	 * @return url
+	 * @throws URISyntaxException
 	 */
-	private static String generateUrl(final String username, final String host,
+	private static URI generateUrl(final String username, final String host,
 			final String resource) {
 		String url = "xmpp:" + username + "@" + host;
 		if (resource != null && !resource.equals("")) {
 			url += "/" + resource;
 		}
-		return url;
+		try {
+			return new URI(url);
+		} catch (URISyntaxException e) {
+			LOG.warning("Strange, couldn't generate URI.");
+			return null;
+		}
 	}
 	
 	/*

@@ -1,10 +1,13 @@
 package com.almende.eve.transport.xmpp.google;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.almende.eve.agent.AgentHostDefImpl;
 import com.almende.eve.transport.TransportService;
@@ -15,6 +18,7 @@ import com.google.apphosting.api.ApiProxy.Environment;
  * Google App Engine XMPP Transport Service
  */
 public class GaeXmppService implements TransportService {
+	private static final Logger LOG = Logger.getLogger(GaeXmppService.class.getName());
 	private static List<String> protocols = Arrays.asList("xmpp");
 	private String host = null;
 
@@ -50,9 +54,14 @@ public class GaeXmppService implements TransportService {
 	 *                   or no host is configured
 	 */
 	@Override
-	public String getAgentUrl(String agentId) {
+	public URI getAgentUrl(String agentId) {
 		if (agentId != null && host != null) {
-			return "xmpp:" + agentId + "@" + host;
+			try {
+				return new URI("xmpp:" + agentId + "@" + host);
+			} catch (URISyntaxException e) {
+				LOG.warning("Couldn't form agentURL!");
+				return null;
+			}
 		}
 		return null;
 	}
@@ -65,13 +74,14 @@ public class GaeXmppService implements TransportService {
 	 *                   not match the configured host
 	 */
 	@Override
-	public String getAgentId(String agentUrl) {
-		if (agentUrl == null || host == null) {
+	public String getAgentId(final URI agentUri) {
+		if (agentUri == null || host == null) {
 			return null;
 		}
-		
-		String prefix = "xmpp:";
-		if (agentUrl.startsWith(prefix)) {
+		if (agentUri.getScheme().equals("xmpp")) {
+			//TODO: simplify by using the URI structure.
+			String prefix = "xmpp:";
+			String agentUrl = agentUri.toString();
 			// prefix matches
 			int at = agentUrl.indexOf('@');
 			if (at != -1) {
@@ -87,17 +97,6 @@ public class GaeXmppService implements TransportService {
 		}
 
 		return null;
-	}
-
-	@Override
-	public void sendAsync(String senderId, String receiver,
-			Object message, String tag)
-			throws IOException {
-		throw new UnsupportedOperationException("JSONResponse sendAsync(String senderId, " +
-				"String receiver, JSONRequest request, " +
-				"AsyncCallback<JSONResponse> callback) not supported by GaeXmppService. " +
-				"Use sendAsync(String senderId, String receiver, " +
-				"JSONRequest request, String callback) instead.");
 	}
 
 	@Override
@@ -123,4 +122,13 @@ public class GaeXmppService implements TransportService {
 		data.put("protocols", protocols);
 		return data.toString();
 	}
+
+	@Override
+	public void sendAsync(URI senderUri, URI receiverUri, String message,
+			String tag) throws IOException {
+		throw new IOException("Missing implemenation!");
+		//TODO / FIXME: WHy is this missing????
+	}
+
+
 }

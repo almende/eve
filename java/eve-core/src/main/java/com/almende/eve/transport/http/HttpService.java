@@ -6,6 +6,8 @@ package com.almende.eve.transport.http;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -136,8 +138,8 @@ public class HttpService implements TransportService {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@Override
-	public void sendAsync(final String senderUrl, final String receiverUrl,
-			final Object message, final String tag) throws IOException {
+	public void sendAsync(final URI senderUrl, final URI receiverUrl,
+			final String message, final String tag) throws IOException {
 		
 		host.getPool().execute(new Runnable() {
 			
@@ -150,11 +152,11 @@ public class HttpService implements TransportService {
 						// This is a reply to a synchronous inbound call, get
 						// callback
 						// and use it to send the message
-						final CallbackInterface<Object> callbacks = host
+						final CallbackInterface<String> callbacks = host
 								.getCallbackService("HttpTransport",
-										Object.class);
+										String.class);
 						if (callbacks != null) {
-							final AsyncCallback<Object> callback = callbacks
+							final AsyncCallback<String> callback = callbacks
 									.get(tag);
 							if (callback != null) {
 								callback.onSuccess(message);
@@ -169,18 +171,18 @@ public class HttpService implements TransportService {
 					}
 					httpPost = new HttpPost(receiverUrl);
 					// invoke via Apache HttpClient request:
-					httpPost.setEntity(new StringEntity(message.toString()));
+					httpPost.setEntity(new StringEntity(message));
 					
 					// Add token for HTTP handshake
 					httpPost.addHeader("X-Eve-Token", TokenStore.create()
 							.toString());
-					httpPost.addHeader("X-Eve-SenderUrl", senderUrl);
+					httpPost.addHeader("X-Eve-SenderUrl", senderUrl.toString());
 					
 					final HttpResponse webResp = ApacheHttpClient.get()
 							.execute(httpPost);
 					final String result = EntityUtils.toString(webResp
 							.getEntity());
-					host.receive(senderUrl, result, receiverUrl, null);
+					host.receive(getAgentId(senderUrl), result, receiverUrl, null);
 				} catch (final Exception e) {
 					LOG.log(Level.WARNING,
 							"HTTP roundtrip resulted in exception!", e);
@@ -201,29 +203,35 @@ public class HttpService implements TransportService {
 	 * @return agentUrl
 	 */
 	@Override
-	public String getAgentUrl(final String agentId) {
+	public URI getAgentUrl(final String agentId) {
 		if (servletUrl != null) {
 			try {
-				return servletUrl + URLEncoder.encode(agentId, "UTF-8") + "/";
-			} catch (final UnsupportedEncodingException e) {
-				return servletUrl + agentId + "/";
+				try {
+					return new URI(servletUrl
+							+ URLEncoder.encode(agentId, "UTF-8") + "/");
+				} catch (final UnsupportedEncodingException e) {
+					return new URI(servletUrl + agentId + "/");
+				}
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} else {
-			return null;
 		}
+		return null;
 	}
 	
 	/**
 	 * Get the id of an agent from its url. If the id cannot be extracted, null
 	 * is returned. A typical url is "http://myserver.com/agents/agentid/"
 	 * 
-	 * @param agentUrl
+	 * @param agentUri
 	 *            the agent url
 	 * @return agentId
 	 */
 	@Override
-	public String getAgentId(String agentUrl) {
+	public String getAgentId(URI agentUri) {
 		if (servletUrl != null) {
+			String agentUrl = agentUri.toString();
 			// add domain when missing
 			final String domain = getDomain(agentUrl);
 			if (domain.equals("")) {

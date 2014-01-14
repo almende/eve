@@ -62,7 +62,7 @@ public class TestXMPP extends TestCase {
 		xmppService.disconnect(agentId);
 		xmppService.connect(agentId, agentId, agentPassword);
 		
-		agent.testAsyncXMPP(xmppService.getAgentUrl(agent2.getId()));
+		agent.testAsyncXMPP(xmppService.getAgentUrl(agent2.getId()).toString());
 		
 		Thread.sleep(2000);
 		xmppService.disconnect("gloria");

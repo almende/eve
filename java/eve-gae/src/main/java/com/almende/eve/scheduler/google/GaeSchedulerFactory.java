@@ -3,6 +3,7 @@ package com.almende.eve.scheduler.google;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
@@ -107,13 +108,15 @@ public class GaeSchedulerFactory implements SchedulerFactory {
 						break;
 					}
 				}
-				String url = null;
+				URI url = null;
 				if (service != null) {
 					url = service.getAgentUrl(agentId);
 				}
-				
-				URL uri = new URL(url);
-				String path = uri.getPath();		
+				String path = "";
+				if (url != null){
+					URL uri = url.toURL();
+					path = uri.getPath();
+				}
 				Queue queue = QueueFactory.getDefaultQueue();
 				TaskHandle task = queue.add(withUrl(path)
 						.payload(request.toString())

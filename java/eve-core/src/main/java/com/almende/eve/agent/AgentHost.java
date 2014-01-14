@@ -7,6 +7,7 @@ package com.almende.eve.agent;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -237,18 +238,6 @@ public abstract class AgentHost {
 			URI senderUri, String tag) throws IOException;
 	
 	/**
-	 * Receive a message for an agent.
-	 *
-	 * @param receiverId the receiver id
-	 * @param message the message
-	 * @param senderUrl the sender url
-	 * @param tag the tag
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	public abstract void receive(String receiverId, Object message,
-			String senderUrl, String tag) throws IOException;
-	
-	/**
 	 * Asynchronously send a message to an agent.
 	 *
 	 * @param receiverUrl the receiver url
@@ -258,8 +247,8 @@ public abstract class AgentHost {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	
-	public abstract void sendAsync(URI receiverUrl, Object message,
-			AgentInterface sender, String tag) throws IOException;
+	public abstract void sendAsync(final URI receiverUrl, final Object message,
+			final AgentInterface sender, final String tag) throws IOException;
 	
 	/**
 	 * Get the agentId from given agentUrl. The url can be any protocol. If the
@@ -269,8 +258,9 @@ public abstract class AgentHost {
 	 *
 	 * @param agentUrl the agent url
 	 * @return agentId
+	 * @throws URISyntaxException 
 	 */
-	public abstract String getAgentId(String agentUrl);
+	public abstract String getAgentId(URI agentUrl) throws URISyntaxException;
 	
 	/**
 	 * Determines best senderUrl for this agent, match receiverUrl transport

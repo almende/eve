@@ -5,6 +5,7 @@
 package com.almende.eve.transport;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ public interface TransportService {
 	 * @param agentId the agent id
 	 * @return agentUrl
 	 */
-	String getAgentUrl(String agentId);
+	URI getAgentUrl(String agentId);
 	
 	/**
 	 * Get the id of an agent from its url.
@@ -27,20 +28,20 @@ public interface TransportService {
 	 * @param agentUrl the agent url
 	 * @return agentId
 	 */
-	String getAgentId(String agentUrl);
+	String getAgentId(URI agentUrl);
 	
 	/**
 	 * Asynchronously Send a message to an other agent.
 	 *
-	 * @param senderUrl the sender url
-	 * @param receiverUrl the receiver url
-	 * @param request the request
+	 * @param senderUri the sender url
+	 * @param receiverUri the receiver url
+	 * @param message the message
 	 * @param tag the tag
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 * @oaran receiverUrl
 	 */
-	void sendAsync(final String senderUrl, final String receiverUrl,
-			final Object request, String tag) throws IOException;
+	void sendAsync(final URI senderUri, final URI receiverUri,
+			final String message, final String tag) throws IOException;
 	
 	/**
 	 * Get the protocols supported by this service.

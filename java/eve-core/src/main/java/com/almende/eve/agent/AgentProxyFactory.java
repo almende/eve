@@ -30,8 +30,9 @@ public class AgentProxyFactory {
 	
 	/**
 	 * Instantiates a new agent proxy factory.
-	 *
-	 * @param host the host
+	 * 
+	 * @param host
+	 *            the host
 	 */
 	public AgentProxyFactory(final AgentHost host) {
 		this.host = host;
@@ -39,12 +40,17 @@ public class AgentProxyFactory {
 	
 	/**
 	 * Gen proxy.
-	 *
-	 * @param <T> the generic type
-	 * @param sender the sender
-	 * @param receiverUrl the receiver url
-	 * @param agentInterface the agent interface
-	 * @param proxyId the proxy id
+	 * 
+	 * @param <T>
+	 *            the generic type
+	 * @param sender
+	 *            the sender
+	 * @param receiverUrl
+	 *            the receiver url
+	 * @param agentInterface
+	 *            the agent interface
+	 * @param proxyId
+	 *            the proxy id
 	 * @return the t
 	 */
 	@SuppressWarnings("unchecked")
@@ -52,12 +58,14 @@ public class AgentProxyFactory {
 			final URI receiverUrl, final Class<T> agentInterface,
 			final String proxyId) {
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
-		final T proxy = (T) Proxy.newProxyInstance(agentInterface.getClassLoader(),
+		final T proxy = (T) Proxy.newProxyInstance(
+				agentInterface.getClassLoader(),
 				new Class[] { agentInterface }, new InvocationHandler() {
 					
 					@Override
-					public Object invoke(final Object proxy, final Method method,
-							final Object[] args) throws JSONRPCException, IOException {
+					public Object invoke(final Object proxy,
+							final Method method, final Object[] args)
+							throws JSONRPCException, IOException {
 						
 						AgentInterface agent = sender;
 						if (agent == null) {
@@ -99,8 +107,8 @@ public class AgentProxyFactory {
 							return null;
 						} else {
 							
-							final JSONRequest request = JSONRPC.createRequest(method,
-									args);
+							final JSONRequest request = JSONRPC.createRequest(
+									method, args);
 							
 							final SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 							final CallbackInterface<JSONResponse> cbs = host
@@ -143,11 +151,14 @@ public class AgentProxyFactory {
 	
 	/**
 	 * Receive.
-	 *
-	 * @param arg the arg
+	 * 
+	 * @param arg
+	 *            the arg
 	 * @return the jSON response
-	 * @throws JSONRPCException the jSONRPC exception
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JSONRPCException
+	 *             the jSONRPC exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	private JSONResponse receive(final Object arg) throws JSONRPCException,
 			IOException {

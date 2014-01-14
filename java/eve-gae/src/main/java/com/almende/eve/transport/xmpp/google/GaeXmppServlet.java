@@ -1,6 +1,7 @@
 package com.almende.eve.transport.xmpp.google;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
@@ -47,14 +48,14 @@ public class GaeXmppServlet extends HttpServlet {
 			try {
 				String agentUrl = "xmpp:" + to.getId();
 				String agentId = xmppService != null ? xmppService
-						.getAgentId(agentUrl) : null;
+						.getAgentId(new URI(agentUrl)) : null;
 				
 				logger.info("request agentUrl =" + agentUrl + ", agentId="
 						+ agentId + " request=" + body + ", sender="
 						+ from.getId());
 				
 				// invoke the agent
-				host.receive(agentId, body, from.getId(), null);
+				host.receive(agentId, body, new URI(from.getId()), null);
 				
 			} catch (Exception err) {
 				// generate JSON error response

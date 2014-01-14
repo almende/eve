@@ -191,7 +191,7 @@ public class AgentConnection {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public void send(final String username, final Object message)
+	public void send(final String username, final String message)
 			throws IOException {
 		if (!isConnected()) {
 			disconnect();
@@ -202,7 +202,7 @@ public class AgentConnection {
 			// send the message
 			final Message reply = new Message();
 			reply.setTo(username);
-			reply.setBody(message.toString());
+			reply.setBody(message);
 			conn.sendPacket(reply);
 		} else {
 			throw new IOException("Cannot send request, not connected");

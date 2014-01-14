@@ -348,26 +348,6 @@ public final class AgentHostDefImpl extends AgentHost {
 	 * (non-Javadoc)
 	 * 
 	 * @see com.almende.eve.agent.AgentHost#receive(java.lang.String,
-	 * java.lang.Object, java.lang.String, java.lang.String)
-	 */
-	@Override
-	public void receive(final String receiverId, final Object message,
-			final String senderUrl, final String tag) throws IOException {
-		URI senderUri = null;
-		if (senderUrl != null) {
-			try {
-				senderUri = URI.create(senderUrl);
-			} catch (final Exception e) {
-				LOG.warning("Incorrect senderUrl given:" + senderUrl);
-			}
-		}
-		receive(receiverId, message, senderUri, tag);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.almende.eve.agent.AgentHost#receive(java.lang.String,
 	 * java.lang.Object, java.net.URI, java.lang.String)
 	 */
 	@Override
@@ -399,7 +379,7 @@ public final class AgentHostDefImpl extends AgentHost {
 	@Override
 	public void sendAsync(final URI receiverUrl, final Object message,
 			final AgentInterface sender, final String tag) throws IOException {
-		final String receiverId = getAgentId(receiverUrl.toASCIIString());
+		final String receiverId = getAgentId(receiverUrl);
 		final String protocol = receiverUrl.getScheme();
 		if (("local".equals(protocol)) || (doesShortcut && receiverId != null)) {
 			// local shortcut
@@ -410,15 +390,14 @@ public final class AgentHostDefImpl extends AgentHost {
 			receive(receiverId, message, senderUri, tag);
 		} else {
 			TransportService service = null;
-			String senderUrl = null;
+			URI senderUri = null;
 			if (sender != null) {
-				final URI senderUri = getSenderUrl(sender.getId(), receiverUrl);
-				senderUrl = senderUri.toASCIIString();
+				senderUri = getSenderUrl(sender.getId(), receiverUrl);
 			}
 			service = getTransportService(protocol);
 			if (service != null) {
-				service.sendAsync(senderUrl, receiverUrl.toASCIIString(),
-						message, tag);
+				//TODO: message should already be a String?
+				service.sendAsync(senderUri, receiverUrl, message.toString(), tag);
 			} else {
 				throw new ProtocolException(
 						"No transport service configured for protocol '"
@@ -434,12 +413,12 @@ public final class AgentHostDefImpl extends AgentHost {
 	 * @see com.almende.eve.agent.AgentHost#getAgentId(java.lang.String)
 	 */
 	@Override
-	public String getAgentId(final String agentUrl) {
-		if (agentUrl.startsWith("local:")) {
-			return agentUrl.replaceFirst("local:/?/?", "");
+	public String getAgentId(final URI agentUrl) {
+		if (agentUrl.getScheme().startsWith("local")) {
+			return agentUrl.toString().replaceFirst("local:/?/?", "");
 		}
 		for (final TransportService service : transportServices.values()) {
-			final String agentId = service.getAgentId(agentUrl);
+			String agentId = service.getAgentId(agentUrl);
 			if (agentId != null) {
 				return agentId;
 			}
@@ -462,10 +441,7 @@ public final class AgentHostDefImpl extends AgentHost {
 			final List<String> protocols = service.getProtocols();
 			for (final String protocol : protocols) {
 				if (receiverUrl.getScheme().equals(protocol)) {
-					final String senderUrl = service.getAgentUrl(agentId);
-					if (senderUrl != null) {
-						return URI.create(senderUrl);
-					}
+					return service.getAgentUrl(agentId);
 				}
 			}
 		}

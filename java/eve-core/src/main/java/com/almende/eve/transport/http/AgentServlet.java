@@ -7,6 +7,7 @@ package com.almende.eve.transport.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -241,7 +242,13 @@ public class AgentServlet extends HttpServlet {
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
 		final String uri = req.getRequestURI();
-		final String agentId = httpTransport.getAgentId(uri);
+		String agentId;
+		try {
+			agentId = httpTransport.getAgentId(new URI(uri));
+		} catch (URISyntaxException e) {
+			throw new ServletException(
+					"AgentServlet has a strange URL, can't find agentId!");
+		}
 		String resource = httpTransport.getAgentResource(uri);
 		
 		// if no agentId is found, return generic information on servlet usage
@@ -338,16 +345,24 @@ public class AgentServlet extends HttpServlet {
 	 *            the resp
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
+	 * @throws ServletException
 	 */
 	@Override
 	public void doPost(final HttpServletRequest req,
-			final HttpServletResponse resp) throws IOException {
+			final HttpServletResponse resp) throws IOException,
+			ServletException {
 		
 		// retrieve the agent url and the request body
 		final String body = StringUtil.streamToString(req.getInputStream());
 		
 		final String agentUrl = req.getRequestURI();
-		final String agentId = httpTransport.getAgentId(agentUrl);
+		String agentId;
+		try {
+			agentId = httpTransport.getAgentId(new URI(agentUrl));
+		} catch (URISyntaxException e) {
+			throw new ServletException(
+					"AgentServlet has a strange URL, can't find agentId!");
+		}
 		if (agentId == null || agentId.equals("")) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"No agentId found in url.");
@@ -383,11 +398,10 @@ public class AgentServlet extends HttpServlet {
 		}
 		final String tag = new UUID().toString();
 		
-		// TODO: this should not depend on JSONResponse...
-		final SyncCallback<Object> callback = new SyncCallback<Object>();
+		final SyncCallback<String> callback = new SyncCallback<String>();
 		
-		final CallbackInterface<Object> callbacks = host.getCallbackService(
-				"HttpTransport", Object.class);
+		final CallbackInterface<String> callbacks = host.getCallbackService(
+				"HttpTransport", String.class);
 		callbacks.store(tag, callback);
 		host.receive(agentId, body, URI.create(senderUrl), tag);
 		
@@ -424,7 +438,13 @@ public class AgentServlet extends HttpServlet {
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
 		final String agentUrl = req.getRequestURI();
-		final String agentId = httpTransport.getAgentId(agentUrl);
+		String agentId;
+		try {
+			agentId = httpTransport.getAgentId(new URI(agentUrl));
+		} catch (URISyntaxException e) {
+			throw new ServletException(
+					"AgentServlet has a strange URL, can't find agentId!");
+		}
 		String agentType = req.getParameter("type");
 		
 		if (!handleSession(req, resp)) {
@@ -478,7 +498,13 @@ public class AgentServlet extends HttpServlet {
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
 		final String agentUrl = req.getRequestURI();
-		final String agentId = httpTransport.getAgentId(agentUrl);
+		String agentId;
+		try {
+			agentId = httpTransport.getAgentId(new URI(agentUrl));
+		} catch (URISyntaxException e) {
+			throw new ServletException(
+					"AgentServlet has a strange URL, can't find agentId!");
+		}
 		
 		if (!handleSession(req, resp)) {
 			if (!resp.isCommitted()) {

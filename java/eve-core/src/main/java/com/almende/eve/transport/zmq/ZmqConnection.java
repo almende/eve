@@ -6,6 +6,8 @@ package com.almende.eve.transport.zmq;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -30,15 +32,17 @@ public class ZmqConnection {
 												.getCanonicalName());
 	private final Socket		socket;
 	private final ZmqService	service;
-	private String				zmqUrl	= null;
+	private URI					zmqUrl	= null;
 	private AgentHost			host	= null;
 	private String				agentId	= null;
 	
 	/**
 	 * Instantiates a new zmq connection.
-	 *
-	 * @param socket the socket
-	 * @param service the service
+	 * 
+	 * @param socket
+	 *            the socket
+	 * @param service
+	 *            the service
 	 */
 	public ZmqConnection(final Socket socket, final ZmqService service) {
 		this.socket = socket;
@@ -47,7 +51,7 @@ public class ZmqConnection {
 	
 	/**
 	 * Gets the socket.
-	 *
+	 * 
 	 * @return the socket
 	 */
 	public Socket getSocket() {
@@ -56,25 +60,26 @@ public class ZmqConnection {
 	
 	/**
 	 * Gets the zmq url.
-	 *
+	 * 
 	 * @return the zmq url
 	 */
-	public String getZmqUrl() {
+	public URI getZmqUrl() {
 		return zmqUrl;
 	}
 	
 	/**
 	 * Sets the zmq url.
-	 *
-	 * @param zmqUrl the new zmq url
+	 * 
+	 * @param zmqUrl
+	 *            the new zmq url
 	 */
-	public void setZmqUrl(final String zmqUrl) {
+	public void setZmqUrl(final URI zmqUrl) {
 		this.zmqUrl = zmqUrl;
 	}
 	
 	/**
 	 * Gets the host.
-	 *
+	 * 
 	 * @return the host
 	 */
 	public AgentHost getHost() {
@@ -83,8 +88,9 @@ public class ZmqConnection {
 	
 	/**
 	 * Sets the host.
-	 *
-	 * @param host the new host
+	 * 
+	 * @param host
+	 *            the new host
 	 */
 	public void setHost(final AgentHost host) {
 		this.host = host;
@@ -92,7 +98,7 @@ public class ZmqConnection {
 	
 	/**
 	 * Gets the agent id.
-	 *
+	 * 
 	 * @return the agent id
 	 */
 	public String getAgentId() {
@@ -101,8 +107,9 @@ public class ZmqConnection {
 	
 	/**
 	 * Sets the agent id.
-	 *
-	 * @param agentId the new agent id
+	 * 
+	 * @param agentId
+	 *            the new agent id
 	 */
 	public void setAgentId(final String agentId) {
 		this.agentId = agentId;
@@ -110,26 +117,35 @@ public class ZmqConnection {
 	
 	/**
 	 * Gets the agent url.
-	 *
+	 * 
 	 * @return the agent url
 	 */
-	public String getAgentUrl() {
-		return "zmq:" + getZmqUrl();
+	public URI getAgentUrl() {
+		try {
+			return new URI("zmq:" + getZmqUrl());
+		} catch (URISyntaxException e) {
+			LOG.warning("Strange, couldn't form agentUrl:" + "zmq:"
+					+ getZmqUrl());
+			return null;
+		}
 	}
 	
 	/**
 	 * Sets the agent url.
-	 *
-	 * @param agentUrl the new agent url
+	 * 
+	 * @param agentUrl
+	 *            the new agent url
+	 * @throws URISyntaxException 
 	 */
-	public void setAgentUrl(final String agentUrl) {
-		zmqUrl = agentUrl.replaceFirst("zmq:/?/?", "");
+	public void setAgentUrl(final URI agentUrl) throws URISyntaxException {
+		zmqUrl = new URI(agentUrl.toString().replaceFirst("zmq:/?/?", ""));
 	}
 	
 	/**
 	 * Gets the request.
-	 *
-	 * @param socket the socket
+	 * 
+	 * @param socket
+	 *            the socket
 	 * @return the request
 	 */
 	private ByteBuffer[] getRequest(final Socket socket) {
@@ -149,7 +165,7 @@ public class ZmqConnection {
 	 * process an incoming zmq message.
 	 * If the message contains a valid JSON-RPC request or response,
 	 * the message will be processed.
-	 *
+	 * 
 	 */
 	public void listen() {
 		new Thread(new Runnable() {
@@ -173,26 +189,34 @@ public class ZmqConnection {
 	
 	/**
 	 * Handle msg.
-	 *
-	 * @param msg the msg
-	 * @throws ClassNotFoundException the class not found exception
-	 * @throws InstantiationException the instantiation exception
-	 * @throws IllegalAccessException the illegal access exception
-	 * @throws InvocationTargetException the invocation target exception
-	 * @throws NoSuchMethodException the no such method exception
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * 
+	 * @param msg
+	 *            the msg
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
+	 * @throws InstantiationException
+	 *             the instantiation exception
+	 * @throws IllegalAccessException
+	 *             the illegal access exception
+	 * @throws InvocationTargetException
+	 *             the invocation target exception
+	 * @throws NoSuchMethodException
+	 *             the no such method exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws URISyntaxException 
 	 */
 	private void handleMsg(final ByteBuffer[] msg)
 			throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, IOException {
+			NoSuchMethodException, IOException, URISyntaxException {
 		
 		// Receive
 		// ZMQ.NORMAL|senderUrl|tokenJson|body
 		// ZMQ.HANDSHAKE|senderUrl|tokenJson|timestamp
 		// ZMQ.HANDSHAKE_RESPONSE|senderUrl|tokenJson|null
 		
-		final String senderUrl = new String(msg[1].array());
+		final URI senderUrl = new URI(new String(msg[1].array()));
 		final TokenRet token = JOM.getInstance().readValue(msg[2].array(),
 				TokenRet.class);
 		final String body = new String(msg[3].array());

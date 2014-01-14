@@ -5,6 +5,8 @@
 package com.almende.eve.transport.zmq;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +68,7 @@ public class ZmqService implements TransportService {
 	 * @see com.almende.eve.transport.TransportService#getAgentUrl(java.lang.String)
 	 */
 	@Override
-	public String getAgentUrl(final String agentId) {
+	public URI getAgentUrl(final String agentId) {
 		if (inboundSockets.containsKey(agentId)) {
 			return inboundSockets.get(agentId).getAgentUrl();
 		}
@@ -77,7 +79,7 @@ public class ZmqService implements TransportService {
 	 * @see com.almende.eve.transport.TransportService#getAgentId(java.lang.String)
 	 */
 	@Override
-	public String getAgentId(final String agentUrl) {
+	public String getAgentId(final URI agentUrl) {
 		for (final Entry<String, ZmqConnection> entry : inboundSockets.entrySet()) {
 			if (entry.getValue().getAgentUrl().equals(agentUrl)) {
 				return entry.getKey();
@@ -97,19 +99,19 @@ public class ZmqService implements TransportService {
 	 * @param tag the tag
 	 */
 	public void sendAsync(final byte[] zmqType, final String token,
-			final String senderUrl, final String receiverUrl,
-			final Object message, final String tag) {
+			final URI senderUrl, final URI receiverUrl,
+			final String message, final String tag) {
 		host.getPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				final String addr = receiverUrl.replaceFirst("zmq:/?/?", "");
+				final String addr = receiverUrl.toString().replaceFirst("zmq:/?/?", "");
 				final Socket socket = ZMQ.getSocket(org.zeromq.ZMQ.PUSH);
 				try {
 					socket.connect(addr);
 					socket.send(zmqType, org.zeromq.ZMQ.SNDMORE);
-					socket.send(senderUrl, org.zeromq.ZMQ.SNDMORE);
+					socket.send(senderUrl.toString(), org.zeromq.ZMQ.SNDMORE);
 					socket.send(token, org.zeromq.ZMQ.SNDMORE);
-					socket.send(message.toString());
+					socket.send(message);
 					
 				} catch (final Exception e) {
 					LOG.log(Level.WARNING, "Failed to send JSON through ZMQ", e);
@@ -124,8 +126,8 @@ public class ZmqService implements TransportService {
 	 * @see com.almende.eve.transport.TransportService#sendAsync(java.lang.String, java.lang.String, java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public void sendAsync(final String senderUrl, final String receiverUrl,
-			final Object message, final String tag) {
+	public void sendAsync(final URI senderUrl, final URI receiverUrl,
+			final String message, final String tag) {
 		sendAsync(ZMQ.NORMAL, TokenStore.create().toString(), senderUrl,
 				receiverUrl, message, tag);
 	}
@@ -144,21 +146,30 @@ public class ZmqService implements TransportService {
 	 * @param agentId the agent id
 	 * @return the string
 	 */
-	private String genUrl(final String agentId) {
+	private URI genUrl(final String agentId) {
+		String res = null;
 		if (baseUrl.startsWith("tcp://")) {
 			final int basePort = Integer.parseInt(baseUrl.replaceAll(".*:", ""));
 			// TODO: this is not nice. Agents might change address at server
 			// restart.... How to handle this?
-			return baseUrl.replaceFirst(":[0-9]*$", "") + ":"
+			res = baseUrl.replaceFirst(":[0-9]*$", "") + ":"
 					+ (basePort + inboundSockets.size());
 		} else if (baseUrl.startsWith("inproc://")) {
-			return baseUrl + agentId;
+			res = baseUrl + agentId;
 		} else if (baseUrl.startsWith("ipc://")) {
-			return baseUrl + agentId;
+			res = baseUrl + agentId;
 		} else {
 			throw new IllegalStateException("ZMQ baseUrl not valid! (baseUrl:'"
 					+ baseUrl + "')");
 		}
+		if (res != null){
+			try {
+				return new URI(res);
+			} catch (URISyntaxException e) {
+				LOG.warning("Strange, couldn't generate zmq url:"+res);
+			}
+		}
+		return null;
 	}
 	
 	/* (non-Javadoc)
@@ -170,16 +181,16 @@ public class ZmqService implements TransportService {
 			if (inboundSockets.containsKey(agentId)) {
 				final ZmqConnection conn = inboundSockets.get(agentId);
 				final Socket socket = conn.getSocket();
-				socket.disconnect(conn.getZmqUrl());
-				socket.bind(conn.getZmqUrl());
+				socket.disconnect(conn.getZmqUrl().toString());
+				socket.bind(conn.getZmqUrl().toString());
 				conn.listen();
 			} else {
 				final ZmqConnection socket = new ZmqConnection(
 						ZMQ.getSocket(org.zeromq.ZMQ.PULL), this);
 				inboundSockets.put(agentId, socket);
 				
-				final String url = genUrl(agentId);
-				socket.getSocket().bind(url);
+				final URI url = genUrl(agentId);
+				socket.getSocket().bind(url.toString());
 				socket.setAgentUrl(url);
 				socket.setAgentId(agentId);
 				socket.setHost(host);
