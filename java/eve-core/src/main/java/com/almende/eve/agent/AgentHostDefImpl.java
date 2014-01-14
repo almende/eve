@@ -353,20 +353,22 @@ public final class AgentHostDefImpl extends AgentHost {
 	@Override
 	public void receive(final String receiverId, final Object message,
 			final URI senderUri, final String tag) throws IOException {
-		AgentInterface receiver = null;
 		try {
-			receiver = getAgent(receiverId);
+			AgentInterface receiver = getAgent(receiverId);
+			
+			if (receiver == null) {
+				// Check if there might be a proxy in the objectcache:
+				receiver = ObjectCache.get(AGENTS).get(receiverId,
+						AgentInterface.class);
+			}
+			if (receiver != null) {
+				receiver.receive(message, senderUri, tag);
+			} else {
+				throw new Exception();
+			}
 		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Couldn't getAgent(" + receiverId + ")", e);
 			throw new IOException(e);
-		}
-		if (receiver == null) {
-			// Check if there might be a proxy in the objectcache:
-			receiver = ObjectCache.get(AGENTS).get(receiverId,
-					AgentInterface.class);
-		}
-		if (receiver != null) {
-			receiver.receive(message, senderUri, tag);
 		}
 	}
 	
@@ -396,8 +398,9 @@ public final class AgentHostDefImpl extends AgentHost {
 			}
 			service = getTransportService(protocol);
 			if (service != null) {
-				//TODO: message should already be a String?
-				service.sendAsync(senderUri, receiverUrl, message.toString(), tag);
+				// TODO: message should already be a String?
+				service.sendAsync(senderUri, receiverUrl, message.toString(),
+						tag);
 			} else {
 				throw new ProtocolException(
 						"No transport service configured for protocol '"
