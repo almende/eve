@@ -45,7 +45,9 @@ public final class ApacheHttpClient {
 	private static final Logger			LOG			= Logger.getLogger(ApacheHttpClient.class
 															.getCanonicalName());
 	private static DefaultHttpClient	httpClient	= null;
-	
+	static {
+		new ApacheHttpClient();
+	}
 	/**
 	 * Instantiates a new apache http client.
 	 *
@@ -54,18 +56,24 @@ public final class ApacheHttpClient {
 	 * @throws NoSuchAlgorithmException the no such algorithm exception
 	 * @throws KeyStoreException the key store exception
 	 */
-	private ApacheHttpClient() throws KeyManagementException,
-			UnrecoverableKeyException, NoSuchAlgorithmException,
-			KeyStoreException {
+	private ApacheHttpClient() {
+		
 		// Allow self-signed SSL certificates:
 		final TrustStrategy trustStrategy = new TrustSelfSignedStrategy();
 		final X509HostnameVerifier hostnameVerifier = new AllowAllHostnameVerifier();
-		final SSLSocketFactory sslSf = new SSLSocketFactory(trustStrategy,
-				hostnameVerifier);
-		final Scheme https = new Scheme("https", 443, sslSf);
-		
 		final SchemeRegistry schemeRegistry = SchemeRegistryFactory.createDefault();
-		schemeRegistry.register(https);
+
+		SSLSocketFactory sslSf;
+		try {
+			sslSf = new SSLSocketFactory(trustStrategy,
+					hostnameVerifier);
+			final Scheme https = new Scheme("https", 443, sslSf);
+			schemeRegistry.register(https);
+		} catch (Exception e) {
+			LOG.warning("Couldn't init SSL socket, https not supported!");
+		}
+		
+		
 		
 		// Work with PoolingClientConnectionManager
 		final ClientConnectionManager connection = new PoolingClientConnectionManager(
@@ -121,9 +129,6 @@ public final class ApacheHttpClient {
 	static DefaultHttpClient get() throws KeyManagementException,
 			UnrecoverableKeyException, NoSuchAlgorithmException,
 			KeyStoreException {
-		if (httpClient == null) {
-			new ApacheHttpClient();
-		}
 		return httpClient;
 	}
 	
