@@ -5,9 +5,11 @@
 package com.almende.eve.agent.callback;
 
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -18,10 +20,11 @@ import java.util.concurrent.TimeoutException;
  *            the generic type
  */
 public class AsyncCallbackQueue<T> {
-	private final Map<Object, CallbackHandler>	queue	= new ConcurrentHashMap<Object, CallbackHandler>();
-	private static Timer						timer	= new Timer(true);
-	/** timeout in milliseconds */
-	private static final int					TIMEOUT	= 30000;
+	private final Map<Object, CallbackHandler>	queue		= new ConcurrentHashMap<Object, CallbackHandler>();
+	private static ScheduledExecutorService		scheduler	= Executors
+																	.newScheduledThreadPool(1);
+	/** timeout in seconds */
+	private static final int					TIMEOUT		= 30;
 	
 	// TODO: make the timeout customizable in eve.yaml
 	
@@ -52,28 +55,17 @@ public class AsyncCallbackQueue<T> {
 		final AsyncCallbackQueue<T> me = this;
 		final CallbackHandler handler = new CallbackHandler();
 		handler.callback = callback;
-		handler.timeout = new TimerTask() {
+		handler.timeout = scheduler.schedule(new Runnable() {
 			@Override
 			public void run() {
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						final AsyncCallback<T> callback = me.pull(id);
-						if (callback != null) {
-							callback.onFailure(new TimeoutException(
-									"Timeout occurred for request with id '"
-											+ id + "': " + description));
-						}
-					}
-				}).start();
+				final AsyncCallback<T> callback = me.pull(id);
+				if (callback != null) {
+					callback.onFailure(new TimeoutException(
+							"Timeout occurred for request with id '" + id
+									+ "': " + description));
+				}
 			}
-		};
-		try {
-			timer.schedule(handler.timeout, TIMEOUT);
-		} catch (final IllegalStateException e) {
-			timer = new Timer(true);
-			timer.schedule(handler.timeout, TIMEOUT);
-		}
+		}, TIMEOUT, TimeUnit.SECONDS);
 		queue.put(id, handler);
 	}
 	
@@ -90,7 +82,8 @@ public class AsyncCallbackQueue<T> {
 		final CallbackHandler handler = queue.remove(id);
 		if (handler != null) {
 			// stop the timeout
-			handler.timeout.cancel();
+			handler.timeout.cancel(false);
+			handler.timeout = null;
 			return handler.callback;
 		}
 		return null;
@@ -99,9 +92,10 @@ public class AsyncCallbackQueue<T> {
 	/**
 	 * Remove all callbacks from the queue.
 	 */
-	public void clear() {
+	public synchronized void clear() {
 		queue.clear();
-		timer.cancel();
+		scheduler.shutdownNow();
+		scheduler = Executors.newScheduledThreadPool(1);
 	}
 	
 	/**
@@ -109,7 +103,7 @@ public class AsyncCallbackQueue<T> {
 	 */
 	private class CallbackHandler {
 		private AsyncCallback<T>	callback;
-		private TimerTask			timeout;
+		private ScheduledFuture<?>	timeout;
 	}
 	
 }
