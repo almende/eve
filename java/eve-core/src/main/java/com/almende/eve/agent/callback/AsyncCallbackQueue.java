@@ -13,14 +13,16 @@ import java.util.concurrent.TimeoutException;
 /**
  * Queue to hold a list with callbacks in progress.
  * The Queue handles timeouts on the callbacks.
- *
- * @param <T> the generic type
+ * 
+ * @param <T>
+ *            the generic type
  */
 public class AsyncCallbackQueue<T> {
 	private final Map<Object, CallbackHandler>	queue	= new ConcurrentHashMap<Object, CallbackHandler>();
-	private Timer							timer	= new Timer(true);
+	private static Timer						timer	= new Timer(true);
 	/** timeout in milliseconds */
-	private static final int				TIMEOUT	= 30000;
+	private static final int					TIMEOUT	= 30000;
+	
 	// TODO: make the timeout customizable in eve.yaml
 	
 	/**
@@ -32,12 +34,15 @@ public class AsyncCallbackQueue<T> {
 	 * 
 	 * The method will throw an exception when a callback with the same id
 	 * is already in the queue.
-	 *
-	 * @param id the id
-	 * @param description the description
-	 * @param callback the callback
+	 * 
+	 * @param id
+	 *            the id
+	 * @param description
+	 *            the description
+	 * @param callback
+	 *            the callback
 	 */
-	public synchronized void push(final Object id, final String description,
+	public void push(final Object id, final String description,
 			final AsyncCallback<T> callback) {
 		if (queue.containsKey(id)) {
 			throw new IllegalStateException("Callback with id '" + id
@@ -50,12 +55,17 @@ public class AsyncCallbackQueue<T> {
 		handler.timeout = new TimerTask() {
 			@Override
 			public void run() {
-				final AsyncCallback<T> callback = me.pull(id);
-				if (callback != null) {
-					callback.onFailure(new TimeoutException(
-							"Timeout occurred for request with id '" + id
-									+ "': " + description));
-				}
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						final AsyncCallback<T> callback = me.pull(id);
+						if (callback != null) {
+							callback.onFailure(new TimeoutException(
+									"Timeout occurred for request with id '"
+											+ id + "': " + description));
+						}
+					}
+				}).start();
 			}
 		};
 		try {
@@ -71,14 +81,14 @@ public class AsyncCallbackQueue<T> {
 	 * Pull a callback from the queue. The callback can be pulled from the
 	 * queue only once. If no callback is found with given id, null will
 	 * be returned.
-	 *
-	 * @param id the id
+	 * 
+	 * @param id
+	 *            the id
 	 * @return the async callback
 	 */
-	public synchronized AsyncCallback<T> pull(final Object id) {
-		final CallbackHandler handler = queue.get(id);
+	public AsyncCallback<T> pull(final Object id) {
+		final CallbackHandler handler = queue.remove(id);
 		if (handler != null) {
-			queue.remove(id);
 			// stop the timeout
 			handler.timeout.cancel();
 			return handler.callback;
