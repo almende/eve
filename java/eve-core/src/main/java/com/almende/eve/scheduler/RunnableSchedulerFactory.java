@@ -27,6 +27,7 @@ import org.joda.time.Interval;
 
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AgentInterface;
+import com.almende.eve.config.Config;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
@@ -43,7 +44,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 	private static final Logger						LOG			= Logger.getLogger(RunnableSchedulerFactory.class
 																		.getSimpleName());
 	private final ScheduledExecutorService			scheduler	= Executors
-																		.newScheduledThreadPool(8);
+																		.newScheduledThreadPool(
+																				8,
+																				Config.getThreadFactory());
 	/** All tasks: {agentId: {taskId: task}} */
 	private final Map<String, Map<String, Task>>	allTasks	= new ConcurrentHashMap<String, Map<String, Task>>();
 	private State									state		= null;
@@ -277,11 +280,12 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						final String receiverUrl = "local:" + agentId;
 						final AgentInterface sender = host.getAgent(agentId);
 						if (sender == null) {
-							LOG.warning("Agent doesn't exist:"+agentId);
+							LOG.warning("Agent doesn't exist:" + agentId);
 							destroyScheduler(agentId);
 							return;
 						}
-						sender.send(request, URI.create(receiverUrl), null, null);
+						sender.send(request, URI.create(receiverUrl), null,
+								null);
 						
 						if (interval > 0 && sequential && !cancelled()) {
 							start(interval);

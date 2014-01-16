@@ -17,7 +17,7 @@ import org.zeromq.ZMQ.Socket;
 
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.ObjectCache;
@@ -135,7 +135,7 @@ public class ZmqConnection {
 	 * 
 	 * @param agentUrl
 	 *            the new agent url
-	 * @throws URISyntaxException 
+	 * @throws URISyntaxException
 	 */
 	public void setAgentUrl(final URI agentUrl) throws URISyntaxException {
 		zmqUrl = new URI(agentUrl.toString().replaceFirst("zmq:/?/?", ""));
@@ -204,7 +204,7 @@ public class ZmqConnection {
 	 *             the no such method exception
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
-	 * @throws URISyntaxException 
+	 * @throws URISyntaxException
 	 */
 	private void handleMsg(final ByteBuffer[] msg)
 			throws ClassNotFoundException, InstantiationException,
@@ -230,9 +230,9 @@ public class ZmqConnection {
 			return;
 		} else if (Arrays.equals(msg[0].array(), ZMQ.HANDSHAKE_RESPONSE)) {
 			// post response to callback for handling by other thread
-			final CallbackInterface<String> callbacks = host
-					.getCallbackService("zmqHandshakes", String.class);
-			AsyncCallback<String> callback = callbacks.get(key);
+			final AsyncCallbackQueue<String> callbacks = host.getCallbackQueue(
+					"zmqHandshakes", String.class);
+			AsyncCallback<String> callback = callbacks.pull(key);
 			if (callback != null) {
 				callback.onSuccess(body);
 			} else {
@@ -244,11 +244,11 @@ public class ZmqConnection {
 			final ObjectCache sessionCache = ObjectCache.get("ZMQSessions");
 			if (!sessionCache.containsKey(key)
 					&& host.getAgent(agentId).hasPrivate()) {
-				final CallbackInterface<String> callbacks = host
-						.getCallbackService("zmqHandshakes", String.class);
+				final AsyncCallbackQueue<String> callbacks = host
+						.getCallbackQueue("zmqHandshakes", String.class);
 				
 				SyncCallback<String> callback = new SyncCallback<String>();
-				callbacks.store(key, callback);
+				callbacks.push(key, "", callback);
 				service.sendAsync(ZMQ.HANDSHAKE, token.toString(), zmqUrl,
 						senderUrl, token.getTime(), null);
 				

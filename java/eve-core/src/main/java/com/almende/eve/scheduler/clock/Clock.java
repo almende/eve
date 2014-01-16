@@ -19,11 +19,4 @@ public interface Clock {
 	 */
 	void requestTrigger(String agentId, DateTime due, Runnable callback);
 	
-	/**
-	 * Run in pool.
-	 *
-	 * @param method the method
-	 */
-	void runInPool(Runnable method);
-	
 }

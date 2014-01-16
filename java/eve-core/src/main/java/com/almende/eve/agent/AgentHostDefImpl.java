@@ -22,8 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.ThreadSafe;
-import com.almende.eve.agent.callback.CallbackInterface;
-import com.almende.eve.agent.callback.CallbackService;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.agent.log.EventLogger;
 import com.almende.eve.config.Config;
 import com.almende.eve.event.EventsFactory;
@@ -50,15 +49,16 @@ public final class AgentHostDefImpl extends AgentHost {
 	private static final Logger																	LOG					= Logger.getLogger(AgentHostDefImpl.class
 																															.getSimpleName());
 	private final ConcurrentHashMap<String, TransportService>									transportServices	= new ConcurrentHashMap<String, TransportService>();
-	private final ConcurrentHashMap<String, CallbackInterface<?>>								callbacks			= new ConcurrentHashMap<String, CallbackInterface<?>>();
+	private final ConcurrentHashMap<String, AsyncCallbackQueue<?>>								callbacks			= new ConcurrentHashMap<String, AsyncCallbackQueue<?>>();
 	private StateFactory																		stateFactory		= null;
 	private SchedulerFactory																	schedulerFactory	= null;
 	private Config																				config				= null;
 	private final EventLogger																	eventLogger			= new EventLogger(
 																															this);
 	private boolean																				doesShortcut		= true;
-	private static final ExecutorService														POOL				= Executors
-																															.newCachedThreadPool();
+	private ExecutorService																		pool				= Executors
+																															.newCachedThreadPool(Config
+																																	.getThreadFactory());
 	private final ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>	refStore			= new ConcurrentHashMap<String, ConcurrentHashMap<TypedKey<?>, WeakReference<?>>>();
 	private static final String																	AGENTS				= "agents";
 	
@@ -69,7 +69,7 @@ public final class AgentHostDefImpl extends AgentHost {
 	 */
 	@Override
 	public ExecutorService getPool() {
-		return POOL;
+		return pool;
 	}
 	
 	/*
@@ -238,8 +238,8 @@ public final class AgentHostDefImpl extends AgentHost {
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, ClassNotFoundException, IOException {
 		Class<?> clazz = Class.forName(agentType);
-		if (ClassUtil.hasSuperClass(clazz, Agent.class)){
-			return createAgent((Class<T>)clazz, agentId);
+		if (ClassUtil.hasSuperClass(clazz, Agent.class)) {
+			return createAgent((Class<T>) clazz, agentId);
 		} else {
 			return (T) createAspectAgent(clazz, agentId);
 		}
@@ -847,18 +847,18 @@ public final class AgentHostDefImpl extends AgentHost {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.almende.eve.agent.AgentHost#getCallbackService(java.lang.String,
+	 * @see com.almende.eve.agent.AgentHost#getCallbackQueue(java.lang.String,
 	 * java.lang.Class)
 	 */
 	@Override
-	public synchronized <T> CallbackInterface<T> getCallbackService(
+	public synchronized <T> AsyncCallbackQueue<T> getCallbackQueue(
 			final String id, final Class<T> clazz) {
 		// TODO: make this better!
-		final TypeUtil<CallbackInterface<T>> type = new TypeUtil<CallbackInterface<T>>() {
+		final TypeUtil<AsyncCallbackQueue<T>> type = new TypeUtil<AsyncCallbackQueue<T>>() {
 		};
-		CallbackInterface<T> result = type.inject(callbacks.get(id));
+		AsyncCallbackQueue<T> result = type.inject(callbacks.get(id));
 		if (result == null) {
-			result = new CallbackService<T>();
+			result = new AsyncCallbackQueue<T>();
 			callbacks.put(id, result);
 		}
 		return result;

@@ -11,7 +11,7 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 
 import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.rpc.jsonrpc.JSONMessage;
 import com.almende.eve.rpc.jsonrpc.JSONRPC;
@@ -88,12 +88,12 @@ public class AgentProxyFactory {
 								if (response.getId() != null) {
 									id = response.getId();
 								}
-								final CallbackInterface<JSONResponse> cbs = host
-										.getCallbackService(proxyId,
+								final AsyncCallbackQueue<JSONResponse> cbs = host
+										.getCallbackQueue(proxyId,
 												JSONResponse.class);
 								if (cbs != null) {
 									final AsyncCallback<JSONResponse> callback = cbs
-											.get(id);
+											.pull(id);
 									if (callback != null) {
 										if (response.getError() != null) {
 											callback.onFailure(response
@@ -111,11 +111,11 @@ public class AgentProxyFactory {
 									method, args);
 							
 							final SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
-							final CallbackInterface<JSONResponse> cbs = host
-									.getCallbackService(proxyId,
+							final AsyncCallbackQueue<JSONResponse> cbs = host
+									.getCallbackQueue(proxyId,
 											JSONResponse.class);
 							if (cbs != null) {
-								cbs.store(request.getId(), callback);
+								cbs.push(request.getId(), "", callback);
 							}
 							try {
 								host.sendAsync(receiverUrl, request, agent,
