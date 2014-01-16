@@ -80,16 +80,16 @@ public final class AgentHostDefImpl extends AgentHost {
 	 */
 	@Override
 	public void loadConfig(final Config config) {
-		HOST.setConfig(config);
+		host.setConfig(config);
 		if (config != null) {
 			ObjectCache.get(AGENTS).configCache(config);
 			// initialize all factories for state, transport, and scheduler
 			// important to initialize in the correct order: cache first,
 			// then the state and transport services, and lastly scheduler.
-			HOST.setStateFactory(config);
-			HOST.addTransportServices(config);
-			HOST.setSchedulerFactory(config);
-			HOST.addAgents(config);
+			host.setStateFactory(config);
+			host.addTransportServices(config);
+			host.setSchedulerFactory(config);
+			host.addAgents(config);
 		}
 	}
 	
@@ -604,7 +604,7 @@ public final class AgentHostDefImpl extends AgentHost {
 			return;
 		}
 		this.stateFactory = stateFactory;
-		HOST.signalAgents(new AgentSignal<StateFactory>(
+		host.signalAgents(new AgentSignal<StateFactory>(
 				AgentSignal.SETSTATEFACTORY, stateFactory));
 		
 	}
@@ -740,8 +740,8 @@ public final class AgentHostDefImpl extends AgentHost {
 			transportServices.put(transportService.getKey(), transportService);
 			LOG.info("Registered transport service: "
 					+ transportService.toString());
-			if (HOST != null) {
-				HOST.signalAgents(new AgentSignal<TransportService>(
+			if (host != null) {
+				host.signalAgents(new AgentSignal<TransportService>(
 						AgentSignal.ADDTRANSPORTSERVICE, transportService));
 			}
 		} else {
@@ -761,7 +761,7 @@ public final class AgentHostDefImpl extends AgentHost {
 		transportServices.remove(transportService);
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
-		HOST.signalAgents(new AgentSignal<TransportService>(
+		host.signalAgents(new AgentSignal<TransportService>(
 				AgentSignal.DELTRANSPORTSERVICE, transportService));
 		
 	}
@@ -826,7 +826,7 @@ public final class AgentHostDefImpl extends AgentHost {
 			LOG.warning("Replacing earlier schedulerFactory.");
 		}
 		this.schedulerFactory = schedulerFactory;
-		HOST.signalAgents(new AgentSignal<SchedulerFactory>(
+		host.signalAgents(new AgentSignal<SchedulerFactory>(
 				AgentSignal.SETSCHEDULERFACTORY, schedulerFactory));
 	}
 	

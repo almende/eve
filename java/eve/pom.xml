@@ -54,14 +54,14 @@
 			<timezone>1</timezone>
 		</developer>
 	</developers>
- 
+
 	<modules>
 		<module>../eve-core</module>
 		<module>../eve-android</module>
 		<module>../eve-gae</module>
 		<module>../eve-planning</module>
 	</modules>
- 
+
 	<properties>
 		<skipTests>true</skipTests>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
