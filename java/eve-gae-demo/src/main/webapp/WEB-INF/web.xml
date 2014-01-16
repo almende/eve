@@ -12,11 +12,11 @@ http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 
 	<context-param>
 		<description>eve configuration (yaml file)</description>
-		<param-name>config</param-name>
+		<param-name>eve_config</param-name>
 		<param-value>eve.yaml</param-value>
 	</context-param>
 	<context-param>
-		<param-name>authentication</param-name>
+		<param-name>eve_authentication</param-name>
 		<param-value>false</param-value>
 	</context-param>
 	<listener>
@@ -54,15 +54,6 @@ http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	<servlet-mapping>
 		<servlet-name>XmppServlet</servlet-name>
 		<url-pattern>/_ah/xmpp/message/chat/</url-pattern>
-	</servlet-mapping>
-
-	<servlet>
-		<servlet-name>RestServlet</servlet-name>
-		<servlet-class>com.almende.eve.transport.http.RestServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>RestServlet</servlet-name>
-		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
