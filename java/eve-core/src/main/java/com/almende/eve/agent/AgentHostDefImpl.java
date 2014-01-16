@@ -237,7 +237,12 @@ public final class AgentHostDefImpl extends AgentHost {
 			final String agentId) throws InstantiationException,
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, ClassNotFoundException, IOException {
-		return createAgent((Class<T>) Class.forName(agentType), agentId);
+		Class<?> clazz = Class.forName(agentType);
+		if (ClassUtil.hasSuperClass(clazz, Agent.class)){
+			return createAgent((Class<T>)clazz, agentId);
+		} else {
+			return (T) createAspectAgent(clazz, agentId);
+		}
 	}
 	
 	/*
@@ -283,6 +288,7 @@ public final class AgentHostDefImpl extends AgentHost {
 			final Class<? extends T> aspect, final String agentId)
 			throws InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, IOException {
+		
 		@SuppressWarnings("unchecked")
 		final AspectAgent<T> result = createAgent(AspectAgent.class, agentId);
 		result.init(aspect);
