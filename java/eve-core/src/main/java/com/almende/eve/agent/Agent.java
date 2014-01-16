@@ -228,23 +228,23 @@ public abstract class Agent implements AgentInterface {
 	// TODO: Replace this by some form of publish/subscribe model!
 	public void signalAgent(final AgentSignal<?> event) {
 		if (AgentSignal.INVOKE.equals(event.getEvent())) {
-			sigInvoke((Object[]) event.getData());
+			onInvoke((Object[]) event.getData());
 		} else if (AgentSignal.RESPOND.equals(event.getEvent())) {
-			sigRespond((JSONResponse) event.getData());
+			onRespond((JSONResponse) event.getData());
 		} else if (AgentSignal.RESPONSE.equals(event.getEvent())) {
-			sigResponse((JSONResponse) event.getData());
+			onResponse((JSONResponse) event.getData());
 		} else if (AgentSignal.SEND.equals(event.getEvent())) {
-			sigSend((JSONMessage) event.getData());
+			onSend((JSONMessage) event.getData());
 		} else if (AgentSignal.EXCEPTION.equals(event.getEvent())) {
-			sigException((JSONResponse) event.getData());
+			onException((JSONResponse) event.getData());
 		} else if (AgentSignal.CREATE.equals(event.getEvent())) {
-			sigCreate();
+			onCreate();
 		} else if (AgentSignal.INIT.equals(event.getEvent())) {
-			sigInit();
+			onInit();
 		} else if (AgentSignal.DELETE.equals(event.getEvent())) {
-			sigDelete();
+			onDelete();
 		} else if (AgentSignal.DESTROY.equals(event.getEvent())) {
-			sigDestroy();
+			onDestroy();
 		} else if (AgentSignal.SETSCHEDULERFACTORY.equals(event.getEvent())) {
 			// init scheduler tasks
 			scheduler = host.getScheduler(this);
@@ -267,7 +267,7 @@ public abstract class Agent implements AgentInterface {
 	 * the overridden sigCreate().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigCreate() {
+	protected void onCreate() {
 		for (final TransportService service : host.getTransportServices()) {
 			try {
 				service.reconnect(getId());
@@ -287,7 +287,7 @@ public abstract class Agent implements AgentInterface {
 	 *            the signal data
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigInvoke(final Object[] signalData) {
+	protected void onInvoke(final Object[] signalData) {
 	}
 	
 	/**
@@ -299,7 +299,7 @@ public abstract class Agent implements AgentInterface {
 	 *            the response
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigRespond(final JSONResponse response) {
+	protected void onRespond(final JSONResponse response) {
 	}
 	
 	/**
@@ -311,7 +311,7 @@ public abstract class Agent implements AgentInterface {
 	 *            the message
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigSend(final JSONMessage message) {
+	protected void onSend(final JSONMessage message) {
 	}
 	
 	/**
@@ -324,7 +324,7 @@ public abstract class Agent implements AgentInterface {
 	 *            the response
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigException(final JSONResponse response) {
+	protected void onException(final JSONResponse response) {
 	}
 	
 	/**
@@ -336,7 +336,7 @@ public abstract class Agent implements AgentInterface {
 	 *            the response
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigResponse(final JSONResponse response) {
+	protected void onResponse(final JSONResponse response) {
 	}
 	
 	/**
@@ -347,7 +347,7 @@ public abstract class Agent implements AgentInterface {
 	 * the overridden sigInit().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigInit() {
+	protected void onInit() {
 	}
 	
 	/**
@@ -355,7 +355,7 @@ public abstract class Agent implements AgentInterface {
 	 * agent from memory.
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigDestroy() {
+	protected void onDestroy() {
 	}
 	
 	/**
@@ -366,7 +366,7 @@ public abstract class Agent implements AgentInterface {
 	 * the overridden sigDelete().
 	 */
 	@Access(AccessType.UNAVAILABLE)
-	protected void sigDelete() {
+	protected void onDelete() {
 		// TODO: unsubscribe from all subscriptions
 		
 		// cancel all scheduled tasks.
@@ -399,7 +399,7 @@ public abstract class Agent implements AgentInterface {
 	protected void finalize() throws Throwable {
 		// ensure the state is cleanup when the agent's method destroy is not
 		// called.
-		sigDestroy();
+		onDestroy();
 		getState().destroy();
 		super.finalize();
 	}

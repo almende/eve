@@ -25,7 +25,7 @@ public class Goldemo {
 			IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException {
 		AgentHost host = AgentHost.getInstance();
-		host.setDoesShortcut(false);
+//		host.setDoesShortcut(false);
 		
 		// host.setStateFactory(new FileStateFactory(".eveagents_gol",true));
 		host.setStateFactory(new MemoryStateFactory());

@@ -2,7 +2,8 @@ To compile:
 mvn clean install
 
 To run:
-java -jar target/GameOfLiveDemo-0.0.1-SNAPSHOT-jar-with-dependencies.jar 10 30 30 < 30_30_glider.txt
+java -jar target/GameOfLiveDemo-0.0.1-SNAPSHOT-jar-with-dependencies.jar 10 30 30 true < 30_30_glider.txt
 
-First parameter is runtime in seconds, second and third parameters are rows and columns. They should match the input file contents.
+First parameter is runtime in seconds, second and third parameters are rows and columns. They should match the input file contents. The fourth (optional) parameter determines if the visualisation should clear the screen for each cycle. (keeping the visualisation in the same place)
+
 

@@ -28,7 +28,7 @@ public class AspectAgent<T> extends Agent implements AgentInterface {
 	 * @see com.almende.eve.agent.Agent#sigInit()
 	 */
 	@Override
-	public void sigInit() {
+	public void onInit() {
 		myState = getState();
 	}
 	
