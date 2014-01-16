@@ -1,6 +1,19 @@
 EVE CORE
 http://almende.github.com/eve/
 
+2014-01-16, version 2.2.0 (2.1.0 skipped)
+
+- Rewrite of TransportService interface, removing all references to JSON-RPC 
+  outside Agent.java. This sets the stage for future streaming protocol support.
+- Introducing the ZMQ transport protocol.
+- TokenStore/CookieStore are now configurable in eve.yaml.
+- New reference storage support in Agent.java, for storing memory pointers to 
+  external objects in memory. (Legacy system support)
+- More consistent naming of signal handler methods
+- More robust exception handling
+- @Optional i.s.o. @Required(false)
+- Added CouchDB state (Thanks Sven!)
+- Various fixes and performance enhancements. (2.2.0 is >10x faster than 2.0.0 in similar cases)
 
 2013-09-13, version 2.0.0
 
