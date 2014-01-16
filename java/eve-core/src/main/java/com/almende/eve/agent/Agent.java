@@ -882,9 +882,9 @@ public abstract class Agent implements AgentInterface {
 		if (host != null) {
 			final String agentId = getId();
 			for (final TransportService service : host.getTransportServices()) {
-				final String url = service.getAgentUrl(agentId).toString();
+				final URI url = service.getAgentUrl(agentId);
 				if (url != null) {
-					urls.add(url);
+					urls.add(url.toString());
 				}
 			}
 			urls.add("local:" + agentId);
