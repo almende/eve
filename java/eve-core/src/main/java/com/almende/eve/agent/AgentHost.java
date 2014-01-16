@@ -62,18 +62,18 @@ import com.almende.eve.transport.TransportService;
  * 
  */
 public abstract class AgentHost {
-	protected static AgentHost	HOST	= null;
+	protected static AgentHost	host	= null;
 	
 	/**
 	 * Get the shared AgentHost instance.
 	 * 
 	 * @return Returns the host instance
 	 */
-	public synchronized static AgentHost getInstance() {
-		if (HOST == null) {
-			HOST = new AgentHostDefImpl();
+	public static synchronized AgentHost getInstance() {
+		if (host == null) {
+			host = new AgentHostDefImpl();
 		}
-		return HOST;
+		return host;
 	}
 	
 	/**
