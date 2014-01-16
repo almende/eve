@@ -201,7 +201,7 @@ public class MeetingAgent extends Agent {
 		activity = Activity.sync(activity, updatedActivity);
 
 		// ensure the url of the meeting agent is filled in
-		URI myUrl = getFirstUrl();
+		URI myUrl = getFirstUrl("http");
 		activity.setAgent(myUrl);
 
 		// create duration when missing
@@ -1485,6 +1485,22 @@ public class MeetingAgent extends Agent {
 			array.add(obj);
 		}
 		return array;
+	}
+	
+	/*
+	 * Get the first url filtered by a specific protocol
+	 * @param protocol    For example "http"
+	 */
+	protected URI getFirstUrl(String protocol) {
+		final List<String> urls = getUrls();
+		
+		for (String url : urls) {
+			if (url.startsWith(protocol + ":")) {
+				return URI.create(url);
+			}
+		}
+		
+		return null;
 	}
 	
 	@Override
