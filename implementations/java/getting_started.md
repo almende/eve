@@ -159,6 +159,7 @@ Create an Eve configuration file named `eve.yaml` in the folder `war/WEB-INF` (w
 state:
   class: FileStateFactory
   path: .eveagents
+
 # scheduler settings (for tasks)
 scheduler:
   class: RunnableSchedulerFactory
@@ -237,24 +238,24 @@ Perform an HTTP POST request to the CalcAgent on the url
 With request body:
 
 {% highlight javascript %}
-    {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "eval",
-        "params": {
-            "expr": "2.5 + 3 / sqrt(16)"
-        }
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "eval",
+    "params": {
+        "expr": "2.5 + 3 / sqrt(16)"
     }
+}
 {% endhighlight %}
 
 This request will return the following response:
 
 {% highlight javascript %}
-    {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "result": "3.25"
-    }
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "3.25"
+}
 {% endhighlight %}
 
 The agent also has a web interface, allowing you to interact with the agent more easily, to go to the agents web interface, open its url in your browser: http://localhost:8080/myeveproject/agents/calcagent1/.
@@ -279,6 +280,7 @@ public class MyFirstAgent extends Agent {
 	public String echo (@Name("message") String message) {
 		return "You said: " + message;
 	}
+
 	@Access(AccessType.PUBLIC)
 	public double add (@Name("a") double a, @Name("b") double b) {
 		return a + b;
@@ -286,7 +288,7 @@ public class MyFirstAgent extends Agent {
 }
 {% endhighlight %}
 
-By default, an agents methods cannot be accessed by other agents. The availability of methods can be specified using the `@Access` annotation, as done in the example above where both methods `echo` and `add` are declared public. Eve agents communicate with each other via JSON-RPC 2.0, which uses named parameters. As Java doesn't support named parameters, the parameter names need to be specified using the `@Name` annotation. Furthermore, parameters can be declared optional using the `@Required` annotation.
+By default, an agents methods cannot be accessed by other agents. The availability of methods can be specified using the `@Access` annotation, as done in the example above where both methods `echo` and `add` are declared public. Eve agents communicate with each other via JSON-RPC 2.0, which uses named parameters. As Java doesn't support named parameters, the parameter names need to be specified using the `@Name` annotation. Furthermore, parameters can be declared optional using the `@Optional` annotation.
 
 Create an instance of your new agent. Send an HTTP PUT request to the servlet. We will create an agent with id `myfirstagent1` and class `com.mycompany.myeveproject.MyFirstAgent`.
 
@@ -304,48 +306,48 @@ Now you can perform an HTTP POST request to the new agent
 With as request body:
 
 {% highlight javascript %}
-    {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "echo",
-        "params": {
-            "message": "Hello World"
-        }
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "echo",
+    "params": {
+        "message": "Hello World"
     }
+}
 {% endhighlight %}
 
 which returns:
 
 {% highlight javascript %}
-    {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "result": "Hello World"
-    }
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": "Hello World"
+}
 {% endhighlight %}
 
 or send the following request:
 
 {% highlight javascript %}
-    {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "add",
-         "params": {
-              "a": 2.1,
-              "b": 3.5
-         }
-    }
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "add",
+     "params": {
+          "a": 2.1,
+          "b": 3.5
+     }
+}
 {% endhighlight %}
 
 which returns:
 
 {% highlight javascript %}
-    {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "result": 5.6
-    }
+{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": 5.6
+}
 {% endhighlight %}
 
 ## Conclusion {#conclusion}

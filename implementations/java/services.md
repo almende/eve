@@ -257,6 +257,7 @@ public void xmppConnect(@Name("username") String username,
 		throw new Exception("No XMPP service registered");
 	}
 }
+
 @Access(AccessType.PUBLIC)
 public void xmppDisconnect() throws Exception {
 	AgentHost host = getAgentHost();

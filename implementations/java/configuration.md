@@ -20,24 +20,29 @@ file: **war/WEB-INF/eve.yaml**
 
 {% highlight yaml %}
 # Eve configuration
+
 # environment specific settings
 environment:
   Development:
     # ... development properties
   Production:
     # ... production properties
+
 # transport services (for communication)
 services:
 - class: XmppService
   host: my_xmpp_server.com
   port: 5222
+
 # state settings (for persistency)
 state:
   class: FileStateFactory
   path: .eveagents
+
 # scheduler settings (for tasks)
 scheduler:
   class: RunnableSchedulerFactory
+
 # bootstrap agents
 # agents will be automatically created on system startup (if not existing)
 bootstrap:

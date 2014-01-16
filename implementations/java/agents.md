@@ -51,7 +51,7 @@ All agents automatically inherit the following methods from the base class Agent
 
 - `getMethods` returns an automatically generated list with all available methods.
 - `getType` returns the class name of the agent.
-- `getUrls` returns the full url of the agent.
+- `getUrls` returns the full urls of the agent.
 - `getId` returns the id of the agent
 - `onSubscribe` to recevie a subscription to an event
 - `onUnsubscribe` to receive an unsubscription from an event
@@ -62,7 +62,7 @@ An agent can optionally override the following utility methods:
 - `getVersion` returning the version number of the agent.
 
 The parameters of a method must be named using the `@Name` annotation.
-Parameters can be marked as optional using the annotation `@Required`. 
+Parameters can be marked as optional using the annotation `@Optional`.
 Non-required parameters are initialized with value `null` when not provided.
 Parameters can be of any type, both primitive types like Double or String, 
 and Java objects such as a Contact or Person class.
@@ -70,7 +70,7 @@ and Java objects such as a Contact or Person class.
 {% highlight java %}
 @Access(AccessType.PUBLIC)
 public void storePerson (@Name("person") Person person,
-    @Name("confirm") @Required(false) Boolean confirm ) {
+    @Name("confirm") @Optional Boolean confirm ) {
     // ...
 }
 {% endhighlight %}
@@ -106,18 +106,18 @@ create, init, invoke, destroy, and delete.
 ### Create and Delete
 
 Once in its lifetime, an agent is created via the AgentHost.
-On creation of the agent, the method `create()` is called once.
+On creation of the agent, the method `onCreate()` is called once.
 This method can be overridden to perform setup tasks for the agent.
 
 At the end of its life an agent is deleted via the AgentHost.
-Before deletion, the method `delete()` is called once, which can be overridden
+Before deletion, the method `onDelete()` is called once, which can be overridden
 to cleanup the agent.
 
 ### Init and Destroy
 
 When an agent is loaded into memory, it is instantiated.
-On instantiation, the method `init()` is called, which can be overridden.
-Similarly, when an agents instance is destroyed, the method `destroy()` is
+On instantiation, the method `onInit()` is called, which can be overridden.
+Similarly, when an agents instance is destroyed, the method `onDestroy()` is
 called, which can be overridden too.
 
 Initialization and destruction of an agents instances is managed by the
@@ -171,6 +171,7 @@ sendAsync(url, method, params, new AsyncCallback<String>() {
    public void onSuccess(String result) {
        System.out.println("result=" + result);
    }
+
    @Override
    public void onFailure(Throwable caught) {
       caught.printStackTrace();
@@ -232,6 +233,7 @@ An example of using the state is shown in the following example:
 public void setUsername(@Name("username") String username) {
 	getState().put("username", username);
 }
+
 @Access(AccessType.PUBLIC)
 public String getUsername() {
 	return getState().get("username");
@@ -263,11 +265,12 @@ public void subscribeToAgentY() throws Exception {
     String url = "http://server/agents/agenty/";
     String event = "dataChanged";
     String callback = "onEvent";
-	ObjectNode callbackParams = JOM.createObjectNode();
+    ObjectNode callbackParams = JOM.createObjectNode();
     callbackParams.put("original_data","some data");
-	callbackParams.put("message","Somewhere the dataChanged event was triggered.");
+    callbackParams.put("message","Somewhere the dataChanged event was triggered.");
     getEventsFactory().subscribe(url, event, callback, callbackParams);
 }
+
 @Access(AccessType.PUBLIC)
 public void unsubscribeFromAgentY() throws Exception {
     String url = "http://server/agents/agenty/";
@@ -275,15 +278,16 @@ public void unsubscribeFromAgentY() throws Exception {
     String callback = "onEvent";
     getEventsFactory().unsubscribe(url, event, callback);
 }
+
 @Access(AccessType.PUBLIC)
 public void onEvent(
     @Name("agent") String agent,
-    @Name("event") String event, 
-    @Required(false) @Name("params") ObjectNode params) throws Exception {
+    @Name("event") String event,
+    @Optional @Name("params") ObjectNode params) throws Exception {
     System.out.println("onEvent " +
-       "agent=" + agent + ", " +
-       "event=" + event + ", " +
-       "params=" + ((params != null) ? params.toString() : null));
+        "agent=" + agent + ", " +
+        "event=" + event + ", " +
+        "params=" + ((params != null) ? params.toString() : null));
 }
 {% endhighlight %}
 
@@ -342,10 +346,12 @@ public String createTask() throws Exception {
     String id = getScheduler().createTask(request, delay);
     return id;
 }
+
 @Access(AccessType.PUBLIC)
 public void cancelTask(@Name("id") String id) {
     getScheduler().cancelTask(id);
 }
+
 @Access(AccessType.PUBLIC)
 public void myTask(@Name("message") String message) {
     System.out.println("myTask is executed. Message: " + message);
