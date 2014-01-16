@@ -277,8 +277,9 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 						final String receiverUrl = "local:" + agentId;
 						final AgentInterface sender = host.getAgent(agentId);
 						if (sender == null) {
-							throw new IllegalStateException(
-									"Sending agent is missing:" + agentId);
+							LOG.warning("Agent doesn't exist:"+agentId);
+							destroyScheduler(agentId);
+							return;
 						}
 						sender.send(request, URI.create(receiverUrl), null, null);
 						
