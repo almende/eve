@@ -19,8 +19,9 @@ http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 		<param-name>eve_authentication</param-name>
 		<param-value>false</param-value>
 	</context-param>
+	
 	<listener>
-		<listener-class>com.almende.eve.transport.http.AgentListener</listener-class>
+		<listener-class>com.almende.eve.transport.http.google.GaeAgentListener</listener-class>
 	</listener>
 
 	<servlet>
