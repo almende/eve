@@ -3,7 +3,7 @@ layout: default
 title: Getting Started
 ---
 
-{% assign version = '2.0.0' %}
+{% assign version = '2.2.0' %}
 
 # Getting Started with Eve, Jetty, and Maven
 

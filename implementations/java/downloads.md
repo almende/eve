@@ -3,7 +3,7 @@ layout: default
 title: Downloads
 ---
 
-{% assign version = '2.0.0' %}
+{% assign version = '2.2.0' %}
 
 
 # Downloads
