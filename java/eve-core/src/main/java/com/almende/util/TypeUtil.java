@@ -109,8 +109,10 @@ public abstract class TypeUtil<T> {
 			try {
 				return mapper.convertValue(value, fullType);
 			} catch (final Exception e) {
-				throw new ClassCastException("Failed to convert value:" + value
+				ClassCastException cce = new ClassCastException("Failed to convert value:" + value
 						+ " -----> " + fullType);
+				cce.initCause(e);
+				throw cce;
 			}
 		}
 		if (fullType.getRawClass().isAssignableFrom(value.getClass())) {

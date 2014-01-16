@@ -160,21 +160,9 @@ public final class JSONRequest extends JSONMessage {
 	 *
 	 * @param id the new id
 	 */
-	public void setId(String id) {
-		if (id == null) {
-			id = new UUID().toString();
-		}
-		req.put(ID, id);
-	}
-	
-	/**
-	 * Sets the id.
-	 *
-	 * @param id the new id
-	 */
 	public void setId(final JsonNode id) {
 		if (id == null || id.isNull()) {
-			setId(new UUID().toString());
+			req.put(ID, new UUID().toString());
 		} else {
 			req.put(ID, id);
 		}
