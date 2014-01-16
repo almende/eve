@@ -25,7 +25,7 @@ public class TestAccessAgent extends Agent {
 	 * @see com.almende.eve.agent.Agent#sigCreate()
 	 */
 	@Override
-	public void sigCreate() {
+	public void onCreate() {
 		getState().put("senderLabel", "trusted");
 	}
 	

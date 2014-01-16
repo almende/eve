@@ -182,12 +182,12 @@ public class GoogleCalendarAgent extends Agent implements CalendarAgent {
      * Remove all stored data from this agent
      */
     @Override
-    public void sigDelete() {
+    public void onDelete() {
         State state = getState();
         state.remove("auth");
         state.remove("email");
         state.remove("name");
-        super.sigDelete();
+        super.onDelete();
     }
 
     /**

@@ -101,39 +101,39 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.almende.eve.agent.Agent#sigCreate()
+	 * @see com.almende.eve.agent.Agent#onCreate()
 	 */
 	@Override
-	public void sigCreate() {
+	public void onCreate() {
 		System.out.println("creating Test2Agent/" + getId());
-		super.sigCreate();
+		super.onCreate();
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.almende.eve.agent.Agent#sigDelete()
+	 * @see com.almende.eve.agent.Agent#onDelete()
 	 */
 	@Override
-	public void sigDelete() {
+	public void onDelete() {
 		System.out.println("deleting Test2Agent/" + getId());
-		super.sigDelete();
+		super.onDelete();
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.almende.eve.agent.Agent#sigInit()
+	 * @see com.almende.eve.agent.Agent#onInit()
 	 */
 	@Override
-	public void sigInit() {
+	public void onInit() {
 		System.out.println("initializing Test2Agent/" + getId());
-		super.sigInit();
+		super.onInit();
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.almende.eve.agent.Agent#sigDestroy()
+	 * @see com.almende.eve.agent.Agent#onDestroy()
 	 */
 	@Override
-	public void sigDestroy() {
+	public void onDestroy() {
 		System.out.println("destroying Test2Agent/" + getId());
-		super.sigDestroy();
+		super.onDestroy();
 	}
 	
 	/**
@@ -1078,8 +1078,9 @@ public class Test2Agent extends Agent implements Test2AgentInterface {
 	
 	/**
 	 * Gets the urls of merlin async.
-	 *
-	 * @throws Exception the exception
+	 * 
+	 * @throws Exception
+	 *             the exception
 	 */
 	public void getUrlsOfMerlinAsync() throws Exception {
 		final String url = "xmpp:merlin@openid.almende.org";
