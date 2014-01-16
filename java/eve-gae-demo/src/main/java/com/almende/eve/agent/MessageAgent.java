@@ -11,7 +11,7 @@ import com.almende.eve.entity.Message;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
 import com.almende.util.TwigUtil;
@@ -89,7 +89,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 @Access(AccessType.PUBLIC)
 public class MessageAgent extends Agent {
 	@Override
-	public void init() {
+	public void onInit() {
 		TwigUtil.register(Message.class);
 	}
 	
@@ -187,8 +187,8 @@ public class MessageAgent extends Agent {
 	 * @throws Exception 
 	 */
 	public List<Message> getInbox (
-			@Name("since") @Required(false) String since,
-			@Name("status") @Required(false) String status) throws Exception {
+			@Name("since") @Optional String since,
+			@Name("status") @Optional String status) throws Exception {
 		return find("inbox", since, status);
 	}
 
@@ -202,8 +202,8 @@ public class MessageAgent extends Agent {
 	 * @throws Exception 
 	 */
 	public List<Message> getOutbox (
-			@Name("since") @Required(false) String since,
-			@Name("status") @Required(false) String status) throws Exception {
+			@Name("since") @Optional String since,
+			@Name("status") @Optional String status) throws Exception {
 		return find("outbox", since, status);
 	}
 	
@@ -246,7 +246,7 @@ public class MessageAgent extends Agent {
 	 * Clear inbox and outbox and everything the agent has stored.
 	 */
 	@Override
-	public void delete() {
+	public void onDelete() {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		QueryResultIterator<Message> it = datastore.find()
 			.type(Message.class)
@@ -259,7 +259,7 @@ public class MessageAgent extends Agent {
 			// TODO: bulk delete all messages instead of one by one
 		}
 		
-		super.delete();
+		super.onDelete();
 	}
 
 	@Override
