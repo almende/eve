@@ -24,7 +24,7 @@ import org.apache.http.util.EntityUtils;
 
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.transport.TransportService;
 import com.almende.util.tokens.TokenStore;
 
@@ -152,12 +152,12 @@ public class HttpService implements TransportService {
 						// This is a reply to a synchronous inbound call, get
 						// callback
 						// and use it to send the message
-						final CallbackInterface<String> callbacks = host
-								.getCallbackService("HttpTransport",
+						final AsyncCallbackQueue<String> callbacks = host
+								.getCallbackQueue("HttpTransport",
 										String.class);
 						if (callbacks != null) {
 							final AsyncCallback<String> callback = callbacks
-									.get(tag);
+									.pull(tag);
 							if (callback != null) {
 								callback.onSuccess(message);
 								return;

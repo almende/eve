@@ -23,7 +23,7 @@ import org.apache.http.client.methods.HttpGet;
 import com.almende.eve.agent.Agent;
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.agent.AgentSignal;
-import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.agent.log.Log;
 import com.almende.eve.config.Config;
@@ -399,9 +399,9 @@ public class AgentServlet extends HttpServlet {
 		
 		final SyncCallback<String> callback = new SyncCallback<String>();
 		
-		final CallbackInterface<String> callbacks = host.getCallbackService(
+		final AsyncCallbackQueue<String> callbacks = host.getCallbackQueue(
 				"HttpTransport", String.class);
-		callbacks.store(tag, callback);
+		callbacks.push(tag,"", callback);
 		host.receive(agentId, body, URI.create(senderUrl), tag);
 		
 		try {

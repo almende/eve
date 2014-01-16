@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 
 import com.almende.eve.agent.annotation.Namespace;
 import com.almende.eve.agent.callback.AsyncCallback;
-import com.almende.eve.agent.callback.CallbackInterface;
+import com.almende.eve.agent.callback.AsyncCallbackQueue;
 import com.almende.eve.agent.callback.SyncCallback;
 import com.almende.eve.event.EventsInterface;
 import com.almende.eve.monitor.ResultMonitorFactoryInterface;
@@ -86,7 +86,7 @@ public abstract class Agent implements AgentInterface {
 	private Scheduler						scheduler			= null;
 	private ResultMonitorFactoryInterface	monitorFactory		= null;
 	private EventsInterface					eventsFactory		= null;
-	private CallbackInterface<JSONResponse>	callbacks			= null;
+	private AsyncCallbackQueue<JSONResponse>	callbacks			= null;
 	private static final RequestParams		EVEREQUESTPARAMS	= new RequestParams();
 	static {
 		EVEREQUESTPARAMS.put(Sender.class, null);
@@ -136,7 +136,7 @@ public abstract class Agent implements AgentInterface {
 			this.state = state;
 			monitorFactory = agentHost.getResultMonitorFactory(this);
 			eventsFactory = agentHost.getEventsFactory(this);
-			callbacks = agentHost.getCallbackService(getId(),
+			callbacks = agentHost.getCallbackQueue(getId(),
 					JSONResponse.class);
 			
 			// validate the Eve agent and output as warnings
@@ -1053,8 +1053,7 @@ public abstract class Agent implements AgentInterface {
 				} else if (jsonMsg instanceof JSONResponse && callbacks != null
 						&& id != null && !id.isNull()) {
 					final JSONResponse response = (JSONResponse) jsonMsg;
-					final AsyncCallback<JSONResponse> callback = callbacks
-							.get(id);
+					final AsyncCallback<JSONResponse> callback = callbacks.pull(id);
 					if (callback != null) {
 						host.getPool().execute(new Runnable() {
 							@Override
@@ -1110,7 +1109,7 @@ public abstract class Agent implements AgentInterface {
 			signalAgent(new AgentSignal<JSONMessage>(AgentSignal.SEND,
 					(JSONMessage) msg));
 			if (callback != null && callbacks != null) {
-				callbacks.store(((JSONMessage) msg).getId(), callback);
+				callbacks.push(((JSONMessage) msg).getId(),msg.toString(), callback);
 			}
 		}
 		// This should already been done!

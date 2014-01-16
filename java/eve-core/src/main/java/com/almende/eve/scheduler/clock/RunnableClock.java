@@ -14,16 +14,22 @@ import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import com.almende.eve.config.Config;
+
 /**
  * The Class RunnableClock.
  */
 public class RunnableClock implements Runnable, Clock {
 	private static final NavigableMap<ClockEntry, ClockEntry>	TIMELINE	= new TreeMap<ClockEntry, ClockEntry>();
 	private static final ScheduledExecutorService				POOL		= Executors
-																					.newScheduledThreadPool(2);
+																					.newScheduledThreadPool(
+																							4,
+																							Config.getThreadFactory());
 	private static ScheduledFuture<?>							future		= null;
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Runnable#run()
 	 */
 	@Override
@@ -49,11 +55,16 @@ public class RunnableClock implements Runnable, Clock {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.almende.eve.scheduler.clock.Clock#requestTrigger(java.lang.String, org.joda.time.DateTime, java.lang.Runnable)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.almende.eve.scheduler.clock.Clock#requestTrigger(java.lang.String,
+	 * org.joda.time.DateTime, java.lang.Runnable)
 	 */
 	@Override
-	public void requestTrigger(final String agentId, final DateTime due, final Runnable callback) {
+	public void requestTrigger(final String agentId, final DateTime due,
+			final Runnable callback) {
 		synchronized (TIMELINE) {
 			final ClockEntry ce = new ClockEntry(agentId, due, callback);
 			final ClockEntry oldVal = TIMELINE.get(ce);
@@ -63,19 +74,11 @@ public class RunnableClock implements Runnable, Clock {
 			}
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.almende.eve.scheduler.clock.Clock#runInPool(java.lang.Runnable)
-	 */
-	@Override
-	public void runInPool(final Runnable method) {
-		POOL.execute(method);
-	}
 }
 
 /**
  * @author Almende
- *
+ * 
  */
 class ClockEntry implements Comparable<ClockEntry> {
 	private String		agentId;
@@ -87,7 +90,8 @@ class ClockEntry implements Comparable<ClockEntry> {
 	 * @param due
 	 * @param callback
 	 */
-	public ClockEntry(final String agentId, final DateTime due, final Runnable callback) {
+	public ClockEntry(final String agentId, final DateTime due,
+			final Runnable callback) {
 		this.agentId = agentId;
 		this.due = due;
 		this.callback = callback;
@@ -135,7 +139,9 @@ class ClockEntry implements Comparable<ClockEntry> {
 		this.callback = callback;
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -150,7 +156,9 @@ class ClockEntry implements Comparable<ClockEntry> {
 		return agentId.equals(other.agentId);
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -158,7 +166,9 @@ class ClockEntry implements Comparable<ClockEntry> {
 		return agentId.hashCode();
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override

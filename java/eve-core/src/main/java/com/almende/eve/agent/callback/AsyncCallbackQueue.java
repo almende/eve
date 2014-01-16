@@ -12,6 +12,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.almende.eve.config.Config;
+
 /**
  * Queue to hold a list with callbacks in progress.
  * The Queue handles timeouts on the callbacks.
@@ -22,12 +24,11 @@ import java.util.concurrent.TimeoutException;
 public class AsyncCallbackQueue<T> {
 	private final Map<Object, CallbackHandler>	queue		= new ConcurrentHashMap<Object, CallbackHandler>();
 	private static ScheduledExecutorService		scheduler	= Executors
-																	.newScheduledThreadPool(1);
+																	.newScheduledThreadPool(1,Config.getThreadFactory());
 	/** timeout in seconds */
-	private static final int					TIMEOUT		= 30;
+	private int									timeout		= 30;
 	
 	// TODO: make the timeout customizable in eve.yaml
-	
 	/**
 	 * Append a callback to the queue.
 	 * 
@@ -65,7 +66,7 @@ public class AsyncCallbackQueue<T> {
 									+ "': " + description));
 				}
 			}
-		}, TIMEOUT, TimeUnit.SECONDS);
+		}, timeout, TimeUnit.SECONDS);
 		queue.put(id, handler);
 	}
 	

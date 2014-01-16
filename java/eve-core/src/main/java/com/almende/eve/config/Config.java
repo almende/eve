@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +25,9 @@ public class Config extends YamlConfig {
 			"com.google.appengine.runtime.environment",
 			"com.almende.eve.runtime.environment"					};
 	private static String						environment			= null;
+	private static ThreadFactory				threadFactory		= Executors
+																			.defaultThreadFactory();
+	
 	/*
 	 * Several classname maps for configuration conveniency:
 	 */
@@ -55,9 +60,11 @@ public class Config extends YamlConfig {
 	
 	/**
 	 * Instantiates a new config.
-	 *
-	 * @param filename the filename
-	 * @throws FileNotFoundException the file not found exception
+	 * 
+	 * @param filename
+	 *            the filename
+	 * @throws FileNotFoundException
+	 *             the file not found exception
 	 */
 	public Config(final String filename) throws FileNotFoundException {
 		super(filename);
@@ -65,20 +72,24 @@ public class Config extends YamlConfig {
 	
 	/**
 	 * Instantiates a new config.
-	 *
-	 * @param inputStream the input stream
+	 * 
+	 * @param inputStream
+	 *            the input stream
 	 */
 	public Config(final InputStream inputStream) {
 		super(inputStream);
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.almende.eve.config.YamlConfig#get(java.lang.String[])
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(final String... params) {
-		final ArrayList<String> envParams = new ArrayList<String>(params.length + 2);
+		final ArrayList<String> envParams = new ArrayList<String>(
+				params.length + 2);
 		envParams.add("environment");
 		envParams.add(getEnvironment());
 		envParams.addAll(Arrays.asList(params));
@@ -95,8 +106,9 @@ public class Config extends YamlConfig {
 	
 	/**
 	 * Map.
-	 *
-	 * @param result the result
+	 * 
+	 * @param result
+	 *            the result
 	 * @return the string
 	 */
 	public static String map(String result) {
@@ -108,7 +120,7 @@ public class Config extends YamlConfig {
 	
 	/**
 	 * Gets the environment.
-	 *
+	 * 
 	 * @return the environment
 	 */
 	public static String getEnvironment() {
@@ -141,10 +153,25 @@ public class Config extends YamlConfig {
 	
 	/**
 	 * Sets the environment.
-	 *
-	 * @param env the new environment
+	 * 
+	 * @param env
+	 *            the new environment
 	 */
 	public static final void setEnvironment(final String env) {
 		environment = env;
+	}
+	
+	/**
+	 * @return
+	 */
+	public static ThreadFactory getThreadFactory() {
+		return threadFactory;
+	}
+	
+	/**
+	 * @param factory
+	 */
+	public static void setThreadFactory(ThreadFactory factory) {
+		threadFactory = factory;
 	}
 }
