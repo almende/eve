@@ -10,7 +10,7 @@ import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.rpc.jsonrpc.JSONRPCException;
 import com.almende.eve.rpc.jsonrpc.JSONRequest;
 import com.almende.eve.state.State;
@@ -26,11 +26,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Access(AccessType.PUBLIC)
 public class BenchmarkAgent extends Agent {
 	@Override
-	public void create () {
+	public void onCreate () {
 		getState().put("status", "none");
 	}
 	
-	public void startAsTask (@Required(true) @Name("num") Integer num) {
+	public void startAsTask (@Optional @Name("num") Integer num) {
 		JSONRequest task = new JSONRequest();
 		task.setMethod("start");
 		ObjectNode params = new ObjectMapper().createObjectNode();
@@ -50,7 +50,7 @@ public class BenchmarkAgent extends Agent {
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	public ObjectNode start (@Required(true) @Name("num") Integer num) {
+	public ObjectNode start (@Optional @Name("num") Integer num) {
 		// cancel any currently running test
 		cancel();
 		
@@ -83,7 +83,7 @@ public class BenchmarkAgent extends Agent {
 		for (int i = 0; i < num; i++) {
 			try {
 				String agentId = HelloAgent.numToAgentId(i, num);
-				URI url = new URI(service.getAgentUrl(agentId));
+				URI url = service.getAgentUrl(agentId);
 				String method = "run";
 				ObjectNode params = mapper.createObjectNode();
 				params.put("num", num);

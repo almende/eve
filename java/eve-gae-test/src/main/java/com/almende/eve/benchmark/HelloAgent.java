@@ -6,7 +6,7 @@ import com.almende.eve.agent.Agent;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.eve.state.State;
 import com.almende.eve.transport.TransportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,12 +17,12 @@ public class HelloAgent extends Agent {
 	private int n = 0; // the number of this agent
 
 	@Override
-	public void init() {
+	public void onInit() {
 		String id = getId(); 
 		n = agentIdToNum(id);
 	}	
 	
-	public int ping (@Required(true) @Name("counter") int counter) {
+	public int ping (@Optional @Name("counter") int counter) {
 		return counter + 1;
 	}
 	
@@ -30,7 +30,7 @@ public class HelloAgent extends Agent {
 	 * Send a request and response to each of the other agents
 	 * @param num  The total number of agents
 	 */
-	public void run (@Required(true) @Name("num") int num) {
+	public void run (@Optional @Name("num") int num) {
 		State state = getState();
 		TransportService service = getAgentHost().getTransportService("http");
 		ObjectMapper mapper = new ObjectMapper();
@@ -41,7 +41,7 @@ public class HelloAgent extends Agent {
 			if (i != n) {
 				try {
 					String agentId = numToAgentId(i, num);
-					URI url = new URI(service.getAgentUrl(agentId));
+					URI url = service.getAgentUrl(agentId);
 					String method = "ping";
 					ObjectNode params = mapper.createObjectNode();
 					params.put("counter", counter);

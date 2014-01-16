@@ -9,7 +9,7 @@ import com.almende.eve.entity.AgentMetaData;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.util.TwigUtil;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
@@ -20,7 +20,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 @Access(AccessType.PUBLIC)
 public class ManagementAgent extends Agent {
 	@Override
-	public void init() {
+	public void onInit() {
 		TwigUtil.register(AgentMetaData.class);
 	}
 		
@@ -141,7 +141,7 @@ public class ManagementAgent extends Agent {
 	 * @throws Exception
 	 */
 	public List<Map<String, Object>> list(
-			@Name("type") @Required(false) String type) throws Exception {
+			@Name("type") @Optional String type) throws Exception {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		RootFindCommand<AgentMetaData> command = datastore.find()
 			.type(AgentMetaData.class);

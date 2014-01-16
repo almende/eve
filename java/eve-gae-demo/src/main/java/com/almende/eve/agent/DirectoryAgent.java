@@ -7,7 +7,7 @@ import com.almende.eve.entity.Registration;
 import com.almende.eve.rpc.annotation.Access;
 import com.almende.eve.rpc.annotation.AccessType;
 import com.almende.eve.rpc.annotation.Name;
-import com.almende.eve.rpc.annotation.Required;
+import com.almende.eve.rpc.annotation.Optional;
 import com.almende.util.TwigUtil;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
@@ -19,7 +19,7 @@ import com.google.code.twig.annotation.AnnotationObjectDatastore;
 @Access(AccessType.PUBLIC)
 public class DirectoryAgent extends Agent {
 	@Override
-	public void init() {
+	public void onInit() {
 		TwigUtil.register(Registration.class);
 	}
 	
@@ -34,9 +34,9 @@ public class DirectoryAgent extends Agent {
 	 */
 	public Registration register(
 			@Name("agent") String agent, 
-			@Name("type") @Required(false) String type, 
-			@Name("username") @Required(false) String username, 
-			@Name("email") @Required(false) String email) throws Exception {
+			@Name("type") @Optional String type, 
+			@Name("username") @Optional String username, 
+			@Name("email") @Optional String email) throws Exception {
 		// remove any existing registration
 		unregister(agent, email);
 		
@@ -67,8 +67,8 @@ public class DirectoryAgent extends Agent {
 	 * @throws Exception
 	 */
 	public void unregister(
-			@Name("agent") @Required(false) String agent, 
-			@Name("email") @Required(false) String email) throws Exception {
+			@Name("agent") @Optional String agent, 
+			@Name("email") @Optional String email) throws Exception {
 		// remove registrations with this url
 		if (agent != null) {
 			remove("agent", agent);
@@ -90,10 +90,10 @@ public class DirectoryAgent extends Agent {
 	 * @throws Exception
 	 */
 	public List<Registration> find (
-			@Name("agent") @Required(false) String agent, 
-			@Name("type") @Required(false) String type, 
-			@Name("username") @Required(false) String username, 
-			@Name("email") @Required(false) String email) 
+			@Name("agent") @Optional String agent, 
+			@Name("type") @Optional String type, 
+			@Name("username") @Optional String username, 
+			@Name("email") @Optional String email) 
 			throws Exception {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		
@@ -152,7 +152,7 @@ public class DirectoryAgent extends Agent {
 	 * Remove all registrations stored by this DirectoryAgent
 	 */
 	@Override
-	public void delete () {
+	public void onDelete () {
 		ObjectDatastore datastore = new AnnotationObjectDatastore();
 		QueryResultIterator<Registration> it = datastore.find()
 			.type(Registration.class)
@@ -165,7 +165,7 @@ public class DirectoryAgent extends Agent {
 			// TODO: bulk delete all registrations instead of one by one
 		}
 		
-		super.delete();
+		super.onDelete();
 	}
 
 	@Override
