@@ -45,7 +45,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-class>com.almende.eve.transport.xmpp.google.GaeXmppServlet</servlet-class>
 		<init-param>
 			<description>eve agent factory configuration (yaml file)</description>
-			<param-name>config</param-name>
+			<param-name>eve_config</param-name>
 			<param-value>eve.yaml</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
