@@ -31,7 +31,7 @@ This tutorial assumes you have the following development environment up and runn
 - [Maven plugin for Eclipse](http://eclipse.org/m2e/)
 
 
-## Create a Maven web application {create_web_application}
+## Create a Maven web application {#create_web_application}
 
 First, we will create a regular Maven web application in Eclipse.
 

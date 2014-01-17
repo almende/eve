@@ -75,54 +75,54 @@ all jars.
 
 Dependency tree of eve-core:
 
-- [eve-core-{{version}}.jar](http://search.maven.org/#search|ga|1|eve-core)
-- [jackson-databind-2.2.1.jar](http://search.maven.org/#search|ga|1|jackson-databind)
-  - [jackson-annotations-2.2.1.jar](http://search.maven.org/#search|ga|1|jackson-annotations)
-  - [jackson-core-2.2.1.jar](http://search.maven.org/#search|ga|1|jackson-core)
-- [jackson-datatype-joda-2.2.1.jar](http://search.maven.org/#search|ga|1|jackson-datatype-joda)
-  - [jackson-annotations-2.2.1.jar](http://search.maven.org/#search|ga|1|jackson-annotations)
-  - [jackson-core-2.2.1.jar](http://search.maven.org/#search|ga|1|jackson-core)
-  - [joda-time-2.1.jar](http://search.maven.org/#search|ga|1|joda-time)
-- [joda-time-2.1.jar](http://search.maven.org/#search|ga|1|joda-time)
-- [snakeyaml-1.11.jar](http://search.maven.org/#search|ga|1|snakeyaml)
-- [smackx-3.1.0.jar](http://search.maven.org/#search|ga|1|smackx) (optional, only needed for XMPP support)
+- [eve-core-{{version}}.jar](http://search.maven.org/#search%7Cga%7C1%7Ceve-core)
+- [jackson-databind-2.2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjackson-databind)
+  - [jackson-annotations-2.2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjackson-annotations)
+  - [jackson-core-2.2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjackson-core)
+- [jackson-datatype-joda-2.2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjackson-datatype-joda)
+  - [jackson-annotations-2.2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjackson-annotations)
+  - [jackson-core-2.2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjackson-core)
+  - [joda-time-2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjoda-time)
+- [joda-time-2.1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjoda-time)
+- [snakeyaml-1.11.jar](http://search.maven.org/#search%7Cga%7C1%7Csnakeyaml)
+- [smackx-3.1.0.jar](http://search.maven.org/#search%7Cga%7C1%7Csmackx) (optional, only needed for XMPP support)
 
-  - [smack-3.1.0.jar](http://search.maven.org/#search|ga|1|smack)
+  - [smack-3.1.0.jar](http://search.maven.org/#search%7Cga%7C1%7Csmack)
 
-- [httpclient-4.2.3.jar](http://search.maven.org/#search|ga|1|httpclient)
-  - [httpcore-4.2.2.jar](http://search.maven.org/#search|ga|1|httpcore)
-  - [commons-logging-1.1.1.jar](http://search.maven.org/#search|ga|1|commons-logging)
-  - [commons-codec-1.6.jar](http://search.maven.org/#search|ga|1|commons-codec)
-- [typetools-0.3.0.jar](http://search.maven.org/#search|ga|1|typetools)
+- [httpclient-4.2.3.jar](http://search.maven.org/#search%7Cga%7C1%7Chttpclient)
+  - [httpcore-4.2.2.jar](http://search.maven.org/#search%7Cga%7C1%7Chttpcore)
+  - [commons-logging-1.1.1.jar](http://search.maven.org/#search%7Cga%7C1%7Ccommons-logging)
+  - [commons-codec-1.6.jar](http://search.maven.org/#search%7Cga%7C1%7Ccommons-codec)
+- [typetools-0.3.0.jar](http://search.maven.org/#search%7Cga%7C1%7Ctypetools)
 
 ### eve-gae
 
 The Google App Engine library for eve has the following dependencies:
 
-- [eve-gae-{{version}}.jar](http://search.maven.org/#search|ga|1|eve-gae)
+- [eve-gae-{{version}}.jar](http://search.maven.org/#search%7Cga%7C1%7Ceve-gae)
 
-  - [eve-core-{{version}}.jar](http://search.maven.org/#search|ga|1|eve-core)
+  - [eve-core-{{version}}.jar](http://search.maven.org/#search%7Cga%7C1%7Ceve-core)
 
     - all dependencies listed at eve-core
 
   - [twig-persist-2.0-rc.jar](https://code.google.com/p/twig-persist/)
 
-    - [guava-10.0.jar](http://search.maven.org/#search|ga|1|guava)
+    - [guava-10.0.jar](http://search.maven.org/#search%7Cga%7C1%7Cguava)
 
-      - [jsr305-1.3.9.jar](http://search.maven.org/#search|ga|1|jsr305)
+      - [jsr305-1.3.9.jar](http://search.maven.org/#search%7Cga%7C1%7Cjsr305)
 
-    - [guice-3.0.jar](http://search.maven.org/#search|ga|1|guice)
+    - [guice-3.0.jar](http://search.maven.org/#search%7Cga%7C1%7Cguice)
 
-      - [javax.inject-1.jar](http://search.maven.org/#search|ga|1|javax.inject)
+      - [javax.inject-1.jar](http://search.maven.org/#search%7Cga%7C1%7Cjavax.inject)
 
-      - [aopalliance-1.0.jar](http://search.maven.org/#search|ga|1|aopalliance)
+      - [aopalliance-1.0.jar](http://search.maven.org/#search%7Cga%7C1%7Caopalliance)
 
 
 ### eve-android
 
 Eve Android has the following dependencies:
 
-- [eve-android-{{version}}.jar](http://search.maven.org/#search|ga|1|eve-android)
+- [eve-android-{{version}}.jar](http://search.maven.org/#search%7Cga%7C1%7Ceve-android)
 
   - all dependencies listed at eve-core
 
@@ -133,8 +133,8 @@ Eve Android has the following dependencies:
 
 Eve Planning has the following dependencies:
 
-- [eve-planning-{{version}}.jar](http://search.maven.org/#search|ga|1|eve-planning)
+- [eve-planning-{{version}}.jar](http://search.maven.org/#search%7Cga%7C1%7Ceve-planning)
 
-  - [eve-core-{{version}}.jar](http://search.maven.org/#search|ga|1|eve-core)
+  - [eve-core-{{version}}.jar](http://search.maven.org/#search%7Cga%7C1%7Ceve-core)
 
     - all dependencies listed at eve-core
