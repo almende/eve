@@ -10,8 +10,11 @@ This makes it very easy to create and run your own agents.
 The Eve libraries can be added to an existing Java project, 
 and require almost no configuration.
 Agents are regular Java classes decorated with some annotations. 
-The agents are hosted via a regular web servlet.
+The agents can be hosted via a regular web servlet, or the 
+Eve environment can run as a standalone application.
 
+You can always find the latest changelog of releases here:
+[changelog.txt](https://github.com/almende/eve/blob/master/java/eve-core/changelog.txt)
 
 
 ## Downloads {#downloads}
