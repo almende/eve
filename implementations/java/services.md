@@ -6,20 +6,36 @@ title: Services
 
 # Services
 
-Eve agents can be accessed via various transport services.
-Eve has two built-in transport services: HttpService and XmppService.
+The Java version of Eve is designed around an AgentHost, which provides the agents with various services:
 
-- [HttpService](#HttpService) exposes agents via a regular Java servlet.
-  Agents can be invoked by sending a HTTP POST request to this servlet.
+- [Transport Services](#TransportService): Providing asynchronous, String-based communication services to the agents.
+- [State Services](#StateService): Providing persistent state storage, in the form of a key-value store.
+- Scheduler Services: Providing the ability to receive RPC calls at scheduled future moments.
+- Callback Services: A utility service for in-memory storage of callback structures.
+
+In the near future two current agent functions will also be migrated to services: Message transformation and Agent instantiation.
+
+See image below for the highlevel interaction between the services.
+
+<img src="../../img/eve_java_architecture.png"
+  style="margin-top: 30px;width:90%;margin-left:auto;margin-right:auto;display:block"
+  title="Eve agentmodel infograph">
+
+## TransportService {#TransportService}
+
+Eve agents can communicate via various transport services.
+Eve currently has three built-in transport services: HttpService, XmppService and ZeroMQService.
+
+- [HttpService](#HttpService) allows agents to contact each other through a HTTP client.
+  Agents can be invoked by sending a HTTP POST request via a regular Java servlet.
 - [XmppService](#XmppService) allows to connect agents to an XMPP server.
   The agents can be invoked via XMPP.
+- [ZmqService](#ZmqService) allows agents to contact each other through ZMQ PUSH/PULL sockets.
 
-A single Eve application can have multiple XmppServices and HttpServices configured.
-This allows exposure of the agents via multiple transport services at the
-same time. An agent can be accessible via both XMPP and HTTP at the same time.
+A single Eve application can have multiple TransportServices configured, each with its own URL structure.
+This allows exposure of the agents via multiple transport services at the same time. This also means each agent has multiple addresses as well.
 
-
-## HttpService {#HttpService}
+### HttpService {#HttpService}
 
 Eve comes with a servlet *AgentServlet* which exposes agents via a standard
 Java servlet. A specific agent can be addressed via this servlet by specifying
@@ -29,9 +45,9 @@ To use the AgentServlet, the servlet must be configured in the web.xml file
 of the Java project, and a context listener must be configured to start an
 Eve AgentHost.
 
-### Configuration
+#### Configuration
 
-#### Servlet configuration
+##### Servlet configuration
 
 When running Eve in a servlet environment like in Jetty or Tomcat, two
 things needs to be configured:
@@ -156,7 +172,7 @@ The AgentServlet configuration can contain the following init parameters:
 <p></p>
 
 
-### Usage
+#### Usage
 
 The AgentServlet supports the following request:
 
@@ -189,7 +205,7 @@ The AgentServlet supports the following request:
   Delete an agent by its id.
 
 
-### Custom servlets
+#### Custom servlets
 
 If the AgentServlet do not fulfill your needs,
 it is possible to develop a custom servlet.
@@ -201,7 +217,7 @@ It is not necessary to have a real Eve agent running via the servlet,
 the essence is that a service exposes a JSON-RPC interface to the outside world.
 
 
-## XmppService {#XmppService}
+### XmppService {#XmppService}
 
 Agents can be connected individually to an XMPP server.
 In order to support XMPP, the application requires the
@@ -213,7 +229,7 @@ continuous connections to an XMPP server from one application instance,
 while Google App Engine is based on stateless application instances which can
 be started and stopped any moment.
 
-### Configuration
+#### Configuration
 
 XMPP support must be configured in the Eve configuration file with default
 file name **eve.yaml**.
@@ -238,7 +254,7 @@ scheduler:
   class: RunnableSchedulerFactory
 {% endhighlight %}
 
-### Usage
+#### Usage
 
 An agent can be connected to an XMPP service programmatically via the configured
 XmppService. The following code example shows how an agent can retrieve the
@@ -269,3 +285,56 @@ public void xmppDisconnect() throws Exception {
 	}
 }
 {% endhighlight %}
+
+### ZmqService {#ZmqService}
+
+(Under construction.....)
+
+## State Service {#StateService}
+
+Currently Eve offers the choice between four different state storage services, of which only one can be active for a given VM at the same time.The available state services are:
+
+- In-memory state
+- JSON based file state
+- Java object serialization file state
+- CouchDB state
+
+Within the codebase of Eve these State services are provided through a configured StateFactory.
+
+### Configuration
+
+To configure the state factory one of the below shown configurations can be used in **eve.yaml**. You\'ll need to modify the parameters somewhat to match your local settings, especially in the CouchDB case. As mentioned: only one state factory can be used per application!
+
+{% highlight yaml %}
+
+# State settings: Choose only one!
+# memory state:
+state:
+  class: MemoryStateFactory
+
+# Java serialization file state:
+state:
+  class: FileStateFactory
+  path: .eveagents
+
+# JSON based file state:
+state:
+  class: FileStateFactory
+  path: .eveagents
+  json: true
+
+# CouchDB state:
+state:
+  class: CouchdbStateFactory
+  url: http://localhost:5984
+  database: eve
+  username: eve_user
+  password: eve_passwd
+
+{% endhighlight %}
+
+### Usage
+
+(Under construction.....)
+
+
