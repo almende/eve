@@ -335,6 +335,50 @@ state:
 
 ### Usage
 
-(Under construction.....)
+State acts similar to a Java collections Map&lt;String,Object&gt;, but with a few distinct differences. The biggest difference if that the state can be serialized to JSON (for persistency) which potentially loses type information on the value. This means that the methods for getting the value need to reinject this type information. 
+
+There is a normal put(key,value) method for placing data in the state, overwriting potential existing values. Similarly there are normal remove(key) and containsKey(key) methods. However, other methods are not provided, most notably entrySet() and values().
+
+As mentioned, the getter methods need to reinject the missing type information, as can be seen in the get(key, type) methods:
+
+{% highlight java %}
+
+<T> T get(String key, Class<T> type);
+<T> T get(String key, Type type);
+<T> T get(String key, JavaType type);
+<T> T get(String key, TypeUtil<T> type);
+<T> T get(TypedKey<T> key);
+
+{% endhighlight %}
+
+These 5 methods each given a different way for putting type information back into the object. These methods actually reflect the same set of options that the JSON-RPC library also offers on it's send() methods. 
+
+#### Optimistic locking
+
+Eve agents normally have a thread per method call, which means that state operations need to be coordinated. Because its not guaranteed that each thread operates on the same agent object instance, it is not possible to use normal java synchronisation tooling.(and we would not advice workarounds to get to that behaviour) However, the state offers some distinct tooling for concurrency handling, based on optimistic locking. This is based on the atomic putIfUnchanged() method:
+
+{% highlight java %}
+
+boolean putIfUnchanged(String key, Object newVal, Object oldVal);
+
+{% endhighlight %}
+
+This method is normally used in the following manner:
+
+{% highlight java %}
+
+public void atomic_add(key){
+
+	int oldval = state.get(key, Integer.class);
+	int newval = oldval + 1;
+	if (!putIfUnchanged(key, newval, oldval)){
+		//recursive retry:
+		atomic_add(key);
+	}
+}
+
+{% endhighlight %}
+
+Basically you get the current value, make a copy which you modify. Next step you store the value again, but with a check that no other thread has just modified the same value, in which case you just retry the operation.
 
 
