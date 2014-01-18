@@ -235,23 +235,13 @@ XMPP support must be configured in the Eve configuration file with default
 file name **eve.yaml**.
 
 {% highlight yaml %}
-# Eve configuration
-
 # communication services
-services:
+transport_services:
 - class: XmppService
   host: my_xmpp_server.com
   port: 5222
   service: my_xmpp_service_name
 
-# state settings (for persistency)
-state:
-  class: FileStateFactory
-  path: .eveagents
-
-# scheduler settings (for tasks)
-scheduler:
-  class: RunnableSchedulerFactory
 {% endhighlight %}
 
 #### Usage
@@ -288,7 +278,32 @@ public void xmppDisconnect() throws Exception {
 
 ### ZmqService {#ZmqService}
 
-(Under construction.....)
+Agents can also be provided with ZeroMQ sockets. Eve supports all three types of ZeroMQ addresses: TCP sockets, IPC sockets and inproc sockets. When the agentHost is configured for ZeroMQ, each agent is provided with an inbound PULL socket at the configured address. Each outbound call will instantiate a PUSH socket which pairs with the remote PULL socket.
+
+#### Configuration
+
+ZeroMQ support must be configured in the Eve configuration file with default
+file name **eve.yaml**.
+
+{% highlight yaml %}
+# communication services
+transport_services:
+- class: ZmqService
+  baseUrl: tcp://127.0.0.1:5444
+- class: ZmqService
+  baseUrl: ipc:///tmp/zmq-socket-
+- class: ZmqService
+  baseUrl: inproc://
+
+{% endhighlight %}
+
+With the above mentioned configuration each agent will get three different ZMQ sockets assigned with the following addresses:
+
+- A TCP address of form:  **tcp://{address}:{basePort+agentOffset}** (e.g.  tcp://127.0.0.1:5447 for the third agent in the system)
+- A local socket in the form of: **ipc:///tmp/zmq-socket-{agentId}**
+- A inproc socket in the form of: **inproc://{agentId}**
+
+For routing to these addresses from within an agent a zmq: prefix needs to be added (as reported through agent.getUrls()). (e.g. zmq:ipc:///tmp/zmq-socket-testAgent1)
 
 ## State Service {#StateService}
 
