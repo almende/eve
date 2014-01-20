@@ -10,7 +10,7 @@ The Java version of Eve is designed around an AgentHost, which provides the agen
 
 - [Transport Services](#TransportService): Providing asynchronous, String-based communication services to the agents.
 - [State Services](#StateService): Providing persistent state storage, in the form of a key-value store.
-- Scheduler Services: Providing the ability to receive RPC calls at scheduled future moments.
+- [Scheduler Services](#SchedulerService): Providing the ability to receive RPC calls at scheduled future moments.
 - Callback Services: A utility service for in-memory storage of callback structures.
 
 In the near future two current agent functions will also be migrated to services: Message transformation and Agent instantiation.
@@ -350,7 +350,7 @@ state:
 
 ### Usage
 
-State acts similar to a Java collections Map&lt;String,Object&gt;, but with a few distinct differences. The biggest difference if that the state can be serialized to JSON (for persistency) which potentially loses type information on the value. This means that the methods for getting the value need to reinject this type information. 
+Each agent can reach it\'s State through the getState() method (in the Agent.java superclass). State acts similar to a Java collections Map&lt;String,Object&gt;, but with a few distinct differences. The biggest difference if that the state can be serialized to JSON (for persistency) which potentially loses type information on the value. This means that the methods for getting the value need to reinject this type information. 
 
 There is a normal put(key,value) method for placing data in the state, overwriting potential existing values. Similarly there are normal remove(key) and containsKey(key) methods. However, other methods are not provided, most notably entrySet() and values().
 
@@ -382,18 +382,60 @@ This method is normally used in the following manner:
 
 {% highlight java %}
 
-public void atomic_add(key){
+public void incr(key){
 
-	int oldval = state.get(key, Integer.class);
+	int oldval = getState().get(key, Integer.class);
 	int newval = oldval + 1;
-	if (!putIfUnchanged(key, newval, oldval)){
+	if (!getState().putIfUnchanged(key, newval, oldval)){
 		//recursive retry:
-		atomic_add(key);
+		incr(key);
 	}
 }
 
 {% endhighlight %}
 
 Basically you get the current value, make a copy which you modify. Next step you store the value again, but with a check that no other thread has just modified the same value, in which case you just retry the operation.
+
+## Scheduler Services {#SchedulerService}
+
+To facilitate the autonomous behavior of the software agents, Eve offers each agent a scheduler service. The scheduler can call agent methods after a given delay, possibly repetitive. Currently there are two scheduler services available:
+
+- RunnableSchedulerFactory  - A basic scheduler that keeps a list of all scheduled tasks for all agents in the system. Offers a pretty precise scheduling (&lt;10ms delays) but is not very scalable, it\'s performance degrades significantly at around 100 tasks per second.
+- ClockSchedulerFactory  - A more scalable design, which stores the tasks in the agents state. Because the data is now distributed among the agents, it is more scalable, but at a latency price. Currently this scheduler has delays in the 80-100ms range for normal tasks, but doesn\'t degrade at scale.
+
+### Configuration
+
+{% highlight yaml %}
+# Use one of the two options below:
+
+# scheduler settings
+scheduler:
+  class: RunnableSchedulerFactory
+  id: _runnableScheduler
+
+scheduler:
+  class: ClockSchedulerFactory
+
+{% endhighlight %}
+
+The \"id\" option of the RunnableSchedulerFactory depicts the agentname the scheduler will use. This shown name \"_runnableScheduler\" is the default, which will be used if the option is omitted.
+
+### Usage
+
+Each agent is offered a getScheduler() method. (through the Agent.java superclass). The scheduler object that is returned has a createTask() method that does the actual scheduling:
+
+{% highlight java %}
+
+	String createTask(JSONRequest request, long delay);
+	String createTask(JSONRequest request, long delay, boolean repeat, boolean sequential);
+
+{% endhighlight %}
+
+The former is uses the latter, with both optional parameters at their default false. The parameters have the following effect:
+
+- JSONRequest request  - The method (with it\'s parameters) which needs to be called at the scheduled moment. This needs to be accessible through JSON-RPC at a minimal accessType of AccessType.SELF. (AccessType.UNAVAILABLE (which is the default) is not callable from the scheduler)
+- long delay  - The schedule delay in milliseconds from now. 
+- boolean repeat  - Should the task be repeated multiple times, at *delay* intervals?
+- boolean sequential - When repeating the task, may multiple instances run in parallel? When given the *true* value, the next schedule round waits until the earlier execution has finished before scheduling the next execution. (at delay interval after the finish) If this parameter has a value of *false* the next iteration will be scheduled directly from the start of the current round, allowing the next to run in parallel if the execution takes longer than the delay.
 
 
