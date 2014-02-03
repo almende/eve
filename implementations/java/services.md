@@ -19,7 +19,7 @@ See image below for the highlevel interaction between the services.
 
 <img src="../../img/eve_java_architecture.png"
   style="margin-top: 30px;width:90%;margin-left:auto;margin-right:auto;display:block"
-  title="Eve agentmodel infograph">
+  title="Eve agent services infograph">
 
 ## TransportService {#TransportService}
 

@@ -14,10 +14,11 @@ This part of the documentation provides an introduction into these generic eleme
 
 ## Agent model {#agentdefinition}
 
-For a good understanding of Eve, it is important to look at its concept "Agent". The basic definition of agent is: A software entity that represents existing, external, sometimes abstract, entities. Examples of such entities are: human beings, physical objects, abstract goals, etc. To be able to function, the agent needs to be able to run independently of the entity it represents. This autonomous behavior requires a basic set of features, which Eve provides for its agents. These features are: 
-- **time independence**, scheduling, independent of the represented entity.
-- **memory**, the possibility to keep a model of the state of the world
-- **communication**, a common language to communicate between agents
+For a good understanding of Eve, it is important to look at its concept **Agent**. The basic definition of agent is: A software entity that represents existing, external, sometimes abstract, entities. Examples of such entities are: human beings, physical objects, abstract goals, etc. To be able to function, the agent needs to be able to run independently of the entity it represents. This autonomous behavior requires a basic set of features, which Eve provides for its agents. These features are: 
+
+-  **time independence**, scheduling, independent of the represented entity.
+-  **memory**, the possibility to keep a model of the state of the world
+-  **communication**, a common language to communicate between agents
 
 Eve provides these features as services to the agents, therefor the implementation of the agent can focus on the domain specific logic and data management.
 
@@ -25,7 +26,7 @@ Eve provides these features as services to the agents, therefor the implementati
   style="margin-top: 30px;width:60%;margin-left:auto;margin-right:auto;display:block"
   title="Eve agentmodel infograph">
 
-The main reason for providing a separate memory service to the agents is that, in most implementations, Eve agents have a request based lifecycle. The agent is only instantiated to handle a single incoming request and is destroyed again as soon as the request has been handled. Only the externally stored state is kept between requests. The agent identity is formed by the address of its state, not by an in-memory, running instance of some class. The clock-scheduler service provides requests at scheduled times, thus instantiating the agent at that time.
+The main reason for providing a separate memory service to the agents is that, in most implementations, Eve agents have a request based life-cycle. The agent is only instantiated to handle a single incoming request and is destroyed again as soon as the request has been handled. Only the externally stored state is kept between requests. The agent identity is formed by the address of its state, not by an in-memory, running instance of some class. The clock-scheduler service provides requests at scheduled times, thus instantiating the agent at that time.
 
 <div class="Evehighlight">
 <span style="font-weight:bold">Implementation caveat</span><br>
@@ -39,7 +40,7 @@ This model mimics the way modern webservers handle servlets, allowing any servle
 
 The agent model is based on request driven instantiation. The requests, that trigger this instantiation, are JSON-RPC encoded. In the [Protocol](protocol.html) section, this protocol is further defined and described. Using JSON as its base, Eve is highly programming language independent; for most mainstream languages there are existing JSON handling libraries. Any implementation that adheres to the described protocol and basic agent model, is therefor considered an Eve implementation. This high level definition allowed effective reuse of existing tools and protocols in the implementation of Eve. 
 
-Eve is defined by its agent model and its RPC protocol. But the JSON-RPC messages still need to be transported from one agent to another agent, possibly crossing to  a completely different platform. The two implementations (on the different platforms) need to share a common transport service for this. Currently the Eve implementations support HTTP and XMPP as transport protocols, but it's relatively straight-forward to e.g. implement a ZeroMQ transport. If two implementations share a common transport service, its agents can work flawlessly together. For example, this allows a Java cloud agent to communicate with an in-browser Javascript agent, through JSON-RPC over an XMPP transport.
+Eve is defined by its agent model and its RPC protocol. But the JSON-RPC messages still need to be transported from one agent to another agent, possibly crossing to  a completely different platform. The two implementations (on the different platforms) need to share a common transport service for this. Currently the Eve implementations support HTTP and XMPP as transport protocols, but it\'s relatively straight-forward to e.g. implement a ZeroMQ transport. If two implementations share a common transport service, its agents can work flawlessly together. For example, this allows a Java cloud agent to communicate with an in-browser Javascript agent, through JSON-RPC over an XMPP transport.
 
 An important part of any agent platform is its addressing and directory service. In line with maximum reuse of existing protocols and runtime environments, Eve also reuses existing addressing frameworks for its agents: The HTTP transport services assigns a normal public URL for each agent, allowing using normal DNS servers as directory services. Similarly, the XMPP transport uses the JIDs as agent addresses, allowing the server roster to be used as directory service.
 

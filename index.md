@@ -55,9 +55,9 @@ Eve aims to make it very easy to use the concept of software agents in your proj
 - Robustness: Get system robustness through loosely coupled, asynchronous, self-contained elements, 
 - Flexibility: Flexibly add and remove system capabilities
 - Reduced complexity: Reduce the complexity of designing, developing and managing a distributed software system.
-- Scalability: By designing the application around the local "worldview" of the agents, no scalability limitations are imposed by the shared datastructures and locking requirements.
+- Scalability: By designing the application around the local \"worldview\" of the agents, no scalability limitations are imposed by the shared datastructures and locking requirements.
 
-Through it's service-offering architecture, Eve offers agents that are very simple to develop. You can also turn your existing APIs into software agents, allowing your API to be accessed asynchronous, 
+Through it\'s service-offering architecture, Eve offers agents that are very simple to develop. You can also turn your existing APIs into software agents, allowing your API to be accessed asynchronous, 
 
 
 ## Open source {#opensource}

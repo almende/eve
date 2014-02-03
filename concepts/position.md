@@ -27,7 +27,7 @@ environment.
 
 The platform and its agents are normally deployed a single server.
 To make the system scalable, the agent platforms implement functionality to
-link multiple "sites" or "locations" together,
+link multiple **sites** or **locations** together,
 enabling interaction between agents residing on different sites.
 Additionally, solutions for migrating agents from one to another site are
 implemented, allowing load balancing of the configured sites.
@@ -38,9 +38,9 @@ and allows running the platform on different operating systems (Linux, OS X,
 Windows).
 
 
-### Eve's approach
+### Eve\'s approach
 
-Eve's approach for multi agent platforms is quite the opposite of traditional
+Eve\'s approach for multi agent platforms is quite the opposite of traditional
 platforms.
 The core of Eve is not delivering an a multi-agent platform environment.
 The core is defining a standard way for agents to make themselves available
@@ -55,7 +55,7 @@ which an agent must be hosted.
 Therefore, Eve agents can be built as a layer *on top* of existing
 applications. There is no need to adapt applications in order to fit into Eve,
 instead, it is enough to just add a simple layer on top of the application to
-connect it to the "Eve world".
+connect it to the *Eve world*.
 
 Because Eve is not running on a single, prepared server, but rather exists on
 the web, the platform can take full advantage of the features of the web.
@@ -87,17 +87,17 @@ The rationale behind the design decisions are
 (ii) support multiple code bases and operating systems, and 
 (iii) interoperability with other agent platforms.
 
-The overall design philosophy is "less is more," that is, the AgentScape 
+The overall design philosophy is **less is more**, that is, the AgentScape 
 middleware should provide a minimal but sufficient support for agent 
-applications, and "one size does not fit all," that is, the middleware 
+applications, and **one size does not fit all**, that is, the middleware 
 should be adaptive or reconfigurable such that it can be tailored to a specific 
 application (class) or operating system/hardware platform.
-Agents and objects are basic entities in AgentScape. A location is a "place" at 
+Agents and objects are basic entities in AgentScape. A location is a **place** at 
 which agents and objects can reside (see Fig. 1). Agents are active entities in 
 AgentScape that interact with each other by message-passing communication. 
 Furthermore, agent migration in the form of weak mobility is supported.
 Objects are passive entities that are only engaged into computations reactively
-on an agent's initiative. Besides agents, objects, and locations, 
+on an agent\'s initiative. Besides agents, objects, and locations, 
 the AgentScape model also defines services. Services provide information or 
 activities on behalf of agents or the AgentScape middleware.
 
@@ -122,7 +122,7 @@ GOAL is an agent programming language for programming rational agents.
 GOAL agents derive their choice of action from their beliefs and goals.
 The language provides the basic building blocks to design and implement rational
 agents. The language elements and features of GOAL allow and facilitate the
-manipulation of an agent's beliefs and goals and to structure its
+manipulation of an agent\'s beliefs and goals and to structure its
 decision-making. The language provides an intuitive programming framework
 based on common sense notions and basic practical reasoning.
 
@@ -181,7 +181,6 @@ thus allowing a developer to freely implements its own agent architectures.
 
 MadKit is a free software based on the GPL/LGPL license featuring:
 
-- Artificial agents creation and life cycle management
 - An organizational infrastructure for communication between agents
 - High heterogeneity in agent architectures: No predefined agent model
 - Multi-Agent based simulation and simulator authoring tools

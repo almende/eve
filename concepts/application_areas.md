@@ -22,13 +22,13 @@ A example of the possible application scenarios in which Eve can offer distinct 
 
 - **Wrapping existing services.**
   Web services can be made available for software agents by creating a 
-  simple "wrapper agent" for the web services. For example a GoogleDirectionsAgent
+  simple **wrapper agent** for the web services. For example a GoogleDirectionsAgent
   which just uses the existing web services of Google and makes this information
   service available for all Eve agents.
 
 - **Linking software systems together**
   Existing software systems can be linked to the world
-  of software agents by creating "wrapper agents" for the systems.
+  of software agents by creating **wrapper agents** for the systems.
   This way it is possible to link completely separated software systems together
   via agents, even when the software systems are developed in different 
   development environments or are deployed on different locations.
@@ -37,6 +37,6 @@ A example of the possible application scenarios in which Eve can offer distinct 
   Eve can be used as an abstraction to link different services acting on the
   same domain together. For example one can abstract from different calendaring
   systems by creating agents having the same interface but linked to a different
-  calendaring system (Gmail, Exchange, iCal, ...).
+  calendaring system (Gmail, Exchange, iCal, \.\.\. ).
   
 

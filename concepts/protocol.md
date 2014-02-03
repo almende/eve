@@ -19,8 +19,8 @@ Eve defines an interaction protocol between agents. This protocol consists of a 
 Eve agents communicate with each other using the [JSON-RPC](#Documentation) protocol. This is a simple and readable protocol, using JSON to format requests and responses. JSON (JavaScript Object Notation) is a lightweight, flexible data-interchange format. It is easy for humans to read and write,
 and easy for machines to parse and generate. JSON-RPC version 2.0 is the minimally required version, because Eve uses named parameters. 
 
-A request from Agent X to agent Y can look as follows.
-Agent X addresses method "add" from agent Y, and provides two values
+A request from Agent X to agent Y can look as follows:<br>
+Agent X addresses method **add** from agent Y, and provides two values
 as parameters.
 Agent Y executes the method with the provided parameters, and returns the result.
 
