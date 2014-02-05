@@ -411,7 +411,7 @@ public class AgentServlet extends HttpServlet {
 			resp.getWriter().println(message.toString());
 			resp.getWriter().close();
 		} catch (final Exception e) {
-			LOG.log(Level.WARNING, "Sync receive raised exception.", e);
+			LOG.log(Level.WARNING, "Http Sync receive raised exception.", e);
 			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
 					"Receiver raised exception:" + e.getMessage());
 		}

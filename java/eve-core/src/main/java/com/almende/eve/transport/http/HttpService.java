@@ -168,6 +168,8 @@ public class HttpService implements TransportService {
 						} else {
 							LOG.warning("Tag set, but no callbacks found!");
 						}
+						//Chicken out
+						return;
 					}
 					httpPost = new HttpPost(receiverUrl);
 					// invoke via Apache HttpClient request:

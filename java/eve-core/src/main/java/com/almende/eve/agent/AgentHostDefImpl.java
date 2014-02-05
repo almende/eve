@@ -203,7 +203,7 @@ public final class AgentHostDefImpl extends AgentHost {
 			return proxy;
 		}
 		final AgentProxyFactory pf = new AgentProxyFactory(this);
-		proxy = pf.genProxy(sender, receiverUrl, agentInterface, proxyId);
+		proxy = pf.genProxy(receiverUrl, agentInterface, proxyId);
 		
 		ObjectCache.get(AGENTS).put(proxyId, proxy);
 		

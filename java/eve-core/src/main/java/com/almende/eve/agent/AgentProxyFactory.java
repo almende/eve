@@ -43,8 +43,6 @@ public class AgentProxyFactory {
 	 * 
 	 * @param <T>
 	 *            the generic type
-	 * @param sender
-	 *            the sender
 	 * @param receiverUrl
 	 *            the receiver url
 	 * @param agentInterface
@@ -54,9 +52,8 @@ public class AgentProxyFactory {
 	 * @return the t
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends AgentInterface> T genProxy(final AgentInterface sender,
-			final URI receiverUrl, final Class<T> agentInterface,
-			final String proxyId) {
+	public <T extends AgentInterface> T genProxy(final URI receiverUrl,
+			final Class<T> agentInterface, final String proxyId) {
 		// http://docs.oracle.com/javase/1.4.2/docs/guide/reflection/proxy.html
 		final T proxy = (T) Proxy.newProxyInstance(
 				agentInterface.getClassLoader(),
@@ -67,10 +64,7 @@ public class AgentProxyFactory {
 							final Method method, final Object[] args)
 							throws JSONRPCException, IOException {
 						
-						AgentInterface agent = sender;
-						if (agent == null) {
-							agent = (T) proxy;
-						}
+						AgentInterface agent = (T) proxy;
 						
 						// TODO: if method calls for Namespace getter, return
 						// new proxy for subtype. All calls to that proxy need
