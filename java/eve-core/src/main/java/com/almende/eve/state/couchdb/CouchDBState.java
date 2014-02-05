@@ -81,7 +81,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 			update();
 		} catch (final UpdateConflictException uce) {
 			read();
-			locPut(ckey, value);
+			return locPut(ckey, value);
 		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Failed to store property", e);
 		}
@@ -115,7 +115,7 @@ public class CouchDBState extends AbstractState<JsonNode> {
 			}
 		} catch (final UpdateConflictException uce) {
 			read();
-			locPutIfUnchanged(ckey, newVal, oldVal);
+			return locPutIfUnchanged(ckey, newVal, oldVal);
 		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "", e);
 		}
