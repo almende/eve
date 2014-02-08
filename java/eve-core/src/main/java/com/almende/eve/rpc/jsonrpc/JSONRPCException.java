@@ -4,10 +4,13 @@
  */
 package com.almende.eve.rpc.jsonrpc;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.almende.eve.rpc.jsonrpc.jackson.JOM;
+import com.almende.util.TypeUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +24,7 @@ public class JSONRPCException extends Exception {
 	private static final Logger	LOG					= Logger.getLogger(JSONRPCException.class
 															.getCanonicalName());
 	private final ObjectNode	error				= JOM.createObjectNode();
+	private boolean				remote				= false;
 	static final String			CODE_S				= "code";
 	static final String			MESSAGE_S			= "message";
 	static final String			DATA_S				= "data";
@@ -188,21 +192,15 @@ public class JSONRPCException extends Exception {
 	 */
 	public JSONRPCException(final ObjectNode exception) {
 		super();
+		JSONRPCException cause = null;
 		if (exception != null && !exception.isNull()) {
-			// set code, message, and optional data
-			if (exception.has(CODE_S)) {
-				setCode(exception.get(CODE_S).asInt());
-			}
-			if (exception.has(MESSAGE_S)) {
-				setMessage(exception.get(MESSAGE_S).asText());
-				
-			}
-			if (exception.has(DATA_S)) {
-				setData(exception.get(DATA_S));
-				initCause(JOM.getInstance().convertValue(exception.get(DATA_S),
-						Exception.class));
-			}
+			cause = JOM.getInstance().convertValue(exception,JSONRPCException.class);
+			cause.setRemote(true);
+			TypeUtil<List<StackTraceElement>> injector = new TypeUtil<List<StackTraceElement>>(){};
+			List<StackTraceElement> trace = injector.inject(exception.get("stackTrace"));
+			cause.setStackTrace(trace.toArray(new StackTraceElement[0]));
 		}
+		init(CODE.REMOTE_EXCEPTION,"JSONRPCException received!",cause);
 	}
 	
 	/**
@@ -257,6 +255,9 @@ public class JSONRPCException extends Exception {
 		
 		if (message != null) {
 			error.put(MESSAGE_S, message);
+		}
+		if (t != null){
+			initCause(t);
 		}
 	}
 	
@@ -330,12 +331,20 @@ public class JSONRPCException extends Exception {
 	}
 	
 	/**
+	 * @param remote
+	 */
+	public void setRemote(boolean remote) {
+		this.remote = remote;
+	}
+
+	/**
 	 * Gets the object node.
 	 * 
 	 * @return the object node
 	 */
+	@JsonIgnore
 	public ObjectNode getObjectNode() {
-		return error;
+		return JOM.getInstance().valueToTree(this);
 	}
 	
 	/*
@@ -345,14 +354,8 @@ public class JSONRPCException extends Exception {
 	 */
 	@Override
 	public String toString() {
-		try {
-			return JOM.getInstance().writeValueAsString(this);
-		} catch (final JsonProcessingException e) {
-			LOG.log(Level.SEVERE, "Couldn't JSON serialize JSONRPCException!",
-					e);
-		}
-		return this.getClass().getCanonicalName() + ": "
-				+ error.get("message").textValue();
+		return this.getClass().getName() + ": " + (remote ? "(Remote stackTrace) " : "")
+				+ getLocalizedMessage();
 	}
 	
 }
