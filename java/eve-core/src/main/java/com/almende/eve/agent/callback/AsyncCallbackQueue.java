@@ -6,9 +6,8 @@ package com.almende.eve.agent.callback;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -23,8 +22,10 @@ import com.almende.eve.config.Config;
  */
 public class AsyncCallbackQueue<T> {
 	private final Map<Object, CallbackHandler>	queue		= new ConcurrentHashMap<Object, CallbackHandler>();
-	private static ScheduledExecutorService		scheduler	= Executors
-																	.newScheduledThreadPool(1,Config.getThreadFactory());
+	private static ScheduledThreadPoolExecutor		scheduler	= new ScheduledThreadPoolExecutor(1,Config.getThreadFactory());
+	static {
+		scheduler.setRemoveOnCancelPolicy(true);
+	}
 	/** timeout in seconds */
 	private int									timeout		= 30;
 	
@@ -83,7 +84,7 @@ public class AsyncCallbackQueue<T> {
 		final CallbackHandler handler = queue.remove(id);
 		if (handler != null) {
 			// stop the timeout
-			handler.timeout.cancel(false);
+			handler.timeout.cancel(true);
 			handler.timeout = null;
 			return handler.callback;
 		}
@@ -96,7 +97,8 @@ public class AsyncCallbackQueue<T> {
 	public synchronized void clear() {
 		queue.clear();
 		scheduler.shutdownNow();
-		scheduler = Executors.newScheduledThreadPool(1);
+		scheduler = new ScheduledThreadPoolExecutor(1,Config.getThreadFactory());
+		scheduler.setRemoveOnCancelPolicy(true);
 	}
 	
 	/**
