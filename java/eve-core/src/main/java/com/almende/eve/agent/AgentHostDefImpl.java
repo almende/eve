@@ -337,6 +337,19 @@ public final class AgentHostDefImpl extends AgentHost {
 	 */
 	@Override
 	public boolean hasAgent(final String agentId) {
+		if (agentId == null) {
+			return false;
+		}
+		
+		if (getStateFactory() == null) {
+			return false;
+		}
+		
+		// Check if agent is instantiated already, returning if it is:
+		boolean agentInCache = ObjectCache.get(AGENTS).containsKey(agentId);
+		if (agentInCache) {
+			return true;
+		}
 		return getStateFactory().exists(agentId);
 	}
 	
