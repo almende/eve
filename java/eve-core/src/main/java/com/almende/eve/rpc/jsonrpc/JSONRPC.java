@@ -530,8 +530,7 @@ public final class JSONRPC {
 			if (i < args.length && args[i] != null) {
 				final String name = getName(annotatedParam);
 				if (name != null) {
-					final JsonNode paramValue = JOM.getInstance().convertValue(
-							args[i], JsonNode.class);
+					final JsonNode paramValue = JOM.getInstance().valueToTree(args[i]);
 					params.put(name, paramValue);
 				} else {
 					throw new IllegalArgumentException("Parameter " + i
@@ -545,8 +544,9 @@ public final class JSONRPC {
 		}
 		JsonNode id = null;
 		try {
-			id = JOM.getInstance().readTree(new UUID().toString());
+			id = JOM.getInstance().valueToTree(new UUID().toString());
 		} catch (final Exception e) {
+			LOG.log(Level.SEVERE,"Failed to generate UUID for request",e);
 		}
 		return new JSONRequest(id, method.getName(), params);
 	}
