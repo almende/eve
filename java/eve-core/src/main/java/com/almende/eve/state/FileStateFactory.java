@@ -18,11 +18,12 @@ import java.util.logging.Logger;
  * A factory for creating FileState objects.
  */
 public class FileStateFactory implements StateFactory {
-	private static final Logger			LOG		= Logger.getLogger(FileStateFactory.class
-														.getSimpleName());
-	private String						path	= null;
-	private Boolean						json	= false;
-	private final Map<String, State>	states	= new HashMap<String, State>();
+	private static final Logger			LOG			= Logger.getLogger(FileStateFactory.class
+															.getSimpleName());
+	private String						path		= null;
+	private Boolean						json		= false;
+	private Boolean						multilevel	= false;
+	private final Map<String, State>	states		= new HashMap<String, State>();
 	
 	/**
 	 * This constructor is called when constructed by the AgentHost.
@@ -42,8 +43,27 @@ public class FileStateFactory implements StateFactory {
 		if (params.containsKey("path")) {
 			setPath((String) params.get("path"));
 		}
+		
+		if (params.containsKey("multilevel")){
+			multilevel = (Boolean) params.get("multilevel");
+		}
 	}
-	
+
+	/**
+	 * Instantiates a new file state factory.
+	 * 
+	 * @param path
+	 *            the path
+	 * @param json
+	 *            the json
+	 * @param multilevel 
+	 * 			  Whether the path contains a subdirectory for agent categories.
+	 */
+	public FileStateFactory(final String path, final Boolean json, final Boolean multilevel) {
+		this.json = json;
+		this.multilevel=multilevel;
+		setPath(path);
+	}
 	/**
 	 * Instantiates a new file state factory.
 	 * 
@@ -228,20 +248,21 @@ public class FileStateFactory implements StateFactory {
 		
 		final String apath = path != null ? path : "./";
 		
-		// try 1 level of subdirs. I need this badly, tymon
-		final File folder = new File(apath);
-		final File[] files = folder.listFiles();
-		final List<File> totalList = Arrays.asList(files);
-		for (final File file : totalList) {
-			if (!file.isDirectory()) {
-				continue;
-			}
-			final String ret = apath + file.getName() + "/" + agentId;
-			if (new File(ret).exists()) {
-				return ret;
+		if (multilevel) {
+			// try 1 level of subdirs. I need this badly, tymon
+			final File folder = new File(apath);
+			final File[] files = folder.listFiles();
+			final List<File> totalList = Arrays.asList(files);
+			for (final File file : totalList) {
+				if (!file.isDirectory()) {
+					continue;
+				}
+				final String ret = apath + file.getName() + "/" + agentId;
+				if (new File(ret).exists()) {
+					return ret;
+				}
 			}
 		}
-		
 		return apath + agentId;
 	}
 	
