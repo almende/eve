@@ -250,12 +250,18 @@ public abstract class Agent implements AgentInterface {
 			scheduler = host.getScheduler(this);
 		} else if (AgentSignal.ADDTRANSPORTSERVICE.equals(event.getEvent())) {
 			final TransportService service = (TransportService) event.getData();
-			try {
-				service.reconnect(getId());
-			} catch (final IOException e) {
-				LOG.log(Level.WARNING,
-						"Failed to reconnect agent on new transport.", e);
-			}
+			final String myId = getId();
+			host.getPool().submit(new Runnable(){
+				@Override
+				public void run() {
+					try {
+						service.reconnect(myId);
+					} catch (final IOException e) {
+						LOG.log(Level.WARNING,
+								"Failed to reconnect agent on new transport.", e);
+					}
+				}
+			});
 		}
 	}
 	
