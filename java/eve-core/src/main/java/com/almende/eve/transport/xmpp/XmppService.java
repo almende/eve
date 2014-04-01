@@ -135,27 +135,41 @@ public class XmppService implements TransportService {
 		}
 		return conns;
 	}
-	
-	/**
-	 * Get the first XMPP url of an agent from its id.
-	 * If the agent exists (is not null) retrieve the current 'isConnected'
-	 * status and return it.
-	 * 
-	 * @param agentUrl
-	 *            The url of the agent
-	 * @return connectionStatus
-	 */
-	public Boolean isConnected(final String agentUrl) {
-		final AgentConnection connection = connectionsByUrl.get(agentUrl);
-		
-		if (connection == null) {
-			return false;
-		}
-		
-		LOG.info("Current connection of agent " + agentUrl + " is: "
-				+ connection.isConnected());
-		return connection.isConnected();
-	}
+
+  /**
+   * Get the XMPP status for a specific agentUrl (String)
+   *
+   * @param agentUrl
+   *            The url of the agent as a astring
+   * @return connectionStatus
+   */
+  public Boolean isConnected(final String agentUrl) {
+    return isConnected( URI.create( agentUrl ) );
+  }
+
+  /**
+   * Get the first XMPP url of an agent from its id.
+   * If the agent exists (is not null) retrieve the current 'isConnected'
+   * status and return it.
+   *
+   * As of EVE 2.2.1: Parameter agentUrl shoulod be a URI object
+   *                  Backwards compatible via: isConnected(String agentUrl)
+   *
+   * @param agentUrl
+   *            The url of the agent as a URI
+   * @return connectionStatus
+   */
+  public Boolean isConnected(final URI agentUrl) {
+    final AgentConnection connection = connectionsByUrl.get(agentUrl);
+
+    if (connection == null) {
+      return false;
+    }
+
+    LOG.info("Current connection of agent " + agentUrl + " is: "
+            + connection.isConnected());
+    return connection.isConnected();
+  }
 	
 	/**
 	 * Get the first XMPP url of an agent from its id.
