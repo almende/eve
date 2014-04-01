@@ -22,9 +22,17 @@ import com.almende.eve.config.Config;
  */
 public class AsyncCallbackQueue<T> {
 	private final Map<Object, CallbackHandler>	queue		= new ConcurrentHashMap<Object, CallbackHandler>();
-	private static ScheduledThreadPoolExecutor		scheduler	= new ScheduledThreadPoolExecutor(1,Config.getThreadFactory());
+	private static ScheduledThreadPoolExecutor	scheduler	= new ScheduledThreadPoolExecutor(
+																	1,
+																	Config.getThreadFactory());
+	
 	static {
-		scheduler.setRemoveOnCancelPolicy(true);
+		try {
+			ScheduledThreadPoolExecutor.class.getMethod(
+					"setRemoveOnCancelPolicy", Boolean.class);
+			scheduler.setRemoveOnCancelPolicy(true);
+		} catch (NoSuchMethodException e) {
+		}
 	}
 	/** timeout in seconds */
 	private int									timeout		= 30;
@@ -97,7 +105,8 @@ public class AsyncCallbackQueue<T> {
 	public synchronized void clear() {
 		queue.clear();
 		scheduler.shutdownNow();
-		scheduler = new ScheduledThreadPoolExecutor(1,Config.getThreadFactory());
+		scheduler = new ScheduledThreadPoolExecutor(1,
+				Config.getThreadFactory());
 		scheduler.setRemoveOnCancelPolicy(true);
 	}
 	
