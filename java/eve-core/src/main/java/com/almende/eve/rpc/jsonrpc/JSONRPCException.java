@@ -129,8 +129,7 @@ public class JSONRPCException extends Exception {
 	 */
 	public JSONRPCException(final String message) {
 		super(message);
-		setCode(0);
-		setMessage(message);
+		init(CODE.UNKNOWN_ERROR,message,null);
 	}
 	
 	/**
@@ -143,13 +142,7 @@ public class JSONRPCException extends Exception {
 	 */
 	public JSONRPCException(final String message, final Throwable t) {
 		super(message, t);
-		setCode(0);
-		setMessage(message);
-		try {
-			setData(JOM.getInstance().writeValueAsString(t));
-		} catch (final JsonProcessingException e) {
-			LOG.log(Level.SEVERE, "Failed to init JSONRPCException!", e);
-		}
+		init(CODE.UNKNOWN_ERROR,message,t);
 	}
 	
 	/**
@@ -200,7 +193,7 @@ public class JSONRPCException extends Exception {
 			List<StackTraceElement> trace = injector.inject(exception.get("stackTrace"));
 			cause.setStackTrace(trace.toArray(new StackTraceElement[0]));
 		}
-		init(CODE.REMOTE_EXCEPTION,"JSONRPCException received!",cause);
+		init(CODE.REMOTE_EXCEPTION,JSONRPCException.class.getSimpleName()+" received!",cause);
 	}
 	
 	/**
@@ -252,12 +245,14 @@ public class JSONRPCException extends Exception {
 				setMessage("Unauthorized");
 				break;
 		}
-		
-		if (message != null) {
-			error.put(MESSAGE_S, message);
-		}
-		if (t != null){
+		setMessage(message);
+		if (t != null && getCause() == null){
 			initCause(t);
+		}
+		try {
+			setData(JOM.getInstance().writeValueAsString(t));
+		} catch (final JsonProcessingException e) {
+			LOG.log(Level.SEVERE, "Failed to init JSONRPCException!", e);
 		}
 	}
 	
