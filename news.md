@@ -5,6 +5,11 @@ title: News
 
 #Eve - news
 
+## April 2th, 2014: Eve 2.2.2 bugfix release provided
+
+Thanks to testing and usage of Eve at ASK and RCS, we've been able to fix bugs in the 2.2 branch. Most significant fixes are in the AgentProxy and reloading behavior of the agent host.
+
+
 ## January 17th, 2014: Eve 2.2.0 *Dreadnought* released!
 
 The next ship of the line for Eve has cruised into open seas: Eve 2.2.0 *Dreadnought* has been released and is available through Maven\'s central repository. This is a Java version release of Eve.
