@@ -255,6 +255,9 @@ public abstract class Agent implements AgentInterface {
 				@Override
 				public void run() {
 					try {
+						Thread.sleep((long) (50000L * Math.random()));
+					} catch (InterruptedException e1) {}
+					try {
 						service.reconnect(myId);
 					} catch (final IOException e) {
 						LOG.log(Level.WARNING,
