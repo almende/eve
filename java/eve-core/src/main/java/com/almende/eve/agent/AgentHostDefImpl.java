@@ -196,7 +196,8 @@ public final class AgentHostDefImpl extends AgentHost {
 		// well! This will enforce usage of the agentCache!
 		final String proxyId = "proxy_"
 				+ (sender != null ? sender.getId() + "_" : "")
-				+ agentInterface.getCanonicalName().replace(' ', '_');
+				+ agentInterface.getCanonicalName().replace(' ', '_')
+				+ receiverUrl.toString();
 		
 		T proxy = ObjectCache.get(AGENTS).get(proxyId, agentInterface);
 		if (proxy != null) {
