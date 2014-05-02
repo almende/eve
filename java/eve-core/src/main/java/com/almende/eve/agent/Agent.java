@@ -252,16 +252,22 @@ public abstract class Agent implements AgentInterface {
 			final TransportService service = (TransportService) event.getData();
 			final String myId = getId();
 			host.getPool().submit(new Runnable(){
+				long sleep = 10000L;
 				@Override
 				public void run() {
 					try {
-						Thread.sleep((long) (50000L * Math.random()));
+						double rnd = Math.random();
+						Thread.sleep((long) (sleep * rnd));
 					} catch (InterruptedException e1) {}
 					try {
 						service.reconnect(myId);
 					} catch (final IOException e) {
 						LOG.log(Level.WARNING,
 								"Failed to reconnect agent on new transport.", e);
+						if(sleep<=80000) {
+							sleep *= 2;
+							run();
+						}
 					}
 				}
 			});
