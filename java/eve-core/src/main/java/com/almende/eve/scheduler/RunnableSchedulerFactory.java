@@ -112,11 +112,15 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 					state.setAgentType(RunnableScheduler.class);
 				}
 			}
+		} catch (final Exception e) {
+			LOG.log(Level.WARNING, "Can't create State", e);
+		}
+		try {
 			state = host.getStateFactory().get(stateId);
-			
 		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Can't init State", e);
 		}
+
 	}
 	
 	/**
