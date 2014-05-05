@@ -106,11 +106,14 @@ public class RunnableSchedulerFactory implements SchedulerFactory {
 		try {
 			// TODO: dangerous to use a generic state (can possibly conflict
 			// with the id a regular agent)
-			state = host.getStateFactory().get(stateId);
-			if (state == null) {
-				state = host.getStateFactory().create(stateId);
-				state.setAgentType(RunnableScheduler.class);
+			synchronized (this) {
+				if (!host.getStateFactory().exists(stateId)) {
+					state = host.getStateFactory().create(stateId);
+					state.setAgentType(RunnableScheduler.class);
+				}
 			}
+			state = host.getStateFactory().get(stateId);
+			
 		} catch (final Exception e) {
 			LOG.log(Level.WARNING, "Can't init State", e);
 		}
