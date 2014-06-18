@@ -3,75 +3,149 @@ layout: default
 title: Introduction
 ---
 
+{% assign version = '3.0.0' %}
+
 # Introduction
 
-Eve has libraries available for Java. 
-This makes it very easy to create and run your own agents.
-The Eve libraries can be added to an existing Java project, 
-and require almost no configuration.
-Agents are regular Java classes decorated with some annotations. 
-The agents can be hosted via a regular web servlet, or the 
-Eve environment can run as a standalone application.
+<div class="Evehighlight">
+<span>Toolkit of capabilities</span><br>
+Eve in Java has evolved significantly since its original creation. 
+Starting from release 3.0 it has become a real library to add agent 
+capabilities to your POJOs. Where earlier versions provided a host-environment
+for agents and forced you to extend an Agent class, in current versions of Eve
+this limitation has been lifted. Now you can easily pick capabilities
+that suit your particular need, the capabilities carry no interdependencies, nor 
+assumptions about the structure of your agents. However, for ease of use, there is
+still the option of extending the Agent class, but this is no longer a requirement.
+</div>
 
-You can always find the latest changelog of releases here:
-[changelog.txt](https://github.com/almende/eve/blob/master/java/eve-core/changelog.txt)
+This is the home of the Java implementation of Eve.<br>
+Eve consists of a series of Java library projects. A structural overview of the available code can be found [below](#Structure).
+Our build environment is managed through Maven and we are deployed to [Maven Central](#Maven). Another possibility to obtain 
+Eve is through a code checkout from [Github](https://github.com/almende/eve).
+
+## Maven {#Maven}
+
+To add the eve libraries to a maven project, add one of the following dependencies to the projects
+pom.xml file. Although it is possible to add the libraries independently, it is highly advisable to
+use one of the bundle packages.
+
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1">Full</a></li>
+		<li><a href="#tabs-2">Full Embed</a></li>
+		<li><a href="#tabs-3">Android</a></li>
+		<li><a href="#tabs-4">Android ws</a></li>
+	</ul>
+	<div id="tabs-1">
+This is a bundle incorporating all Eve libraries, aimed to be included in an existing webapplication.
+
+{% highlight xml %}
+<dependency>
+    <groupId>com.almende.eve</groupId>
+    <artifactId>eve-bundle-full</artifactId>
+    <version>{{version}}</version>
+</dependency>
+{% endhighlight %}
+	</div>
+	<div id="tabs-2">
+This is a bundle incorporating all Eve libraries, including an embedded Jetty setup.
+This bundle is aimed to provide a fully standalone setup.
+
+{% highlight xml %}
+<dependency>
+    <groupId>com.almende.eve</groupId>
+    <artifactId>eve-bundle-full-embed</artifactId>
+    <version>{{version}}</version>
+</dependency>
+{% endhighlight %}
+	</div>
+
+	<div id="tabs-3">
+This is a bundle for using Eve on Android devices, using XMPP as the transport.
+
+{% highlight xml %}
+<dependency>
+    <groupId>com.almende.eve</groupId>
+    <artifactId>eve-bundle-android</artifactId>
+    <version>{{version}}</version>
+</dependency>
+{% endhighlight %}
+	</div>
+
+	<div id="tabs-4">
+This is a bundle for using Eve on Android devices, using Websockets as the transport.
+
+{% highlight xml %}
+<dependency>
+    <groupId>com.almende.eve</groupId>
+    <artifactId>eve-bundle-android-ws</artifactId>
+    <version>{{version}}</version>
+</dependency>
+{% endhighlight %}
+	</div>
+
+</div>
+
+## Library structure {#Structure}
+
+Eve is structured around a common Capability model. Various agent capabilities are provided: State storage, scheduling, transports, agent lifecycle, etc. These capabilities are provided in Java libraries.
+
+The libraries have the following top-level structure:
+<ul>
+	<li><b>eve_parent</b> - Parent project, compile the entire project from this folder</li>
+	<li><b>eve_common</b> - Capability model, utilities</li>
+	<li><b>states</b>
+		<ul>
+			<li><b>eve_state</b> - State interfaces, Memory and File State implementations</li>
+			<li><b>eve_state_couch</b> - CouchDB State implementation</li>
+			<li><b>eve_state_mongo</b> - MongoDB State implementation</li>
+ 		</ul>
+	</li>
+	<li><b>transports</b>
+		<ul>
+			<li><b>eve_transport</b> - Transport interfaces, Local transport</li>
+			<li><b>eve_transport_common</b> - Common code for HTTP and Websocket transports</li>
+			<li><b>eve_transport_http</b> - HTTP transport, contains o.a. EveServlet</li>
+			<li><b>eve_transport_ws</b> - WebSocket transport, JSR 356</li>
+			<li><b>eve_transport_http_jetty</b> - Embedded Jetty setup</li>
+			<li><b>eve_transport_xmpp</b> - XMPP transport implementation</li>
+			<li><b>eve_transport_zmq</b> - ZMQ transport implementation, only works correctly on Linux 64bit, due to dependencies</li>
+		</ul>
+	</li>
+	<li><b>scheduling</b>
+		<ul>
+			<li><b>eve_scheduling</b> - Scheduler interfaces, Non-persistent scheduler</li>
+			<li><b>eve_persistent_scheduler</b> - Persistent scheduler, remembers tasks in some state storage</li>
+		</ul>
+	</li>
+	<li><b>transforms</b>
+		<ul>
+			<li><b>eve_transform</b> - Transform interfaces</li>
+			<li><b>eve_transform_rpc</b> - JSON-RPC engine</li>
+		</ul>
+	</li>
+	<li><b>eve_wake</b> - Framework to let agents wake on requests</li>
+	<li><b>eve_agents</b> - Agent implementations, can be extended as base of your own agents</li>
+	<li><b>tests</b> - Coverage tests and example code</li>
+	<li><b>demos</b>
+		<ul>
+			<li><b>eve_gol_demo</b> - Conway's game of live demo, using Eve agents</li>
+		</ul>
+	</li>
+	<li><b>bundles</b> - Repackaged library bundles, for simpler Maven configuration
+		<ul>
+			<li><b>eve_full</b> - All Eve libraries combined, exept for the embedded Jetty and the ZMQ transport</li>
+			<li><b>eve_full_embed</b> - All Eve libraries combined, including the embedded Jetty</li>
+			<li><b>eve_android</b> - Eve libraries for usage on Android, contains the XMPP transport with dependencies</li>
+			<li><b>eve_android_ws</b> - Eve libraries for usage on Android, contains the websocket transport</li>
+		</ul>
+	</li>
+</ul>
 
 
-## Downloads {#downloads}
-
-All available libraries can be downloaded on the 
-[downloads page](downloads.html).
 
 
-## Getting Started {#gettingstarted}
 
-The page [Getting Started](getting_started.html) gives a detailed tutorial
-on how to set up a Java project running your self created Eve agent in the cloud, 
-using Google App Engine.
-
-
-## Libraries {#libraries}
-
-The Java version of Eve consists of a number of libraries, which can be used
-as building blocks to build and run your own agent platform. 
-The libraries are spread over three different layers:
-
-- A core layer containing the required core functionality for creating and 
-  hosting agents.
-- A platform Layer, with code specific for different deployment platforms.
-- An application layer containing the actual implementations of agents.
-
-The libraries are explained in detail on the page 
-[Libraries](libraries.html).
-
-
-## Services {#services}
-
-Eve agents can be accessed via various transport services.
-Eve supports two services: HttpService and XmppService.
-
-- HttpService exposes agents via a regular Java servlet.
-  Agents can be invoked by sending a HTTP POST request to this servlet.
-- XmppService allows to connect agents to an XMPP server.
-  The agents can be invoked via XMPP.
-
-A single Eve application can have multiple XmppServices and HttpServices configured.
-This allows exposure of the agents via multiple transport services at the same time.
-An agent can be accessible via both XMPP and HTTP at the same time.
-
-More on services is explained at the page [Services](services.html).
-
-
-## Agents {#agents}
-
-An Eve agent is created as a regular Java class. 
-Its methods will be exposed via JSON-RPC.
-Agents themselves are stateless, and it is possible to have multiple
-instances of the same agent running simultaneously in the cloud.
-An agent can persist data in its state, which offers a simple
-key/value storage.
-
-The agents are explained in detail on the page 
-[Agents](agents.html).
 
 

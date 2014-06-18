@@ -9,7 +9,7 @@ title: Introduction
 <div style="float: right;">
     <div id="dropdown-1" class="dropdown dropdown-tip">
         <ul class="dropdown-menu">
-            <li><a href="implementations/java/downloads.html">Eve Java</a></li>
+            <li><a href="implementations/java/introduction.html#Maven">Eve Java</a></li>
             <li><a href="implementations/javascript/downloads.html">Eve JavaScript</a></li>
         </ul>
     </div>
