@@ -10,23 +10,35 @@ title: Introduction
 <div class="Evehighlight">
 <span>Toolkit of capabilities</span><br>
 Eve in Java has evolved significantly since its original creation. 
-Starting from release 3.0 it has become a real library to add agent 
-capabilities to your POJOs. Where earlier versions provided a host-environment
-for agents and forced you to extend an Agent class, in current versions of Eve
-this limitation has been lifted. Now you can easily pick capabilities
+Starting from release 3.0 Eve is a toolkit to add agent 
+capabilities to your POJOs. There is no longer a host-environment which needs to be configured,
+nor are you forced to extend the Agent class. You can easily pick capabilities
 that suit your particular need, the capabilities carry no interdependencies, nor 
 assumptions about the structure of your agents. However, for ease of use, there is
 still the option of extending the Agent class, but this is no longer a requirement.
 </div>
 
-This is the home of the Java implementation of Eve.<br>
-Eve consists of a series of Java library projects. A structural overview of the available code can be found [below](#Structure).
+This is the home of the Java implementation of Eve. Eve consists of a series of Java library projects,
+that provide agent capabilities to your POJOs.<br>
+
 Our build environment is managed through Maven and we are deployed to [Maven Central](#Maven). Another possibility to obtain 
 Eve is through a code checkout from [Github](https://github.com/almende/eve).
 
+<ul>
+<li>[Getting started](/implementations/java/getting_started.html) - A tutorial into using Eve in your projects.</li>
+<li>[Code Structure](#Structure) - An overview of the code, which libraries are available.</li>
+</ul>
+
+An extended  is provided as 
+
+A structural overview of the available code can be found [below](#Structure). More in-depth information about the available capabilities
+can be found on the [capabilities page](/implementations/java/capabilities.html). How these capabilities can be combined into building 
+agents is shown on the [agents page](/implementations/java/agents/html). 
+
+
 ## Maven {#Maven}
 
-To add the eve libraries to a maven project, add one of the following dependencies to the projects
+To add the Eve libraries to a maven project, add one of the following dependencies to the projects
 pom.xml file. Although it is possible to add the libraries independently, it is highly advisable to
 use one of the bundle packages.
 
