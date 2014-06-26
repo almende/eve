@@ -58,6 +58,15 @@ Eve agents can communicate via various transports. Eve currently has four built-
 A single Eve agent can have multiple Transports configured, each with its own URL structure.
 This allows exposure of the agents via multiple transports at the same time. This also means each agent has multiple addresses as well.
 
+#### Global transport configuration
+
+All transport capabilities share two configuration items:
+
+**doShortcut**: This option controls if the capability may bypass the network layer if it detects that the receiver of a message is actually hosted in the same VM. If this options is true, the message may be passed directly to the receiver, if false, the message is fully send through the network layer, included potential serializations, etc.
+
+**doAuthentication**: This option controls if the transport capability is responsible for fully determine the authentication of the remote endpoint on incoming messages. If true, the capability will enforce access authentication. (Within the HTTP transport this enforces SSL and basic authentication) If false, the capability will just accept the remote endpoints claimed senderUrl and use that as sender address.
+
+
 ### Http transport {#HttpTransport}
 
 The agent needs to initialise the HttpCapability through the HttpTransportBuilder. This capability acts like an adapter to a servlet which implements the HTTP endpoint. This servlet needs to be setup separately from the HttpCapability, although in the embedded setup this is done in one configuration action.
@@ -122,6 +131,8 @@ The equivalent Json configuration is:
 		"servletUrl":"http://localhost:8080/agents/",
 		"id":"testAgent",
 		"servletLauncher":"JettyLauncher",
+		"doShortcut":true,
+		"doAuthentication":true,
 		"jetty":{
 			"port":8080,
 		}
@@ -163,6 +174,10 @@ It is therefor important that the ServletUrl parameter is equal to the ServletUr
 
 Besides the EveServlet, there is also a debug servlet available, which exposes a simpel debugging GUI when GET-ing the agent url. This debug servlet is implemented in class: com.almende.eve.transport.http.DebugServlet. Just replace EveServlet with DebugServlet in the above mentioned configuration.
 
+### Websocket transport {#WSTransport}
+
+TODO
+
 ### Xmpp transport {#XmppTransport}
 
 Agents can be connected individually to an XMPP server through the Xmpp transport capability. Each agent can be addressed through the given JabberID. (e.g. xmpp:agent@example.com/endpoint)
@@ -196,40 +211,10 @@ The equivalent Json configuration is:
 	{
 		"class":"com.almende.eve.transport.xmpp.XmppTransportBuilder",
 		"address":"xmpp://alice@example.com/example",
-		"password":"wonderland"
+		"password":"wonderland",
+		"doShortcut":true,
+		"doAuthentication":true
 	}
-{% endhighlight %}
-
-#### Usage
-
-An agent can be connected to an XMPP server programmatically via the configured
-Xmpp transport. The following code example shows how an agent can retrieve the
-xmpp service via its AgentHost,
-and connect itself to the service with a username and password.
-
-{% highlight java %}
-@Access(AccessType.PUBLIC)
-public void xmppConnect(@Name("username") String username,
-	@Name("password") String password) throws Exception {
-	AgentHost host = getAgentHost();
-	XmppService service = (XmppService) host.getService("xmpp");
-	if (service != null) {
-		service.connect(getId(), username, password);
-	} else {
-		throw new Exception("No XMPP service registered");
-	}
-}
-
-@Access(AccessType.PUBLIC)
-public void xmppDisconnect() throws Exception {
-	AgentHost host = getAgentHost();
-	XmppService service = (XmppService) host.getService("xmpp");
-	if (service != null) {
-		service.disconnect(getId());
-	} else {
-		throw new Exception("No XMPP service registered");
-	}
-}
 {% endhighlight %}
 
 ### Zmq transport {#ZmqTransport}
@@ -243,18 +228,38 @@ Agents can also be provided with ZeroMQ sockets. Eve supports all three types of
 #### Configuration
 
 {% highlight java %}
-
+	#Setup configuration:
+	final ZmqTransportConfig config = new ZmqTransportConfig();
+	config.setAddress("zmq://tcp://127.0.0.1:5678");
+	
+	#Build transport
+	final Transport transport = 
+		new TransportBuilder()
+		.withConfig(config)
+		.withHandle(new MyReceiver())
+		.build();
+	#Setup listening sockets:
+	transport.connect();
+		
+	#Send some data to the other end
+	transport.send(URI.create("zmq://tcp://127.0.0.1:5678"), "Hello World",
+			null);
 {% endhighlight %}
 
 The equivalent Json configuration is:
 {% highlight json %}
 	{
+		"class":"com.almende.eve.transport.zmq.ZmqTransportBuilder",
+		"address":"zmq://tcp://127.0.0.1:5678",
+		"doShortcut":true,
+		"doAuthentication":true
 	}
 {% endhighlight %}
 
-With the above mentioned configuration each agent will get three different ZMQ sockets assigned with the following addresses:
+With the above mentioned configuration each agent will get a ZMQ socket assigned with the following address: tcp://127.0.0.1:5678.
+The ZMQ transport supports all three ZMQ address types:
 
-- A TCP address of form:  **tcp://{address}:{basePort+agentOffset}** (e.g.  tcp://127.0.0.1:5447 for the third agent in the system)
+- A TCP address of form:  **tcp://{address}:{basePort+agentOffset}** (e.g.  tcp://127.0.0.1:5447 for the third agent in the system, is the baseport is 5444)
 - A local socket in the form of: **ipc:///tmp/zmq-socket-{agentId}**
 - A inproc socket in the form of: **inproc://{agentId}**
 
