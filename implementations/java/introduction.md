@@ -24,16 +24,12 @@ that provide agent capabilities to your POJOs.<br>
 Our build environment is managed through Maven and we are deployed to [Maven Central](#Maven). Another possibility to obtain 
 Eve is through a code checkout from [Github](https://github.com/almende/eve).
 
-<ul>
-<li>[Getting started](/implementations/java/getting_started.html) - A tutorial into using Eve in your projects.</li>
-<li>[Code Structure](#Structure) - An overview of the code, which libraries are available.</li>
-</ul>
-
-An extended  is provided as 
+* [Getting started](/implementations/java/getting_started.html) - A tutorial into using Eve in your projects
+* [Code Structure](#Structure) - An overview of the code, which libraries are available
 
 A structural overview of the available code can be found [below](#Structure). More in-depth information about the available capabilities
 can be found on the [capabilities page](/implementations/java/capabilities.html). How these capabilities can be combined into building 
-agents is shown on the [agents page](/implementations/java/agents/html). 
+agents is shown on the [agents page](/implementations/java/agents.html). 
 
 
 ## Maven {#Maven}
