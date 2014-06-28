@@ -50,10 +50,14 @@ public class AgentProxyFactory {
 					public Object invoke(final Object proxy,
 							final Method method, final Object[] args)
 							throws JSONRPCException, IOException {
-						
+					    
+					        if(method.getName().equals("createAgentProxy")) {
+					            return sender.createAgentProxy((URI) args[0], (Class <T>) args[1]);
+					        }
+
 						final JSONRequest request = JSONRPC.createRequest(
 								method, args);
-						
+												
 						final SyncCallback<JSONResponse> callback = new SyncCallback<JSONResponse>();
 						try {
 							sender.send(request, receiverUrl, callback, null);
