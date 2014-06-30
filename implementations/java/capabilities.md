@@ -13,7 +13,7 @@ This section provides an overview of the available capabilities, and their purpo
 - [Capability](#Capabilities): This part describes the generic capability model as implemented by all other capabilities
 - [Transports](#TransportCapabilities): Providing an asynchronous, string-based communication capability
 - [Transforms](#TransformCapabilities): Providing message transformation and call handling capability
-- [States](#StateCapabilities): Providing persistent state storage, in the form of a key-value store
+- [States](#StateCapabilities):			 Providing persistent state storage, in the form of a key-value store
 - [Scheduling](#SchedulerCapabilities): Providing the ability to receive calls at scheduled future moments
 - [Lifecycle](#LifecycleCapabilities): Provide capabilities for booting and suspending agents
 
@@ -84,18 +84,16 @@ There are two ways to setup the servlet environment:
 ##### Generic configuration
 
 {% highlight java %}
-	#Setup the configuration:
-	final HttpTransportConfig config = new HttpTransportConfig();
-	config.setServletUrl("http://localhost:8080/agents/");
-	config.setId("testAgent");
+#Setup the configuration:
+final HttpTransportConfig config = new HttpTransportConfig();
+config.setServletUrl("http://localhost:8080/agents/");
+config.setId("testAgent");
 
-	#Build the transport:
-	final Transport transport = 
-		new TransportBuilder()
-		.withConfig(config)
-		.withHandle(new myReceiver())
-		.build();
-
+#Build the transport:
+final Transport transport = new TransportBuilder()
+	.withConfig(config)
+	.withHandle(new myReceiver())
+	.build();
 {% endhighlight %}
 
 ##### Servlet configuration with embedded Jetty
@@ -103,40 +101,39 @@ There are two ways to setup the servlet environment:
 This configuration is very similar to the above setup, except that some more configuration is added to configure the servlet. This setup requires that the embedded Jetty is bundled
 
 {% highlight java %}
-	#Setup the configuration:
-	final HttpTransportConfig config = new HttpTransportConfig();
-	config.setServletUrl("http://localhost:8080/agents/");
-	config.setId("testAgent");
+#Setup the configuration:
+final HttpTransportConfig config = new HttpTransportConfig();
+config.setServletUrl("http://localhost:8080/agents/");
+config.setId("testAgent");
 	
-	#Add a servlet launcher to the http config:
-	config.setServletLauncher("JettyLauncher");
+#Add a servlet launcher to the http config:
+config.setServletLauncher("JettyLauncher");
 
-	#Add Jetty specific configuration to the http config:
-	final ObjectNode jettyParms = JOM.createObjectNode();
-	jettyParms.put("port", 8080);
-	config.put("jetty", jettyParms);
+#Add Jetty specific configuration to the http config:
+final ObjectNode jettyParms = JOM.createObjectNode();
+jettyParms.put("port", 8080);
+config.put("jetty", jettyParms);
 
-	#Build the transport:
-	final Transport transport = 
-		new TransportBuilder()
-		.withConfig(config)
-		.withHandle(new myReceiver())
-		.build();
+#Build the transport:
+final Transport transport = new TransportBuilder()
+	.withConfig(config)
+	.withHandle(new myReceiver())
+	.build();
 {% endhighlight %}
 
 The equivalent Json configuration is:
 {% highlight json %}
-	{
-		"class":"com.almende.eve.transport.http.HttpTransportBuilder",
-		"servletUrl":"http://localhost:8080/agents/",
-		"id":"testAgent",
-		"servletLauncher":"JettyLauncher",
-		"doShortcut":true,
-		"doAuthentication":true,
-		"jetty":{
-			"port":8080,
-		}
+{
+	"class":"com.almende.eve.transport.http.HttpTransportBuilder",
+	"servletUrl":"http://localhost:8080/agents/",
+	"id":"testAgent",
+	"servletLauncher":"JettyLauncher",
+	"doShortcut":true,
+	"doAuthentication":true,
+	"jetty":{
+		"port":8080,
 	}
+}
 {% endhighlight %}
 
 
@@ -148,20 +145,20 @@ To configure the servlet add the following lines to the **web.xml** file of the 
 inside the &lt;web-app&gt; tag:
 
 {% highlight xml %}
-	<servlet>
-		<servlet-name>war</servlet-name>
-		<servlet-class>com.almende.eve.transport.http.EveServlet</servlet-class>
-		<init-param>
-			<param-name>ServletUrl</param-name>
-			<param-value>http://localhost:8080/war/agents/</param-value>
-		</init-param>
-		<load-on-startup>1</load-on-startup>
-	</servlet>
+<servlet>
+	<servlet-name>war</servlet-name>
+	<servlet-class>com.almende.eve.transport.http.EveServlet</servlet-class>
+	<init-param>
+		<param-name>ServletUrl</param-name>
+		<param-value>http://localhost:8080/war/agents/</param-value>
+	</init-param>
+	<load-on-startup>1</load-on-startup>
+</servlet>
 
-	<servlet-mapping>
-		<servlet-name>war</servlet-name>
-		<url-pattern>/agents/*</url-pattern>
-	</servlet-mapping>
+<servlet-mapping>
+	<servlet-name>war</servlet-name>
+	<url-pattern>/agents/*</url-pattern>
+</servlet-mapping>
 {% endhighlight %}
 
 The *url-pattern* in the servlet mapping can be freely chosen (in the example
@@ -176,7 +173,79 @@ Besides the EveServlet, there is also a debug servlet available, which exposes a
 
 ### Websocket transport {#WSTransport}
 
-TODO
+The websocket transport is somewhat different from the other transports, in the sense that it can only be used to exchange data with a specific other agent. It is not a generic routing transport, like XMPP or HTTP, but limits traffic to a single remote agent. 
+
+To use websockets, the two agents need to implement a side of the client-server relationship. After initialisation, this directional choice doesn't further limit traffic.
+
+#### Client side
+
+{% highlight java %}
+
+final WebsocketTransportConfig serverConfig = new WebsocketTransportConfig();
+clientConfig.setId("testClient");
+clientConfig.setServerUrl("ws://localhost:8082/ws/testServer");
+
+/* default value, this can be omitted */
+clientConfig.setServer(false);
+
+final Transport client = new TransportBuilder()
+	.withConfig(clientConfig)
+	.withHandle(new MyReceiver())
+	.build();
+client.connect();
+
+client.send(URI.create("ws://localhost:8082/ws/testServer"),
+				"Good day to you!", null);
+{% endhighlight %}
+
+As stated, the client connection only supports sending data to the server endpoint, as shown in the above example.
+
+The equivalent Json configuration is:
+{% highlight json %}
+{
+	"class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
+	"server":false,
+	"id": "testClient",
+	"serverUrl": "ws://localhost:8082/ws/testServer"	
+}
+{% endhighlight %}
+
+
+#### Server side
+
+{% highlight java %}
+
+final WebsocketTransportConfig serverConfig = new WebsocketTransportConfig();
+serverConfig.setAddress("ws://localhost:8082/ws/testServer");
+serverConfig.setServer(true);
+
+serverConfig.setServletLauncher("JettyLauncher");
+final ObjectNode jettyParms = JOM.createObjectNode();
+jettyParms.put("port", 8082);
+serverConfig.put("jetty", jettyParms);
+		
+final Transport server = new TransportBuilder()
+	.withConfig(serverConfig)
+	.withHandle(new MyReceiver())
+	.build();
+		
+server.send(URI.create("wsclient:testClient"), "Hi there!", null);
+
+{% endhighlight %}
+As shown, the connected clients are addressable through "wsclient:&lt;clientId&gt;". 
+
+The equivalent Json configuration is:
+{% highlight json %}
+{
+	"class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
+	"server":true,
+	"address":"ws://localhost:8082/ws/testServer",
+	"servletLauncher":"JettyLauncher",
+	"jetty":{
+		"port":8082
+	}
+}
+{% endhighlight %}
 
 ### Xmpp transport {#XmppTransport}
 
@@ -185,36 +254,35 @@ Agents can be connected individually to an XMPP server through the Xmpp transpor
 #### Configuration
 
 {% highlight java %}
-	final XmppTransportConfig params = new XmppTransportConfig();
-	params.setAddress("xmpp://alice@example.com/example");
-	params.setPassword("wonderland");
+final XmppTransportConfig params = new XmppTransportConfig();
+params.setAddress("xmpp://alice@example.com/example");
+params.setPassword("wonderland");
 		
-	final Transport transport = 
-		new XmppTransportBuilder()
-		.withConfig(params)
-		.withHandle(new MyReceiver()).build();
+final Transport transport =	new XmppTransportBuilder()
+	.withConfig(params)
+	.withHandle(new MyReceiver()).build();
 
-	#Connect to the server
-	transport.connect();
+#Connect to the server
+transport.connect();
 		
-	#Send some data to the other end
-	transport.send(URI.create("xmpp:bob@example.com"),"Hello World", null);
+#Send some data to the other end
+transport.send(URI.create("xmpp:bob@example.com"),"Hello World", null);
 	
 
-	#Disconnect again if required
-	transport.disconnect();
+#Disconnect again if required
+transport.disconnect();
 
 {% endhighlight %}
 
 The equivalent Json configuration is:
 {% highlight json %}
-	{
-		"class":"com.almende.eve.transport.xmpp.XmppTransportBuilder",
-		"address":"xmpp://alice@example.com/example",
-		"password":"wonderland",
-		"doShortcut":true,
-		"doAuthentication":true
-	}
+{
+	"class":"com.almende.eve.transport.xmpp.XmppTransportBuilder",
+	"address":"xmpp://alice@example.com/example",
+	"password":"wonderland",
+	"doShortcut":true,
+	"doAuthentication":true
+}
 {% endhighlight %}
 
 ### Zmq transport {#ZmqTransport}
@@ -228,32 +296,32 @@ Agents can also be provided with ZeroMQ sockets. Eve supports all three types of
 #### Configuration
 
 {% highlight java %}
-	#Setup configuration:
-	final ZmqTransportConfig config = new ZmqTransportConfig();
-	config.setAddress("zmq://tcp://127.0.0.1:5678");
+#Setup configuration:
+final ZmqTransportConfig config = new ZmqTransportConfig();
+config.setAddress("zmq://tcp://127.0.0.1:5678");
 	
-	#Build transport
-	final Transport transport = 
-		new TransportBuilder()
-		.withConfig(config)
-		.withHandle(new MyReceiver())
-		.build();
-	#Setup listening sockets:
-	transport.connect();
+#Build transport
+final Transport transport = new TransportBuilder()
+	.withConfig(config)
+	.withHandle(new MyReceiver())
+	.build();
+
+#Setup listening sockets:
+transport.connect();
 		
-	#Send some data to the other end
-	transport.send(URI.create("zmq://tcp://127.0.0.1:5678"), "Hello World",
-			null);
+#Send some data to the other end
+transport.send(URI.create("zmq://tcp://127.0.0.1:5678"), "Hello World",
+	null);
 {% endhighlight %}
 
 The equivalent Json configuration is:
 {% highlight json %}
-	{
-		"class":"com.almende.eve.transport.zmq.ZmqTransportBuilder",
-		"address":"zmq://tcp://127.0.0.1:5678",
-		"doShortcut":true,
-		"doAuthentication":true
-	}
+{
+	"class":"com.almende.eve.transport.zmq.ZmqTransportBuilder",
+	"address":"zmq://tcp://127.0.0.1:5678",
+	"doShortcut":true,
+	"doAuthentication":true
+}
 {% endhighlight %}
 
 With the above mentioned configuration each agent will get a ZMQ socket assigned with the following address: tcp://127.0.0.1:5678.
@@ -265,137 +333,263 @@ The ZMQ transport supports all three ZMQ address types:
 
 For routing to these addresses from within an agent a zmq: prefix needs to be added (as reported through agent.getUrls()). (e.g. zmq:ipc:///tmp/zmq-socket-testAgent1)
 
+## Transform Capabilities {#TransformCapabilities}
+
+In the agent implementations, described in the [Agent section](/implementations/java/agents.html), the message transformations are normally hidden behind a simplified API. These transformations are implemented as capability. Currently only the RPC handling is available as transformation, but in the near future other protocol conversions will be provided. This can include things like compression, encryption, specialized envelops, etc.
+
+### RPC Transform Capability
+
+{% highlight java %}
+final RpcTransformConfig config = new RpcTransformConfig();
+config.setCallbackTimeout(20);
+
+final RpcTransform transform = new RpcTransformBuilder()
+	.withConfig(config)
+	.withHandle(
+		new SimpleHandler<Object>(new MyClass()))
+	.build();
+		
+final AsyncCallback<Boolean> callback = new AsyncCallback<Boolean>() {
+		
+	@Override
+	public void onSuccess(final Boolean result) {
+		LOG.warning("Success!");
+		assertTrue(result);
+	}
+	
+	@Override
+	public void onFailure(final Exception exception) {
+		LOG.log(Level.WARNING, "Fail:", exception);
+		fail();
+	}
+};
+		
+final ObjectNode parms = JOM.createObjectNode();
+parms.put("parm", true);
+
+#Outbound traffic:
+final Object request = transform.buildMsg("testMe", parms, callback);
+		
+#Inbound traffic:
+final Object response = transform.invoke(request,senderUrl);
+{% endhighlight %}
+
+For outbound traffic the RPC transform is used to create the RPC request. The RPC transform also keeps state for these request, if a callback method is provided. This callback will be kept in memory for a configurable timeout period. (default is 30 seconds)
+
+For inbound traffic, the RPC transform 'invoke' method will first determine if this is a reply on an earlier outbound request. If it is, it will obtain the callback and call it's methods. If this is an inbound request, the RPC transform will prepare and invoke a method call on the object that is given as handler to the builder.
+
 ## State Capabilities {#StateCapabilities}
 
-Currently Eve offers the choice between four different state storage services, of which only one can be active for a given VM at the same time.The available state services are:
+Through the State abstraction, agents are offered the capability for easy storage of data per agent. Currently the State is modeled as a simple key/value store. Various implementations are offered, with different storage attributes:
 
 - In-memory state
 - JSON based file state
 - Java object serialization file state
 - CouchDB state
-
-Within the codebase of Eve these State services are provided through a configured StateFactory.
-
-### Configuration
-
-To configure the state factory one of the below shown configurations can be used in **eve.yaml**. You\'ll need to modify the parameters somewhat to match your local settings, especially in the CouchDB case. As mentioned: only one state factory can be used per application!
-
-{% highlight yaml %}
-
-# State settings: Choose only one!
-# memory state:
-state:
-  class: MemoryStateFactory
-
-# Java serialization file state:
-state:
-  class: FileStateFactory
-  path: .eveagents
-
-# JSON based file state:
-state:
-  class: FileStateFactory
-  path: .eveagents
-  json: true
-
-# CouchDB state:
-state:
-  class: CouchdbStateFactory
-  url: http://localhost:5984
-  database: eve
-  username: eve_user
-  password: eve_passwd
-
-{% endhighlight %}
+- MongoDB state
 
 ### Usage
 
-Each agent can reach it\'s State through the getState() method (in the Agent.java superclass). State acts similar to a Java collections Map&lt;String,Object&gt;, but with a few distinct differences. The biggest difference if that the state can be serialized to JSON (for persistency) which potentially loses type information on the value. This means that the methods for getting the value need to reinject this type information. 
+State acts similar to a Java collections Map&lt;String,Object&gt;, but with a few distinct differences. The biggest difference if that the state can be serialized to JSON (for persistency) which potentially loses type information on the value. This means that the methods for getting the value need to reinject this type information. 
 
 There is a normal put(key,value) method for placing data in the state, overwriting potential existing values. Similarly there are normal remove(key) and containsKey(key) methods. However, other methods are not provided, most notably entrySet() and values().
 
 As mentioned, the getter methods need to reinject the missing type information, as can be seen in the get(key, type) methods:
 
 {% highlight java %}
-
-<T> T get(String key, Class<T> type);
-<T> T get(String key, Type type);
 <T> T get(String key, JavaType type);
 <T> T get(String key, TypeUtil<T> type);
 <T> T get(TypedKey<T> key);
-
+<T> T get(String key, Class<T> type);
+<T> T get(String key, Type type);
 {% endhighlight %}
 
-These 5 methods each given a different way for putting type information back into the object. These methods actually reflect the same set of options that the JSON-RPC library also offers on it's send() methods. 
+These 5 methods each given a different way for putting type information back into the object. These methods actually reflect the same set of options that the JSON-RPC library also offers on it's send() methods. For JSON based State storage (FileState, CouchDB state, etc.) the first three are more efficient than the latter two. This is because in those cases Jackson doesn't need to reflect on the Java classes themselves, which is a relative slow operation.
 
 #### Optimistic locking
 
-Eve agents normally have a thread per method call, which means that state operations need to be coordinated. Because its not guaranteed that each thread operates on the same agent object instance, it is not possible to use normal java synchronisation tooling.(and we would not advice workarounds to get to that behaviour) However, the state offers some distinct tooling for concurrency handling, based on optimistic locking. This is based on the atomic putIfUnchanged() method:
+Eve agents can use various approaches to scalability, including running multiple threads for the same agent concurrently. The agent's state must therefor act as a synchronization point for these threads. Within Java there are various strategies you can take to handle concurrent State access. But especially if certain agent threads run in a different VM/Server (e.g. loadbalanced HTTP setup) it becomes problematic to use standard Java synchronization tools. 
+For this problem, the state offers some distinct tooling for concurrency handling, based on optimistic locking. This is based on the atomic putIfUnchanged() method:
 
 {% highlight java %}
-
 boolean putIfUnchanged(String key, Object newVal, Object oldVal);
-
 {% endhighlight %}
 
 This method is normally used in the following manner:
 
 {% highlight java %}
-
 public void incr(key){
-
-	int oldval = getState().get(key, Integer.class);
+	int oldval = myState.get(key, Integer.class);
 	int newval = oldval + 1;
-	if (!getState().putIfUnchanged(key, newval, oldval)){
+	if (!myState.putIfUnchanged(key, newval, oldval)){
 		//recursive retry:
 		incr(key);
 	}
 }
-
 {% endhighlight %}
 
 Basically you get the current value, make a copy which you modify. Next step you store the value again, but with a check that no other thread has just modified the same value, in which case you just retry the operation.
 
-## Scheduling Capabilities {#SchedulerCapabilities}
+For each type of State, you'll find a small code sample below:
 
-To facilitate the autonomous behavior of the software agents, Eve offers each agent a scheduler service. The scheduler can call agent methods after a given delay, possibly repetitive. Currently there are two scheduler services available:
+#### Memory State
 
-- RunnableSchedulerFactory  - A basic scheduler that keeps a list of all scheduled tasks for all agents in the system. Offers a pretty precise scheduling (&lt;10ms delays) but is not very scalable, it\'s performance degrades significantly at around 100 tasks per second.
-- ClockSchedulerFactory  - A more scalable design, which stores the tasks in the agents state. Because the data is now distributed among the agents, it is more scalable, but at a latency price. Currently this scheduler has delays in the 80-100ms range for normal tasks, but doesn\'t degrade at scale.
+{% highlight java %}
+final MemoryStateConfig params = new MemoryStateConfig();
+params.setId("TestAgent");
+		
+State myState = new StateBuilder()
+	.withConfig(params)
+	.build();
 
-### Configuration
+myState.put("msg", "Hi There!");
+String result = myState.get("msg", String.class);
+{% endhighlight %}
 
-{% highlight yaml %}
-# Use one of the two options below:
+#### JSON based file State
 
-# scheduler settings
-scheduler:
-  class: RunnableSchedulerFactory
-  id: _runnableScheduler
+{% highlight java %}
+final FileStateConfig params = new FileStateConfig();
+params.setId("TestAgent");
 
-scheduler:
-  class: ClockSchedulerFactory
+/* Some defaults: */
+params.setJson(true); 
+params.setPath(".eveagents");
+	
+State myState = new StateBuilder()
+	.withConfig(params)
+	.build();
+
+myState.put("msg", "Hi There!");
+String result = myState.get("msg", String.class);
+{% endhighlight %}
+
+#### Serialized data file State
+
+{% highlight java %}
+final FileStateConfig params = new FileStateConfig();
+params.setId("TestAgent");
+params.setJson(false);
+
+/* default value, therefor optional: */
+params.setPath(".eveagents");
+	
+State myState = new StateBuilder()
+	.withConfig(params)
+	.build();
+
+myState.put("msg", "Hi There!");
+String result = myState.get("msg", String.class);
+{% endhighlight %}
+
+#### CouchDB State
+
+{% highlight java %}
+final CouchStateConfig params = new CouchStateConfig();
+params.setId("TestAgent");
+params.setUrl("http://localhost:5984");
+params.setUsername("myCouchDBUser");
+params.setPassword("myCouchDBPassword");
+
+/* default value, therefor optional: */
+params.setDatabase("eve");
+	
+State myState = new StateBuilder()
+	.withConfig(params)
+	.build();
+
+myState.put("msg", "Hi There!");
+String result = myState.get("msg", String.class);
+{% endhighlight %}
+
+#### MongoDB State
+
+{% highlight java %}
+final MongoStateConfig params = new MongoStateConfig();
+params.setId("TestAgent");
+
+/* default values, therefor optional: */
+params.setHost("localhost");
+params.setPort(27017);
+params.setDatabase("eve");
+params.setCollection("agents");
+	
+State myState = new StateBuilder()
+	.withConfig(params)
+	.build();
+
+myState.put("msg", "Hi There!");
+String result = myState.get("msg", String.class);
 
 {% endhighlight %}
 
-The \"id\" option of the RunnableSchedulerFactory depicts the agentname the scheduler will use. This shown name \"_runnableScheduler\" is the default, which will be used if the option is omitted.
+## Scheduling Capabilities {#SchedulerCapabilities}
+
+To facilitate the autonomous behavior of the software agents, Eve offers various scheduling capabilities. These capabilities act like trigger generators, offering delayed, interval driven message delivery. These messages can contain RPC, allowing the scheduler to be used as an asynchronous taskrunner as well.
+
+- Simple Scheduler Capability - A basic scheduler that keeps the tasks in a memory queue
+- Persistent Scheduler Capability - A scheduler that uses a State (see above) for storing the task queue, allowing among others filebased persistency.
 
 ### Usage
 
-Each agent is offered a getScheduler() method. (through the Agent.java superclass). The scheduler object that is returned has a createTask() method that does the actual scheduling:
+#### Simple Scheduler
 
 {% highlight java %}
-
-	String createTask(JSONRequest request, long delay);
-	String createTask(JSONRequest request, long delay, boolean repeat, boolean sequential);
-
+final SimpleSchedulerConfig params = new SimpleSchedulerConfig();
+params.setSenderUrl("local:scheduler");
+		
+final Scheduler test = new SchedulerBuilder()
+	.withConfig(params)
+	.withHandle(new SimpleHandler<Receiver>(new MyReceiver()))
+	.build();
+	
+test.schedule("Hi there!", DateTime.now());
+test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 {% endhighlight %}
 
-The former is uses the latter, with both optional parameters at their default false. The parameters have the following effect:
+The equivalent Json configuration is:
+{% highlight json %}
+{
+	"class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
+	"senderUrl":"local:scheduler",
+}
+{% endhighlight %}
 
-- JSONRequest request  - The method (with it\'s parameters) which needs to be called at the scheduled moment. This needs to be accessible through JSON-RPC at a minimal accessType of AccessType.SELF. (AccessType.UNAVAILABLE (which is the default) is not callable from the scheduler)
-- long delay  - The schedule delay in milliseconds from now. 
-- boolean repeat  - Should the task be repeated multiple times, at *delay* intervals?
-- boolean sequential - When repeating the task, may multiple instances run in parallel? When given the *true* value, the next schedule round waits until the earlier execution has finished before scheduling the next execution. (at delay interval after the finish) If this parameter has a value of *false* the next iteration will be scheduled directly from the start of the current round, allowing the next to run in parallel if the execution takes longer than the delay.
+#### Persistent Scheduler
+
+The biggest difference between the SimpleScheduler and the PersistentScheduler is the addition of a State for storing the task queue of the scheduler. 
+
+{% highlight java %}
+final PersistentSchedulerConfig params = new PersistentSchedulerConfig();
+final FileStateConfig state = new FileStateConfig();
+state.put("class", FileStateBuilder.class.getName());
+state.put("path", ".eveagents_schedulingtest");
+state.put("id", "testScheduling");
+		
+params.setState(state);
+params.setSenderUrl("local:scheduler");
+		
+final Scheduler test = new SchedulerBuilder()
+	.withConfig(params)
+	.withHandle(new SimpleHandler<Receiver>(new MyReceiver()))
+	.build();
+		
+test.schedule("Hi there!", DateTime.now());
+test.schedule("Hi there!", DateTime.now().plusSeconds(10));
+{% endhighlight %}
+
+The equivalent Json configuration is:
+{% highlight json %}
+{
+	"class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
+	"senderUrl":"local:scheduler",
+	"state":{
+		"class":"com.almende.eve.state.FileStateBuilder",
+		"path":".eveagents_schedulingtest",
+		"json":true,
+		"id":"testScheduling"
+	}
+}
+{% endhighlight %}
 
 
