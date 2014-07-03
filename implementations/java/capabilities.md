@@ -17,12 +17,6 @@ This section provides an overview of the available capabilities, and their purpo
 - [Scheduling](#SchedulerCapabilities): Providing the ability to receive calls at scheduled future moments
 - [Lifecycle](#LifecycleCapabilities): Provide capabilities for booting and suspending agents
 
-See image below for the highlevel interaction between the capabilities.
-
-<img src="../../img/eve_java_architecture.png"
-  style="margin-top: 30px;width:90%;margin-left:auto;margin-right:auto;display:block"
-  title="Eve agent services infograph">
-
 ## Capability model {#Capabilities}
 
 All capabilities follow the same usage pattern, implementing the same interface. Obtaining an specific instance of a capability is done through a builder pattern. This is a three step process:
@@ -382,11 +376,11 @@ For inbound traffic, the RPC transform 'invoke' method will first determine if t
 
 Through the State abstraction, agents are offered the capability for easy storage of data per agent. Currently the State is modeled as a simple key/value store. Various implementations are offered, with different storage attributes:
 
-- In-memory state
-- JSON based file state
-- Java object serialization file state
-- CouchDB state
-- MongoDB state
+- [In-memory state](#memState)
+- [JSON based file state](#jfState)
+- [Java object serialization file state](#sfState)
+- [CouchDB state](#cdbState)
+- [MongoDB state](#mdbState)
 
 ### Usage
 
@@ -432,7 +426,7 @@ Basically you get the current value, make a copy which you modify. Next step you
 
 For each type of State, you'll find a small code sample below:
 
-#### Memory State
+#### Memory State {#memState}
 
 {% highlight java %}
 final MemoryStateConfig params = new MemoryStateConfig();
@@ -446,7 +440,7 @@ myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
 {% endhighlight %}
 
-#### JSON based file State
+#### JSON based file State {#jfState}
 
 {% highlight java %}
 final FileStateConfig params = new FileStateConfig();
@@ -464,7 +458,7 @@ myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
 {% endhighlight %}
 
-#### Serialized data file State
+#### Serialized data file State {#sfState}
 
 {% highlight java %}
 final FileStateConfig params = new FileStateConfig();
@@ -482,7 +476,7 @@ myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
 {% endhighlight %}
 
-#### CouchDB State
+#### CouchDB State {#cdbState}
 
 {% highlight java %}
 final CouchStateConfig params = new CouchStateConfig();
@@ -502,7 +496,7 @@ myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
 {% endhighlight %}
 
-#### MongoDB State
+#### MongoDB State {#mdbState}
 
 {% highlight java %}
 final MongoStateConfig params = new MongoStateConfig();
@@ -591,5 +585,39 @@ The equivalent Json configuration is:
 	}
 }
 {% endhighlight %}
+
+## Life cycle support {#LifecycleCapabilities}
+
+This section describes capabilities (currently only one) that support agent instantiation and booting. 
+
+### Wake Service Capability
+
+Eve allows its agents to be unloaded from memory and be re-instantiated (woken) when there are incoming messages through the transports and/or schedulers. This is achieved through a combination of a registry and a callback handler. 
+
+Workflow of unloading/waking agents: (Click to see a graphical description)
+
+1. <a href="/img/wake/step01.png" data-lightbox="eve_wake_img" data-title="An agent implements the Wakeable interface">An agent implements the Wakeable interface</a>
+2. <a href="/img/wake/step02.png" data-lightbox="eve_wake_img" data-title="The agent registers itself at the WakeService using an unique key">The agent registers itself at the WakeService using an unique key</a>
+3. <a href="/img/wake/step03.png" data-lightbox="eve_wake_img" data-title="One or more capabilities are loaded, using a WakeHandler containing the key">One or more capabilities are loaded, using a WakeHandler containing the key</a>
+4. <a href="/img/wake/step04.png" data-lightbox="eve_wake_img" data-title="The agent is unreferenced, leading to garbage collection (The WakeHandler keeps only a weakReference to the agent)">The agent is unreferenced, leading to garbage collection (The WakeHandler keeps only a weakReference to the agent)</a>
+5. <a href="/img/wake/step05.png" data-lightbox="eve_wake_img" data-title="There is some incoming message at the capability">There is some incoming message at the capability</a>
+6. <a href="/img/wake/step06.png" data-lightbox="eve_wake_img" data-title="The capability tries to obtain the handler's target">The capability tries to obtain the handler's target</a>
+7. <a href="/img/wake/step07.png" data-lightbox="eve_wake_img" data-title="The handler sees that the weakRef is null, requests a wake from the wakeService, using the key">The handler sees that the weakRef is null, requests a wake from the wakeService, using the key</a>
+8. <a href="/img/wake/step08.png" data-lightbox="eve_wake_img" data-title="The wakeService instantiates the agent again (using the information given during the registration) and calls the wake method of the agent instance">The wakeService instantiates the agent again (using the information given during the registration) and calls the wake method of the agent instance</a>
+9. <a href="/img/wake/step09.png" data-lightbox="eve_wake_img" data-title="The wake method in the agent obtains the capabilities again, with another WakeHandler instance">The wake method in the agent obtains the capabilities again, with another WakeHandler instance</a>
+10. <a href="/img/wake/step10.png" data-lightbox="eve_wake_img" data-title="The capability sees an existing WakeHandler, and updates this with the new instance's pointer">The capability sees an existing WakeHandler, and updates this with the new instance's pointer</a>
+11. <a href="/img/wake/step11.png" data-lightbox="eve_wake_img" data-title="The original WakeHandler now has a correct, in-memory reference to the agent, proceeds to do it's original call">The original WakeHandler now has a correct, in-memory reference to the agent, proceeds to do it's original call</a>
+
+#### WakeHandler
+
+The WakeHandler is a callback handler which can be used as a parameter for the other capabilities. This handler contains a weakRef to the target object, allowing the target to be unloaded. When an incoming message issues a request for this target object, the WakeHandler will check the weakRef. If the target has been unloaded, it will use the included key to register a wake action from the WakeService.
+
+#### WakeService 
+
+This is a registry (optional persistent for booting support) containing a list of classnames, indexed by a wakeKey. If a specific key is given, it will instantiate the class (in its value) and call the wake() method on the instance. This method can be used to recollect the other capabilities, (updating the handler in the process) after which these capabilities can further deliver the message that triggered the wake.
+
+#### Code example:
+
+
 
 
