@@ -18,19 +18,19 @@ assumptions about the structure of your agents. However, for ease of use, there 
 still the option of extending the Agent class, but this is no longer a requirement.
 </div>
 
-This is the home of the Java implementation of Eve. Eve consists of a series of Java library projects,
-that provide agent capabilities to your POJOs.<br>
+This is the home of the Java implementation of Eve. Through Eve you can either develop agent solutions from scratch or add agent capabilities to your existing Java application. Eve consists of a series of Java library projects, that provide agent capabilities to your POJOs. For dedicated agent applications, there are also various standard Agent classes, which act like templates to the capabilities.<br>
 
 Our build environment is managed through Maven and we are deployed to [Maven Central](#Maven). Another possibility to obtain 
 Eve is through a code checkout from [Github](https://github.com/almende/eve).
 
-* [Getting started](/implementations/java/getting_started.html) - A tutorial into using Eve in your projects
-* [Code Structure](#Structure) - An overview of the code, which libraries are available
+The documentation consists of a couple of sections:
 
-A structural overview of the available code can be found [below](#Structure). More in-depth information about the available capabilities
-can be found on the [capabilities page](/implementations/java/capabilities.html). How these capabilities can be combined into building 
-agents is shown on the [agents page](/implementations/java/agents.html). 
+* [Getting started](getting_started.html) - A tutorial into using Eve in your projects
+* [Code structure](#Structure) - A structural overview of the available code in the Git repository
+* [Agents](agents.html) - The out-of-the-box agent classes of Eve. These agents combine a basic set of capabilities, in a standardized manner.
+* [Capabilities](capabilities.html) - A reference/code example overview of the available capabilities.
 
+Besides this documentation, the best place to get familiar with Eve code is by looking through the ["/tests/src/test/java/com/almende/eve/test/*"](https://github.com/almende/eve/tree/development/tests/src/test/java/com/almende/eve/test) code.
 
 ## Maven {#Maven}
 

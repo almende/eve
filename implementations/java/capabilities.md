@@ -78,12 +78,12 @@ There are two ways to setup the servlet environment:
 ##### Generic configuration
 
 {% highlight java %}
-#Setup the configuration:
+//Setup the configuration:
 final HttpTransportConfig config = new HttpTransportConfig();
 config.setServletUrl("http://localhost:8080/agents/");
 config.setId("testAgent");
 
-#Build the transport:
+//Build the transport:
 final Transport transport = new TransportBuilder()
 	.withConfig(config)
 	.withHandle(new myReceiver())
@@ -95,20 +95,20 @@ final Transport transport = new TransportBuilder()
 This configuration is very similar to the above setup, except that some more configuration is added to configure the servlet. This setup requires that the embedded Jetty is bundled
 
 {% highlight java %}
-#Setup the configuration:
+//Setup the configuration:
 final HttpTransportConfig config = new HttpTransportConfig();
 config.setServletUrl("http://localhost:8080/agents/");
 config.setId("testAgent");
 	
-#Add a servlet launcher to the http config:
+//Add a servlet launcher to the http config:
 config.setServletLauncher("JettyLauncher");
 
-#Add Jetty specific configuration to the http config:
+//Add Jetty specific configuration to the http config:
 final ObjectNode jettyParms = JOM.createObjectNode();
 jettyParms.put("port", 8080);
 config.put("jetty", jettyParms);
 
-#Build the transport:
+//Build the transport:
 final Transport transport = new TransportBuilder()
 	.withConfig(config)
 	.withHandle(new myReceiver())
@@ -256,14 +256,14 @@ final Transport transport =	new XmppTransportBuilder()
 	.withConfig(params)
 	.withHandle(new MyReceiver()).build();
 
-#Connect to the server
+//Connect to the server
 transport.connect();
 		
-#Send some data to the other end
+//Send some data to the other end
 transport.send(URI.create("xmpp:bob@example.com"),"Hello World", null);
 	
 
-#Disconnect again if required
+//Disconnect again if required
 transport.disconnect();
 
 {% endhighlight %}
@@ -290,20 +290,20 @@ Agents can also be provided with ZeroMQ sockets. Eve supports all three types of
 #### Configuration
 
 {% highlight java %}
-#Setup configuration:
+//Setup configuration:
 final ZmqTransportConfig config = new ZmqTransportConfig();
 config.setAddress("zmq://tcp://127.0.0.1:5678");
 	
-#Build transport
+//Build transport
 final Transport transport = new TransportBuilder()
 	.withConfig(config)
 	.withHandle(new MyReceiver())
 	.build();
 
-#Setup listening sockets:
+//Setup listening sockets:
 transport.connect();
 		
-#Send some data to the other end
+//Send some data to the other end
 transport.send(URI.create("zmq://tcp://127.0.0.1:5678"), "Hello World",
 	null);
 {% endhighlight %}
@@ -616,8 +616,58 @@ The WakeHandler is a callback handler which can be used as a parameter for the o
 
 This is a registry (optional persistent for booting support) containing a list of classnames, indexed by a wakeKey. If a specific key is given, it will instantiate the class (in its value) and call the wake() method on the instance. This method can be used to recollect the other capabilities, (updating the handler in the process) after which these capabilities can further deliver the message that triggered the wake.
 
-#### Code example:
+#### Code example
 
+From a usage point of view, it's probably easiest to just extend WakeableAgent, see the [Agent section](/implementations/java/agents.html). But if you plan on creating your own wakeable agents, below is some example code to get you started.
+
+{% highlight java %}
+
+public void main(){
+	setupCapabilities(true);
+}
+
+public void wake(final String wakeKey, final ObjectNode params,
+			final boolean onBoot) {
+	setupCapabilities(false);
+}
+
+public void setupCapabilities(final boolean needReg){
+	//First obtain a wakeservice:
+	final WakeServiceConfig config = new WakeServiceConfig();
+	final FileStateConfig stateconfig = new FileStateConfig();
+	stateconfig.setPath(".wakeservices");
+	stateconfig.setId("testWakeService");
+	config.setState(stateconfig);
+		
+	final WakeService ws = 
+		new WakeServiceBuilder()
+	   .withConfig(config)
+	   .build();
+
+	final String myId = "exampleAgent";
+
+	//Register your agent at the wakeservice ( ws.register(id, config, classname); )
+	if (needReg){
+		ws.register(myId, JOM.createObjectNode(), this.getClass().getName());
+	}
+
+	//Create WakeHandler for this class (which implements Receiver)
+	final WakeHandler<Receiver> handler = new WakeHandler<Receiver>(this, myId, ws);
+
+	//Setup the configuration:
+	final HttpTransportConfig config = new HttpTransportConfig();
+	config.setServletUrl("http://localhost:8080/agents/");
+	config.setId("testAgent");
+
+	//Build the transport:
+	final Transport transport = new TransportBuilder()
+		.withConfig(config)
+		.withHandle(handler)
+		.build();
+}
+
+
+{% endhighlight %}
 
 
 
