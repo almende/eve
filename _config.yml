@@ -4,4 +4,3 @@ baseurl: /
 markdown: kramdown
 auto: true
 server : true
-

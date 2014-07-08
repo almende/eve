@@ -25,10 +25,10 @@ Eve is through a code checkout from [Github](https://github.com/almende/eve).
 
 The documentation consists of a couple of sections:
 
-* [Getting started](getting_started.html) - A tutorial into using Eve in your projects
 * [Code structure](#Structure) - A structural overview of the available code in the Git repository
-* [Agents](agents.html) - The out-of-the-box agent classes of Eve. These agents combine a basic set of capabilities, in a standardized manner.
-* [Capabilities](capabilities.html) - A reference/code example overview of the available capabilities.
+* [Agents](agents.html) - The out-of-the-box agent classes of Eve. These agents combine a basic set of capabilities, in a standardized manner
+* [Capabilities](capabilities.html) - A reference/code example overview of the available capabilities
+* [Deployment scenarios](setups.html) - Project deployment scenarios, usable as a getting started description
 
 Besides this documentation, the best place to get familiar with Eve code is by looking through the ["/tests/src/test/java/com/almende/eve/test/*"](https://github.com/almende/eve/tree/development/tests/src/test/java/com/almende/eve/test) code.
 

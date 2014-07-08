@@ -3,8 +3,9 @@ layout: default
 title: Configuration
 ---
 
-
 # Configuration
+
+
 
 Eve needs a configuration file containing settings for persistency of the agents
 state, settings for transport services such as HTTP and XMPP, and other

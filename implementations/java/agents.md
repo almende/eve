@@ -49,6 +49,11 @@ Remarks on this example:
   accessible via JSON-RPC, they must be marked public using the annotation
   `@Access(AccessType.PUBLIC)`.
 
+### Configuration {#configuration}
+
+The Agent class has two ways to be configured: Either through one of the constructors, or through the setConfig() method. In both cases the configuration consists of a [Jackson JSON DOM](configuration.html). This DOM contains the agent specific configuration and the configuration of all capabilities of the agent. To ease the configuration, an AgentConfig class is available, extending Jackson's ObjectNode, with setters and getters for the various capability configs. 
+
+
 
 ### Methods {#methods}
 
