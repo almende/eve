@@ -15,7 +15,7 @@ Eve is designed to offer a large flexibility in deployment scenarios, it is poss
 
 ## Standalong Java setup {#standalone}
 
-This scenario describes the setup of Eve, either without a http transport or with http transport through the embedded Jetty server. Eve gets started through an executable jar file, for example from the commandline. It shows how to obtain configuration data from a YAML file and use this to initiate agents. The Game-of-life demo in the Eve sourcecode is started in this manner and can be used as an example for such a setup.
+This scenario describes a standalone java executable setup of Eve, either without a http transport or with http transport through the embedded Jetty server. Eve gets started through an executable jar file, for example from the commandline. It shows how to obtain configuration data from a YAML file and use this to initiate agents. The Game-of-life demo in the Eve sourcecode is started in this manner and can be used as an example for such a setup.
 
 For this example we first create a 'yaml' configuration file:
 
@@ -348,4 +348,7 @@ TODO:
 - Example project layout
 - Example service
 - Configuration?
+
+For now you can check out the demo application for PAAMS 2014 at: [ConferenceApp](https://github.com/almende/demoapps/tree/master/conferenceApp)
+
 
