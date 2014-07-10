@@ -9,18 +9,19 @@ Eve is designed to offer a large flexibility in deployment scenarios, it is poss
 
 - [Standalone](#standalone) - A standalone java application, packaged in a JAR with a main class starting the agents
 - [Standalone with WakeService](#standalone_wake) - Like the standalone, but with agents that can be unloaded from memory
-- [Standalone with Embedded Jetty server](#standalone_embed) - Like the standalone, but with a Httptransport running in the embedded Jetty server
+- [Standalone with Embedded Jetty server](#standalone_embed) - Like the standalone, but with a HttpTransport running in the embedded Jetty server
 - [Servlet](#servlet) - A java servlet application, packaged in a WAR archive, with agents being started in a ServletListener
 - [Android](#android) - An example setup in an Android application
 
-## Standalong Java setup {#standalone}
+## Standalone Java setup {#standalone}
 
 This scenario describes a standalone java executable setup of Eve, either without a http transport or with http transport through the embedded Jetty server. Eve gets started through an executable jar file, for example from the commandline. It shows how to obtain configuration data from a YAML file and use this to initiate agents. The Game-of-life demo in the Eve sourcecode is started in this manner and can be used as an example for such a setup.
 
 For this example we first create a 'yaml' configuration file:
 
 {% highlight yaml %}
-#First we define a template for usage per agent. The ExampleAgent extends Eve's Agent class.
+# First we define a template for usage per agent. 
+# The ExampleAgent extends Eve's Agent class.
 templates:
    defaultAgent:
       class: com.almende.eve.agent.ExampleAgent
@@ -29,7 +30,7 @@ templates:
       scheduler:
          class: com.almende.eve.scheduling.SimpleSchedulerBuilder
 
-#Here we define the agents themselves:
+# Here we define the agents themselves:
 agents:
 -  id: example
    extends: templates/defaultAgent
@@ -56,9 +57,11 @@ public class Example {
          .load(new FileInputStream(new File(args[0])))
          .expand();
 
-      //Config is now a Jackson JSON DOM, 'expand()' allows for template resolvement in the configuration. 
+      // Config is now a Jackson JSON DOM, 'expand()' allows for template 
+      // resolvement in the configuration. 
 
-      //Now we instantiate two example agents, getting their classpath (and configuration) from the DOM
+      // Now we instantiate two example agents, getting their classpath 
+      // (and configuration) from the DOM
       final ArrayNode agents = (ArrayNode) config.get("agents");
       for (final JsonNode agent : agents) {
          final AgentConfig agentConfig = new AgentConfig((ObjectNode) agent);

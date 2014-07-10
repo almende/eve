@@ -8,7 +8,7 @@ title: Concepts Introduction
 Eve is a multipurpose, web based agent platform, in which existing web technologies are used.
 They provide an environment in which software agents can be developed.
 Eve is defined as an [agent model](#agentdefinition) and a [communication protocol](#protocoldriven),
-which can be implemented in many programming languages en runtime infrastructures.
+which can be implemented in many programming languages and runtime infrastructures.
 This part of the documentation provides an introduction into these generic elements of Eve.
 
 
@@ -31,11 +31,11 @@ The main reason for providing a separate memory capability to the agents is that
 The model has some design constrains that are important to understand: It is possible that multiple instances of the same agent are running simultaneously and in some cases it is even possible that multiple threads access the same instance in parallel. Besides the provided state service (and potential external databases) an agent should be stateless, without global or class level scoped variables. It is possible in some implementations, to cache bootstrap information in the agent instance, but there is no guarantee that the instance remains active, nor that the next request ends up in the same instance (or even in the same execution environment!). If cache structures are used, be certain to make them completely thread-safe!
 </div>
 
-This model mimics the way modern webservers handle servlets, allowing any servlet to become an Eve agent. Out of the box, a single agent (=single state) can therefor execute requests in parallel, multi-threaded, and (depending on the state-implementation) distributed among multiple servers. This model also allows for easier handling of asynchronous agent designs.
+This model mimics the way modern webservers handle servlets, allowing any servlet to become an Eve agent. Out of the box, a single agent (=single state) can therefore execute requests in parallel, multi-threaded, and (depending on the state-implementation) distributed among multiple servers. This model also allows for easier handling of asynchronous agent designs.
 
 ## Eve protocol {#protocoldriven}
 
-The agent model is based on request driven instantiation. The requests, that trigger this instantiation, are JSON-RPC encoded. In the [Protocol](protocol.html) section, this protocol is further defined and described. Using JSON as its base, Eve is highly programming language independent; for most mainstream languages there are existing JSON handling libraries. Any implementation that adheres to the described protocol and basic agent model, is therefor considered an Eve implementation. This high level definition allowed effective reuse of existing tools and protocols in the implementation of Eve. 
+The agent model is based on request driven instantiation. The requests, that trigger this instantiation, are JSON-RPC encoded. In the [Protocol](protocol.html) section, this protocol is further defined and described. Using JSON as its base, Eve is highly programming language independent; for most mainstream languages there are existing JSON handling libraries. Any implementation that adheres to the described protocol and basic agent model, is therefore considered an Eve implementation. This high level definition allowed effective reuse of existing tools and protocols in the implementation of Eve. 
 
 Eve is defined by its agent model and its RPC protocol. But the JSON-RPC messages still need to be transported from one agent to another agent, possibly crossing to  a completely different platform. The two implementations (on the different platforms) need to share a common transport service for this. Currently the Eve implementations support HTTP and XMPP as transport protocols, but it\'s relatively straight-forward to e.g. implement a ZeroMQ transport. If two implementations share a common transport service, its agents can work flawlessly together. For example, this allows a Java cloud agent to communicate with an in-browser Javascript agent, through JSON-RPC over an XMPP transport.
 

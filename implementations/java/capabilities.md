@@ -19,7 +19,7 @@ This section provides an overview of the available capabilities, and their purpo
 
 ## Capability model {#Capabilities}
 
-All capabilities follow the same usage pattern, implementing the same interface. Obtaining an specific instance of a capability is done through a builder pattern. This is a three step process:
+All capabilities follow the same usage pattern, implementing the same interface. Obtaining a specific instance of a capability is done through a builder pattern. This is a three step process:
 
 1. Create a configuration for the capability
 2. Define a callback method for the capability
@@ -29,7 +29,7 @@ All capabilities follow the same usage pattern, implementing the same interface.
 
 All capabilities accept a Jackson JSON DOM node as configuration.This allows very flexible configuration and allows the agent to serialize its configuration. It also allows the configuration to be obtained from file in various file formats (JSON, Yaml, etc.) For most capabilities there is a one-on-one mapping from JSON config to specific capability instance. This means if you build a capability with exactly the same configuration, you most probably get the same capability instance again.
 
-For most capabilities there is a specific config class, extending Jackson's JsonNode, which you can use to programatically set the various configuration fields. (=bean-like interface)
+For most capabilities there is a specific config class, extending Jackson's JSONNode, which you can use to programatically set the various configuration fields. (=bean-like interface)
 
 ### Callback method
 
@@ -115,7 +115,7 @@ final Transport transport = new TransportBuilder()
 	.build();
 {% endhighlight %}
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.transport.http.HttpTransportBuilder",
@@ -194,7 +194,7 @@ client.send(URI.create("ws://localhost:8082/ws/testServer"),
 
 As stated, the client connection only supports sending data to the server endpoint, as shown in the above example.
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
@@ -228,7 +228,7 @@ server.send(URI.create("wsclient:testClient"), "Hi there!", null);
 {% endhighlight %}
 As shown, the connected clients are addressable through "wsclient:&lt;clientId&gt;". 
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
@@ -268,7 +268,7 @@ transport.disconnect();
 
 {% endhighlight %}
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.transport.xmpp.XmppTransportBuilder",
@@ -308,7 +308,7 @@ transport.send(URI.create("zmq://tcp://127.0.0.1:5678"), "Hello World",
 	null);
 {% endhighlight %}
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.transport.zmq.ZmqTransportBuilder",
@@ -361,10 +361,10 @@ final AsyncCallback<Boolean> callback = new AsyncCallback<Boolean>() {
 final ObjectNode parms = JOM.createObjectNode();
 parms.put("parm", true);
 
-#Outbound traffic:
+// Outbound traffic:
 final Object request = transform.buildMsg("testMe", parms, callback);
 		
-#Inbound traffic:
+// Inbound traffic:
 final Object response = transform.invoke(request,senderUrl);
 {% endhighlight %}
 
@@ -447,7 +447,7 @@ final FileStateConfig params = new FileStateConfig();
 params.setId("TestAgent");
 
 /* Some defaults: */
-params.setJson(true); 
+params.setJSON(true); 
 params.setPath(".eveagents");
 	
 State myState = new StateBuilder()
@@ -463,7 +463,7 @@ String result = myState.get("msg", String.class);
 {% highlight java %}
 final FileStateConfig params = new FileStateConfig();
 params.setId("TestAgent");
-params.setJson(false);
+params.setJSON(false);
 
 /* default value, therefor optional: */
 params.setPath(".eveagents");
@@ -541,7 +541,7 @@ test.schedule("Hi there!", DateTime.now());
 test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 {% endhighlight %}
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
@@ -572,7 +572,7 @@ test.schedule("Hi there!", DateTime.now());
 test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 {% endhighlight %}
 
-The equivalent Json configuration is:
+The equivalent JSON configuration is:
 {% highlight json %}
 {
 	"class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",

@@ -3,15 +3,16 @@
 <head>
     <title>Eve - {{ page.title }} </title>
     <link rel="shortcut icon" href="/img/favicon.ico" >
+    <meta charset="utf-8">
 
-	<script type="text/javascript">
-		var url = window.location;
-		url = url.toString();
-		if (url.substring(0,21) == "http://almende.github"){
-			url = url.replace(/almende\.github\..*\/eve/,"eve.almende.com")
-			window.location = url;
-		}
-	</script>
+    <script type="text/javascript">
+      var url = window.location;
+      url = url.toString();
+      if (url.substring(0,21) == "http://almende.github"){
+        url = url.replace(/almende\.github\..*\/eve/,"eve.almende.com")
+        window.location = url;
+      }
+    </script>
 
     <meta name="title" content="Eve - {{ page.title }}">
     <meta name="keywords" content="eve, agent, software agent, software agents, agent platform, scalable, multiplatform, multipurpose, web based, cloud, http, json, json-rpc, opensource, open source" >
@@ -26,28 +27,28 @@
     <link type="text/css" rel="stylesheet" href="/css/style.css">
     <link type="text/css" rel="stylesheet" href="/css/menu.css">
     <link type="text/css" rel="stylesheet" href="/js/lightbox/css/lightbox.css">
-	<link rel="stylesheet" href="/css/smoothness/jquery-ui.css">
+	  <link rel="stylesheet" href="/css/smoothness/jquery-ui.css">
 
     <script type="text/javascript" src="/js/jquery/jquery-1.10.2.min.js"></script>
   	<script src="/js/jquery/jquery-ui-1.10.4.min.js"></script>
   
     <script type="text/javascript" src="/js/jquery/jquery-dropdown/jquery.dropdown.js"></script>
-	<script type="text/javascript" src="/js/lightbox/js/lightbox.min.js"></script>
+	  <script type="text/javascript" src="/js/lightbox/js/lightbox.min.js"></script>
     <!--
     <script type="text/javascript" src="/js/foundation/js/foundation.min.js"></script>
     <script type="text/javascript" src="/js/foundation/js/foundation/foundation.dropdown.js"></script>
     -->
     <script type="text/javascript" src="/js/menu.js"></script>
 
-	<script type="text/javascript">
-		$(document.links).filter(function() {
-    		return this.hostname != window.location.hostname;
-		}).attr('target', '_blank');
+    <script type="text/javascript">
+      $(document.links).filter(function() {
+          return this.hostname != window.location.hostname;
+      }).attr('target', '_blank');
 
-  		$(function() {
-    		$( "#tabs" ).tabs();
-		});
-	</script>
+        $(function() {
+          $( "#tabs" ).tabs();
+      });
+    </script>
 
 </head>
 
@@ -87,8 +88,8 @@
                         <span class="title">Java</span>
                         <ul>
                             <li><a href="/implementations/java/introduction.html">Introduction</a></li>
-                            <li><a href="/implementations/java/capabilities.html">Capabilities</a></li>
                             <li><a href="/implementations/java/agents.html">Agents</a></li>
+                            <li><a href="/implementations/java/capabilities.html">Capabilities</a></li>
                             <li><a href="/implementations/java/setups.html">Deployment scenarios</a></li>
                         </ul>
                     </li>

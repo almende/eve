@@ -114,12 +114,15 @@ A synchronous call to an agent is executed using the method `sendSync`,
 providing a url, method and parameters..
 
 {% highlight java %}
-String url = "http://myserver.com/agents/mycalcagent/";
-String method = "eval";
-ObjectNode params = JOM.createObjectNode();
-params.put("expr", "Sin(0.25 * pi) ^ 2");
-String result = sendSync(url, method, params);
-System.out.println("result=" + result);
+@Access(AccessType.PUBLIC)
+public String evaluate () {
+    String url = "http://myserver.com/agents/mycalcagent/";
+    String method = "eval";
+    ObjectNode params = JOM.createObjectNode();
+    params.put("expr", "Sin(0.25 * pi) ^ 2");
+    String result = sendSync(url, method, params);
+    System.out.println("result=" + result);
+}
 {% endhighlight %}
 
 #### Asynchronous request: {#asynchronous_request}
@@ -127,23 +130,25 @@ An asynchronous request is executed using the method `send`,
 providing a url, method, parameters, and a callback.
 
 {% highlight java %}
-String url = "xmpp:mycalcagent@myxmppserver.com";
-String method = "getDurationHuman";
-String method = "eval";
-ObjectNode params = JOM.createObjectNode();
-params.put("expr", "Sin(0.25 * pi) ^ 2");
-
-sendAsync(url, method, params, new AsyncCallback<String>() {
-   @Override
-   public void onSuccess(String result) {
-       System.out.println("result=" + result);
-   }
-
-   @Override
-   public void onFailure(Throwable caught) {
-      caught.printStackTrace();
-   }
-}, String.class);
+public String evaluate () {
+    String url = "xmpp:mycalcagent@myxmppserver.com";
+    String method = "getDurationHuman";
+    String method = "eval";
+    ObjectNode params = JOM.createObjectNode();
+    params.put("expr", "Sin(0.25 * pi) ^ 2");
+    
+    sendAsync(url, method, params, new AsyncCallback<String>() {
+       @Override
+       public void onSuccess(String result) {
+           System.out.println("result=" + result);
+       }
+    
+       @Override
+       public void onFailure(Throwable caught) {
+          caught.printStackTrace();
+       }
+    }, String.class);
+}
 {% endhighlight %}
 
 #### Agent Proxy {#proxy}
@@ -171,9 +176,9 @@ To create a proxy to an agent using this interface:
 {% highlight java %}
 final Agent agent = <-- Setup some sender agent -->
 final ExampleAgentInterface proxy = AgentProxyFactory.genProxy(agent,
-				URI.create("http://localhost:8081/agents/calcExample"),
-				CalcAgent.class);
-		LOG.warning("Proxy got reply:" + proxy.eval("2+4"));
+        URI.create("http://localhost:8081/agents/calcExample"),
+        CalcAgent.class);
+    LOG.warning("Proxy got reply:" + proxy.eval("2+4"));
 {% endhighlight %}
 
 
