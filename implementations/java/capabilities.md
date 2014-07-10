@@ -423,7 +423,7 @@ As mentioned, the getter methods need to reinject the missing type information, 
 <T> T get(String key, Type type);
 {% endhighlight %}
 
-These 5 methods each given a different way for putting type information back into the object. These methods actually reflect the same set of options that the JSON-RPC library also offers on it's send() methods. For JSON based State storage (FileState, CouchDB state, etc.) the first three are more efficient than the latter two. This is because in those cases Jackson doesn't need to reflect on the Java classes themselves, which is a relative slow operation.
+These 5 methods each given a different way for putting type information back into the object. These methods actually reflect the same set of options that the JSON-RPC library also offers on it's call() methods. For JSON based State storage (FileState, CouchDB state, etc.) the first three are more efficient than the latter two. This is because in those cases Jackson doesn't need to reflect on the Java classes themselves, which is a relative slow operation.
 
 #### Optimistic locking
 

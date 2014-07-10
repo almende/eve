@@ -4,13 +4,15 @@ title: Agents
 ---
 
 # Agents
-
 As described in the [Concepts](/concepts/introduction.html) section, Eve agents are software entities that have a certain set of capabilities. Basically a normal Java class becomes an Eve agent, if it understands (and can transport) JSON-RPC requests, and can schedule such requests at some future time. Through these capabilities the agent can operate autonomous, and implement several agent design patterns.
 
-To facilitate the creation of agent solutions, without the need for having to manage all capabilities by hand, Eve offers various default Agent classes you can inherit from:
+The core purpose of Eve is to make it easier for software developers to work with software agents. To this purpose Eve provides a set of Agent classes that can be extended by application developers. In some cases having to extend existing classes is not possible (because of legacy code, existing inheritence models, etc.) in which case it's possible to add the agent capabilities directly to any existing Java class. This is possible, because Eve agents consist entirely of glued together capabilities.
 
-- [Agent.java](#Agent) - A basic RPC agent, single state, single scheduler & multiple transports.
-- [WakeableAgent.java](#Wakeable) - An extention on top of Agent.java, in which the agent can be unloaded from memory and reloaded again on incoming traffic.
+There are various ways to create Eve agents:
+
+- [Extending Agent.java](#Agent) - A basic RPC agent, single state, single scheduler & multiple transports.
+- [Extending WakeableAgent.java](#Wakeable) - An extention on top of Agent.java, in which the agent can be unloaded from memory and reloaded again on incoming traffic.
+- [Custom POJO Agent](#Custom) - Create your own agent model, by cherrypicking the capabilities inside a normal Java class. 
 
 ## Agent.java {#Agent}
 
@@ -120,7 +122,7 @@ public String evaluate () {
     String method = "eval";
     ObjectNode params = JOM.createObjectNode();
     params.put("expr", "Sin(0.25 * pi) ^ 2");
-    String result = sendSync(url, method, params);
+    String result = callSync(url, method, params);
     System.out.println("result=" + result);
 }
 {% endhighlight %}
@@ -137,7 +139,7 @@ public String evaluate () {
     ObjectNode params = JOM.createObjectNode();
     params.put("expr", "Sin(0.25 * pi) ^ 2");
     
-    sendAsync(url, method, params, new AsyncCallback<String>() {
+    call(url, method, params, new AsyncCallback<String>() {
        @Override
        public void onSuccess(String result) {
            System.out.println("result=" + result);
@@ -300,10 +302,64 @@ System.gc();
 //Now some other agent calls the agent:
 new Agent("other",null){
    public void test(){
-      send(new URI("local:testWakeAgent"),"helloWorld",null);
+      call(new URI("local:testWakeAgent"),"helloWorld",null);
    }
 }.test();
 
 {% endhighlight %}
 
 The TestWake test in the code repository demonstrates through a WeakReference that the agent is actually unloaded from memory.
+
+## Custom POJO Agent {#Custom}
+
+Any Java class can become an Eve agent, by obtaining agent [capabilities](capabilities.html). The best way to get a feeling for how this works is by taking a look at the Agent.java source code in the git repository. In this section aspects of that base class are highlighted:
+
+#### Basic data
+Some capabilities need an identifier to distinguish between various instances. The agent class bundles these capabilities by offering them all the same id, called agentId in Agent.java.
+
+The agent keeps track of its configuration in a field called "config". There is a loadConfig() method that is used to (re)initialize the capabilities based on this configuration. The configurations are idempotent with regard to the configuration, which means that you can initialize the capability multiple times with the same parameters. In all such cases the same instance is returned.
+
+The default agent can only reference one State and one Scheduler implementation. This is not a limitation created by the capabilities themselves, but rather a simplification choice in the agent code. Custom POJO agents might choose to take a different approach, for example by having a persistent State besides a memory State, for different purposes.
+
+#### Handling receival
+Because the agent needs to be able to handle incoming messages, the agent implements the Receiver interface. These messages are handled by a RPCTransform, which targets the agent class itself as it's method repository. Because this agent doesn't need to be wakeable, a SimpleHandler is used to wrap the class.
+{% highlight java %}
+
+public class Agent implements Receiver {
+
+   private RpcTransform rpc = new RpcTransformBuilder()
+      .withHandle(new SimpleHandler<Object>(this))
+      .build();
+   private Handler<Receiver> receiver = new SimpleHandler<Receiver>(this);
+
+   @Override
+   public void receive(final Object msg, final URI senderUrl, final String tag) {
+      final JSONResponse response = rpc.invoke(msg, senderUrl);
+      if (response != null) {
+         try {
+            transport.send(senderUrl, response.toString(), tag);
+         } catch (final IOException e) {
+            LOG.log(Level.WARNING, "Couldn't send message", e);
+         }
+      }
+   }
+}
+{% endhighlight %}
+
+#### Handling sending
+
+Similar to the receival of RPC messages, the agent code also handles the sending of RPC messages, through the call() methods. This method uses the same RPCTransform to create RPC messages, and to keep track of the callback of asyncronous calls. To handle multiple transports and select the correct one based on URL scheme, the agent has a special kind of transport called "Router", which has a register of other transports.
+
+{% highlight java %}
+   protected Router			transport	= new Router();
+
+   protected <T> void call(final URI url, final String method,
+         final ObjectNode params, final AsyncCallback<T> callback)
+         throws IOException {
+      transport.send(url, rpc.buildMsg(method, params, callback).toString(),
+            null);
+   }
+{% endhighlight %}
+
+
+
