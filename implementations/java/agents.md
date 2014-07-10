@@ -202,12 +202,12 @@ An example of using the state is shown in the following example:
 {% highlight java %}
 @Access(AccessType.PUBLIC)
 public void setUsername(@Name("username") String username) {
-	getState().put("username", username);
+   getState().put("username", username);
 }
 
 @Access(AccessType.PUBLIC)
 public String getUsername() {
-	return getState().get("username");
+   return getState().get("username");
 }
 {% endhighlight %}
 
@@ -262,17 +262,17 @@ Usage of the WakeAgent is exactly the same as the normal agent, except for the i
 First we need a normal agent, but extending Wakeable agent. It requires a no-argument contructor.
 {% highlight java %}
 public class MyAgent extends WakeableAgent {
-	
-	public MyAgent() {};
-	
-	public MyAgent(final String id, final WakeService ws) {
-		super(new AgentConfig(id), ws);
-	}
-	
-	@Access(AccessType.PUBLIC)
-	public String helloWorld() {
-		return("Hello World");
-	}
+   
+   public MyAgent() {};
+   
+   public MyAgent(final String id, final WakeService ws) {
+      super(new AgentConfig(id), ws);
+   }
+   
+   @Access(AccessType.PUBLIC)
+   public String helloWorld() {
+      return("Hello World");
+   }
 }
 {% endhighlight %}
 
@@ -285,11 +285,11 @@ final FileStateConfig stateconfig = new FileStateConfig();
 stateconfig.setPath(".wakeservices");
 stateconfig.setId("testWakeService");
 config.setState(stateconfig);
-		
+      
 final WakeService ws = 
-	new WakeServiceBuilder()
-	.withConfig(config)
-	.build();
+   new WakeServiceBuilder()
+   .withConfig(config)
+   .build();
 
 // Now create a WakeAble Agent
 new MyAgent("testWakeAgent",ws);
@@ -299,9 +299,9 @@ System.gc();
 
 //Now some other agent calls the agent:
 new Agent("other",null){
-	public void test(){
-		send(new URI("local:testWakeAgent"),"helloWorld",null);
-	}
+   public void test(){
+      send(new URI("local:testWakeAgent"),"helloWorld",null);
+   }
 }.test();
 
 {% endhighlight %}

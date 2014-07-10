@@ -13,7 +13,7 @@ This section provides an overview of the available capabilities, and their purpo
 - [Capability](#Capabilities): This part describes the generic capability model as implemented by all other capabilities
 - [Transports](#TransportCapabilities): Providing an asynchronous, string-based communication capability
 - [Transforms](#TransformCapabilities): Providing message transformation and call handling capability
-- [States](#StateCapabilities):			 Providing persistent state storage, in the form of a key-value store
+- [States](#StateCapabilities):          Providing persistent state storage, in the form of a key-value store
 - [Scheduling](#SchedulerCapabilities): Providing the ability to receive calls at scheduled future moments
 - [Lifecycle](#LifecycleCapabilities): Provide capabilities for booting and suspending agents
 
@@ -85,9 +85,13 @@ config.setId("testAgent");
 
 //Build the transport:
 final Transport transport = new TransportBuilder()
-	.withConfig(config)
-	.withHandle(new myReceiver())
-	.build();
+   .withConfig(config)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
 {% endhighlight %}
 
 ##### Servlet configuration with embedded Jetty
@@ -99,7 +103,7 @@ This configuration is very similar to the above setup, except that some more con
 final HttpTransportConfig config = new HttpTransportConfig();
 config.setServletUrl("http://localhost:8080/agents/");
 config.setId("testAgent");
-	
+   
 //Add a servlet launcher to the http config:
 config.setServletLauncher("JettyLauncher");
 
@@ -110,23 +114,27 @@ config.put("jetty", jettyParms);
 
 //Build the transport:
 final Transport transport = new TransportBuilder()
-	.withConfig(config)
-	.withHandle(new myReceiver())
-	.build();
+   .withConfig(config)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
 {% endhighlight %}
 
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.transport.http.HttpTransportBuilder",
-	"servletUrl":"http://localhost:8080/agents/",
-	"id":"testAgent",
-	"servletLauncher":"JettyLauncher",
-	"doShortcut":true,
-	"doAuthentication":true,
-	"jetty":{
-		"port":8080,
-	}
+   "class":"com.almende.eve.transport.http.HttpTransportBuilder",
+   "servletUrl":"http://localhost:8080/agents/",
+   "id":"testAgent",
+   "servletLauncher":"JettyLauncher",
+   "doShortcut":true,
+   "doAuthentication":true,
+   "jetty":{
+      "port":8080,
+   }
 }
 {% endhighlight %}
 
@@ -140,18 +148,18 @@ inside the &lt;web-app&gt; tag:
 
 {% highlight xml %}
 <servlet>
-	<servlet-name>war</servlet-name>
-	<servlet-class>com.almende.eve.transport.http.EveServlet</servlet-class>
-	<init-param>
-		<param-name>ServletUrl</param-name>
-		<param-value>http://localhost:8080/war/agents/</param-value>
-	</init-param>
-	<load-on-startup>1</load-on-startup>
+   <servlet-name>war</servlet-name>
+   <servlet-class>com.almende.eve.transport.http.EveServlet</servlet-class>
+   <init-param>
+      <param-name>ServletUrl</param-name>
+      <param-value>http://localhost:8080/war/agents/</param-value>
+   </init-param>
+   <load-on-startup>1</load-on-startup>
 </servlet>
 
 <servlet-mapping>
-	<servlet-name>war</servlet-name>
-	<url-pattern>/agents/*</url-pattern>
+   <servlet-name>war</servlet-name>
+   <url-pattern>/agents/*</url-pattern>
 </servlet-mapping>
 {% endhighlight %}
 
@@ -175,7 +183,7 @@ To use websockets, the two agents need to implement a side of the client-server 
 
 {% highlight java %}
 
-final WebsocketTransportConfig serverConfig = new WebsocketTransportConfig();
+final WebsocketTransportConfig clientConfig = new WebsocketTransportConfig();
 clientConfig.setId("testClient");
 clientConfig.setServerUrl("ws://localhost:8082/ws/testServer");
 
@@ -183,13 +191,17 @@ clientConfig.setServerUrl("ws://localhost:8082/ws/testServer");
 clientConfig.setServer(false);
 
 final Transport client = new TransportBuilder()
-	.withConfig(clientConfig)
-	.withHandle(new MyReceiver())
-	.build();
+   .withConfig(clientConfig)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
 client.connect();
 
 client.send(URI.create("ws://localhost:8082/ws/testServer"),
-				"Good day to you!", null);
+            "Good day to you!", null);
 {% endhighlight %}
 
 As stated, the client connection only supports sending data to the server endpoint, as shown in the above example.
@@ -197,10 +209,10 @@ As stated, the client connection only supports sending data to the server endpoi
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
-	"server":false,
-	"id": "testClient",
-	"serverUrl": "ws://localhost:8082/ws/testServer"	
+   "class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
+   "server":false,
+   "id": "testClient",
+   "serverUrl": "ws://localhost:8082/ws/testServer"
 }
 {% endhighlight %}
 
@@ -217,12 +229,16 @@ serverConfig.setServletLauncher("JettyLauncher");
 final ObjectNode jettyParms = JOM.createObjectNode();
 jettyParms.put("port", 8082);
 serverConfig.put("jetty", jettyParms);
-		
+      
 final Transport server = new TransportBuilder()
-	.withConfig(serverConfig)
-	.withHandle(new MyReceiver())
-	.build();
-		
+   .withConfig(serverConfig)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
+      
 server.send(URI.create("wsclient:testClient"), "Hi there!", null);
 
 {% endhighlight %}
@@ -231,13 +247,13 @@ As shown, the connected clients are addressable through "wsclient:&lt;clientId&g
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
-	"server":true,
-	"address":"ws://localhost:8082/ws/testServer",
-	"servletLauncher":"JettyLauncher",
-	"jetty":{
-		"port":8082
-	}
+   "class":"com.almende.eve.transport.ws.WebsocketTransportBuilder",
+   "server":true,
+   "address":"ws://localhost:8082/ws/testServer",
+   "servletLauncher":"JettyLauncher",
+   "jetty":{
+      "port":8082
+   }
 }
 {% endhighlight %}
 
@@ -248,20 +264,25 @@ Agents can be connected individually to an XMPP server through the Xmpp transpor
 #### Configuration
 
 {% highlight java %}
-final XmppTransportConfig params = new XmppTransportConfig();
+final XmppTransportConfig config = new XmppTransportConfig();
 params.setAddress("xmpp://alice@example.com/example");
 params.setPassword("wonderland");
-		
-final Transport transport =	new XmppTransportBuilder()
-	.withConfig(params)
-	.withHandle(new MyReceiver()).build();
+      
+final Transport transport =   new XmppTransportBuilder()
+   .withConfig(config)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
 
 //Connect to the server
 transport.connect();
-		
+      
 //Send some data to the other end
 transport.send(URI.create("xmpp:bob@example.com"),"Hello World", null);
-	
+   
 
 //Disconnect again if required
 transport.disconnect();
@@ -271,11 +292,11 @@ transport.disconnect();
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.transport.xmpp.XmppTransportBuilder",
-	"address":"xmpp://alice@example.com/example",
-	"password":"wonderland",
-	"doShortcut":true,
-	"doAuthentication":true
+   "class":"com.almende.eve.transport.xmpp.XmppTransportBuilder",
+   "address":"xmpp://alice@example.com/example",
+   "password":"wonderland",
+   "doShortcut":true,
+   "doAuthentication":true
 }
 {% endhighlight %}
 
@@ -293,28 +314,32 @@ Agents can also be provided with ZeroMQ sockets. Eve supports all three types of
 //Setup configuration:
 final ZmqTransportConfig config = new ZmqTransportConfig();
 config.setAddress("zmq://tcp://127.0.0.1:5678");
-	
+   
 //Build transport
 final Transport transport = new TransportBuilder()
-	.withConfig(config)
-	.withHandle(new MyReceiver())
-	.build();
+   .withConfig(config)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
 
 //Setup listening sockets:
 transport.connect();
-		
+      
 //Send some data to the other end
 transport.send(URI.create("zmq://tcp://127.0.0.1:5678"), "Hello World",
-	null);
+   null);
 {% endhighlight %}
 
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.transport.zmq.ZmqTransportBuilder",
-	"address":"zmq://tcp://127.0.0.1:5678",
-	"doShortcut":true,
-	"doAuthentication":true
+   "class":"com.almende.eve.transport.zmq.ZmqTransportBuilder",
+   "address":"zmq://tcp://127.0.0.1:5678",
+   "doShortcut":true,
+   "doAuthentication":true
 }
 {% endhighlight %}
 
@@ -338,32 +363,32 @@ final RpcTransformConfig config = new RpcTransformConfig();
 config.setCallbackTimeout(20);
 
 final RpcTransform transform = new RpcTransformBuilder()
-	.withConfig(config)
-	.withHandle(
-		new SimpleHandler<Object>(new MyClass()))
-	.build();
-		
+   .withConfig(config)
+   .withHandle(
+      new SimpleHandler<Object>(new MyClass()))
+   .build();
+      
 final AsyncCallback<Boolean> callback = new AsyncCallback<Boolean>() {
-		
-	@Override
-	public void onSuccess(final Boolean result) {
-		LOG.warning("Success!");
-		assertTrue(result);
-	}
-	
-	@Override
-	public void onFailure(final Exception exception) {
-		LOG.log(Level.WARNING, "Fail:", exception);
-		fail();
-	}
+      
+   @Override
+   public void onSuccess(final Boolean result) {
+      LOG.warning("Success!");
+      assertTrue(result);
+   }
+   
+   @Override
+   public void onFailure(final Exception exception) {
+      LOG.log(Level.WARNING, "Fail:", exception);
+      fail();
+   }
 };
-		
+      
 final ObjectNode parms = JOM.createObjectNode();
 parms.put("parm", true);
 
 // Outbound traffic:
 final Object request = transform.buildMsg("testMe", parms, callback);
-		
+      
 // Inbound traffic:
 final Object response = transform.invoke(request,senderUrl);
 {% endhighlight %}
@@ -413,12 +438,12 @@ This method is normally used in the following manner:
 
 {% highlight java %}
 public void incr(key){
-	int oldval = myState.get(key, Integer.class);
-	int newval = oldval + 1;
-	if (!myState.putIfUnchanged(key, newval, oldval)){
-		//recursive retry:
-		incr(key);
-	}
+   int oldval = myState.get(key, Integer.class);
+   int newval = oldval + 1;
+   if (!myState.putIfUnchanged(key, newval, oldval)){
+      //recursive retry: (You might want to limit this recursion with some counter)
+      incr(key);
+   }
 }
 {% endhighlight %}
 
@@ -431,10 +456,10 @@ For each type of State, you'll find a small code sample below:
 {% highlight java %}
 final MemoryStateConfig params = new MemoryStateConfig();
 params.setId("TestAgent");
-		
+      
 State myState = new StateBuilder()
-	.withConfig(params)
-	.build();
+   .withConfig(params)
+   .build();
 
 myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
@@ -449,10 +474,10 @@ params.setId("TestAgent");
 /* Some defaults: */
 params.setJSON(true); 
 params.setPath(".eveagents");
-	
+   
 State myState = new StateBuilder()
-	.withConfig(params)
-	.build();
+   .withConfig(params)
+   .build();
 
 myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
@@ -467,10 +492,10 @@ params.setJSON(false);
 
 /* default value, therefor optional: */
 params.setPath(".eveagents");
-	
+   
 State myState = new StateBuilder()
-	.withConfig(params)
-	.build();
+   .withConfig(params)
+   .build();
 
 myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
@@ -487,10 +512,10 @@ params.setPassword("myCouchDBPassword");
 
 /* default value, therefor optional: */
 params.setDatabase("eve");
-	
+   
 State myState = new StateBuilder()
-	.withConfig(params)
-	.build();
+   .withConfig(params)
+   .build();
 
 myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
@@ -507,10 +532,10 @@ params.setHost("localhost");
 params.setPort(27017);
 params.setDatabase("eve");
 params.setCollection("agents");
-	
+   
 State myState = new StateBuilder()
-	.withConfig(params)
-	.build();
+   .withConfig(params)
+   .build();
 
 myState.put("msg", "Hi There!");
 String result = myState.get("msg", String.class);
@@ -531,12 +556,16 @@ To facilitate the autonomous behavior of the software agents, Eve offers various
 {% highlight java %}
 final SimpleSchedulerConfig params = new SimpleSchedulerConfig();
 params.setSenderUrl("local:scheduler");
-		
+      
 final Scheduler test = new SchedulerBuilder()
-	.withConfig(params)
-	.withHandle(new SimpleHandler<Receiver>(new MyReceiver()))
-	.build();
-	
+   .withConfig(params)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
+   
 test.schedule("Hi there!", DateTime.now());
 test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 {% endhighlight %}
@@ -544,8 +573,8 @@ test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
-	"senderUrl":"local:scheduler",
+   "class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
+   "senderUrl":"local:scheduler",
 }
 {% endhighlight %}
 
@@ -559,15 +588,19 @@ final FileStateConfig state = new FileStateConfig();
 state.put("class", FileStateBuilder.class.getName());
 state.put("path", ".eveagents_schedulingtest");
 state.put("id", "testScheduling");
-		
+      
 params.setState(state);
 params.setSenderUrl("local:scheduler");
-		
+      
 final Scheduler test = new SchedulerBuilder()
-	.withConfig(params)
-	.withHandle(new SimpleHandler<Receiver>(new MyReceiver()))
-	.build();
-		
+   .withConfig(params)
+   .withHandle(new SimpleHandler<Receiver>(new Receiver(){
+      public void receive(final Object msg, final URI senderUrl,final String tag) {
+         System.out.println("Received msg:'" + msg + "' from: " + senderUrl.toASCIIString());
+      }
+   }))
+   .build();
+      
 test.schedule("Hi there!", DateTime.now());
 test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 {% endhighlight %}
@@ -575,14 +608,14 @@ test.schedule("Hi there!", DateTime.now().plusSeconds(10));
 The equivalent JSON configuration is:
 {% highlight json %}
 {
-	"class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
-	"senderUrl":"local:scheduler",
-	"state":{
-		"class":"com.almende.eve.state.FileStateBuilder",
-		"path":".eveagents_schedulingtest",
-		"json":true,
-		"id":"testScheduling"
-	}
+   "class":"com.almende.eve.scheduling.PersistentSchedulerBuilder",
+   "senderUrl":"local:scheduler",
+   "state":{
+      "class":"com.almende.eve.state.FileStateBuilder",
+      "path":".eveagents_schedulingtest",
+      "json":true,
+      "id":"testScheduling"
+   }
 }
 {% endhighlight %}
 
@@ -602,7 +635,7 @@ Workflow of unloading/waking agents: (Click to see a graphical description)
 4. <a href="/img/wake/step04.png" data-lightbox="eve_wake_img" data-title="The agent is unreferenced, leading to garbage collection (The WakeHandler keeps only a weakReference to the agent)">The agent is unreferenced, leading to garbage collection (The WakeHandler keeps only a weakReference to the agent)</a>
 5. <a href="/img/wake/step05.png" data-lightbox="eve_wake_img" data-title="There is some incoming message at the capability">There is some incoming message at the capability</a>
 6. <a href="/img/wake/step06.png" data-lightbox="eve_wake_img" data-title="The capability tries to obtain the handler's target">The capability tries to obtain the handler's target</a>
-7. <a href="/img/wake/step07.png" data-lightbox="eve_wake_img" data-title="The handler sees that the weakRef is null, requests a wake from the wakeService, using the key">The handler sees that the weakRef is null, requests a wake from the wakeService, using the key</a>
+7. <a href="/img/wake/step07.png" data-lightbox="eve_wake_img" data-title="The handler sees that the agent is not loaded, requests a wake from the wakeService, using the key">The handler sees that the agent is not loaded, requests a wake from the wakeService, using the key</a>
 8. <a href="/img/wake/step08.png" data-lightbox="eve_wake_img" data-title="The wakeService instantiates the agent again (using the information given during the registration) and calls the wake method of the agent instance">The wakeService instantiates the agent again (using the information given during the registration) and calls the wake method of the agent instance</a>
 9. <a href="/img/wake/step09.png" data-lightbox="eve_wake_img" data-title="The wake method in the agent obtains the capabilities again, with another WakeHandler instance">The wake method in the agent obtains the capabilities again, with another WakeHandler instance</a>
 10. <a href="/img/wake/step10.png" data-lightbox="eve_wake_img" data-title="The capability sees an existing WakeHandler, and updates this with the new instance's pointer">The capability sees an existing WakeHandler, and updates this with the new instance's pointer</a>
@@ -623,51 +656,47 @@ From a usage point of view, it's probably easiest to just extend WakeableAgent, 
 {% highlight java %}
 
 public void main(){
-	setupCapabilities(true);
+   setupCapabilities(true);
 }
 
 public void wake(final String wakeKey, final ObjectNode params,
-			final boolean onBoot) {
-	setupCapabilities(false);
+         final boolean onBoot) {
+   setupCapabilities(false);
 }
 
 public void setupCapabilities(final boolean needReg){
-	//First obtain a wakeservice:
-	final WakeServiceConfig config = new WakeServiceConfig();
-	final FileStateConfig stateconfig = new FileStateConfig();
-	stateconfig.setPath(".wakeservices");
-	stateconfig.setId("testWakeService");
-	config.setState(stateconfig);
-		
-	final WakeService ws = 
-		new WakeServiceBuilder()
-	   .withConfig(config)
-	   .build();
+   //First obtain a wakeservice:
+   final WakeServiceConfig config = new WakeServiceConfig();
+   final FileStateConfig stateconfig = new FileStateConfig();
+   stateconfig.setPath(".wakeservices");
+   stateconfig.setId("testWakeService");
+   config.setState(stateconfig);
+      
+   final WakeService ws = 
+      new WakeServiceBuilder()
+      .withConfig(config)
+      .build();
 
-	final String myId = "exampleAgent";
+   final String myId = "exampleAgent";
 
-	//Register your agent at the wakeservice ( ws.register(id, config, classname); )
-	if (needReg){
-		ws.register(myId, JOM.createObjectNode(), this.getClass().getName());
-	}
+   //Register your agent at the wakeservice ( ws.register(id, config, classname); )
+   if (needReg){
+      ws.register(myId, JOM.createObjectNode(), this.getClass().getName());
+   }
 
-	//Create WakeHandler for this class (which implements Receiver)
-	final WakeHandler<Receiver> handler = new WakeHandler<Receiver>(this, myId, ws);
+   //Create WakeHandler for this class (which implements Receiver)
+   final WakeHandler<Receiver> handler = new WakeHandler<Receiver>(this, myId, ws);
 
-	//Setup the configuration:
-	final HttpTransportConfig config = new HttpTransportConfig();
-	config.setServletUrl("http://localhost:8080/agents/");
-	config.setId("testAgent");
+   //Setup the configuration:
+   final HttpTransportConfig config = new HttpTransportConfig();
+   config.setServletUrl("http://localhost:8080/agents/");
+   config.setId("testAgent");
 
-	//Build the transport:
-	final Transport transport = new TransportBuilder()
-		.withConfig(config)
-		.withHandle(handler)
-		.build();
+   //Build the transport:
+   final Transport transport = new TransportBuilder()
+      .withConfig(config)
+      .withHandle(handler)
+      .build();
 }
-
-
 {% endhighlight %}
-
-
 
