@@ -39,9 +39,9 @@ agents:
 
 {% endhighlight %}
 
-This configuration file can be read in the main class of the application. Eve offers a configuration structure, based on Jackson's Json DOM, which can parse and expand this configuration into agents. The 'extends' fields are special, they refer to another part of the DOM (as a path from the root node). The expand() method of the Eve configuration can replace these fields by the part of the tree they refer to.
+This configuration file can be read in the main class of the application. Eve offers a configuration structure, based on Jackson's Json DOM, which can parse and expand this configuration into agents. The 'extends' fields are special, they refer to another part of the DOM (as a path from the root node). The expand() method of the Eve configuration can replace these fields by the part of the tree they refer to. By default Eve provides a main method in the com.almende.eve.deploy.Boot class, which loads the configuration from a given yaml file.
 
-The main class is given below:
+You can create such a main class yourself as follows:
 
 {% highlight java %}
 public class Example {
@@ -52,25 +52,8 @@ public class Example {
          System.err.println("Missing argument pointing to yaml file!");
          return;
       }
-      final Config config = 
-         YamlReader
-         .load(new FileInputStream(new File(args[0])))
-         .expand();
-
-      // Config is now a Jackson JSON DOM, 'expand()' allows for template 
-      // resolvement in the configuration. 
-
-      // Now we instantiate two example agents, getting their classpath 
-      // (and configuration) from the DOM
-      final ArrayNode agents = (ArrayNode) config.get("agents");
-      for (final JsonNode agent : agents) {
-         final AgentConfig agentConfig = new AgentConfig((ObjectNode) agent);
-         final Agent newAgent = 
-            new AgentBuilder()
-            .with(agentConfig)
-            .build();
-         System.out.println("Created agent:" + newAgent.getId());
-      }
+      final String yamlFilename = args[0];
+     Boot.loadAgents(yamlFilename);
    }
 }
 {% endhighlight %}
@@ -152,12 +135,7 @@ public class Example {
          System.err.println("Missing argument pointing to yaml file!");
          return;
       }
-      final Config config = 
-         YamlReader
-         .load(new FileInputStream(new File(args[0])))
-         .expand();
-
-      //Config is now a Jackson JSON DOM, 'expand()' allows for template resolvement in the configuration. 
+      final String yamlFilename = args[0];
 
       //Next we need a WakeService instance:
       final WakeServiceConfig wsconfig = new WakeServiceConfig();
@@ -165,18 +143,7 @@ public class Example {
          new WakeServiceBuilder()
          .withConfig(wsconfig)
          .build();
-
-      //Now we instantiate two example agents, getting their classpath (and configuration) from the DOM
-      final ArrayNode agents = (ArrayNode) config.get("agents");
-      for (final JsonNode agent : agents) {
-         final AgentConfig agentConfig = new AgentConfig((ObjectNode) agent);
-         final Agent newAgent = 
-            new AgentBuilder()
-            .withWakeService(ws)
-            .with(agentConfig)
-            .build();
-         System.out.println("Created agent:" + newAgent.getId());
-      }
+      Boot.loadAgents(filename, ws);
    }
 }
 {% endhighlight %}
@@ -244,7 +211,7 @@ In src/main/webapp/WEB-INF there will be a web.xml, which needs to be loaded wit
    </context-param>
 
    <listener>
-      <listener-class>com.almende.eve.test.MyListener</listener-class>
+      <listener-class>com.almende.eve.deploy.EveListener</listener-class>
    </listener>
 
    <servlet>
@@ -288,7 +255,8 @@ agents:
 
 {% endhighlight %}
 
-To initialize the agents using the above configuration, the following ServletListener can be used. This listener is also configured in the above web.xml example.
+The agents are initialized in a ServletListener. Eve provides an EveListener for this situation, see the web.xml above. It is also possible to create a custom servletListener:
+
 {% highlight java %}
 public class MyListener implements ServletContextListener {
 
@@ -300,20 +268,8 @@ public class MyListener implements ServletContextListener {
       String path = sc.getInitParameter("eve_config");
       final String fullname = "/WEB-INF/" + path;
       final InputStream is = sc.getResourceAsStream(fullname);
-      final Config config = YamlReader.load(is).expand();
-			
-      // Config is now a Jackson JSON DOM, 'expand()' allows for template resolvement in the configuration.
 
-      // Now we instantiate two example agents, getting their classpath (and configuration) from the DOM
-      final ArrayNode agents = (ArrayNode) config.get("agents");
-      for (final JsonNode agent : agents) {
-         final AgentConfig agentConfig = new AgentConfig((ObjectNode) agent);
-         final Agent newAgent =
-            new AgentBuilder()
-            .with(agentConfig)
-            .build();
-         System.out.println("Created agent:" + newAgent.getId());
-      }
+      Boot.loadAgents(is);
    }
 }
 {% endhighlight %}

@@ -134,8 +134,10 @@ The libraries have the following top-level structure:
 		</ul>
 	</li>
 	<li><b>eve_wake</b> - Framework to let agents wake on requests</li>
-	<li><b>eve_agents</b> - Agent implementations, can be extended as base of your own agents</li>
+	<li><b>eve_agents</b> - The actual Agent implementations, to be extended as base of your own agents</li>
+	<li><b>eve_deployments</b> - Deployment support tools: A main class for standalone applications and a standard ServletListener for Servlet setups</li>
 	<li><b>tests</b> - Coverage tests and example code</li>
+	<li><b>tests/web</b> - Servlet Web setup for coverage tests</li>
 	<li><b>demos</b>
 		<ul>
 			<li><b>eve_gol_demo</b> - Conway's game of live demo, using Eve agents</li>
