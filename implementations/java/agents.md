@@ -157,12 +157,11 @@ public String evaluate () {
 
 If there is a Java interface available of the agent to be invoked, this
 interface can be used to create a proxy to the agent.
-Behind the scenes, the proxy executes a regular `sendSync` request.
+Behind the scenes, the proxy executes a regular `callSync` request.
 The proxy stays valid as long as the agents url is valid, and the interface
 matches the agents actual features.
 
 {% highlight java %}
-import com.almende.eve.agent.AgentProxyFactory;
 import com.almende.eve.transform.rpc.annotation.Name;
 import com.almende.eve.transform.rpc.annotation.Access;
 import com.almende.eve.transform.rpc.annotation.AccessType;
@@ -176,8 +175,10 @@ public interface CalcAgent {
 To create a proxy to an agent using this interface:
 
 {% highlight java %}
-final Agent agent = <-- Setup some sender agent -->
-final ExampleAgentInterface proxy = AgentProxyFactory.genProxy(agent,
+//Create some sender agent:
+final Agent agent = new AgentBuilder().withConfig(<some config>).build();
+//Create the proxy:
+final ExampleAgentInterface proxy = agent.createAgentProxy(
         URI.create("http://localhost:8081/agents/calcExample"),
         CalcAgent.class);
     LOG.warning("Proxy got reply:" + proxy.eval("2+4"));

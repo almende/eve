@@ -5,6 +5,27 @@ title: News
 
 #Eve - news
 
+## July 11th, 2014: Eve 3.0 *Endeavour* released!
+
+After a two months focussed effort we have release Eve 3.0, the "Endeavour". Eve 3.0 represents a major rewrite of Eve, achieving a remarkable level of flexibility in designing agents.
+
+Her namesake ship, which carried James Cook from South-America to Australia and New Zealand, featured a special shallow keel, allowing the ship to be beached for repairs without a dry-dock. Combined with the ability to navigate shallow waters, this gave her the necessary robustness and flexibility vital to the travels into the unknown. 
+
+Where Eve 2.x was designed around a host providing services to the agents, Eve 3.0 takes a more bottom-up approach: There is a library of agent capabilities which can be added to any Java class to form an agent. A capability is self-contained and shares as little as possible with other capabilities. Combined with a very flexible graph-based configuration system(Json DOM), this allows Eve to be used in a large variety of scenarios:
+
+- Adding agent capabilities to legacy java code
+- Minimize resource usage for embedded java setups
+- Scale up for large cloud setups
+- Through the new Websocket transport support (=a viable alternative for XMPP) the mobile agent setup gets better scalable and flexible
+- Adding new capabilities is now very easy, which will allow Eve to provide simulations as well: adding a "simulation scheduler" is in planning...
+
+One very noticeable change in agent behaviour compared to earlier versions is the lifecycle of an agent instance. An agent instance now stays in memory by default, with behavior much closer to the normal expected Java object lifecycle. For large scale, low-latency setups, it is still advisable to use the request triggered instance lifecycle, which remains fully supported through the "Wakeable agent" model.
+
+Last but not least, Eve 3.0 provides another significant performance enhancement. In our baseline performance test, based on the Game-of-Life demo, Eve 3.0 gains another 2-3x higher amount of RPC calls per second, compared with Eve 2.X. This, combined with a lines-of-code reduction of 30% and a 20% drop in cyclic-redundancy complexity, makes Eve 3.0 a very capable vessel, like Cook's Endeavour before her.
+
+The online documentation has been updated and extended: http://eve.almende.com
+As always, any questions, issues, discussions and ideas can be communicated through Github issues: https://github.com/almende/eve/issues
+
 ## April 2th, 2014: Eve 2.2.2 bugfix release provided
 
 Thanks to testing and usage of Eve at ASK and RCS, we've been able to fix bugs in the 2.2 branch. Most significant fixes are in the AgentProxy and reloading behavior of the agent host.
