@@ -25,6 +25,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.jivesoftware.smack.SmackConfiguration;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 
 import com.almende.eve.agent.AgentHost;
 import com.almende.eve.rpc.annotation.Access;
@@ -231,7 +232,7 @@ public class XmppService implements TransportService {
 	 * initialize the transport service.
 	 */
 	private void init() {
-		SmackConfiguration.setPacketReplyTimeout(15000);
+		SmackConfiguration.setDefaultPacketReplyTimeout(15000);
 	}
 	
 	/**
@@ -436,7 +437,16 @@ public class XmppService implements TransportService {
 					final AgentConnection connection = connectionsByUrl
 							.get(url);
 					if (connection != null) {
-						connection.disconnect();
+						
+					        // No throws from method declaration here since it has to much impact 
+					        // on other parts of EVE and external components (e.g. apps)
+					        try {
+                                                    connection.disconnect();
+                                                }
+                                                catch (NotConnectedException e) {
+                                                    e.printStackTrace();
+                                                }
+					        
 						connectionsByUrl.remove(url);
 					}
 				}
@@ -478,7 +488,14 @@ public class XmppService implements TransportService {
 			}
 			// username@domain
 			final String fullUsername = receiver.substring(protocol.length());
-			connection.send(fullUsername, message);
+			
+			try {
+                            connection.send(fullUsername, message);
+                        }
+                        catch (NotConnectedException e) {
+                            e.printStackTrace();
+                        }
+			
 		} else {
 			// TODO: use an anonymous xmpp connection when the sender agent has
 			// no xmpp connection.
@@ -591,7 +608,14 @@ public class XmppService implements TransportService {
 	 */
 	public boolean ping(final String senderUrl, final String receiver) {
 		final AgentConnection connection = connectionsByUrl.get(senderUrl);
-		return connection.isAvailable(receiver);
+		
+		try {
+                    return connection.isAvailable(receiver);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
 	}
 	
 }

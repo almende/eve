@@ -12,11 +12,16 @@ import java.util.logging.Logger;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.SASLAuthentication;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 
 import com.almende.eve.agent.AgentHost;
 
@@ -115,7 +120,11 @@ public class AgentConnection {
 		
 		if (isConnected()) {
 			// this is a reconnect.
-			disconnect();
+			try {
+                            disconnect();
+                        }catch (NotConnectedException e) {
+                            e.printStackTrace();
+                        }
 		}
 		this.agentId = agentId;
 		this.username = username;
@@ -130,12 +139,15 @@ public class AgentConnection {
 			final ConnectionConfiguration connConfig = new ConnectionConfiguration(
 					host, port, serviceName);
 			
-			connConfig.setSASLAuthenticationEnabled(true);
+			//connConfig.setSASLAuthenticationEnabled(true);
+			connConfig.setSecurityMode(SecurityMode.disabled);
 			connConfig.setReconnectionAllowed(true);
 			connConfig.setCompressionEnabled(true);
 			connConfig.setRosterLoadedAtLogin(false);
-			conn = new XMPPConnection(connConfig);
+			conn = new XMPPTCPConnection(connConfig);
 			conn.connect();
+			
+			SASLAuthentication.supportSASLMechanism("PLAIN");
 			
 			// login
 			if (resource == null) {
@@ -160,12 +172,17 @@ public class AgentConnection {
 			LOG.log(Level.WARNING, "", e);
 			throw new IOException("Failed to connect to messenger", e);
 		}
+        catch (SmackException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 	}
 	
 	/**
 	 * Disconnect the agent from the messaging service.
+	 * @throws NotConnectedException 
 	 */
-	public void disconnect() {
+	public void disconnect() throws NotConnectedException {
 		if (isConnected()) {
 			conn.disconnect();
 			conn = null;
@@ -190,9 +207,10 @@ public class AgentConnection {
 	 *            the message
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
+	 * @throws NotConnectedException 
 	 */
 	public void send(final String username, final String message)
-			throws IOException {
+			throws IOException, NotConnectedException {
 		if (!isConnected()) {
 			disconnect();
 			connect();
@@ -286,8 +304,9 @@ public class AgentConnection {
 	 * @param receiver
 	 *            the receiver
 	 * @return true, if is available
+	 * @throws NotConnectedException 
 	 */
-	public boolean isAvailable(String receiver) {
+	public boolean isAvailable(String receiver) throws NotConnectedException {
 		// split url (xmpp:user/resource) into parts
 		if (receiver.startsWith("xmpp:")) {
 			receiver = receiver.substring(5, receiver.length());

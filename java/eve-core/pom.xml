@@ -55,10 +55,22 @@
 			<version>${javax.servlet-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<!--
 		<dependency>
 			<groupId>jivesoftware</groupId>
 			<artifactId>smackx</artifactId>
 			<version>${smack.version}</version>
+		</dependency>
+		-->
+		<dependency>
+		  <groupId>org.igniterealtime.smack</groupId>
+		  <artifactId>smack-core</artifactId>
+		  <version>4.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>de.measite.smack</groupId>
+			<artifactId>asmack-android</artifactId>
+			<version>8-4.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>

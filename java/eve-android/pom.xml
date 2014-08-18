@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>de.measite.smack</groupId>
 			<artifactId>asmack-android</artifactId>
-			<version>7</version>
+			<version>8-4.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
