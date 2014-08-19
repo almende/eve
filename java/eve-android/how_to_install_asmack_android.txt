@@ -8,3 +8,16 @@ To add the library to your local maven repository:
     
     mvn install:install-file -Dfile=misc/asmack-android-7.jar -DgroupId=de.measite.smack -DartifactId=asmack-android -Dversion=7 -Dpackaging=jar
 
+	mvn install:install-file "-Dfile=misc/asmack-android-8-4.0.2.jar" "-DgroupId=de.measite.smack" "-DartifactId=asmack-android" "-Dversion=8-4.0.2" "-Dpackaging=jar"
+
+JARS:
+http://asmack.freakempire.de/
+
+Changelog 4.3.0 -> 4.0.0 - (a)Smack
+https://community.igniterealtime.org/docs/DOC-2703
+
+aSmack github
+https://github.com/Flowdalic/asmack
+
+aSmack 4.0.0 in maven repository
+http://maven-repository.com/artifact/org.igniterealtime.smack/smack-core/4.0.0
