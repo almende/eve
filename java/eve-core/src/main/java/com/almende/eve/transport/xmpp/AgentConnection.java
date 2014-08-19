@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.SASLAuthentication;
@@ -44,7 +45,7 @@ public class AgentConnection {
 	private String				password	= null;
 	private String				serviceName	= null;
 	private Integer				port		= 5222;
-	private XMPPConnection		conn		= null;
+	private XMPPConnection		        conn		= null;
 	
 	/**
 	 * Instantiates a new agent connection.
@@ -144,10 +145,9 @@ public class AgentConnection {
 			connConfig.setReconnectionAllowed(true);
 			connConfig.setCompressionEnabled(true);
 			connConfig.setRosterLoadedAtLogin(false);
+			connConfig.setReconnectionAllowed(true);
 			conn = new XMPPTCPConnection(connConfig);
 			conn.connect();
-			
-			SASLAuthentication.supportSASLMechanism("PLAIN");
 			
 			// login
 			if (resource == null) {
