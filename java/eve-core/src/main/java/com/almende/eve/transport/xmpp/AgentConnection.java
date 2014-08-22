@@ -268,32 +268,35 @@ public class AgentConnection {
 		public void processPacket(final Packet packet) {
 			final Message message = (Message) packet;
 			
-			// Check if resource is given and matches local resource. If not
-			// equal, silently drop packet.
-			final String to = message.getTo();
-			if (resource != null && to != null) {
-				final int index = to.indexOf('/');
-				if (index > 0) {
-					final String res = to.substring(index + 1);
-					if (!resource.equals(res)) {
-						LOG.warning("Received stanza meant for another agent, disregarding. "
-								+ res);
-						return;
-					}
-				}
-			}
-			final String body = message.getBody();
-			final URI senderUrl = URI.create("xmpp:" + message.getFrom());
-			
-			if (body != null) {
-				try {
-					host.receive(agentId, body, senderUrl, null);
-				} catch (final IOException e) {
-					LOG.log(Level.WARNING,
-							"Host threw an IOException, probably agent '"
-									+ agentId + "' doesn't exist? ", e);
-					return;
-				}
+			// Ignore other types of packets
+			if(packet instanceof Message) {
+        			// Check if resource is given and matches local resource. If not
+        			// equal, silently drop packet.
+        			final String to = message.getTo();
+        			if (resource != null && to != null) {
+        				final int index = to.indexOf('/');
+        				if (index > 0) {
+        					final String res = to.substring(index + 1);
+        					if (!resource.equals(res)) {
+        						LOG.warning("Received stanza meant for another agent, disregarding. "
+        								+ res);
+        						return;
+        					}
+        				}
+        			}
+        			final String body = message.getBody();
+        			final URI senderUrl = URI.create("xmpp:" + message.getFrom());
+        			
+        			if (body != null) {
+        				try {
+        					host.receive(agentId, body, senderUrl, null);
+        				} catch (final IOException e) {
+        					LOG.log(Level.WARNING,
+        							"Host threw an IOException, probably agent '"
+        									+ agentId + "' doesn't exist? ", e);
+        					return;
+        				}
+        			}
 			}
 		}
 	}

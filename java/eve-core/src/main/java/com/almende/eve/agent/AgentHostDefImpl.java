@@ -750,7 +750,7 @@ public final class AgentHostDefImpl extends AgentHost {
 	 */
 	@Override
 	public void addTransportService(final TransportService transportService) {
-		if (!transportServices.contains(transportService.getKey())) {
+		if (!transportServices.containsKey(transportService.getKey())) {
 			transportServices.put(transportService.getKey(), transportService);
 			LOG.info("Registered transport service: "
 					+ transportService.toString());
@@ -772,7 +772,7 @@ public final class AgentHostDefImpl extends AgentHost {
 	 */
 	@Override
 	public void removeTransportService(final TransportService transportService) {
-		transportServices.remove(transportService);
+		transportServices.remove(transportService.getKey());
 		LOG.info("Unregistered transport service "
 				+ transportService.toString());
 		host.signalAgents(new AgentSignal<TransportService>(
