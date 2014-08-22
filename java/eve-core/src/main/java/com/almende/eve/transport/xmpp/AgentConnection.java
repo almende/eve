@@ -266,10 +266,10 @@ public class AgentConnection {
 		 */
 		@Override
 		public void processPacket(final Packet packet) {
-			final Message message = (Message) packet;
+		        // Ignore other types of packets
+                        if(packet instanceof Message) {
+                                final Message message = (Message) packet;
 			
-			// Ignore other types of packets
-			if(packet instanceof Message) {
         			// Check if resource is given and matches local resource. If not
         			// equal, silently drop packet.
         			final String to = message.getTo();
