@@ -136,17 +136,22 @@ public class AgentConnection {
 		this.password = password;
 		
 		try {
-			// configure and connect
-			final ConnectionConfiguration connConfig = new ConnectionConfiguration(
-					host, port, serviceName);
-			
-			//connConfig.setSASLAuthenticationEnabled(true);
-			connConfig.setSecurityMode(SecurityMode.disabled);
-			connConfig.setReconnectionAllowed(true);
-			connConfig.setCompressionEnabled(true);
-			connConfig.setRosterLoadedAtLogin(false);
-			connConfig.setReconnectionAllowed(true);
-			conn = new XMPPTCPConnection(connConfig);
+		        if(conn==null) {
+        			// configure and connect
+        			final ConnectionConfiguration connConfig = new ConnectionConfiguration(
+        					host, port, serviceName);
+        			
+        			//connConfig.setSASLAuthenticationEnabled(true);
+        			connConfig.setSecurityMode(SecurityMode.disabled);
+        			connConfig.setReconnectionAllowed(true);
+        			connConfig.setCompressionEnabled(true);
+        			connConfig.setRosterLoadedAtLogin(false);
+        
+        			conn = new XMPPTCPConnection(connConfig);
+        			
+        			// instantiate a packet listener
+                                conn.addPacketListener(new JSONRPCListener(agentHost, agentId,resource), null);
+		        }
 			conn.connect();
 			
 			// login
@@ -185,7 +190,7 @@ public class AgentConnection {
 	public void disconnect() throws NotConnectedException {
 		if (isConnected()) {
 			conn.disconnect();
-			conn = null;
+			//conn = null;
 		}
 	}
 	
