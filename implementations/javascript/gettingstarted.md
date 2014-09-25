@@ -39,7 +39,7 @@ To set up a system with eve agents:
 
 - Create an agent class extending `eve.Agent`. A template for a custom agent is:
 
-  ```js
+  {% highlight javascript %}
   var eve = require('evejs');
   
   function MyAgent(id) {
@@ -56,11 +56,11 @@ To set up a system with eve agents:
   };
   
   module.exports = MyAgent;
-  ```
+  {% endhighlight %}
 
 - Configure `eve.system`, load transports and other services.
 
-  ```js
+  {% highlight javascript %}
   eve.system.load({
     transports: [
       {
@@ -68,30 +68,27 @@ To set up a system with eve agents:
       }
     ]
   });
-  ```
+  {% endhighlight %}
 
 - Create an agent:
 
-  ```js
+  {% highlight javascript %}
   var agent1 = new MyAgent('agent1');
-  ```
+  {% endhighlight %}
 
 - Connect an agent to one or multiple transports. This is typically done in
   the agents constructor function:
   
-  ```js
+  {% highlight javascript %}
   agent1.connect(eve.system.transports.getAll());
-  ```
+  {% endhighlight %}
 
-- To send and receive messages, each agent has a method `send(to, message)` and 
-`receive(from, message)`. A message can be send to and agent by specifying either 
-the agents full url, or just the agents id. In the latter case, the agent will 
-send the message via the transport marked as *default*.
+- To send and receive messages, each agent has a method `send(to, message)` and `receive(from, message)`. A message can be send to and agent by specifying either the agents full url, or just the agents id. In the latter case, the agent will send the message via the transport marked as *default*.
 
-  ```js
+  {% highlight javascript %}
   agent1.send('distribus://networkId/agent2', 'hello agent2!');
   agent1.send('agent2', 'hello agent2!'); // send via the default transport
-  ```
+  {% endhighlight %}
   
   The *networkId* of a transport can be found at `transport.networkId`.
 
@@ -100,7 +97,7 @@ send the message via the transport marked as *default*.
 To create a simple agent class, create a file [**HelloAgent.js**](examples/agents/HelloAgent.js) with the 
 following code:
 
-```js
+{% highlight javascript %}
 var eve = require('evejs');
 
 function HelloAgent(id) {
@@ -129,12 +126,12 @@ HelloAgent.prototype.receive = function(from, message) {
 };
 
 module.exports = HelloAgent;
-```
+{% endhighlight %}
 
 This agent class can be used as follows. Note that the agents talk to each 
 other via a `LocalTransport` which is instantiated in `eve.system` by default.
 
-```js
+{% highlight javascript %}
 var HelloAgent = require('./HelloAgent');
 
 // create two agents
@@ -143,7 +140,7 @@ var agent2 = new HelloAgent('agent2');
 
 // send a message to agent1
 agent2.send('agent1', 'Hello agent1!');
-```
+{% endhighlight %}
 
 
 ## Deployment {#deployment}
