@@ -150,7 +150,8 @@ agent2.send('agent1', 'Hello agent1!');
 The Node.js application can be deployed on any of the available hosting
 solutions for Node.js:
 
-- [JoyentCloud](https://no.de/)
+- [Heroku](http://heroku.com/)
+- [JoyentCloud](https://joyent.com/)
 - [Nodejitsu](http://nodejitsu.com/)
 - [Nodester](http://nodester.com/)
 - [Windows Azure](http://www.windowsazure.com/en-us/develop/nodejs/)
