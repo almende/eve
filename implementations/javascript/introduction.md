@@ -5,23 +5,22 @@ title: Introduction
 
 # Introduction
 
-Eve has a library available in JavaScript, running on Node.js.
-This library provides a ready-made Node.js server and some example agents.
-Node.js runs Javascript, which is a very natural language to handle
-JSON-RPC messages, as JSON is a subset of the Javascript language.
-
-The JavaScript library is in a prototypal phase and is not yet suitable
-to use in production.
+Eve has a library available in JavaScript, running on Node.js and in the browser. The JavaScript version of Eve support a variety of transports and communication protocols and comes with tooling for simulations.
 
 
-## Downloads {#downloads}
+## Install {#install}
 
-All available libraries can be downloaded on the
-[downloads page](downloads.html).
+Install the module via npm:
+
+    npm install evejs
 
 
 ## Getting Started {#gettingstarted}
 
 The page [Getting Started](gettingstarted.html) gives a detailed tutorial
-on how to set up Eve running on Node.js.
+on how get started with `evejs`.
 
+
+## Docs & examples {#docs}
+
+Documentation and examples can be found on [this page](documentation.html).
