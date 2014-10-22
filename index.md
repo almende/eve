@@ -39,7 +39,7 @@ Effectively, Eve can be implemented in any language that has good library suppor
 Currently there are two main implementations of Eve:
 
 - A mature and feature rich [Java](implementations/java/introduction.html) version.
-- A [Javascript](implementations/javascript/introduction.html) version in early stage.
+- A feature rich [Javascript](implementations/javascript/introduction.html) version as part of the [Enmasse.io](https://github.com/enmasseio/evejs) framework.
 - In the future, implementations in other languages will follow.
 
 There is extensive documentation for each of the implementations available on this website.

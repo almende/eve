@@ -5,6 +5,13 @@ title: News
 
 #Eve - news
 
+## September 26th, 2014: Eve JS 0.4.3 release!
+
+Stadily working towards a fully featured, mature implementation of Eve in Javascript, we have release version 0.4.3 of evejs. 
+Eve JS is part of the Enmasse.io framework, a toolset of agent capabilities in Javascript.
+
+You can read more about this version on this website and at the [Enmasse.io](https://github.com/enmasseio/evejs) repository. 
+
 ## July 11th, 2014: Eve 3.0 *Endeavour* released!
 
 After a two months focussed effort we have release Eve 3.0, the "Endeavour". Eve 3.0 represents a major rewrite of Eve, achieving a remarkable level of flexibility in designing agents.
