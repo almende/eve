@@ -21,7 +21,7 @@ still the option of extending the Agent class, but this is no longer a requireme
 This is the home of the Java implementation of Eve. Through Eve you can either develop agent solutions from scratch or add agent capabilities to your existing Java application. Eve consists of a series of Java library projects, that provide agent capabilities to your POJOs. For dedicated agent applications, there are also various standard Agent classes, which act like templates to the capabilities.<br>
 
 Our build environment is managed through Maven and we are deployed to [Maven Central](#Maven). Another possibility to obtain 
-Eve is through a code checkout from [Github](https://github.com/almende/eve).
+Eve is through a code checkout from [Github](https://github.com/almende/eve-java).
 
 For the development roadmap you can refer to our [Trello board](https://trello.com/b/J7H5wIjE/eve-java).
 
@@ -32,7 +32,7 @@ The documentation consists of a couple of sections:
 * [Capabilities](capabilities.html) - A reference/code example overview of the available capabilities
 * [Deployment scenarios](setups.html) - Project deployment scenarios, usable as a getting started description
 
-Besides this documentation, the best place to get familiar with Eve code is by looking through the ["/tests/src/test/java/com/almende/eve/test/*"](https://github.com/almende/eve/tree/development/tests/src/test/java/com/almende/eve/test) code.
+Besides this documentation, the best place to get familiar with Eve code is by looking through the ["/tests/src/test/java/com/almende/eve/test/*"](https://github.com/almende/eve-java/tree/development/tests/src/test/java/com/almende/eve/test) code.
 
 
 ## Maven {#Maven}
