@@ -4,23 +4,21 @@ title: Agents
 ---
 
 # Agents
-As described in the [Concepts](/concepts/introduction.html) section, Eve agents are software entities that have a certain set of capabilities. Basically a normal Java class becomes an Eve agent, if it understands (and can transport) JSON-RPC requests, and can schedule such requests at some future time. Through these capabilities the agent can operate autonomous, and implement several agent design patterns.
+As described in the [Concepts](/concepts/introduction.html) section, Eve agents are software entities that have a certain set of capabilities. Basically any normal Java class becomes an Eve agent, if it understands (and can transport) JSON-RPC requests, and can schedule such requests at some future time. Through these capabilities the agent can operate autonomous, and implement several agent design patterns.
 
-The core purpose of Eve is to make it easier for software developers to work with software agents. To this purpose Eve provides a set of Agent classes that can be extended by application developers. In some cases having to extend existing classes is not possible (because of legacy code, existing inheritence models, etc.) in which case it's possible to add the agent capabilities directly to any existing Java class. This is possible, because Eve agents consist entirely of glued together capabilities.
+The core purpose of Eve is to make it easier for software developers to work with software agents. To this purpose Eve provides an Agent class that can be extended by application developers. In some cases having to extend existing classes is not possible (because of legacy code, existing inheritence models, etc.) in which case it's possible to add the agent capabilities directly to any existing Java class. This is possible, because Eve agents consist entirely of glued together capabilities.
 
 There are various ways to create Eve agents:
 
 - [Extending Agent.java](#Agent) - A basic RPC agent, single state, single scheduler & multiple transports.
 - [Extending WakeableAgent.java](#Wakeable) - An extention on top of Agent.java, in which the agent can be unloaded from memory and reloaded again on incoming traffic.
-- [Custom POJO Agent](#Custom) - Create your own agent model, by cherrypicking the capabilities inside a normal Java class. 
+- [Custom POJO Agent](#Custom) - Create your own agent model, by cherrypicking the capabilities inside a normal Java class.
 
 ## Agent.java {#Agent}
 
-An Eve agent is created as a regular Java class. The class must inherit from the base class Agent. 
-Public methods will be made available via [JSON-RPC](protocol.html).
-The methods must have named parameters.
-An agent can be accessed via a servlet or via an xmpp server
-(see [Services](services.html)), depending on the Eve configuration.
+An Eve agent is created as a regular Java class. The class must inherit from the base class Agent.
+Public methods will be made available via [JSON-RPC](protocol.html). Such methods must have named parameters.
+An agent can be accessed via a servlet or via an xmpp server (see [Services](services.html)), depending on the Eve configuration.
 
 The Java code of a basic Eve agent looks as follows:
 
@@ -32,8 +30,8 @@ import com.almende.eve.transform.rpc.annotation.Name;
 
 public class HelloWorldAgent extends Agent {
    @Access(AccessType.PUBLIC)
-   public String welcome(@Name("name") String name) {
-       return "Hello " + name + "!";
+   public String welcome(@Name("yourName") String yourName) {
+       return "Hello " + yourName + "!";
    }
 }
 {% endhighlight %}
@@ -42,7 +40,7 @@ Remarks on this example:
 
 - An Eve agent extends from the base class Agent.
 - The Example agent implements a method welcome, which takes one String
-  "name" as parameter. Each method can have multiple parameters of any type,
+  "yourName" as parameter. Each method can have multiple parameters of any type,
   and the parameters must be named using the annotation `@Name`.
   This is needed because the JSON-RPC 2.0 protocol uses named parameters,
   and unfortunately it is not possible in Java to retrieve the parameter names
@@ -53,13 +51,13 @@ Remarks on this example:
 
 ### Configuration {#configuration}
 
-The Agent class has two ways to be configured: Either through one of the constructors, or through the setConfig() method. In both cases the configuration consists of a [Jackson JSON DOM](configuration.html). This DOM contains the agent specific configuration and the configuration of all capabilities of the agent. To ease the configuration, an AgentConfig class is available, extending Jackson's ObjectNode, with setters and getters for the various capability configs. 
+All configuration within Eve is done through Jackson JSON DOM structures. This offers highly flexible configuration strategies, but such flexibility comes at the price of having no clear code-level handle on the available options. Therefor Eve offers Config classes (extending the JSON DOM) which have setters and getters for the specific options. For example, at the Agent level there is an AgentConfig class, which contains a couple of agent specific setters: setId(), setScheduler(), setState(), etc. Each of these setters maps to a JSON field within the configuration. Each agent can get the JSON configuration structure through its getConfig() method.
 
-
+There are various deployment scenarios for Eve agents, see [setups.html](setups.md) for more details. But all these scenarios offer some way to load the configuration of the agents from a configuration file (typically an eve.yaml file). This file just reflects the JSON structure of the various configuration elements. For example, it typically contains an "agents" object, which contains an list of agent configurations.
 
 ### Methods {#methods}
 
-Eve agents communicate with each other via JSON-RPC 2.0. 
+Eve agents communicate with each other via JSON-RPC 2.0.
 All public methods of an Eve agent are automatically exposed via JSON-RPC.
 
 All agents automatically inherit the following methods from the base class Agent:
@@ -74,12 +72,11 @@ Besides these methods, the agent also exposes some internal capabilities:
 - `getConfig` return the JSON configuration of this agent
 - `getScheduler` returns a reference to the configured scheduler
 - `getState` provides access to the configured state
-- `getRpc` returns a reference to the configured RPC transform
 
 The parameters of a method must be named using the `@Name` annotation.
 Parameters can be marked as optional using the annotation `@Optional`.
 Non-required parameters are initialized with value `null` when not provided.
-Parameters can be of any type, both primitive types like Double or String, 
+Parameters can be of any type, both primitive types like Double or String,
 and Java objects such as a Contact or Person class.
 
 {% highlight java %}
@@ -108,43 +105,43 @@ public String echo (@Name("message") String message, @Sender String senderUrl) {
 
 ### Requests {#requests}
 
-An agent can call an other agent using the methods `send` or `sendSync`,
+An agent can call an other agent using the methods `call` or `callSync`,
 or by creating a proxy to an agent and invoke methods on the proxy.
 
 #### Synchronous request {#synchronous_request}
-A synchronous call to an agent is executed using the method `sendSync`,
+A synchronous call to an agent is executed using the method `callSync`,
 providing a url, method and parameters..
 
 {% highlight java %}
 @Access(AccessType.PUBLIC)
 public String evaluate () {
-    String url = "http://myserver.com/agents/mycalcagent/";
+    URI url = URI.create("http://myserver.com/agents/mycalcagent/");
     String method = "eval";
-    ObjectNode params = JOM.createObjectNode();
-    params.put("expr", "Sin(0.25 * pi) ^ 2");
+    Params params = new Params();
+    params.add("expr", "Sin(0.25 * pi) ^ 2");
+
     String result = callSync(url, method, params);
     System.out.println("result=" + result);
 }
 {% endhighlight %}
 
 #### Asynchronous request: {#asynchronous_request}
-An asynchronous request is executed using the method `send`,
+An asynchronous request is executed using the method `call`,
 providing a url, method, parameters, and a callback.
 
 {% highlight java %}
 public String evaluate () {
-    String url = "xmpp:mycalcagent@myxmppserver.com";
-    String method = "getDurationHuman";
+    URI url = URI.create("xmpp:mycalcagent@myxmppserver.com");
     String method = "eval";
-    ObjectNode params = JOM.createObjectNode();
-    params.put("expr", "Sin(0.25 * pi) ^ 2");
-    
+    Params params = new Params();
+    params.add("expr", "Sin(0.25 * pi) ^ 2");
+
     call(url, method, params, new AsyncCallback<String>() {
        @Override
        public void onSuccess(String result) {
            System.out.println("result=" + result);
        }
-    
+
        @Override
        public void onFailure(Throwable caught) {
           caught.printStackTrace();
@@ -175,10 +172,10 @@ public interface CalcAgent {
 To create a proxy to an agent using this interface:
 
 {% highlight java %}
-//Create some sender agent:
-final Agent agent = new AgentBuilder().withConfig(<some config>).build();
-//Create the proxy:
-final ExampleAgentInterface proxy = agent.createAgentProxy(
+    //Create some sender agent:
+    final Agent agent = new AgentBuilder().withConfig(<some config>).build();
+    //Create the proxy:
+    final ExampleAgentInterface proxy = agent.createAgentProxy(
         URI.create("http://localhost:8081/agents/calcExample"),
         CalcAgent.class);
     LOG.warning("Proxy got reply:" + proxy.eval("2+4"));
@@ -191,12 +188,12 @@ Each agent has a State available which can be used to persist the agents state.
 The State offers an interface which is independent of the platform where the
 agent is deployed, and is shared amongst all running instances of the agent.
 The State can be accessed via the method `getState`, and offers a simple
-key/value storage. 
+key/value storage.
 
 The State is meant for storing a limited amount of state parameters,
 and not as complete database solution. For storing large amounts of data,
-a database natively available to the agents should be used. For example when 
-running on Google App Engine, an agent can use the Google Datastore. When running 
+a database natively available to the agents should be used. For example when
+running on Google App Engine, an agent can use the Google Datastore. When running
 on Amazon Elastic Cloud, Amazons SimpleDB or DynamoDB can be used.
 
 
@@ -234,11 +231,11 @@ The following example shows how to schedule a task:
 {% highlight java %}
 @Access(AccessType.PUBLIC)
 public String createTask() throws Exception {
-    ObjectNode params = JOM.createObjectNode();
-    params.put("message", "hello world");
-    JSONRequest request = getRpc().buildMsg("myTask", params);
+    Params params = new Params();
+    params.add("message", "hello world");
+    JSONRequest request = new JSONRequest("myTask", params);
 
-    long delay = 5000; // milliseconds 
+    long delay = 5000; // milliseconds
     String id = schedule(request, delay);
     return id;
 }
@@ -265,13 +262,13 @@ Usage of the WakeAgent is exactly the same as the normal agent, except for the i
 First we need a normal agent, but extending Wakeable agent. It requires a no-argument contructor.
 {% highlight java %}
 public class MyAgent extends WakeableAgent {
-   
+
    public MyAgent() {};
-   
+
    public MyAgent(final String id, final WakeService ws) {
       super(new AgentConfig(id), ws);
    }
-   
+
    @Access(AccessType.PUBLIC)
    public String helloWorld() {
       return("Hello World");
@@ -288,8 +285,8 @@ final FileStateConfig stateconfig = new FileStateConfig();
 stateconfig.setPath(".wakeservices");
 stateconfig.setId("testWakeService");
 config.setState(stateconfig);
-      
-final WakeService ws = 
+
+final WakeService ws =
    new WakeServiceBuilder()
    .withConfig(config)
    .build();
@@ -303,7 +300,7 @@ System.gc();
 //Now some other agent calls the agent:
 new Agent("other",null){
    public void test(){
-      call(new URI("local:testWakeAgent"),"helloWorld",null);
+      call(new URI("local:testWakeAgent"),"helloWorld", null);
    }
 }.test();
 
@@ -361,6 +358,3 @@ Similar to the receival of RPC messages, the agent code also handles the sending
             null);
    }
 {% endhighlight %}
-
-
-
