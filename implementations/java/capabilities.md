@@ -732,8 +732,8 @@ Eve allows its agents to be unloaded from memory and be re-instantiated (woken) 
 Workflow of unloading/waking agents: (Click to see a graphical description)
 
 1. <a href="/img/wake/step01.png" data-lightbox="eve_wake_img" data-title="An agent is annotated with the CanHibernate annotation<">An agent is annotated with the CanHibernate annotation</a>
-2. <a href="/img/wake/step02.png" data-lightbox="eve_wake_img" data-title="The agent registers itself at the InstantiationService using an unique key">The agent registers itself at the InstantiationService using an unique key</a>
-3. <a href="/img/wake/step03.png" data-lightbox="eve_wake_img" data-title="One or more capabilities are loaded, using a HibernationHandler containing the key">One or more capabilities are loaded, using a HibernationHandler containing the key</a>
+2. <a href="/img/wake/step02.png" data-lightbox="eve_wake_img" data-title="The agent registers itself at the InstantiationService (Wake service in the image) using an unique key">The agent registers itself at the InstantiationService using an unique key</a>
+3. <a href="/img/wake/step03.png" data-lightbox="eve_wake_img" data-title="One or more capabilities are loaded, using a HibernationHandler (WH (WakeHandler) in the image) containing the key">One or more capabilities are loaded, using a HibernationHandler containing the key</a>
 4. <a href="/img/wake/step04.png" data-lightbox="eve_wake_img" data-title="The agent is unreferenced, leading to garbage collection (The HibernationHandler keeps only a weakReference to the agent)">The agent is unreferenced, leading to garbage collection (The HibernationHandler keeps only a weakReference to the agent)</a>
 5. <a href="/img/wake/step05.png" data-lightbox="eve_wake_img" data-title="There is some incoming message at the capability">There is some incoming message at the capability</a>
 6. <a href="/img/wake/step06.png" data-lightbox="eve_wake_img" data-title="The capability tries to obtain the handler's target">The capability tries to obtain the handler's target</a>

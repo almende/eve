@@ -8,7 +8,7 @@ title: Deployment scenarios
 Eve is designed to offer a large flexibility in deployment scenarios, it is possible to add agent capabilities to most Java classes, in many VM environments. In this section of the documentation three example scenarios are described which can be used as a base for real application deployment. 
 
 - [Standalone](#standalone) - A standalone java application, packaged in a JAR with a main class starting the agents
-- [Standalone with WakeService](#standalone_wake) - Like the standalone, but with agents that can be unloaded from memory
+- [Standalone with InstantiationService](#standalone_wake) - Like the standalone, but with agents that can be unloaded from memory
 - [Standalone with Embedded Jetty server](#standalone_embed) - Like the standalone, but with a HttpTransport running in the embedded Jetty server
 - [Servlet](#servlet) - A java servlet application, packaged in a WAR archive, with agents being started in a ServletListener
 - [Android](#android) - An example setup in an Android application
@@ -67,12 +67,12 @@ To get this code to execute, you can use Maven to produce the executable jar fil
 
    <groupId>com.almende.eve.example</groupId>
    <artifactId>standalone</artifactId>
-   <version>3.0.0-SNAPSHOT</version>
+   <version>3.1.0</version>
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <maven.shade.version>2.3</maven.shade.version>
-      <eve.version>3.0.0-SNAPSHOT</eve.version>
+      <eve.version>3.1.0</eve.version>
    </properties>
 
    <dependencies>
@@ -120,32 +120,37 @@ Created agent:another
 user@example:~$ 
 {% endhighlight %}
 
-## Standalone setup with WakeService {#standalone_wake}
+## Standalone setup with InstantiationService {#standalone_wake}
 
 This setup is identical to the above given [standalone](#standalone) setup, except for some minor changes to the classes:
 
-The ExampleAgent class should extend "com.almende.eve.agent.WakeableAgent" instead of just "Agent". The main class also needs to be changed somewhat, adding a reference to a WakeService:
+The ExampleAgent class should be annotated with @CanHibernate. In the eve.yaml configuration file, a new section for the InstantiationServices is added:
 
-{% highlight java %}
-public class Example {
+{% highlight yaml %}
+# First we define a template for usage per agent. 
+# The ExampleAgent extends Eve's Agent class.
+templates:
+   defaultAgent:
+      class: com.almende.eve.agent.ExampleAgent
+      state:
+         class: com.almende.eve.state.memory.MemoryStateBuilder
+      scheduler:
+         class: com.almende.eve.scheduling.SimpleSchedulerBuilder
 
-   public static void main(final String[] args){
-      //First obtain the configuration:
-      if (args.length == 0) {
-         System.err.println("Missing argument pointing to yaml file!");
-         return;
-      }
-      final String yamlFilename = args[0];
+# Here we define the agents themselves:
+agents:
+-  id: example
+   extends: templates/defaultAgent
+-  id: another
+   extends: templates/defaultAgent
 
-      //Next we need a WakeService instance:
-      final WakeServiceConfig wsconfig = new WakeServiceConfig();
-      final WakeService ws = 
-         new WakeServiceBuilder()
-         .withConfig(wsconfig)
-         .build();
-      Boot.loadAgents(filename, ws);
-   }
-}
+# Here we define an instantiation service:
+instantiationServices:
+-  state:
+       class: com.almende.eve.state.file.FileStateBuilder
+       id: instantiationService
+       path: .instantiationService
+
 {% endhighlight %}
 
 ## Standalone setup with embedded Jetty {#standalone_embed}
