@@ -11,7 +11,6 @@ The core purpose of Eve is to make it easier for software developers to work wit
 There are various ways to create Eve agents:
 
 - [Extending Agent.java](#Agent) - A basic RPC agent, single state, single scheduler & multiple transports.
-- [Extending WakeableAgent.java](#Wakeable) - An extention on top of Agent.java, in which the agent can be unloaded from memory and reloaded again on incoming traffic.
 - [Custom POJO Agent](#Custom) - Create your own agent model, by cherrypicking the capabilities inside a normal Java class.
 
 ## Agent.java {#Agent}
@@ -253,58 +252,9 @@ public void myTask(@Name("message") String message) {
 
 The mentioned methods "schedule()" is a simple wrapper around the "getScheduler().schedule()" method. (cancelTask() likewise)
 
-## WakeableAgent.java {#Wakeable}
+### Hibernating Agents
 
-The Wakeable Agent is an extention of the normal Agent, therefor all above information holds also for the WakeableAgent. The difference between the Wakeable Agent and the normal agent lies in the ability of the wakeable to be unloaded from memory when not in use. This is achieved by the WakeService as described in the [capabilities section](capabilities.html#LifecycleCapabilities).
-
-Usage of the WakeAgent is exactly the same as the normal agent, except for the initial configuration. Below is an example of instantiating a WakeAble agent: (Taken from the tests in the sources)
-
-First we need a normal agent, but extending Wakeable agent. It requires a no-argument contructor.
-{% highlight java %}
-public class MyAgent extends WakeableAgent {
-
-   public MyAgent() {};
-
-   public MyAgent(final String id, final WakeService ws) {
-      super(new AgentConfig(id), ws);
-   }
-
-   @Access(AccessType.PUBLIC)
-   public String helloWorld() {
-      return("Hello World");
-   }
-}
-{% endhighlight %}
-
-This agent can be used in the following manner:
-
-{% highlight java %}
-//First we need to setup the WakeService: (Either keep a global pointer to the wake service, or obtain it again through the same configuration)
-final WakeServiceConfig config = new WakeServiceConfig();
-final FileStateConfig stateconfig = new FileStateConfig();
-stateconfig.setPath(".wakeservices");
-stateconfig.setId("testWakeService");
-config.setState(stateconfig);
-
-final WakeService ws =
-   new WakeServiceBuilder()
-   .withConfig(config)
-   .build();
-
-// Now create a WakeAble Agent
-new MyAgent("testWakeAgent",ws);
-
-//after a while the agent is unloaded:
-System.gc();
-
-//Now some other agent calls the agent:
-new Agent("other",null){
-   public void test(){
-      call(new URI("local:testWakeAgent"),"helloWorld", null);
-   }
-}.test();
-
-{% endhighlight %}
+By annotating the Agent with the @CanHibernate annotation, the agent gains the ability to be unloaded from memory when not in use. This is achieved by the InstantiationService as described in the [capabilities section](capabilities.html#LifecycleCapabilities).
 
 The TestWake test in the code repository demonstrates through a WeakReference that the agent is actually unloaded from memory.
 
@@ -349,7 +299,7 @@ public class Agent implements Receiver {
 Similar to the receival of RPC messages, the agent code also handles the sending of RPC messages, through the call() methods. This method uses the same RPCTransform to create RPC messages, and to keep track of the callback of asyncronous calls. To handle multiple transports and select the correct one based on URL scheme, the agent has a special kind of transport called "Router", which has a register of other transports.
 
 {% highlight java %}
-   protected Router			transport	= new Router();
+   protected Router	transport	= new Router();
 
    protected <T> void call(final URI url, final String method,
          final ObjectNode params, final AsyncCallback<T> callback)

@@ -1,6 +1,5 @@
 safe: true
-pygments: true
+lsi: false
 baseurl: /
 markdown: kramdown
-auto: true
-server : true
+highlighter: pygments

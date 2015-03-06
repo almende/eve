@@ -5,6 +5,22 @@ title: News
 
 #Eve - news
 
+## March 6th, 2015: Eve Java 3.1 *Flying Dutchman* released!
+
+Somewhat like it's namesake ship, this latest Eve Java release has appeared unexpectedly on the horizon. Building onto and maturing the 3.X branch, this release contains many small enhancements and some big infrastructure additions:
+
+- The JSON-RPC protocol has been generalized into a protocol stack, allowing runtime switching of communication protocol and inserting utility conversions (e.g. compression, encryption, tracing, etc.)
+- The bootstrapping & agent destruction infrastructure has been enhanced to closer match 2.X and allow more complex setups as well.
+- Various new capabilities and tools have been added:
+	- A Redis state
+	- A time-synchronizing scheduler, allowing agents in multiple runtime environments to coordinate their timing at millisecond range.  Check out the: [Musical demo](http://youtu.be/bGoe3CiQjOU)
+	- A distributed addition algorithm has been provided.
+	- An implementation of the [Trickle (RFC6206)](https://tools.ietf.org/html/rfc6206) protocol has been provided.
+
+There have been many non-visible enhancements as well, mostly providing even better performance, error handling and robustness. The performance test, mentioned at the 3.0 release, now shows over 800k RPC calls per second on a 8-core notebook.
+
+The 3.X branch has now been used in various European research projects, proving to be an excellent base for further Eve development. Especially in the realms of multi-agent algorithms, many enhancements and future developments are planned. The Flying Dutchman release is a steppingstone in providing more maturity for the 3.X branch. This ghost ship may only be passing quietly in the night, but is guaranteed to stay afloat forever:)
+
 ## September 26th, 2014: Eve JS 0.4.3 release!
 
 Stadily working towards a fully featured, mature implementation of Eve in Javascript, we have release version 0.4.3 of evejs. 

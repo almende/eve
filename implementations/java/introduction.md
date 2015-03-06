@@ -3,7 +3,7 @@ layout: default
 title: Introduction
 ---
 
-{% assign version = '3.0.0' %}
+{% assign version = '3.1.0' %}
 
 # Introduction
 
@@ -102,63 +102,52 @@ This is a bundle for using Eve on Android devices, using Websockets as the trans
 
 Eve is structured around a common Capability model. Various agent capabilities are provided: State storage, scheduling, transports, agent lifecycle, etc. These capabilities are provided in Java libraries.
 
-The libraries have the following top-level structure:
+The libraries have the following top-level structure: 
+
+<i>(<b>foldername (artifactid)</b> - description)</i>
+
 <ul>
-	<li><b>eve_parent</b> - Parent project, compile the entire project from this folder</li>
-	<li><b>eve_common</b> - Capability model, utilities</li>
-	<li><b>states</b>
+	<li><b>/eve_parent/ (eve)</b> - Parent project, compile the entire project from this folder</li>
+	<li><b>/eve_common/ (eve-common)</b> - Capability model, utilities</li>
+	<li><b>/states/</b>
 		<ul>
-			<li><b>eve_state</b> - State interfaces, Memory and File State implementations</li>
-			<li><b>eve_state_couch</b> - CouchDB State implementation</li>
-			<li><b>eve_state_mongo</b> - MongoDB State implementation</li>
- 		</ul>
-	</li>
-	<li><b>transports</b>
+			<li><b>eve_state/ (eve-state-common)</b> - State interfaces, Memory and File State implementations</li>
+			<li><b>eve_state_couch/ (eve-state-couch)</b> - CouchDB State implementation</li>
+			<li><b>eve_state_mongo/ (eve-state-mongo)</b> - MongoDB State implementation</li>
+			<li><b>eve_state_redis/ (eve-state-redis)</b> - Redis State implementation</li></ul></li>
+	<li><b>/transports/</b>
 		<ul>
-			<li><b>eve_transport</b> - Transport interfaces, Local transport</li>
-			<li><b>eve_transport_common</b> - Common code for HTTP and Websocket transports</li>
-			<li><b>eve_transport_http</b> - HTTP transport, contains o.a. EveServlet</li>
-			<li><b>eve_transport_ws</b> - WebSocket transport, JSR 356</li>
-			<li><b>eve_transport_http_jetty</b> - Embedded Jetty setup</li>
-			<li><b>eve_transport_xmpp</b> - XMPP transport implementation</li>
-			<li><b>eve_transport_zmq</b> - ZMQ transport implementation, only works correctly on Linux 64bit, due to dependencies</li>
-		</ul>
-	</li>
-	<li><b>scheduling</b>
+			<li><b>eve_transport/ (eve-transport-common)</b> - Transport interfaces, Local transport</li>
+			<li><b>eve_transport_http_common/ (eve-transport-http-common)</b> - Common code for HTTP and Websocket transports</li>
+			<li><b>eve_transport_http/ (eve-transport-http)</b> - HTTP transport, contains o.a. EveServlet</li>
+			<li><b>eve_transport_ws/ (eve-transport-ws)</b> - WebSocket transport, JSR 356</li>
+			<li><b>eve_transport_http_jetty/ (eve-transport-http-jetty)</b> - Embedded Jetty setup</li>
+			<li><b>eve_transport_xmpp/ (eve-transport-xmpp)</b> - XMPP transport implementation</li>
+			<li><b>eve_transport_zmq/ (eve-transport_zmq)</b> - ZMQ transport implementation, only works correctly on Linux 64bit, due to dependencies</li></ul></li>
+	<li><b>/scheduling/</b>
 		<ul>
-			<li><b>eve_scheduling</b> - Scheduler interfaces, Non-persistent scheduler</li>
-			<li><b>eve_persistent_scheduler</b> - Persistent scheduler, remembers tasks in some state storage</li>
-		</ul>
-	</li>
-	<li><b>transforms</b>
+			<li><b>eve_scheduling/ (eve-scheduling-common)</b> - Scheduler interfaces, Non-persistent scheduler</li>
+			<li><b>eve_persistent_scheduler/ (eve-scheduling-persistent)</b> - Persistent scheduler, remembers tasks in some state storage</li>
+			<li><b>eve_sync_scheduler/ (eve-scheduling-sync)</b> - Synchronizing scheduler, can synchronize NTP-like with other sync schedulers</li></ul></li>
+	<li><b>/protocols/</b>
 		<ul>
-			<li><b>eve_transform</b> - Transform interfaces</li>
-			<li><b>eve_transform_rpc</b> - JSON-RPC engine</li>
-		</ul>
-	</li>
-	<li><b>eve_wake</b> - Framework to let agents wake on requests</li>
-	<li><b>eve_agents</b> - The actual Agent implementations, to be extended as base of your own agents</li>
-	<li><b>eve_deployments</b> - Deployment support tools: A main class for standalone applications and a standard ServletListener for Servlet setups</li>
-	<li><b>tests</b> - Coverage tests and example code</li>
-	<li><b>tests/web</b> - Servlet Web setup for coverage tests</li>
-	<li><b>demos</b>
+			<li><b>eve_protocol_common/ (eve-protocol)</b> - Protocol stack</li>
+			<li><b>eve_protocol_jsonrpc/ (eve-protocol-jsonrpc)</b> - JSON-RPC engine</li></ul></li>
+	<li><b>/eve_agents/ (eve-agents)</b> - The actual Agent implementations, to be extended as base of your own agents</li>
+	<li><b>/eve_deployment/ (eve-deploy)</b> - Deployment support tools: A main class for standalone applications and a standard ServletListener for Servlet setups</li>
+	<li><b>/eve_instantiation/ (eve-instantiation)</b> - Framework to let instantiate and track agents, including wake on requests</li>
+	<li><b>/tests/ (eve-tests)</b> - Coverage tests and example code
+<ul>
+<li><b>web (eve-tests-war)</b> - Servlet Web setup for coverage tests</li></ul></il>
+	<li><b>/demos/</b>
 		<ul>
-			<li><b>eve_gol_demo</b> - Conway's game of live demo, using Eve agents</li>
-		</ul>
-	</li>
-	<li><b>bundles</b> - Repackaged library bundles, for simpler Maven configuration
+			<li><b>eve_getting_started/</b> - A simple example project</li>
+			<li><b>eve_gol_demo/</b> - Conway's game of live demo, using Eve agents</li>
+			<li><b>eve_gg_demo/</b> - A global goal demo, including visualisation</li></ul></li>
+	<li><b>/bundles/</b> - Repackaged library bundles, for simpler Maven configuration
 		<ul>
-			<li><b>eve_full</b> - All Eve libraries combined, exept for the embedded Jetty and the ZMQ transport</li>
-			<li><b>eve_full_embed</b> - All Eve libraries combined, including the embedded Jetty</li>
-			<li><b>eve_android</b> - Eve libraries for usage on Android, contains the XMPP transport with dependencies</li>
-			<li><b>eve_android_ws</b> - Eve libraries for usage on Android, contains the websocket transport</li>
-		</ul>
-	</li>
+			<li><b>eve_full/ (eve-bundle-full)</b> - All Eve libraries combined, exept for the embedded Jetty and the ZMQ transport</li>
+			<li><b>eve_full_embed/ (eve-bundle-full-embed)</b> - All Eve libraries combined, including the embedded Jetty</li>
+			<li><b>eve_android/ (eve-bundle-android)</b> - Eve libraries for usage on Android, contains the XMPP transport with dependencies</li>
+			<li><b>eve_android_ws/ (eve-bundle-android-ws)</b> - Eve libraries for usage on Android, contains the websocket transport</li></ul></li>
 </ul>
-
-
-
-
-
-
-

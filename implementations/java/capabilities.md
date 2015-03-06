@@ -12,9 +12,10 @@ This section provides an overview of the available capabilities, and their purpo
 
 - [Capability](#Capabilities): This part describes the generic capability model as implemented by all other capabilities
 - [Transports](#TransportCapabilities): Providing an asynchronous, string-based communication capability
-- [Transforms](#TransformCapabilities): Providing message transformation and call handling capability
+- [Protocols](#ProtocolCapabilities): Providing message transformation and call handling capability
 - [States](#StateCapabilities):          Providing persistent state storage, in the form of a key-value store
 - [Scheduling](#SchedulerCapabilities): Providing the ability to receive calls at scheduled future moments
+- [Algorithms](#Algorithms): Libraries & capabilities for multi-agent setups
 - [Lifecycle](#LifecycleCapabilities): Provide capabilities for booting and suspending agents
 
 ## Capability model {#Capabilities}
@@ -352,17 +353,17 @@ The ZMQ transport supports all three ZMQ address types:
 
 For routing to these addresses from within an agent a zmq: prefix needs to be added (as reported through agent.getUrls()). (e.g. zmq:ipc:///tmp/zmq-socket-testAgent1)
 
-## Transform Capabilities {#TransformCapabilities}
+## Protocol Capabilities {#ProtocolCapabilities}
 
-In the agent implementations, described in the [Agent section](/implementations/java/agents.html), the message transformations are normally hidden behind a simplified API. These transformations are implemented as capability. Currently only the RPC handling is available as transformation, but in the near future other protocol conversions will be provided. This can include things like compression, encryption, specialized envelops, etc.
+In the agent implementations, described in the [Agent section](/implementations/java/agents.html), the message transformations are normally hidden behind a simplified API. These transformations are implemented as capability. Currently only the RPC handling is available as protocol, but in the near future other protocol conversions will be provided. This can include things like compression, encryption, specialized envelops, etc.
 
-### RPC Transform Capability
+### JSON-RPC Protocol Capability
 
 {% highlight java %}
-final RpcTransformConfig config = new RpcTransformConfig();
+final JSONRpcProtocolConfig config = new JSONRpcProtocolConfig();
 config.setCallbackTimeout(20);
 
-final RpcTransform transform = new RpcTransformBuilder()
+final JSONRpcProtocol protocol = new JSONRpcProtocolBuilder()
    .withConfig(config)
    .withHandle(
       new SimpleHandler<Object>(new MyClass()))
@@ -383,14 +384,16 @@ final AsyncCallback<Boolean> callback = new AsyncCallback<Boolean>() {
    }
 };
       
-final ObjectNode parms = JOM.createObjectNode();
-parms.put("parm", true);
+final Params parms = new Params();
+parms.add("parm", true);
 
 // Outbound traffic:
-final Object request = transform.buildMsg("testMe", parms, callback);
-      
-// Inbound traffic:
-final Object response = transform.invoke(request,senderUrl);
+Object request = new JSONRequest("testMe", parms, callback);
+		
+ // Inbound traffic:      
+Object response = protocol.invoke(request,
+		URI.create("local://me"));
+
 {% endhighlight %}
 
 For outbound traffic the RPC transform is used to create the RPC request. The RPC transform also keeps state for these request, if a callback method is provided. This callback will be kept in memory for a configurable timeout period. (default is 30 seconds)
@@ -406,6 +409,7 @@ Through the State abstraction, agents are offered the capability for easy storag
 - [Java object serialization file state](#sfState)
 - [CouchDB state](#cdbState)
 - [MongoDB state](#mdbState)
+- [ state](#redisState)
 
 ### Usage
 
@@ -542,6 +546,26 @@ String result = myState.get("msg", String.class);
 
 {% endhighlight %}
 
+#### Redis State {#redisState}
+
+{% highlight java %}
+final RedisStateConfig params = new RedisStateConfig();
+params.setId("TestAgent");
+
+/* default values, therefor optional: */
+params.setHost("localhost");
+params.setDbId(0);
+   
+State myState = new StateBuilder()
+   .withConfig(params)
+   .build();
+
+myState.put("msg", "Hi There!");
+String result = myState.get("msg", String.class);
+
+{% endhighlight %}
+
+
 ## Scheduling Capabilities {#SchedulerCapabilities}
 
 To facilitate the autonomous behavior of the software agents, Eve offers various scheduling capabilities. These capabilities act like trigger generators, offering delayed, interval driven message delivery. These messages can contain RPC, allowing the scheduler to be used as an asynchronous taskrunner as well.
@@ -619,84 +643,140 @@ The equivalent JSON configuration is:
 }
 {% endhighlight %}
 
+## Algorithms {#Algorithms}
+
+Although an agent approach (with its highly autonomous agents) is very effective for modeling various real-life applications, some operations become harder. Especially global, aggregation type of management and situation awareness can be harder to achieve. For this purpose various distributed algorithms exist. Eve tries to provide a suite of library classes to support such algorithms, partly in the form of capabilities and partly as standalone libraries. 
+
+Currently there are two mature algorithms available and one prototypical implementation:
+
+- [Trickle](#trickle), an implementation of [RFC6206](https://tools.ietf.org/html/rfc6206), a resource-usage optimization gossip protocol
+- [DAA](#daa), an implementation of [Distributed Computing of Seperable functions](http://arxiv.org/pdf/cs/0504029.pdf)
+- DHT, a kademlia inspired DHT implementation (still prototypical, Alpha)
+
+### Trickle {#trickle)
+
+Trickle is a protocol, originally meant for lossy wireless networks that need to Gossip about shared data. It features an exponential interval back-off behavior. As soon as some data is changed, it has short sending intervals, but after no changes have been found, it will exponentially lengthen the update interval. Although the inter-agent communication of Eve is not necessarily lossy, the resource optimization is usefull non-the-less.
+
+The Eve trickle implementation provides a class (Trickle.java) that manages the exponential backoff behavior. To allow easy use of this class in a software agent, an RPC endpoint (TrickleRPC.java) is provided as well.
+
+#### Usage example
+
+{% highlight java %}
+
+@Access(AccessType.PUBLIC)
+class TrickleAgent extends Agent {
+	private TrickleRPC	trickle		= null;
+	private String 		data              = "Some string";
+	
+	@Override
+ 	public void onInit(){
+		//TrickleRPC takes two callbacks: onInterval and onSend
+		trickle = new TrickleRPC(config, getScheduler(), new Runnable() {
+			@Override
+			public void run() {
+				//On every new interval
+			}
+		}, new Runnable() {
+			@Override
+			public void run() {
+				//on every "send" interval
+				final Params params = new Params();
+				params.add("data", data);
+				for (final URI agent : neighbors) {
+					try {
+						call(agent, "receiveData", params);
+					} catch (IOException e) {}
+				}
+			}
+		});
+	}
+
+	/**
+	 * Gets the trickle RPC (will get namespace "trickle.X")
+	 *
+	 * @return the trickle
+	 */
+	@Namespace("*")
+	public TrickleRPC getTrickle() {
+		return trickle;
+	}
+
+	public void receiveData(@Name("data") String data){
+		if (this.data.equals(data)){
+			//No change, signal trickle to slow down.
+			trickle.incr();
+		} else  {
+			//Data is different, tell trickle to speed up.
+			this.data=data;
+			trickle.reset();
+		}
+	}
+}
+
+{% endhighlight %}
+
+This example is somewhat academic, because no effort is taken to determine which data is newer and/or better, allowing the agents to randomly ignore data or even keep toggling between various values.
+
+### DAA {#daa}
+
+TODO!
+
 ## Life cycle support {#LifecycleCapabilities}
 
 This section describes capabilities (currently only one) that support agent instantiation and booting. 
 
-### Wake Service Capability
+### Instantiation Service Capability
 
 Eve allows its agents to be unloaded from memory and be re-instantiated (woken) when there are incoming messages through the transports and/or schedulers. This is achieved through a combination of a registry and a callback handler. 
 
 Workflow of unloading/waking agents: (Click to see a graphical description)
 
-1. <a href="/img/wake/step01.png" data-lightbox="eve_wake_img" data-title="An agent implements the Wakeable interface">An agent implements the Wakeable interface</a>
-2. <a href="/img/wake/step02.png" data-lightbox="eve_wake_img" data-title="The agent registers itself at the WakeService using an unique key">The agent registers itself at the WakeService using an unique key</a>
-3. <a href="/img/wake/step03.png" data-lightbox="eve_wake_img" data-title="One or more capabilities are loaded, using a WakeHandler containing the key">One or more capabilities are loaded, using a WakeHandler containing the key</a>
-4. <a href="/img/wake/step04.png" data-lightbox="eve_wake_img" data-title="The agent is unreferenced, leading to garbage collection (The WakeHandler keeps only a weakReference to the agent)">The agent is unreferenced, leading to garbage collection (The WakeHandler keeps only a weakReference to the agent)</a>
+1. <a href="/img/wake/step01.png" data-lightbox="eve_wake_img" data-title="An agent is annotated with the CanHibernate annotation<">An agent is annotated with the CanHibernate annotation</a>
+2. <a href="/img/wake/step02.png" data-lightbox="eve_wake_img" data-title="The agent registers itself at the InstantiationService using an unique key">The agent registers itself at the InstantiationService using an unique key</a>
+3. <a href="/img/wake/step03.png" data-lightbox="eve_wake_img" data-title="One or more capabilities are loaded, using a HibernationHandler containing the key">One or more capabilities are loaded, using a HibernationHandler containing the key</a>
+4. <a href="/img/wake/step04.png" data-lightbox="eve_wake_img" data-title="The agent is unreferenced, leading to garbage collection (The HibernationHandler keeps only a weakReference to the agent)">The agent is unreferenced, leading to garbage collection (The HibernationHandler keeps only a weakReference to the agent)</a>
 5. <a href="/img/wake/step05.png" data-lightbox="eve_wake_img" data-title="There is some incoming message at the capability">There is some incoming message at the capability</a>
 6. <a href="/img/wake/step06.png" data-lightbox="eve_wake_img" data-title="The capability tries to obtain the handler's target">The capability tries to obtain the handler's target</a>
-7. <a href="/img/wake/step07.png" data-lightbox="eve_wake_img" data-title="The handler sees that the agent is not loaded, requests a wake from the wakeService, using the key">The handler sees that the agent is not loaded, requests a wake from the wakeService, using the key</a>
-8. <a href="/img/wake/step08.png" data-lightbox="eve_wake_img" data-title="The wakeService instantiates the agent again (using the information given during the registration) and calls the wake method of the agent instance">The wakeService instantiates the agent again (using the information given during the registration) and calls the wake method of the agent instance</a>
-9. <a href="/img/wake/step09.png" data-lightbox="eve_wake_img" data-title="The wake method in the agent obtains the capabilities again, with another WakeHandler instance">The wake method in the agent obtains the capabilities again, with another WakeHandler instance</a>
-10. <a href="/img/wake/step10.png" data-lightbox="eve_wake_img" data-title="The capability sees an existing WakeHandler, and updates this with the new instance's pointer">The capability sees an existing WakeHandler, and updates this with the new instance's pointer</a>
-11. <a href="/img/wake/step11.png" data-lightbox="eve_wake_img" data-title="The original WakeHandler now has a correct, in-memory reference to the agent, proceeds to do it's original call">The original WakeHandler now has a correct, in-memory reference to the agent, proceeds to do it's original call</a>
+7. <a href="/img/wake/step07.png" data-lightbox="eve_wake_img" data-title="The handler sees that the agent is not loaded, requests an instantiation from the InstantiationService, using the key">The handler sees that the agent is not loaded, requests an instantiation from the InstantiationService, using the key</a>
+8. <a href="/img/wake/step08.png" data-lightbox="eve_wake_img" data-title="The InstantiationService instantiates the agent again (using the information given during the registration) and calls the init method of the agent instance">The InstantiationService instantiates the agent again (using the information given during the registration) and calls the init method of the agent instance</a>
+9. <a href="/img/wake/step09.png" data-lightbox="eve_wake_img" data-title="The init method in the agent obtains the capabilities again, with another HibernationHandler instance">The init method in the agent obtains the capabilities again, with another HibernationHandler instance</a>
+10. <a href="/img/wake/step10.png" data-lightbox="eve_wake_img" data-title="The capability sees an existing HibernationHandler, and updates this with the new instance's pointer">The capability sees an existing HibernationHandler, and updates this with the new instance's pointer</a>
+11. <a href="/img/wake/step11.png" data-lightbox="eve_wake_img" data-title="The original HibernationHandler now has a correct, in-memory reference to the agent, proceeds to do it's original call">The original HibernationHandler now has a correct, in-memory reference to the agent, proceeds to do it's original call</a>
 
-#### WakeHandler
+#### HibernationHandler
 
-The WakeHandler is a callback handler which can be used as a parameter for the other capabilities. This handler contains a weakRef to the target object, allowing the target to be unloaded. When an incoming message issues a request for this target object, the WakeHandler will check the weakRef. If the target has been unloaded, it will use the included key to register a wake action from the WakeService.
+The HibernationHandler is a callback handler which can be used as a parameter for the other capabilities. This handler contains a weakRef to the target object, allowing the target to be unloaded. When an incoming message issues a request for this target object, the HibernationHandler will check the weakRef. If the target has been unloaded, it will use the included key to trigger an initiation action from the instantiationService.
 
-#### WakeService 
+#### InstantiationService 
 
-This is a registry (optional persistent for booting support) containing a list of classnames, indexed by a wakeKey. If a specific key is given, it will instantiate the class (in its value) and call the wake() method on the instance. This method can be used to recollect the other capabilities, (updating the handler in the process) after which these capabilities can further deliver the message that triggered the wake.
+This is a registry (optional persistent for booting support) containing a list of classnames, indexed by a wakeKey. If a specific key is given, it will instantiate the class (in its value) and call the init() method on the instance. This method can be used to recollect the other capabilities, (updating the handler in the process) after which these capabilities can further deliver the message that triggered the instantiation.
 
 #### Code example
 
-From a usage point of view, it's probably easiest to just extend WakeableAgent, see the [Agent section](/implementations/java/agents.html). But if you plan on creating your own wakeable agents, below is some example code to get you started.
-
 {% highlight java %}
 
-public void main(){
-   setupCapabilities(true);
-}
+final AgentConfig config = new AgentConfig("testWakeAgent");
+		
+//First we need to configure the InstantiationService: 
+final InstantiationServiceConfig isConfig = new InstantiationServiceConfig();
+final FileStateConfig stateconfig = new FileStateConfig();
+stateconfig.setPath(".wakeservices");
+stateconfig.setId("testWakeService");
+isConfig.setState(stateconfig);
+config.setInstantiationService(isConfig);
+		
+//Next we add a normal transport configuration:
+final HttpTransportConfig transConfig = new HttpTransportConfig();
+transConfig.setServletUrl("http://localhost:8080/agents/");
+transConfig.setServletLauncher("JettyLauncher");
+transConfig.setServletClass(DebugServlet.class.getName());
+final ObjectNode jettyParms = JOM.createObjectNode();
+jettyParms.put("port", 8080);
+transConfig.set("jetty", jettyParms);
+config.setTransport(transConfig);
 
-public void wake(final String wakeKey, final ObjectNode params,
-         final boolean onBoot) {
-   setupCapabilities(false);
-}
-
-public void setupCapabilities(final boolean needReg){
-   //First obtain a wakeservice:
-   final WakeServiceConfig config = new WakeServiceConfig();
-   final FileStateConfig stateconfig = new FileStateConfig();
-   stateconfig.setPath(".wakeservices");
-   stateconfig.setId("testWakeService");
-   config.setState(stateconfig);
-      
-   final WakeService ws = 
-      new WakeServiceBuilder()
-      .withConfig(config)
-      .build();
-
-   final String myId = "exampleAgent";
-
-   //Register your agent at the wakeservice ( ws.register(id, config, classname); )
-   if (needReg){
-      ws.register(myId, JOM.createObjectNode(), this.getClass().getName());
-   }
-
-   //Create WakeHandler for this class (which implements Receiver)
-   final WakeHandler<Receiver> handler = new WakeHandler<Receiver>(this, myId, ws);
-
-   //Setup the configuration:
-   final HttpTransportConfig config = new HttpTransportConfig();
-   config.setServletUrl("http://localhost:8080/agents/");
-   config.setId("testAgent");
-
-   //Build the transport:
-   final Transport transport = new TransportBuilder()
-      .withConfig(config)
-      .withHandle(handler)
-      .build();
-}
+// Now create an Agent (MyAgent class is annotated by the CanHibernate annotation)
+Agent myagent = new MyAgent(config);
+		
 {% endhighlight %}
 
