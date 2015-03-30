@@ -3,7 +3,7 @@ layout: default
 title: Introduction
 ---
 
-{% assign version = '3.1.0' %}
+{% assign version = '3.1.1' %}
 
 # Introduction
 

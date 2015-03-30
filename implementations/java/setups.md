@@ -67,12 +67,12 @@ To get this code to execute, you can use Maven to produce the executable jar fil
 
    <groupId>com.almende.eve.example</groupId>
    <artifactId>standalone</artifactId>
-   <version>3.1.0</version>
+   <version>3.1.1</version>
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <maven.shade.version>2.3</maven.shade.version>
-      <eve.version>3.1.0</eve.version>
+      <eve.version>3.1.1</eve.version>
    </properties>
 
    <dependencies>
@@ -287,11 +287,11 @@ The Maven configuration is completely standard for war projects, with the follow
 
    <groupId>com.almende.eve.example</groupId>
    <artifactId>war-example</artifactId>
-   <version>3.0.0-SNAPSHOT</version>
+   <version>3.1.1</version>
    <packaging>war</packaging>
 
    <properties>
-      <eve.version>3.0.0-SNAPSHOT</eve.version>
+      <eve.version>3.1.1</eve.version>
    </properties>
 
    <dependencies>
