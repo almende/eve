@@ -5,6 +5,10 @@ title: News
 
 #Eve - news
 
+## March 30th, 2015: Eve Java Hotfix release 3.1.1 released
+
+This release fixes two resource starvation issues in the threading code. Updating highly adviced.
+
 ## March 6th, 2015: Eve Java 3.1 *Flying Dutchman* released!
 
 Somewhat like it's namesake ship, this latest Eve Java release has appeared unexpectedly on the horizon. Building onto and maturing the 3.X branch, this release contains many small enhancements and some big infrastructure additions:

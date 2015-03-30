@@ -274,7 +274,7 @@ public class MyListener implements ServletContextListener {
       final String fullname = "/WEB-INF/" + path;
       final InputStream is = sc.getResourceAsStream(fullname);
 
-      Boot.loadAgents(is);
+      Boot.boot(is);
    }
 }
 {% endhighlight %}
